@@ -485,14 +485,14 @@ children:                        {self.children_present}
         plt.close()
 
 
-    def isolate(self, data=None, clusters=None, purge=True):
+    def isolate(self, raw=False, clusters=None, purge=True):
         """Isolates points per clusters based on a cluster result"""
         if purge or self.children is None:
             self.children = defaultdict(lambda: CNNChild(self))
         
-        # data, _ = self.query_data(raw)
-        _data = self.data
-        _shape = self.shape
+        _data, _shape = self.query_data(raw)
+        #_data = self.data
+        #_shape = self.shape
 
         if clusters is None:
             clusters = self.clusters
