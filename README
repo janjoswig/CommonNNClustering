@@ -1,0 +1,8 @@
+to use the cnn module:
+    export PYTHONPATH=$PYTHONPATH:$CNN_HOME/cnn
+
+to use the excecutables:    
+    export PATH=$PATH:$CNN_HOME/bin
+
+or create a symlink, e.g.
+    ln -s $CNN_HOME/bin/cnn $YOUR_FAVORITE_DIR/cnn
