@@ -658,6 +658,43 @@ children :                       {self.children_present}
                     self.train_labels[self.train_refindex[value]] = key 
         else:
             raise NotImplementedError()
+
+
+    def make_ndx(self, mode='train'):
+        if mode == 'train':
+            if self.train_clusterdict is None:
+                if self.train_labels is not None:
+                    self.labels2dict()  
+                else:
+                    raise LookupError(
+                        "No labels or cluster dictionary found for mode 'train'"
+                                     )
+            part_startpoint = 0
+            for part in range(1, self.train_shape['parts']+1):
+                part_endpoint = part_startpoint \
+                    + self.train_shape['points'][part] -1
+                
+                with open(f"rep{part}.ndx", 'w') as file_:
+                    for _cluster in self.train_clusterdict:
+                        sorted_members = np.asarray(
+                            sorted(self.train_clusterdict[_cluster])
+                            )
+                        file_.write(f"[ core{_cluster} ]\n")
+                        for _member in sorted_members[
+                            np.where(
+                                (sorted_members
+                                >= part_startpoint)
+                                &
+                                (sorted_members
+                                <= part_endpoint))[0]]:
+                            
+                            file_.write(f"{_member +1}\n")
+
+                part_startpoint = np.copy(part_endpoint)
+
+        else:
+            raise NotImplementedError()
+
 class CNNChild(CNN):
     def __init__(self, parent):
         super().__init__()
