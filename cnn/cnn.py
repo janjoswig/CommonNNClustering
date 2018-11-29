@@ -136,14 +136,20 @@ class CNN():
     def check(self):
         if self.test is not None:
             self.test_present = True
+            self.test_shape_str = {**self.test_shape}
+            self.test_shape_str['points'] = self.test_shape_str['points'][:5]
         else:
             self.test_present = False 
+            self.test_shape_str = None
 
         if self.train is not None:
             self.train_present = True
+            self.train_shape_str = {**self.train_shape}
+            self.train_shape_str['points'] = self.train_shape_str['points'][:5]
         else:
-            self.train_present = False
-        
+            self.train_present = False            
+            self.train_shape_str = None
+
         if self.dist_matrix is not None:
             self.dist_matrix_present = True
         else:
@@ -165,9 +171,9 @@ class CNN():
 alias :                          {self.alias}
 hierachy level:                  {self.hierarchy_level}
 test data loaded :               {self.test_present}
-test data shape :                {self.test_shape}
+test data shape :                {self.test_shape_str}
 train data loaded :              {self.train_present}
-train data shape :               {self.train_shape}
+train data shape :               {self.train_shape_str}
 distance matrix calculated :     {self.dist_matrix_present}
 clustered :                      {self.clusters_present}
 children :                       {self.children_present}
@@ -270,7 +276,7 @@ children :                       {self.children_present}
         """Computes a map matrix that maps an arbitrary data set to a
         reduced to set"""
 
-        if self.train or self.test is None:
+        if self.train is None or self.test is None:
             raise LookupError(
                 "Mapping requires a train and a test data set"
                 )
@@ -317,7 +323,7 @@ children :                       {self.children_present}
     
     @recorded
     @timed
-    def cluster(self, radius_cutoff=1, cnn_cutoff=1,
+    def fit(self, radius_cutoff=1, cnn_cutoff=1,
                 member_cutoff=1, max_clusters=None, rec=True):
         """Performs a CNN clustering of points in a given distance matrix"""
         if self.dist_matrix is None:
@@ -331,8 +337,8 @@ children :                       {self.children_present}
         include = np.ones(len(neighbours), dtype=bool)
         include[np.where(n_neighbours < cnn_cutoff)[0] ] = False
         
-        _clusterdict = defaultdict(list)
-        _clusterdict[0].extend(np.where(include == False)[0])
+        _clusterdict = defaultdict(SortedList)
+        _clusterdict[0].update(np.where(include == False)[0])
         _labels = np.zeros(n_points).astype(int)
         current = 1
 
@@ -342,7 +348,7 @@ children :                       {self.children_present}
                 (n_neighbours == np.max(n_neighbours[include]))
                 & (include == True)
             )[0][0]
-            _clusterdict[current].append(point)
+            _clusterdict[current].add(point)
             new_point_added = True
             _labels[point] = current
             include[point] = False
@@ -361,7 +367,7 @@ children :                       {self.children_present}
                             if len(common_neighbours) >= cnn_cutoff:
                             # and (point in neighbours[neighbour])
                             # and (neighbour in neighbours[point]):
-                                _clusterdict[current].append(neighbour)
+                                _clusterdict[current].add(neighbour)
                                 new_point_added = True
                                 _labels[neighbour] = current
                                 include[neighbour] = False
@@ -372,6 +378,7 @@ children :                       {self.children_present}
             if max_clusters is not None:
                 if current == max_clusters+1:
                     enough = True
+
         
         clusters_no_noise = {y: _clusterdict[y] 
                     for y in _clusterdict if y != 0}
@@ -383,7 +390,8 @@ children :                       {self.children_present}
             ]
         
         if len(too_small) > 0:
-            _clusterdict[0].extend(too_small)
+            for entry in too_small:
+                _clusterdict[0].update(entry)
         
         for x in set(_labels):
             if x not in set(_clusterdict):
@@ -396,9 +404,11 @@ children :                       {self.children_present}
                 len(x) 
                 for x in clusters_no_noise.values()
                     ])]) / n_points
-
+        
         self.train_clusterdict = _clusterdict
         self.train_labels = _labels
+        self.clean()
+        self.labels2dict()
 
         if rec:
             return pd.Series([
@@ -539,40 +549,38 @@ children :                       {self.children_present}
             if purge or self.train_children is None:
                 self.train_children = defaultdict(lambda: CNNChild(self))
             
-            for _cluster in  self.train_clusterdict:
-                if len(self.train_clusterdict[_cluster]) > 0:
+            for key, _cluster in  self.train_clusterdict.items():
+                if len(_cluster) > 0:
+                    _cluster = np.asarray(_cluster)
                     ref_index = []
                     cluster_data = []
                     part_startpoint = 0
                     for part in range(self.train_shape['parts']):
                         part_endpoint = part_startpoint \
                             + self.train_shape['points'][part] -1
-                        sorted_members = np.asarray(
-                            sorted(self.train_clusterdict[_cluster])
-                            )
                         if self.train_refindex is None:
-                            ref_index.extend(sorted_members)
+                            ref_index.extend(_cluster)
                         else:
                             ref_index.extend(
-                                self.train_refindex[sorted_members]
+                                self.train_refindex[_cluster]
                                 )
 
                         cluster_data.append(
-                            self.train[part][sorted_members[
+                            self.train[part][_cluster[
                                 np.where(
-                                    (sorted_members
+                                    (_cluster
                                     >= part_startpoint)
                                     &
-                                    (sorted_members
+                                    (_cluster
                                     <= part_endpoint))[0]]]
                                 )
                         part_startpoint = np.copy(part_endpoint)
 
-                    self.train_children[_cluster].alias = f'child No. {_cluster}'
-                    self.train_children[_cluster].train, \
-                    self.train_children[_cluster].train_shape = \
-                    self.train_children[_cluster].get_shape(cluster_data)
-                    self.train_children[_cluster].train_refindex = np.asarray(
+                    self.train_children[key].alias = f'child No. {key}'
+                    self.train_children[key].train, \
+                    self.train_children[key].train_shape = \
+                    self.train_children[key].get_shape(cluster_data)
+                    self.train_children[key].train_refindex = np.asarray(
                                                                        ref_index
                                                                        )
         else:
@@ -599,32 +607,34 @@ children :                       {self.children_present}
                     _cluster.train_refindex[
                         np.where(_cluster.train_labels == _label)[0]
                         ]
-                    ] = _label + n_clusters                   
+                    ] = _label + n_clusters
+
+        self.clean()
+        self.labels2dict()
+            
 
     def clean(self, mode='train'):
         if mode == 'train':
             # fixing  missing labels
-            n_clusters = np.max(self.train_labels)
-            for _cluster in range(1, n_clusters +1):
-                if _cluster not in self.train_labels:
-                    self.train_labels[self.train_labels > _cluster] -= 1
+            n_clusters = len(set(self.train_labels))
+            for _cluster in range(1, n_clusters):
+                if _cluster not in set(self.train_labels):
+                    while _cluster not in set(self.train_labels):
+                        self.train_labels[self.train_labels > _cluster] -= 1
 
             # sorting by clustersize
             n_clusters = np.max(self.train_labels)
-            frequency_counts = [
+            frequency_counts = np.asarray([
                 len(np.where(self.train_labels == x)[0]) 
                 for x in set(self.train_labels[self.train_labels > 0])
-                ]
-            new_labels = n_clusters - np.argsort(frequency_counts)
+                ])
+            old_labels = np.argsort(frequency_counts)[::-1] +1
             proxy_labels = np.copy(self.train_labels)
-            for old_label, new_label in enumerate(new_labels, 1):   
+            for new_label, old_label in enumerate(old_labels, 1):   
                 proxy_labels[
                     np.where(self.train_labels == old_label)
                     ] = new_label
             self.train_labels = proxy_labels
-
-            self.clean()
-            self.labels2dict()
             
         else:
             raise NotImplementedError()
@@ -675,17 +685,15 @@ children :                       {self.children_present}
                     + self.train_shape['points'][part] -1
                 
                 with open(f"rep{part}.ndx", 'w') as file_:
-                    for _cluster in self.train_clusterdict:
-                        sorted_members = np.asarray(
-                            sorted(self.train_clusterdict[_cluster])
-                            )
+                    for _cluster in self.train_clusterdict.values():
+                        _cluster = np.asarray(_cluster)
                         file_.write(f"[ core{_cluster} ]\n")
-                        for _member in sorted_members[
+                        for _member in _cluster[
                             np.where(
-                                (sorted_members
+                                (_cluster
                                 >= part_startpoint)
                                 &
-                                (sorted_members
+                                (_cluster
                                 <= part_endpoint))[0]]:
                             
                             file_.write(f"{_member +1}\n")
