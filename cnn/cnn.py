@@ -427,30 +427,163 @@ children :                       {self.children_present}
                         )
 
     def predict(self, low_memory=False, radius_cutoff=1, cnn_cutoff=1,
-                member_cutoff=1, max_clusters=None, cluster=None):
-
+        member_cutoff=1, max_clusters=None, include_all=True, cluster=None,
+        purge=False):
+        
         if low_memory:
-            raise NotImplementedError()
+            # raise NotImplementedError()
+            if cluster is None:
+                train_neighbours = np.asarray([                  
+                    np.where(x <= radius_cutoff)[0] for x in self.dist_matrix
+                    ])
+            else:
+                selected_members = np.concatenate(
+                    [self.train_clusterdict[x] for x in cluster]
+                    )
+                all_neighbours = np.asarray([                  
+                    np.where(x <= radius_cutoff)[0] for x in self.dist_matrix
+                    ])
+                train_neighbours = np.asarray([
+                    x[np.isin(x, selected_members)] for x in all_neighbours
+                    ])
+            
+            # n_points = np.sum(self.test_shape['points'])
+            _cdist = cdist
+            test = np.vstack(self.test)
+            train = np.vstack(self.train)
+            n_points = len(test)
+
+            if (cluster is None) or (purge is True) or (self.test_labels is None):
+                test_labels = np.zeros(n_points).astype(int)
+            else:
+                test_labels = self.test_labels
+            
+            if not include_all:
+                for point in range(n_points):
+                    print(f'Predicting cluster for point {1+point:6} of {n_points}',
+                        end='\r')
+                    map_matrix_part = _cdist(np.array([test[point]]),
+                                             train)
+                     
+                    same = np.where(map_matrix_part[0] == 0)[0]
+                    if len(same) > 0:
+                        test_labels[point] = self.train_labels[same[0]]
+                    else:
+                        test_neighbours = np.where(map_matrix_part[0] <= radius_cutoff)[0]
+                        if cluster is not None:
+                            test_neighbours = test_neighbours[
+                                np.isin(test_neighbours, selected_members)]
+                       
+                        common_neighbours = [
+                                    set(test_neighbours)
+                                    & set(train_neighbours[x])
+                                    for x in test_neighbours
+                                    ]
+
+                        cnn_fulfilled = np.where(
+                            np.asarray([
+                            len(x) for x in common_neighbours
+                            ]) >= cnn_cutoff)[0]
+
+                        if len(cnn_fulfilled) > 0:
+                            test_labels[point] = self.train_labels[
+                            test_neighbours[
+                            np.argmax(cnn_fulfilled)]] 
+            
+            else:             
+                for point in range(n_points):
+                    print(f'Predicting cluster for point {1+point:6} of {n_points}',
+                        end='\r')
+                
+                    map_matrix_part = _cdist(np.array([test[point]]),
+                                             train)
+                    test_neighbours = np.where(map_matrix_part[0] <= radius_cutoff)[0]
+                    if cluster is not None:
+                        test_neighbours = test_neighbours[
+                                np.isin(test_neighbours, selected_members)]
+
+                    common_neighbours = [
+                                set(test_neighbours)
+                                & set(train_neighbours[x])
+                                for x in test_neighbours
+                                ]
+
+                    cnn_fulfilled = np.where(
+                        np.asarray([
+                        len(x) for x in common_neighbours
+                        ]) >= cnn_cutoff)[0]
+
+                    if len(cnn_fulfilled) > 0:
+                        test_labels[point] = self.train_labels[
+                        test_neighbours[
+                        np.argmax(cnn_fulfilled)]] 
+
+
         else:
             if self.map_matrix is None:
                 self.map()
+        
+            if cluster is None:
+                test_neighbours = np.asarray([
+                    np.where(x <= radius_cutoff)[0] for x in self.map_matrix
+                    ])
+            
+                train_neighbours = np.asarray([                  
+                    np.where(x <= radius_cutoff)[0] for x in self.dist_matrix
+                    ])
+            else:
+                selected_members = np.concatenate(
+                    [self.train_clusterdict[x] for x in cluster]
+                    )
+                all_neighbours = np.asarray([
+                    np.where(x <= radius_cutoff)[0] for x in self.map_matrix
+                    ])
+                test_neighbours = np.asarray([
+                   x[np.isin(x, selected_members)] for x in all_neighbours
+                    ])
 
-            test_neighbours = np.asarray([
-                np.where(x <= radius_cutoff)[0] for x in self.map_matrix
-                ])
-            train_neighbours = np.asarray([                  
-                np.where(x <= radius_cutoff)[0] for x in self.dist_matrix
-                ])    
+                all_neighbours = np.asarray([                  
+                    np.where(x <= radius_cutoff)[0] for x in self.dist_matrix
+                    ])
+                train_neighbours = np.asarray([
+                    x[np.isin(x, selected_members)] for x in all_neighbours
+                    ])
 
             n_points = len(self.map_matrix)
-            test_labels = np.zeros(n_points).astype(int)
-            for point in range(n_points):
-                print(f'Predicting cluster for point {1+point:6} of {n_points}',
-                    end='\r')
-                same = np.where(self.map_matrix[point] == 0)[0]
-                if len(same) > 0:
-                    test_labels[point] = self.train_labels[same[0]]
-                else:
+
+            if (cluster is None) or (purge is True) or (self.test_labels is None):
+                test_labels = np.zeros(n_points).astype(int)
+            else:
+                test_labels = self.test_labels
+
+            if not include_all:
+                for point in range(n_points):
+                    print(f'Predicting cluster for point {1+point:6} of {n_points}',
+                        end='\r')
+                    same = np.where(self.map_matrix[point] == 0)[0]
+                    if len(same) > 0:
+                        test_labels[point] = self.train_labels[same[0]]
+                    else:
+                        common_neighbours = [
+                            set(test_neighbours[point])
+                            & set(train_neighbours[x])
+                            for x in test_neighbours[point]
+                            ]
+
+                        cnn_fulfilled = np.where(
+                            np.asarray([
+                                len(x) for x in common_neighbours
+                                ]) >= cnn_cutoff)[0]
+              
+                        if len(cnn_fulfilled) > 0:
+                            test_labels[point] = self.train_labels[
+                                test_neighbours[point][
+                                    np.argmax(cnn_fulfilled)]] 
+            else:
+                for point in range(n_points):
+                    print(f'Predicting cluster for point {1+point:6} of {n_points}',
+                        end='\r')
+               
                     common_neighbours = [
                         set(test_neighbours[point])
                         & set(train_neighbours[x])
