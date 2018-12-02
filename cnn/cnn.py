@@ -18,7 +18,55 @@ from scipy.spatial.distance import cdist
 from functools import wraps
 import time
 import pandas as pd
-from itertools import cycle, islice
+from configparser import ConfigParser
+from cycler import cycler
+from pathlib import Path
+
+# Configuration
+CWD = Path.cwd()
+CWD_CONFIG = Path(f"{CWD}/.cnnrc")
+HOME = Path.home()
+HOME_CONFIG = Path(f"{HOME}/.cnnrc")
+config_ = ConfigParser(default_section="settings")
+config_template = ConfigParser(
+        default_section="settings",
+        defaults={'record_points': "points",
+                  'record_radius_cutoff' = "radius_cutoff",
+                  'record_cnn_cutoff' = "cnn_cutoff",
+                  'record_member_cutoff' = "member_cutoff",
+                  'record_max_cluster' = "max_cluster",
+                  'record_n_cluster' = "n_cluster",
+                  'record_largest' = "largest",
+                  'record_noise' = "noise",
+                  'record_time' = "time",
+                  'color' = """000000 396ab1 da7c30 3e9651 cc2529 535154 6b4c9a
+    922428 948b3d 7293cb e1974c 84ba5b d35e60 9067a7 ab6857 ccc210 808585
+""",}
+        )
+if CONFIG_CWD.is_file():
+    print(f"Configuration file found in {CWD}"}
+    config_.read(CONFIG_CWD)
+elif CONFIG_HOME.is_file():
+    print(f"Configuration file found in {HOME}"}
+    config_.read(CONFIG_HOME)
+else:
+    print("No user configuration file found. Using default setup")
+    config_ = config_template
+    try:
+        with open(CONFIG_HOME, 'w') as configfile:
+            config_.write(configfile)
+        print(f"Writing configuration file to {CONFIG_HOME}")
+    except PermissionError:
+        print(
+f"Attempt to write configuration file to {CONFIG_HOME} failed: Permission denied!"
+        )
+    except FileNotFoundError:
+        print(
+f"Attempt to write configuration file to {CONFIG_HOME} failed: No such file or directory!"
+        )
+
+settings = config_['settings']
+defaults = config_template['settings']
 
 ################################################################################
 
@@ -42,16 +90,18 @@ f"Execution time for call of {function_.__name__}(): \
 
 # generic function feedback data container for CCN.cluster(); used only
 # to provide column identifiers.  maybe not too useful ...
-record = namedtuple('clusterRecord',
-                    ['points',
-                    'radius_cutoff',
-                    'cnn_cutoff',
-                    'member_cutoff',
-                    'max_clusters',
-                    'n_cluster',
-                    'largest',
-                    'noise',
-                    'time'])
+
+record = namedtuple(
+        'clusterRecord',
+        [settings.get('record_points', defaults.get('record_points')),
+         settings.get('record_radius_cutoff', defaults.get('record_radius_cutoff')),
+         settings.get('record_cnn_cutoff', defaults.get('record_cnn_cutoff')),
+         settings.get('record_member_cutoff', defaults.get('record_member_cutoff')),
+         settings.get('record_max_clusters', defaults.get('record_max_clusters')),
+         settings.get('record_n_clusters', defaults.get('record_n_clusters')),
+         settings.get('record_largest', defaults.get('record_largest')),
+         settings.get('record_noise', defaults.get('record_noise')),
+         settings.get('record_noise', defaults.get('record_noise')),])            
 
 def recorded(function_):
     """Decorator to format function feedback.  Feedback needs to be
@@ -661,13 +711,13 @@ children :                       {self.children_present}
         if max_clusters is not None:
             _labels[_labels > max_clusters] = 0
 
-        colors = np.array(list(islice(cycle(['#000000', '#396ab1', '#da7c30',
-                                             '#3e9651', '#cc2529', '#535154',
-                                             '#6b4c9a', '#922428', '#948b3d']),
-                                int(max(_labels) + 1))))
+ 
+        color = settings.get('colors', defaults.get('colors'))
 
         fig, ax = plt.subplots()
-        ax.scatter(_data[:, 0], _data[:, 1], s=10, color=colors[_labels])
+        if color is not None:
+            ax.set_prop_cycle((cycler(color=color.split())))
+        ax.scatter(_data[:, 0], _data[:, 1], s=10)
         if save:
             plt.savefig(output, dpi=dpi)
         if show:
