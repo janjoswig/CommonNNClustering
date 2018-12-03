@@ -74,7 +74,7 @@ We can get an impression of the loaded data by plotting the points.
 
 Let's reduce the large *test* data set to make the clustering faster.
 
->>> cnn.cut(points=(None, None, 10))
+>>> cobj.cut(points=(None, None, 10))
 ...
 >>> print(cobj)
 cnn.CNN() cluster object 

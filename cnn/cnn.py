@@ -18,7 +18,8 @@ from functools import wraps
 import time
 import pandas as pd
 from configparser import ConfigParser
-from cycler import cycler
+# from cycler import cycler
+from itertools import cycle, islice
 from pathlib import Path
 
 # Configuration
@@ -38,9 +39,9 @@ config_template = ConfigParser(
                   'record_largest' : "largest",
                   'record_noise' : "noise",
                   'record_time' : "time",
-                  'color' : """000000 396ab1 da7c30 3e9651 cc2529 535154 6b4c9a
-    922428 948b3d 7293cb e1974c 84ba5b d35e60 9067a7 ab6857 ccc210 808585
-""",}
+                  'color' : """#000000 #396ab1 #da7c30 #3e9651 #cc2529 #535154
+                               #6b4c9a #922428 #948b3d #7293cb #e1974c #84ba5b
+                               #d35e60 #9067a7 #ab6857 #ccc210 #808585""",}
         )
 if CWD_CONFIG.is_file():
     print(f"Configuration file found in {CWD}")
@@ -288,7 +289,7 @@ children :                              {self.children_present}
             self.test_dist_matrix, self.train_dist_matrix
 
     def cut(self, parts=(None, None, None), points=(None, None, None),
-               dimensions=(None, None, None)):
+            dimensions=(None, None, None)):
         """Alows data set reduction.  For each data set level (parts,
         points, dimensions) a tuple (start:stop:step) can be
         specified."""
@@ -371,19 +372,25 @@ children :                              {self.children_present}
         matrix"""
         
         if mode == 'train':
+            if self.train_dist_matrix is None:
+                print(
+"Train distance matrix not calculated. Calculating distance matrix."
+                )
+                self.dist(mode=mode)
             _dist_matrix = self.train_dist_matrix
+        
         elif mode == 'test':
+            if self.test_dist_matrix is None:
+                print(
+"Train distance matrix not calculated. Calculating distance matrix."
+                )
+                self.dist(mode=mode)           
             _dist_matrix = self.test_dist_matrix
+        
         else:
             raise ValueError(
                 "Mode not understood. Must be either 'train' or 'test'."
             )
-
-        if _dist_matrix is None:
-            print(
-                "Distance matrix not calculated. Calculating distance matrix."
-                 )
-            self.dist(mode=mode)
 
         flat_ = np.tril(_dist_matrix).flatten()
         histogram, bins =  np.histogram(flat_[flat_ > 0],
@@ -702,6 +709,7 @@ children :                              {self.children_present}
         """Helper function to evaluate user input. If data is required as
         keyword argument and data=None is passed, the default data used is
         either self.rdata or self.data."""
+        
         if mode == 'train':
             if self.train is not None:
                 _data = self.train
@@ -729,15 +737,16 @@ children :                              {self.children_present}
 
 
     def evaluate(self, mode='train', max_clusters=None,
-                 plot='scatter', dim=None, show=True, save=False,
+                 plot='scatter', parts=(None, None, None),
+                 points=(None, None, None), dim=None, show=True, save=False,
                  output='evaluation.pdf', dpi=300):
         """Shows/saves a 2D histogram or scatter plot of a cluster result"""
 
         _data, _ = self.query_data(mode=mode)
         if dim is None:
             dim = 0
-        _data = [x[slice(None, None, None), slice(dim, dim+2, 1)] 
-                        for x in _data[slice(None, None, None)]]
+        _data = [x[slice(*points), slice(dim, dim+2, 1)] 
+                        for x in _data[slice(*parts)]]
 
         _data = np.vstack(_data)
 
@@ -757,12 +766,17 @@ children :                              {self.children_present}
             _labels[_labels > max_clusters] = 0
 
  
-        color = settings.get('colors', defaults.get('colors'))
+        color = settings.get('color', defaults.get('color'))
 
         fig, ax = plt.subplots()
         if color is not None:
-            ax.set_prop_cycle((cycler(color=color.split())))
-        ax.scatter(_data[:, 0], _data[:, 1], s=10)
+            # ax.set_prop_cycle((cycler(color=color.split())))
+            colors = np.array(list(islice(cycle(color.split()),
+                                          int(max(_labels) + 1)
+                                          ))) 
+            color = colors[_labels]
+                          
+        ax.scatter(_data[:, 0], _data[:, 1], alpha=0.5, s=10, color=color)
         if save:
             plt.savefig(output, dpi=dpi)
         if show:

@@ -186,8 +186,8 @@
                   <span class="s1">&#39;record_noise&#39;</span> <span class="p">:</span> <span class="s2">&quot;noise&quot;</span><span class="p">,</span>
                   <span class="s1">&#39;record_time&#39;</span> <span class="p">:</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span>
                   <span class="s1">&#39;color&#39;</span> <span class="p">:</span> <span class="s2">&quot;&quot;&quot;000000 396ab1 da7c30 3e9651 cc2529 535154 6b4c9a</span>
-<span class="s2">    922428 948b3d 7293cb e1974c 84ba5b d35e60 9067a7 ab6857 ccc210 808585</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">,}</span>
+<span class="s2">                               922428 948b3d 7293cb e1974c 84ba5b d35e60 9067a7</span>
+<span class="s2">                               ab6857 ccc210 808585&quot;&quot;&quot;</span><span class="p">,}</span>
         <span class="p">)</span>
 <span class="k">if</span> <span class="n">CWD_CONFIG</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Configuration file found in </span><span class="si">{CWD}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -201,7 +201,7 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">HOME_CONFIG</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">configfile</span><span class="p">:</span>
             <span class="n">config_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">configfile</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Writing configuration file to </span><span class="si">{CHOME_CONFIG}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Writing configuration file to </span><span class="si">{HOME_CONFIG}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">PermissionError</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span>
 <span class="n">f</span><span class="s2">&quot;Attempt to write configuration file to </span><span class="si">{HOME_CONFIG}</span><span class="s2"> failed: Permission denied!&quot;</span>
@@ -435,7 +435,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">test_dist_matrix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_dist_matrix</span>
 
 <div class="viewcode-block" id="CNN.cut"><a class="viewcode-back" href="../documentation.html#cnn.CNN.cut">[docs]</a>    <span class="k">def</span> <span class="nf">cut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parts</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">points</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-               <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;Alows data set reduction.  For each data set level (parts,</span>
 <span class="sd">        points, dimensions) a tuple (start:stop:step) can be</span>
 <span class="sd">        specified.&quot;&quot;&quot;</span>
@@ -511,7 +511,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">map_matrix</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">))</span></div>
             
-<div class="viewcode-block" id="CNN.dist_hist"><a class="viewcode-back" href="../documentation.html#cnn.CNN.dist_hist">[docs]</a>    <span class="k">def</span> <span class="nf">dist_hist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="CNN.dist_hist"><a class="viewcode-back" href="../documentation.html#cnn.CNN.dist_hist">[docs]</a>    <span class="k">def</span> <span class="nf">dist_hist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;d / au&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
                   <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;dist_hist.pdf&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Shows/saves a histogram plot for distances in a given distance</span>
