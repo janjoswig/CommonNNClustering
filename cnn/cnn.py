@@ -2,11 +2,10 @@
 
 The functionality provided in this module is based on code implemented
 by Oliver Lemke in the script collection CNNClustering available on
-git-hub (clone https://github.com/BDGSoftware/CNNClustering.git).
+git-hub (https://github.com/BDGSoftware/CNNClustering.git).
 
-Author: Jan Joswig, 
-first edit: 09.10.18
-released:
+Author: Jan-Oliver Joswig, 
+first released: 03.12.2018
 """
 
 import pickle
@@ -31,38 +30,38 @@ config_ = ConfigParser(default_section="settings")
 config_template = ConfigParser(
         default_section="settings",
         defaults={'record_points': "points",
-                  'record_radius_cutoff' = "radius_cutoff",
-                  'record_cnn_cutoff' = "cnn_cutoff",
-                  'record_member_cutoff' = "member_cutoff",
-                  'record_max_cluster' = "max_cluster",
-                  'record_n_cluster' = "n_cluster",
-                  'record_largest' = "largest",
-                  'record_noise' = "noise",
-                  'record_time' = "time",
-                  'color' = """000000 396ab1 da7c30 3e9651 cc2529 535154 6b4c9a
+                  'record_radius_cutoff' : "radius_cutoff",
+                  'record_cnn_cutoff' : "cnn_cutoff",
+                  'record_member_cutoff' : "member_cutoff",
+                  'record_max_cluster' : "max_cluster",
+                  'record_n_cluster' : "n_cluster",
+                  'record_largest' : "largest",
+                  'record_noise' : "noise",
+                  'record_time' : "time",
+                  'color' : """000000 396ab1 da7c30 3e9651 cc2529 535154 6b4c9a
     922428 948b3d 7293cb e1974c 84ba5b d35e60 9067a7 ab6857 ccc210 808585
 """,}
         )
-if CONFIG_CWD.is_file():
-    print(f"Configuration file found in {CWD}"}
-    config_.read(CONFIG_CWD)
-elif CONFIG_HOME.is_file():
-    print(f"Configuration file found in {HOME}"}
-    config_.read(CONFIG_HOME)
+if CWD_CONFIG.is_file():
+    print(f"Configuration file found in {CWD}")
+    config_.read(CWD_CONFIG)
+elif HOME_CONFIG.is_file():
+    print(f"Configuration file found in {HOME}")
+    config_.read(HOME_CONFIG)
 else:
     print("No user configuration file found. Using default setup")
     config_ = config_template
     try:
-        with open(CONFIG_HOME, 'w') as configfile:
+        with open(HOME_CONFIG, 'w') as configfile:
             config_.write(configfile)
-        print(f"Writing configuration file to {CONFIG_HOME}")
+        print(f"Writing configuration file to {CHOME_CONFIG}")
     except PermissionError:
         print(
-f"Attempt to write configuration file to {CONFIG_HOME} failed: Permission denied!"
+f"Attempt to write configuration file to {HOME_CONFIG} failed: Permission denied!"
         )
     except FileNotFoundError:
         print(
-f"Attempt to write configuration file to {CONFIG_HOME} failed: No such file or directory!"
+f"Attempt to write configuration file to {HOME_CONFIG} failed: No such file or directory!"
         )
 
 settings = config_['settings']
@@ -92,16 +91,16 @@ f"Execution time for call of {function_.__name__}(): \
 # to provide column identifiers.  maybe not too useful ...
 
 record = namedtuple(
-        'clusterRecord',
-        [settings.get('record_points', defaults.get('record_points')),
-         settings.get('record_radius_cutoff', defaults.get('record_radius_cutoff')),
-         settings.get('record_cnn_cutoff', defaults.get('record_cnn_cutoff')),
-         settings.get('record_member_cutoff', defaults.get('record_member_cutoff')),
-         settings.get('record_max_clusters', defaults.get('record_max_clusters')),
-         settings.get('record_n_clusters', defaults.get('record_n_clusters')),
-         settings.get('record_largest', defaults.get('record_largest')),
-         settings.get('record_noise', defaults.get('record_noise')),
-         settings.get('record_noise', defaults.get('record_noise')),])            
+        'ClusterRecord',
+        [settings.get('record_points', defaults.get('record_points', 'points')),
+         settings.get('record_radius_cutoff', defaults.get('record_radius_cutoff', 'radius_cutoff')),
+         settings.get('record_cnn_cutoff', defaults.get('record_cnn_cutoff', 'cnn_cutoff')),
+         settings.get('record_member_cutoff', defaults.get('record_member_cutoff', 'member_cutoff')),
+         settings.get('record_max_clusters', defaults.get('record_max_clusters', 'max_clusters')),
+         settings.get('record_n_clusters', defaults.get('record_n_clusters', 'n_clusters')),
+         settings.get('record_largest', defaults.get('record_largest', 'largest')),
+         settings.get('record_noise', defaults.get('record_noise', 'noise')),
+         settings.get('record_time', defaults.get('record_time', 'time')),])            
 
 def recorded(function_):
     """Decorator to format function feedback.  Feedback needs to be
@@ -164,13 +163,14 @@ class CNN():
     f"Data shape {data_shape} not allowed"
     )
 
-    def __init__(self, alias='root', train=None, test=None, dist_matrix=None,
-                 map_matrix=None):
+    def __init__(self, alias='root', train=None, test=None, train_dist_matrix=None,
+                 test_dist_matrix=None, map_matrix=None):
         self.alias = alias
         self.hierarchy_level = 0
         self.test = test
         self.train = train
-        self.dist_matrix = dist_matrix
+        self.train_dist_matrix = train_dist_matrix
+        self.test_dist_matrix =  test_dist_matrix
         self.map_matrix = map_matrix
         self.test, self.test_shape = self.get_shape(self.test)
         self.train, self.train_shape = self.get_shape(self.train)
@@ -200,10 +200,15 @@ class CNN():
             self.train_present = False            
             self.train_shape_str = None
 
-        if self.dist_matrix is not None:
-            self.dist_matrix_present = True
+        if self.train_dist_matrix is not None:
+            self.train_dist_matrix_present = True
         else:
-            self.dist_matrix_present = False
+            self.train_dist_matrix_present = False
+
+        if self.test_dist_matrix is not None:
+            self.test_dist_matrix_present = True
+        else:
+            self.test_dist_matrix_present = False
 
         if self.train_clusterdict is not None:
             self.clusters_present = True
@@ -218,15 +223,16 @@ class CNN():
     def __str__(self):
         self.check()
         return f"""cnn.CNN() cluster object 
-alias :                          {self.alias}
-hierachy level:                  {self.hierarchy_level}
-test data loaded :               {self.test_present}
-test data shape :                {self.test_shape_str}
-train data loaded :              {self.train_present}
-train data shape :               {self.train_shape_str}
-distance matrix calculated :     {self.dist_matrix_present}
-clustered :                      {self.clusters_present}
-children :                       {self.children_present}
+alias :                                 {self.alias}
+hierachy level:                         {self.hierarchy_level}
+test data loaded :                      {self.test_present}
+test data shape :                       {self.test_shape_str}
+train data loaded :                     {self.train_present}
+train data shape :                      {self.train_shape_str}
+distance matrix calculated (train):     {self.train_dist_matrix_present}
+distance matrix calculated (test):      {self.test_dist_matrix_present}
+clustered :                             {self.clusters_present}
+children :                              {self.children_present}
 """
 
     def load(self, file_, mode='train'):
@@ -278,6 +284,8 @@ children :                       {self.children_present}
     def switch_data(self):
         self.train, self.test = self.test, self.train
         self.train_shape, self.test_shape = self.test_shape, self.train_shape
+        self.train_dist_matrix, self.test_dist_matrix = \
+            self.test_dist_matrix, self.train_dist_matrix
 
     def cut(self, parts=(None, None, None), points=(None, None, None),
                dimensions=(None, None, None)):
@@ -290,7 +298,7 @@ children :                       {self.children_present}
                 "No test data present, but train data found. Switching data."    
                  )
             self.switch_data()
-        elif self.test is None:
+        elif self.train is None and self.test is None:
             raise LookupError(
                 "Neither test nor train data present."
                 )
@@ -301,8 +309,8 @@ children :                       {self.children_present}
         self.train, self.train_shape = self.get_shape(self.train)
 
     @timed
-    def dist(self, low_memory=False):
-        """Computes a distance matrix points x points for points in given data
+    def dist(self, mode='train', low_memory=False):
+        """Computes a distance matrix (points x points) for points in given data
         of standard shape (parts, points, dimensions)"""
 
         if (self.train is None) and (self.test is not None):
@@ -311,7 +319,16 @@ children :                       {self.children_present}
                  )
             self.switch_data()
 
-        points = np.vstack(self.train)       
+        if mode == 'train':
+            points = np.vstack(self.train)
+            # _dist_matrix = self.train_dist_matrix
+        elif mode == 'test':
+            points = np.vstack(self.test)
+            # _dist_matrix = self.test_dist_matrix
+        else:
+            raise ValueError(
+            "Mode not understood. Must be one of 'train' or 'test'."
+            )
 
         print(
             f"Calculating nxn distance matrix for {len(points)} points"
@@ -319,7 +336,13 @@ children :                       {self.children_present}
         if low_memory:
             raise NotImplementedError()
         else:
-            self.dist_matrix = cdist(points, points)
+            #_dist_matrix = cdist(points, points)
+
+            if mode == 'train':
+                self.train_dist_matrix = cdist(points, points)
+            elif mode == 'test':
+                self.test_dist_matrix = cdist(points, points)
+                # _dist_matrix = self.test_dist_matrix
 
     @timed
     def map(self, nearest=None):
@@ -341,18 +364,28 @@ children :                       {self.children_present}
         else:
             self.map_matrix = cdist(np.vstack(self.test), np.vstack(self.train))
             
-    def dist_hist(self, bins=200, range=None,
+    def dist_hist(self, mode='train', bins=None, range=None,
                   density=True, weights=None, xlabel='d / au', ylabel='',
                   show=True, save=False, output='dist_hist.pdf', dpi=300):
         """Shows/saves a histogram plot for distances in a given distance
         matrix"""
-        if self.dist_matrix is None:
+        
+        if mode == 'train':
+            _dist_matrix = self.train_dist_matrix
+        elif mode == 'test':
+            _dist_matrix = self.test_dist_matrix
+        else:
+            raise ValueError(
+                "Mode not understood. Must be either 'train' or 'test'."
+            )
+
+        if _dist_matrix is None:
             print(
                 "Distance matrix not calculated. Calculating distance matrix."
                  )
-            self.dist()
+            self.dist(mode=mode)
 
-        flat_ = np.tril(self.dist_matrix).flatten()
+        flat_ = np.tril(_dist_matrix).flatten()
         histogram, bins =  np.histogram(flat_[flat_ > 0],
                                         bins=bins,
                                         range=range,
@@ -375,13 +408,25 @@ children :                       {self.children_present}
     @timed
     def fit(self, radius_cutoff=1, cnn_cutoff=1,
                 member_cutoff=1, max_clusters=None, rec=True):
-        """Performs a CNN clustering of points in a given distance matrix"""
-        if self.dist_matrix is None:
+        """Performs a CNN clustering of points in a given train 
+        distance matrix"""
+
+        if (self.train is None) and (self.test is not None):
+            print(
+                "No train data present, but test data found. Switching data."
+                 )
+            self.switch_data()
+        elif (self.test is None) and (self.train is None):
+            raise LookupError(
+                "Neither test nor train data present."
+                )
+
+        if self.train_dist_matrix is None:
             self.dist()
         
-        n_points = len(self.dist_matrix)
+        n_points = len(self.train_dist_matrix)
         neighbours = np.asarray([
-            np.where(x <= radius_cutoff)[0] for x in self.dist_matrix
+            np.where(x <= radius_cutoff)[0] for x in self.train_dist_matrix
             ])
         n_neighbours = np.asarray([len(x) for x in neighbours])
         include = np.ones(len(neighbours), dtype=bool)
@@ -484,14 +529,14 @@ children :                       {self.children_present}
             # raise NotImplementedError()
             if cluster is None:
                 train_neighbours = np.asarray([                  
-                    np.where(x <= radius_cutoff)[0] for x in self.dist_matrix
+                    np.where(x <= radius_cutoff)[0] for x in self.train_dist_matrix
                     ])
             else:
                 selected_members = np.concatenate(
                     [self.train_clusterdict[x] for x in cluster]
                     )
                 all_neighbours = np.asarray([                  
-                    np.where(x <= radius_cutoff)[0] for x in self.dist_matrix
+                    np.where(x <= radius_cutoff)[0] for x in self.train_dist_matrix
                     ])
                 train_neighbours = np.asarray([
                     x[np.isin(x, selected_members)] for x in all_neighbours
@@ -579,7 +624,7 @@ children :                       {self.children_present}
                     ])
             
                 train_neighbours = np.asarray([                  
-                    np.where(x <= radius_cutoff)[0] for x in self.dist_matrix
+                    np.where(x <= radius_cutoff)[0] for x in self.train_dist_matrix
                     ])
             else:
                 selected_members = np.concatenate(
@@ -593,7 +638,7 @@ children :                       {self.children_present}
                     ])
 
                 all_neighbours = np.asarray([                  
-                    np.where(x <= radius_cutoff)[0] for x in self.dist_matrix
+                    np.where(x <= radius_cutoff)[0] for x in self.train_dist_matrix
                     ])
                 train_neighbours = np.asarray([
                     x[np.isin(x, selected_members)] for x in all_neighbours
@@ -887,6 +932,9 @@ children :                       {self.children_present}
             raise NotImplementedError()
 
 class CNNChild(CNN):
+    """CNN cluster object subclass. Increments the hierarchy level of
+    the parent object when instanciated."""
+
     def __init__(self, parent):
         super().__init__()
         self.hierarchy_level = parent.hierarchy_level +1
@@ -895,9 +943,12 @@ class CNNChild(CNN):
 ########################################################################
 
 def dist(data):
-    cobj = CNN(data)
+    """High level wrapper function for cnn.CNN().dist(). Takes data and
+    returns a distance matrix (points x points).
+    """
+    cobj = CNN(train=data)
     cobj.dist()
-    return cobj.dist_matrix
+    return cobj.train_dist_matrix
 
 ########################################################################
 
