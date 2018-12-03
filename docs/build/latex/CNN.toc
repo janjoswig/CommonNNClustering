@@ -1,0 +1,8 @@
+\babel@toc {english}{}
+\contentsline {chapter}{\numberline {1}Installation}{1}{chapter.1}
+\contentsline {chapter}{\numberline {2}Getting started}{3}{chapter.2}
+\contentsline {chapter}{\numberline {3}Documentation}{13}{chapter.3}
+\contentsline {chapter}{\numberline {4}Changelog}{15}{chapter.4}
+\contentsline {chapter}{\numberline {5}Indices and tables}{17}{chapter.5}
+\contentsline {chapter}{Python Module Index}{19}{section*.19}
+\contentsline {chapter}{Index}{21}{section*.20}
