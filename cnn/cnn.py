@@ -44,7 +44,8 @@ config_template = ConfigParser(
                                #6b4c9a #922428 #948b3d #7293cb #e1974c #84ba5b
                                #d35e60 #9067a7 #ab6857 #ccc210 #808585""",
                   'default_cnn_cutoff' : "1",
-                  'default_radius_cutoff' : "1",              
+                  'default_radius_cutoff' : "1",
+                  'default_member_cutoff' : "1",              
                  }
         )
 if CWD_CONFIG.is_file():
@@ -433,21 +434,26 @@ children :                              {self.children_present}
     
     @recorded
     @timed
-    def fit(self, radius_cutoff=None, cnn_cutoff=1,
+    def fit(self, radius_cutoff=None, cnn_cutoff=None,
                 member_cutoff=None, max_clusters=None, rec=True):
         """Performs a CNN clustering of points in a given train 
         distance matrix"""
 
         if radius_cutoff is None:
-            radius_cutoff = settings.get(
+            radius_cutoff = float(settings.get(
                                 'default_radius_cutoff',
                                 defaults.get('default_radius_cutoff', 1)
-                                )
+                                ))
         if cnn_cutoff is None:
-            cnn_cutoff = settings.get(
+            cnn_cutoff = int(settings.get(
                                 'default_cnn_cutoff',
                                 defaults.get('default_cnn_cutoff', 1)
-                                )
+                                ))
+        if member_cutoff is None:
+            member_cutoff = int(settings.get(
+                                'default_member_cutoff',
+                                defaults.get('default_member_cutoff', 1)
+                                ))
 
         if (self.train is None) and (self.test is not None):
             print(
@@ -519,7 +525,7 @@ children :                              {self.children_present}
         too_small = [
             _clusterdict.pop(y) 
             for y in [x[0] 
-            for x in clusters_no_noise.items() if len(x[1]) < member_cutoff]
+            for x in clusters_no_noise.items() if len(x[1]) <= member_cutoff]
             ]
         
         if len(too_small) > 0:
