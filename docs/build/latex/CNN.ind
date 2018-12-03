@@ -1,0 +1,56 @@
+\begin{sphinxtheindex}
+\def\bigletter#1{{\Large\sffamily#1}\nopagebreak\vspace{1mm}}
+
+  \bigletter C
+  \item CNN (class in cnn), \hyperpage{13}
+  \item cnn (module), \hyperpage{13}
+  \item CNNChild (class in cnn), \hyperpage{14}
+  \item cut() (cnn.CNN method), \hyperpage{13}
+
+  \indexspace
+  \bigletter D
+  \item dist() (cnn.CNN method), \hyperpage{13}
+  \item dist() (in module cnn), \hyperpage{14}
+  \item dist\_hist() (cnn.CNN method), \hyperpage{13}
+
+  \indexspace
+  \bigletter E
+  \item evaluate() (cnn.CNN method), \hyperpage{13}
+
+  \indexspace
+  \bigletter F
+  \item fit() (cnn.CNN method), \hyperpage{13}
+
+  \indexspace
+  \bigletter G
+  \item get\_shape() (cnn.CNN method), \hyperpage{13}
+
+  \indexspace
+  \bigletter I
+  \item isolate() (cnn.CNN method), \hyperpage{13}
+
+  \indexspace
+  \bigletter L
+  \item load() (cnn.CNN method), \hyperpage{13}
+
+  \indexspace
+  \bigletter M
+  \item map() (cnn.CNN method), \hyperpage{13}
+
+  \indexspace
+  \bigletter Q
+  \item query\_data() (cnn.CNN method), \hyperpage{13}
+
+  \indexspace
+  \bigletter R
+  \item recorded() (in module cnn), \hyperpage{14}
+
+  \indexspace
+  \bigletter S
+  \item save() (cnn.CNN method), \hyperpage{13}
+
+  \indexspace
+  \bigletter T
+  \item timed() (in module cnn), \hyperpage{14}
+
+\end{sphinxtheindex}
