@@ -1,125 +1,163 @@
-"""This is test.py v0.1 for the cnn python module
+#!/usr/bin/env python
+# coding: utf-8
 
-Original code:
-https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html
-"""
+# # Test for the cnn module
 
-import time
+# Source: https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html
+# 
+# The test consists of six model data sets.
+
+# First import the module.
+
+# In[1]:
+
+
+import cnn
+
+
+# Other import:
+
+# In[2]:
+
+
 import warnings
-
 import numpy as np
 import matplotlib.pyplot as plt
-
-from sklearn import cluster, datasets, mixture
-from sklearn.neighbors import kneighbors_graph
+from sklearn import datasets
 from sklearn.preprocessing import StandardScaler
 from itertools import cycle, islice
 
-# test parameters
+
+# Set how many data points should be generated and a random seed.
+
+# In[3]:
+
+
 np.random.seed(0)
-n_samples = 1500
+n_samples = 2000
 
-# Test data sets
-noisy_circles = datasets.make_circles(n_samples=n_samples,
-                                      factor=.5,
-                                      noise=.05)
-noisy_moons = datasets.make_moons(n_samples=n_samples,
-                                  noise=.05)
-blobs = datasets.make_blobs(n_samples=n_samples,
+
+# Then we can generate the test sets.
+
+# In[4]:
+
+
+noisy_circles, _ = datasets.make_circles(n_samples=n_samples,
+                                         factor=.5,
+                                         noise=.05)
+
+noisy_moons, _ = datasets.make_moons(n_samples=n_samples,
+                                     noise=.05)
+
+blobs, _ = datasets.make_blobs(n_samples=n_samples,
                             random_state=8)
-no_structure = np.random.rand(n_samples, 2), None
 
-# Anisotropicly distributed data
+no_structure = np.random.rand(n_samples, 2)
+
 random_state = 170
 X, y = datasets.make_blobs(n_samples=n_samples,
                            random_state=random_state)
 transformation = [[0.6, -0.6], [-0.4, 0.8]]
 X_aniso = np.dot(X, transformation)
-aniso = (X_aniso, y)
+aniso = X_aniso
 
-# blobs with varied variances
-varied = datasets.make_blobs(n_samples=n_samples,
+varied, _ = datasets.make_blobs(n_samples=n_samples,
                              cluster_std=[1.0, 2.5, 0.5],
                              random_state=random_state)
 
-# prepare figure
-fig, ax = plt.subplots(2, 3)
 
-plot_num = 1
+# Set the cluster parameters:
 
-datasets = [
-    noisy_circles,
-    noisy_moons,
-    varied,
-    aniso,
-    blobs,
-    no_structure
+# In[5]:
+
+
+testsets = [
+    ('circles', noisy_circles, {'radius_cutoff': 0.5, 'cnn_cutoff': 20,
+                     'member_cutoff': 100, 'max_clusters': None}),
+    ('moons', noisy_moons, {'radius_cutoff': 0.5, 'cnn_cutoff': 20,
+                     'member_cutoff': 1, 'max_clusters': None}),
+    ('varied', varied, {'radius_cutoff': 0.28, 'cnn_cutoff': 20,
+                     'member_cutoff': 5, 'max_clusters': None}),
+    ('aniso', aniso, {'radius_cutoff': 0.29, 'cnn_cutoff': 30,
+                     'member_cutoff': 5, 'max_clusters': None}),
+    ('blobs', blobs, {'radius_cutoff': 0.4, 'cnn_cutoff': 20,
+                     'member_cutoff': 1, 'max_clusters': None}),
+    ('None', no_structure, {'radius_cutoff': 0.5, 'cnn_cutoff': 20,
+                     'member_cutoff': 1, 'max_clusters': None}),
     ]
 
-for dataset in enumerate(datasets):
-    # update parameters with dataset-specific values
-    params = default_base.copy()
-    params.update(algo_params)
+
+# And take a look at the sets:
+
+# In[6]:
 
 
-    # normalize dataset for easier parameter selection
-    X = StandardScaler().fit_transform(X)
+fig, ax = plt.subplots(2, 3)
+Ax = ax.flatten()
 
-    # estimate bandwidth for mean shift
-    bandwidth = cluster.estimate_bandwidth(X, quantile=params['quantile'])
+for count, (testset_name, testset, *_) in enumerate(testsets):
+    testset = StandardScaler().fit_transform(testset)
+    axes = Ax[count]
+    axes.plot(testset[:, 0], testset[:, 1], '.')
+    axes.set_xticks(())
+    axes.set_yticks(())
+    axes.set_xlim(-2.5, 2.5)
+    axes.set_ylim(-2.5, 2.5)
+    axes.set_title(f'{testset_name}')
 
-    # connectivity matrix for structured Ward
-    connectivity = kneighbors_graph(
-        X, n_neighbors=params['n_neighbors'], include_self=False)
-    # make connectivity symmetric
-    connectivity = 0.5 * (connectivity + connectivity.T)
 
-    # clustering
-    clustering 
+# Next we specify the cluster parameters used for each set.
 
-    for name, algorithm in clustering_algorithms:
-        t0 = time.time()
+# In[7]:
 
-        # catch warnings related to kneighbors_graph
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore",
-                message="the number of connected components of the " +
-                "connectivity matrix is [0-9]{1,2}" +
-                " > 1. Completing it to avoid stopping the tree early.",
-                category=UserWarning)
-            warnings.filterwarnings(
-                "ignore",
-                message="Graph is not fully connected, spectral embedding" +
-                " may not work as expected.",
-                category=UserWarning)
-            algorithm.fit(X)
 
-        t1 = time.time()
-        if hasattr(algorithm, 'labels_'):
-            y_pred = algorithm.labels_.astype(np.int)
-        else:
-            y_pred = algorithm.predict(X)
+fig, ax = plt.subplots(2, 3)
+Ax = ax.flatten()
 
-        plt.subplot(len(datasets), len(clustering_algorithms), plot_num)
-        if i_dataset == 0:
-            plt.title(name, size=18)
+for count, (testset_name, testset, params) in enumerate(testsets):
+    testset = StandardScaler().fit_transform(testset)
+    
+    cobj = cnn.CNN(train=testset)
+    # cobj.dist()
+    # cobj.dist_hist()
+    cobj.fit(radius_cutoff=params['radius_cutoff'],
+                 cnn_cutoff=params['cnn_cutoff'],
+                 member_cutoff=params['member_cutoff'],
+                 max_clusters=params['max_clusters'])
 
-        colors = np.array(list(islice(cycle(['#377eb8', '#ff7f00', '#4daf4a',
-                                             '#f781bf', '#a65628', '#984ea3',
-                                             '#999999', '#e41a1c', '#dede00']),
-                                      int(max(y_pred) + 1))))
-        # add black color for outliers (if any)
-        colors = np.append(colors, ["#000000"])
-        plt.scatter(X[:, 0], X[:, 1], s=10, color=colors[y_pred])
+    colors = np.array(list(islice(cycle(['#000000', '#396ab1', '#da7c30',
+                                         '#3e9651', '#cc2529', '#535154',
+                                         '#6b4c9a', '#922428', '#948b3d']),
+                                  int(max(cobj.train_labels) + 1))))
 
-        plt.xlim(-2.5, 2.5)
-        plt.ylim(-2.5, 2.5)
-        plt.xticks(())
-        plt.yticks(())
-        plt.text(.99, .01, ('%.2fs' % (t1 - t0)).lstrip('0'),
-                 transform=plt.gca().transAxes, size=15,
-                 horizontalalignment='right')
-        plot_num += 1
-
+    axes = Ax[count]
+    axes.scatter(testset[:, 0], testset[:, 1],
+                 s=10,
+                 color=colors[cobj.train_labels])
+    axes.set_xticks(())
+    axes.set_yticks(())
+    axes.set_xlim(-2.5, 2.5)
+    axes.set_ylim(-2.5, 2.5)
+    axes.set_title(f'{testset_name}')
+    
 plt.show()
+plt.close()
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
