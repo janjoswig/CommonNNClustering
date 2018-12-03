@@ -153,13 +153,12 @@
 <p>This is cnn v0.1</p>
 <p>The functionality provided in this module is based on code implemented
 by Oliver Lemke in the script collection CNNClustering available on
-git-hub (clone <a class="reference external" href="https://github.com/BDGSoftware/CNNClustering.git">https://github.com/BDGSoftware/CNNClustering.git</a>).</p>
-<p>Author: Jan Joswig, 
-first edit: 09.10.18
-released:</p>
+git-hub (<a class="reference external" href="https://github.com/BDGSoftware/CNNClustering.git">https://github.com/BDGSoftware/CNNClustering.git</a>).</p>
+<p>Author: Jan-Oliver Joswig, 
+first released: 03.12.2018</p>
 <dl class="class">
 <dt id="cnn.CNN">
-<em class="property">class </em><code class="descclassname">cnn.</code><code class="descname">CNN</code><span class="sig-paren">(</span><em>alias='root'</em>, <em>train=None</em>, <em>test=None</em>, <em>dist_matrix=None</em>, <em>map_matrix=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNN" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">cnn.</code><code class="descname">CNN</code><span class="sig-paren">(</span><em>alias='root'</em>, <em>train=None</em>, <em>test=None</em>, <em>train_dist_matrix=None</em>, <em>test_dist_matrix=None</em>, <em>map_matrix=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNN" title="Permalink to this definition">¶</a></dt>
 <dd><p>CNN cluster object class</p>
 <dl class="method">
 <dt id="cnn.CNN.cut">
@@ -171,14 +170,14 @@ specified.</p>
 
 <dl class="method">
 <dt id="cnn.CNN.dist">
-<code class="descname">dist</code><span class="sig-paren">(</span><em>low_memory=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNN.dist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNN.dist" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes a distance matrix points x points for points in given data
+<code class="descname">dist</code><span class="sig-paren">(</span><em>mode='train'</em>, <em>low_memory=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNN.dist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNN.dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes a distance matrix (points x points) for points in given data
 of standard shape (parts, points, dimensions)</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cnn.CNN.dist_hist">
-<code class="descname">dist_hist</code><span class="sig-paren">(</span><em>bins=200</em>, <em>range=None</em>, <em>density=True</em>, <em>weights=None</em>, <em>xlabel='d / au'</em>, <em>ylabel=''</em>, <em>show=True</em>, <em>save=False</em>, <em>output='dist_hist.pdf'</em>, <em>dpi=300</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNN.dist_hist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNN.dist_hist" title="Permalink to this definition">¶</a></dt>
+<code class="descname">dist_hist</code><span class="sig-paren">(</span><em>mode='train'</em>, <em>bins=None</em>, <em>range=None</em>, <em>density=True</em>, <em>weights=None</em>, <em>xlabel='d / au'</em>, <em>ylabel=''</em>, <em>show=True</em>, <em>save=False</em>, <em>output='dist_hist.pdf'</em>, <em>dpi=300</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNN.dist_hist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNN.dist_hist" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shows/saves a histogram plot for distances in a given distance
 matrix</p>
 </dd></dl>
@@ -192,7 +191,8 @@ matrix</p>
 <dl class="method">
 <dt id="cnn.CNN.fit">
 <code class="descname">fit</code><span class="sig-paren">(</span><em>radius_cutoff=1</em>, <em>cnn_cutoff=1</em>, <em>member_cutoff=1</em>, <em>max_clusters=None</em>, <em>rec=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNN.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNN.fit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Performs a CNN clustering of points in a given distance matrix</p>
+<dd><p>Performs a CNN clustering of points in a given train 
+distance matrix</p>
 </dd></dl>
 
 <dl class="method">
@@ -240,12 +240,21 @@ either self.rdata or self.data.</p>
 <dl class="class">
 <dt id="cnn.CNNChild">
 <em class="property">class </em><code class="descclassname">cnn.</code><code class="descname">CNNChild</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNNChild"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNNChild" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>CNN cluster object subclass. Increments the hierarchy level of
+the parent object when instanciated.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cnn.dist">
+<code class="descclassname">cnn.</code><code class="descname">dist</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#dist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>High level wrapper function for cnn.CNN().dist(). Takes data and
+returns a distance matrix (points x points).</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="cnn.record">
 <code class="descclassname">cnn.</code><code class="descname">record</code><a class="headerlink" href="#cnn.record" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">cnn.clusterRecord</span></code></p>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">cnn.ClusterRecord</span></code></p>
 </dd></dl>
 
 <dl class="function">

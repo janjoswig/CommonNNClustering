@@ -150,6 +150,92 @@
             
   <div class="section" id="getting-started">
 <h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>The cnn module provides a data set based interface for
+common-nearest-neighbour clustering. The core functionality is bundled
+in a class cnn.CNN(). Here is a minimal example of its usage:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">cnn</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cobj</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cobj</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;path_to_data/data&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cobj</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>After importing the main module, this creates an instance of the cnn
+cluster class. Data is loaded into the object and fitted, i.e.
+clustered by the cnn algorithm.</p>
+<p>Let’s go a bit deeper. Call of a cluster objects <code class="xref py py-func docutils literal notranslate"><span class="pre">__str__()</span></code>
+gives us an overview of its properties.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cobj</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cobj</span><span class="p">)</span>
+<span class="go">cnn.CNN() cluster object</span>
+<span class="go">alias :                                 root</span>
+<span class="go">hierachy level:                         0</span>
+<span class="go">test data loaded :                      False</span>
+<span class="go">test data shape :                       None</span>
+<span class="go">train data loaded :                     False</span>
+<span class="go">train data shape :                      None</span>
+<span class="go">distance matrix calculated (train):     False</span>
+<span class="go">distance matrix calculated (test):      False</span>
+<span class="go">clustered :                             False</span>
+<span class="go">children :                              False</span>
+</pre></div>
+</div>
+<p>A freshly created cluster object is by default called <em>root</em>. It has the highest possible hierarchy level 0 (more on this later). No data is present as indicated by <em>data loaded : False</em> and nothing has been done so far. Data is either treated as <em>test</em> or <em>train</em> to allow for clustering on one set and interpolation on another. We will see how, but first we need some data:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sklearn</span> <span class="k">import</span> <span class="n">datasets</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">StandardScaler</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blobs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">make_blobs</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+<span class="gp">... </span>                               <span class="n">cluster_std</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">],</span>
+<span class="gp">... </span>                               <span class="n">random_state</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blobs</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">blobs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cobj</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">test</span><span class="o">=</span><span class="n">blobs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When we now look at our object again, its properties have changed:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cobj</span><span class="p">)</span>
+<span class="go">cnn.CNN() cluster object</span>
+<span class="go">alias :                                 root</span>
+<span class="go">hierachy level:                         0</span>
+<span class="go">test data loaded :                      True</span>
+<span class="go">test data shape :                       {&#39;parts&#39;: 1, &#39;points&#39;: [10000], &#39;dimensions&#39;: 2}</span>
+<span class="go">train data loaded :                     False</span>
+<span class="go">train data shape :                      None</span>
+<span class="go">distance matrix calculated (train):     False</span>
+<span class="go">distance matrix calculated (test):      False</span>
+<span class="go">clustered :                             False</span>
+<span class="go">children :                              False</span>
+</pre></div>
+</div>
+<p>Data is now present as <em>test</em>. All data is processed as numpy array of
+the form (<em>parts</em> x <em>points</em> x <em>dimensions</em>). Data can be passed to the
+CNN() class as 1-D (only one part, points in only one dimension) or 2-D
+(one part, points in <em>x</em> dimensions) array-like structure, but will be
+processed internally in this general shape. In the <em>shape</em> dictionary,
+<code class="docutils literal notranslate"><span class="pre">'points'</span></code> is associated with a list of data points per part.</p>
+<p>We can get an impression of the loaded data by plotting the points.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cobj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="figure">
+<img alt="blobs" src="_images/blobs_reduced.png" />
+</div>
+<p>Let’s reduce the large <em>test</em> data set to make the clustering faster.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cnn</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">cobj</span><span class="p">)</span>
+<span class="go">cnn.CNN() cluster object</span>
+<span class="go">alias :                                 root</span>
+<span class="go">hierachy level:                         0</span>
+<span class="go">test data loaded :                      True</span>
+<span class="go">test data shape :                       {&#39;parts&#39;: 1, &#39;points&#39;: [10000], &#39;dimensions&#39;: 2}</span>
+<span class="go">train data loaded :                     True</span>
+<span class="go">train data shape :                      {&#39;parts&#39;: 1, &#39;points&#39;: [1000], &#39;dimensions&#39;: 2}</span>
+<span class="go">distance matrix calculated (train):     False</span>
+<span class="go">distance matrix calculated (test):      False</span>
+<span class="go">clustered :                             False</span>
+<span class="go">children :                              False</span>
+</pre></div>
+</div>
 </div>
 
 

@@ -1,2 +1,10 @@
 Getting started
 ===============
+
+.. The cnn module provides a data set based interface for the
+   common-nearest-neighbour clustering. The core functionality is bundled
+   in a class cnn.CNN(). Here is a minimal example of its usage:
+
+::
+   >>> cobj = cnn.CNN()
+ 
