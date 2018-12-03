@@ -54,7 +54,7 @@ else:
     try:
         with open(HOME_CONFIG, 'w') as configfile:
             config_.write(configfile)
-        print(f"Writing configuration file to {CHOME_CONFIG}")
+        print(f"Writing configuration file to {HOME_CONFIG}")
     except PermissionError:
         print(
 f"Attempt to write configuration file to {HOME_CONFIG} failed: Permission denied!"
@@ -364,7 +364,7 @@ children :                              {self.children_present}
         else:
             self.map_matrix = cdist(np.vstack(self.test), np.vstack(self.train))
             
-    def dist_hist(self, mode='train', bins=None, range=None,
+    def dist_hist(self, mode='train', bins=100, range=None,
                   density=True, weights=None, xlabel='d / au', ylabel='',
                   show=True, save=False, output='dist_hist.pdf', dpi=300):
         """Shows/saves a histogram plot for distances in a given distance
