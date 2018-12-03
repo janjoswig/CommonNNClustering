@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from collections import defaultdict, namedtuple
 from sortedcontainers import SortedList
 from scipy.spatial.distance import cdist
+from scipy.signal import argrelextrema
 from functools import wraps
 import time
 import pandas as pd
@@ -41,7 +42,10 @@ config_template = ConfigParser(
                   'record_time' : "time",
                   'color' : """#000000 #396ab1 #da7c30 #3e9651 #cc2529 #535154
                                #6b4c9a #922428 #948b3d #7293cb #e1974c #84ba5b
-                               #d35e60 #9067a7 #ab6857 #ccc210 #808585""",}
+                               #d35e60 #9067a7 #ab6857 #ccc210 #808585""",
+                  'default_cnn_cutoff' : "1",
+                  'default_radius_cutoff' : "1",              
+                 }
         )
 if CWD_CONFIG.is_file():
     print(f"Configuration file found in {CWD}")
@@ -367,7 +371,8 @@ children :                              {self.children_present}
             
     def dist_hist(self, mode='train', bins=100, range=None,
                   density=True, weights=None, xlabel='d / au', ylabel='',
-                  show=True, save=False, output='dist_hist.pdf', dpi=300):
+                  show=True, save=False, output='dist_hist.pdf', dpi=300,
+                  maxima=False):
         """Shows/saves a histogram plot for distances in a given distance
         matrix"""
         
@@ -398,12 +403,27 @@ children :                              {self.children_present}
                                         range=range,
                                         density=density,
                                         weights=weights)
-        binmids = bins[:-1] + (bins[-1] - bins[0]) / ((len(bins) - 1)*2)                                                                   
+        binmids = bins[:-1] + (bins[-1] - bins[0]) / ((len(bins) - 1)*2)
+                                                                          
         fig, ax = plt.subplots()
         ax.plot(binmids, histogram)
+        ylimit = np.max(histogram)*1.1
+        if maxima:
+            found = argrelextrema(histogram, np.greater)[0]
+            config_['settings']['default_radius_cutoff'] = \
+                f"{binmids[found[0]]:.2f}"
+            for candidate in found:
+                ax.annotate(
+                    f"{binmids[candidate]:.2f}",
+                    xy=(binmids[candidate], histogram[candidate]),
+                    xytext=(binmids[candidate], 
+                            histogram[candidate]+(ylimit/100))
+                    )
+
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.set_xlim(0, np.max(binmids))
+        ax.set_ylim(0, np.max(histogram)*1.1)
         plt.tight_layout(pad=0.1)
         if save:
             plt.savefig(output, dpi=dpi)
@@ -413,10 +433,21 @@ children :                              {self.children_present}
     
     @recorded
     @timed
-    def fit(self, radius_cutoff=1, cnn_cutoff=1,
-                member_cutoff=1, max_clusters=None, rec=True):
+    def fit(self, radius_cutoff=None, cnn_cutoff=1,
+                member_cutoff=None, max_clusters=None, rec=True):
         """Performs a CNN clustering of points in a given train 
         distance matrix"""
+
+        if radius_cutoff is None:
+            radius_cutoff = settings.get(
+                                'default_radius_cutoff',
+                                defaults.get('default_radius_cutoff', 1)
+                                )
+        if cnn_cutoff is None:
+            cnn_cutoff = settings.get(
+                                'default_cnn_cutoff',
+                                defaults.get('default_cnn_cutoff', 1)
+                                )
 
         if (self.train is None) and (self.test is not None):
             print(
