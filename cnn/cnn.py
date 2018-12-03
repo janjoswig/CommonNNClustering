@@ -23,57 +23,61 @@ from configparser import ConfigParser
 from itertools import cycle, islice
 from pathlib import Path
 
-# Configuration
-CWD = Path.cwd()
-CWD_CONFIG = Path(f"{CWD}/.cnnrc")
-HOME = Path.home()
-HOME_CONFIG = Path(f"{HOME}/.cnnrc")
-config_ = ConfigParser(default_section="settings")
-config_template = ConfigParser(
-        default_section="settings",
-        defaults={'record_points': "points",
-                  'record_radius_cutoff' : "radius_cutoff",
-                  'record_cnn_cutoff' : "cnn_cutoff",
-                  'record_member_cutoff' : "member_cutoff",
-                  'record_max_cluster' : "max_cluster",
-                  'record_n_cluster' : "n_cluster",
-                  'record_largest' : "largest",
-                  'record_noise' : "noise",
-                  'record_time' : "time",
-                  'color' : """#000000 #396ab1 #da7c30 #3e9651 #cc2529 #535154
-                               #6b4c9a #922428 #948b3d #7293cb #e1974c #84ba5b
-                               #d35e60 #9067a7 #ab6857 #ccc210 #808585""",
-                  'default_cnn_cutoff' : "1",
-                  'default_radius_cutoff' : "1",
-                  'default_member_cutoff' : "1",              
-                 }
-        )
-if CWD_CONFIG.is_file():
-    print(f"Configuration file found in {CWD}")
-    config_.read(CWD_CONFIG)
-elif HOME_CONFIG.is_file():
-    print(f"Configuration file found in {HOME}")
-    config_.read(HOME_CONFIG)
-else:
-    print("No user configuration file found. Using default setup")
-    config_ = config_template
-    try:
-        with open(HOME_CONFIG, 'w') as configfile:
-            config_.write(configfile)
-        print(f"Writing configuration file to {HOME_CONFIG}")
-    except PermissionError:
-        print(
-f"Attempt to write configuration file to {HOME_CONFIG} failed: Permission denied!"
-        )
-    except FileNotFoundError:
-        print(
-f"Attempt to write configuration file to {HOME_CONFIG} failed: No such file or directory!"
-        )
+def configure():
+    CWD = Path.cwd()
+    CWD_CONFIG = Path(f"{CWD}/.cnnrc")
+    HOME = Path.home()
+    HOME_CONFIG = Path(f"{HOME}/.cnnrc")
+    config_ = ConfigParser(default_section="settings")
+    config_template = ConfigParser(
+            default_section="settings",
+            defaults={'record_points': "points",
+                    'record_radius_cutoff' : "radius_cutoff",
+                    'record_cnn_cutoff' : "cnn_cutoff",
+                    'record_member_cutoff' : "member_cutoff",
+                    'record_max_cluster' : "max_cluster",
+                    'record_n_cluster' : "n_cluster",
+                    'record_largest' : "largest",
+                    'record_noise' : "noise",
+                    'record_time' : "time",
+                    'color' : """#000000 #396ab1 #da7c30 #3e9651 #cc2529 #535154
+                                 #6b4c9a #922428 #948b3d #7293cb #e1974c #84ba5b
+                                 #d35e60 #9067a7 #ab6857 #ccc210 #808585""",
+                    'default_cnn_cutoff' : "1",
+                    'default_radius_cutoff' : "1",
+                    'default_member_cutoff' : "1",              
+                    }
+            )
+    if CWD_CONFIG.is_file():
+        print(f"Configuration file found in {CWD}")
+        config_.read(CWD_CONFIG)
+    elif HOME_CONFIG.is_file():
+        print(f"Configuration file found in {HOME}")
+        config_.read(HOME_CONFIG)
+    else:
+        print("No user configuration file found. Using default setup")
+        config_ = config_template
+        try:
+            with open(HOME_CONFIG, 'w') as configfile:
+                config_.write(configfile)
+            print(f"Writing configuration file to {HOME_CONFIG}")
+        except PermissionError:
+            print(
+    f"Attempt to write configuration file to {HOME_CONFIG} failed: \
+      Permission denied!"
+            )
+        except FileNotFoundError:
+            print(
+    f"Attempt to write configuration file to {HOME_CONFIG} failed: \
+      No such file or directory!"
+            )
 
-settings = config_['settings']
-defaults = config_template['settings']
+    global settings
+    global defaults
 
-################################################################################
+    settings = config_['settings']
+    defaults = config_template['settings']
+
 
 def timed(function_):
     """Decorator to measure execution time.  Forwards the output of the
@@ -92,22 +96,7 @@ f"Execution time for call of {function_.__name__}(): \
 {int(hours)} hours, {int(minutes)} minutes, {seconds:.4f} seconds")
         return wrapped, stopped
     return wrapper
-
-# generic function feedback data container for CCN.cluster(); used only
-# to provide column identifiers.  maybe not too useful ...
-
-record = namedtuple(
-        'ClusterRecord',
-        [settings.get('record_points', defaults.get('record_points', 'points')),
-         settings.get('record_radius_cutoff', defaults.get('record_radius_cutoff', 'radius_cutoff')),
-         settings.get('record_cnn_cutoff', defaults.get('record_cnn_cutoff', 'cnn_cutoff')),
-         settings.get('record_member_cutoff', defaults.get('record_member_cutoff', 'member_cutoff')),
-         settings.get('record_max_clusters', defaults.get('record_max_clusters', 'max_clusters')),
-         settings.get('record_n_clusters', defaults.get('record_n_clusters', 'n_clusters')),
-         settings.get('record_largest', defaults.get('record_largest', 'largest')),
-         settings.get('record_noise', defaults.get('record_noise', 'noise')),
-         settings.get('record_time', defaults.get('record_time', 'time')),])            
-
+         
 def recorded(function_):
     """Decorator to format function feedback.  Feedback needs to be
        pandas series in record format.  If execution time was measured,
@@ -169,8 +158,33 @@ class CNN():
     f"Data shape {data_shape} not allowed"
     )
 
-    def __init__(self, alias='root', train=None, test=None, train_dist_matrix=None,
-                 test_dist_matrix=None, map_matrix=None):
+    def __init__(self, alias='root', train=None, test=None,
+                 train_dist_matrix=None, test_dist_matrix=None,
+                 map_matrix=None):
+        configure()
+        # generic function feedback data container for CCN.cluster(); used only
+        # to provide column identifiers.  maybe not too useful ...
+        
+        self.record = namedtuple(
+                'ClusterRecord',
+                [settings.get('record_points',
+                    defaults.get('record_points', 'points')),
+                settings.get('record_radius_cutoff',
+                    defaults.get('record_radius_cutoff', 'radius_cutoff')),
+                settings.get('record_cnn_cutoff',
+                    defaults.get('record_cnn_cutoff', 'cnn_cutoff')),
+                settings.get('record_member_cutoff',
+                    defaults.get('record_member_cutoff', 'member_cutoff')),
+                settings.get('record_max_clusters',
+                    defaults.get('record_max_clusters', 'max_clusters')),
+                settings.get('record_n_clusters',
+                    defaults.get('record_n_clusters', 'n_clusters')),
+                settings.get('record_largest',
+                    defaults.get('record_largest', 'largest')),
+                settings.get('record_noise',
+                    defaults.get('record_noise', 'noise')),
+                settings.get('record_time',
+                    defaults.get('record_time', 'time')),])
         self.alias = alias
         self.hierarchy_level = 0
         self.test = test
@@ -184,7 +198,7 @@ class CNN():
         self.test_labels = None
         self.train_clusterdict = None
         self.train_labels = None
-        self.summary = pd.DataFrame(columns=record._fields)
+        self.summary = pd.DataFrame(columns=self.record._fields)
         self.train_children = None
         self.train_refindex = None
 
@@ -194,6 +208,8 @@ class CNN():
             self.test_present = True
             self.test_shape_str = {**self.test_shape}
             self.test_shape_str['points'] = self.test_shape_str['points'][:5]
+            if len(self.test_shape['points']) > 5:
+                self.test_shape_str['points'] += ["..."]
         else:
             self.test_present = False 
             self.test_shape_str = None
@@ -202,6 +218,8 @@ class CNN():
             self.train_present = True
             self.train_shape_str = {**self.train_shape}
             self.train_shape_str['points'] = self.train_shape_str['points'][:5]
+            if len(self.train_shape['points']) > 5:
+                self.train_shape_str['points'] += ["..."]    
         else:
             self.train_present = False            
             self.train_shape_str = None
@@ -411,7 +429,7 @@ children :                              {self.children_present}
         ylimit = np.max(histogram)*1.1
         if maxima:
             found = argrelextrema(histogram, np.greater)[0]
-            config_['settings']['default_radius_cutoff'] = \
+            settings['default_radius_cutoff'] = \
                 f"{binmids[found[0]]:.2f}"
             for candidate in found:
                 ax.annotate(
@@ -561,10 +579,10 @@ children :                              {self.children_present}
                         len(_clusterdict[0]) / n_points,
                         None,
                         ],
-                        index=record._fields,
+                        index=self.record._fields,
                         dtype='object',
                         )
-
+    @timed
     def predict(self, low_memory=False, radius_cutoff=1, cnn_cutoff=1,
         member_cutoff=1, max_clusters=None, include_all=True, cluster=None,
         purge=False):
@@ -1004,4 +1022,4 @@ def dist(data):
 ########################################################################
 
 if __name__ == "__main__":
-    print(__name__)
+    cnn.configure()

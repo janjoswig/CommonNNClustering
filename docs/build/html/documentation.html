@@ -177,20 +177,20 @@ of standard shape (parts, points, dimensions)</p>
 
 <dl class="method">
 <dt id="cnn.CNN.dist_hist">
-<code class="descname">dist_hist</code><span class="sig-paren">(</span><em>mode='train'</em>, <em>bins=100</em>, <em>range=None</em>, <em>density=True</em>, <em>weights=None</em>, <em>xlabel='d / au'</em>, <em>ylabel=''</em>, <em>show=True</em>, <em>save=False</em>, <em>output='dist_hist.pdf'</em>, <em>dpi=300</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNN.dist_hist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNN.dist_hist" title="Permalink to this definition">¶</a></dt>
+<code class="descname">dist_hist</code><span class="sig-paren">(</span><em>mode='train'</em>, <em>bins=100</em>, <em>range=None</em>, <em>density=True</em>, <em>weights=None</em>, <em>xlabel='d / au'</em>, <em>ylabel=''</em>, <em>show=True</em>, <em>save=False</em>, <em>output='dist_hist.pdf'</em>, <em>dpi=300</em>, <em>maxima=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNN.dist_hist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNN.dist_hist" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shows/saves a histogram plot for distances in a given distance
 matrix</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cnn.CNN.evaluate">
-<code class="descname">evaluate</code><span class="sig-paren">(</span><em>mode='train'</em>, <em>max_clusters=None</em>, <em>plot='scatter'</em>, <em>dim=None</em>, <em>show=True</em>, <em>save=False</em>, <em>output='evaluation.pdf'</em>, <em>dpi=300</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNN.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNN.evaluate" title="Permalink to this definition">¶</a></dt>
+<code class="descname">evaluate</code><span class="sig-paren">(</span><em>mode='train'</em>, <em>max_clusters=None</em>, <em>plot='scatter'</em>, <em>parts=(None</em>, <em>None</em>, <em>None)</em>, <em>points=(None</em>, <em>None</em>, <em>None)</em>, <em>dim=None</em>, <em>show=True</em>, <em>save=False</em>, <em>output='evaluation.pdf'</em>, <em>dpi=300</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNN.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNN.evaluate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Shows/saves a 2D histogram or scatter plot of a cluster result</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cnn.CNN.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>radius_cutoff=1</em>, <em>cnn_cutoff=1</em>, <em>member_cutoff=1</em>, <em>max_clusters=None</em>, <em>rec=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNN.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNN.fit" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>radius_cutoff=None</em>, <em>cnn_cutoff=None</em>, <em>member_cutoff=None</em>, <em>max_clusters=None</em>, <em>rec=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#CNN.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.CNN.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs a CNN clustering of points in a given train 
 distance matrix</p>
 </dd></dl>
@@ -249,12 +249,6 @@ the parent object when instanciated.</p>
 <code class="descclassname">cnn.</code><code class="descname">dist</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cnn.html#dist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cnn.dist" title="Permalink to this definition">¶</a></dt>
 <dd><p>High level wrapper function for cnn.CNN().dist(). Takes data and
 returns a distance matrix (points x points).</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="cnn.record">
-<code class="descclassname">cnn.</code><code class="descname">record</code><a class="headerlink" href="#cnn.record" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">cnn.ClusterRecord</span></code></p>
 </dd></dl>
 
 <dl class="function">
