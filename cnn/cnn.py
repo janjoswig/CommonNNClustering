@@ -856,12 +856,8 @@ children :                              {self.children_present}
                     for part in range(self.train_shape['parts']):
                         part_endpoint = part_startpoint \
                             + self.train_shape['points'][part] -1
-                        if self.train_refindex is None:
-                            ref_index.extend(_cluster)
-                        else:
-                            ref_index.extend(
-                                self.train_refindex[_cluster]
-                                )
+                        
+                        ref_index.extend(_cluster)
 
                         cluster_data.append(
                             self.train[part][_cluster[

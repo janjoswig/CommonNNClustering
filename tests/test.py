@@ -37,12 +37,12 @@ cobj.dist_hist(show=False, save=True, output='samples/hist2.pdf')
 print(cobj)
 
 print("Clustering ...\n") 
-cobj.cluster(radius_cutoff=0.1, cnn_cutoff=2)
+cobj.fit(radius_cutoff=0.1, cnn_cutoff=2)
 print(cobj)
 
 print("Isolating clusters ...\n")
 cobj.isolate()
 
-cobj.train_children[1].cluster(radius_cutoff=0.055, cnn_cutoff=2)
+cobj.train_children[1].fit(radius_cutoff=0.055, cnn_cutoff=2)
 cobj.train_children[1].isolate()
 cobj.reel()
