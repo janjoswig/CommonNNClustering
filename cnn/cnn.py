@@ -796,7 +796,8 @@ children :                              {self.children_present}
                  points=(None, None, None), dim=None, show=True, save=False,
                  output='evaluation.pdf', dpi=300):
         """Shows/saves a 2D histogram or scatter plot of a cluster result"""
-
+        
+        # To do: fix plotting when set is cut; make noise optional
         _data, _ = self.query_data(mode=mode)
         if dim is None:
             dim = 0
