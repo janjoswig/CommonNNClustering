@@ -208,7 +208,7 @@ gives us an overview of its properties.</p>
 </div>
 <p>Data is now present as <em>test</em>. All data is processed as numpy array of
 the form (<em>parts</em> x <em>points</em> x <em>dimensions</em>). Data can be passed to the
-CNN() class as 1-D (only one part, points in only one dimension) or 2-D
+<code class="docutils literal notranslate"><span class="pre">CNN</span></code> class as 1-D (only one part, points in only one dimension) or 2-D
 (one part, points in <em>n</em> dimensions) array-like structure, but will be
 processed internally in this general shape. In the <em>shape</em> dictionary,
 <code class="docutils literal notranslate"><span class="pre">cobj.test_shape</span></code>, <code class="docutils literal notranslate"><span class="pre">'points'</span></code> is associated with a list of data
@@ -295,14 +295,14 @@ frame.</p>
 <code class="docutils literal notranslate"><span class="pre">cobj.train_clusterdict</span></code> (points associated to cluster label keys).
 Noise points are labeled by 0.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Cluster labels: </span><span class="si">{cobj.train_labels[:10]}</span><span class="s2">, </span><span class="se">\</span>
-<span class="gp">... </span><span class="s2">Shape: {np.shape(cobj.train_labels)}, </span><span class="se">\</span>
-<span class="gp">... </span><span class="s2">Type: {type(cobj.train_labels)}&quot;</span><span class="p">)</span>
+<span class="gp">... </span><span class="s2">    Shape: {np.shape(cobj.train_labels)}, </span><span class="se">\</span>
+<span class="gp">... </span><span class="s2">    Type: {type(cobj.train_labels)}&quot;</span><span class="p">)</span>
 <span class="go">Cluster labels: [2 2 1 1 2 1 2 1 1 1], Shape: (1000,), Type: &lt;class &#39;numpy.ndarray&#39;&gt;</span>
 </pre></div>
 </div>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Cluster dictionary: {cobj.train_clusterdict.keys()}, </span><span class="se">\</span>
-<span class="gp">... </span><span class="s2">Shape: {[len(x) for x in cobj.train_clusterdict.values()]}, </span><span class="se">\</span>
-<span class="gp">... </span><span class="s2">Type: {type(cobj.train_clusterdict)}&quot;</span><span class="p">)</span>
+<span class="gp">... </span><span class="s2">    Shape: {[len(x) for x in cobj.train_clusterdict.values()]}, </span><span class="se">\</span>
+<span class="gp">... </span><span class="s2">    Type: {type(cobj.train_clusterdict)}&quot;</span><span class="p">)</span>
 <span class="go">Cluster dictionary: dict_keys([0, 1, 2]), Shape: [1, 658, 341], Type: &lt;class &#39;collections.defaultdict&#39;&gt;</span>
 </pre></div>
 </div>
@@ -332,7 +332,7 @@ a dictionary <code class="docutils literal notranslate"><span class="pre">cobj.t
 <span class="go">children :                              False</span>
 </pre></div>
 </div>
-<p>A child cluster class instance of cnn.CNNChild() is a fully functional
+<p>A child cluster class instance of <code class="docutils literal notranslate"><span class="pre">cnn.CNNChild()</span></code> is a fully functional
 cluster object itself. New, as shown above, is here that the hierarchy
 level was incremented by one. We can now look at the distance
 distribution of the data subset in <em>child No. 1</em>.</p>
@@ -370,7 +370,7 @@ distribution of the data subset in <em>child No. 1</em>.</p>
 <img alt="blobs" src="_images/blobs_train_cluster_II.png" />
 </div>
 <p>When we are satisfied by the outcome, putting everything back together
-is easy.</p>
+is easy by just calling <code class="docutils literal notranslate"><span class="pre">cobj.reel()</span></code>.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cobj</span><span class="o">.</span><span class="n">train_children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">train_clusterdict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
 <span class="gp">... </span><span class="n">dict_keys</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cobj</span><span class="o">.</span><span class="n">train_clusterdict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
@@ -412,7 +412,7 @@ instance variables <code class="docutils literal notranslate"><span class="pre">
 Et voilà!</p>
 <p>How certain aspects of the module behave is defined by a config file,
 which is automatically tried to be saved in the users home directory as
-.cnnrc. A config file in the current working directory overides all
+<code class="docutils literal notranslate"><span class="pre">.cnnrc</span></code>. A config file in the current working directory overides all
 settings.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pathlib</span>
 <span class="gp">...</span>

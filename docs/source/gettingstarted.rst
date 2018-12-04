@@ -60,7 +60,7 @@ children :                              False
 
 Data is now present as *test*. All data is processed as numpy array of
 the form (*parts* x *points* x *dimensions*). Data can be passed to the
-CNN() class as 1-D (only one part, points in only one dimension) or 2-D
+``CNN`` class as 1-D (only one part, points in only one dimension) or 2-D
 (one part, points in *n* dimensions) array-like structure, but will be
 processed internally in this general shape. In the *shape* dictionary, 
 ``cobj.test_shape``, ``'points'`` is associated with a list of data
@@ -147,13 +147,13 @@ The cluster result itself is stored in two instance variables,
 Noise points are labeled by 0.
 
 >>> print(f"Cluster labels: {cobj.train_labels[:10]}, \
-... Shape: {np.shape(cobj.train_labels)}, \
-... Type: {type(cobj.train_labels)}")
+...     Shape: {np.shape(cobj.train_labels)}, \
+...     Type: {type(cobj.train_labels)}")
 Cluster labels: [2 2 1 1 2 1 2 1 1 1], Shape: (1000,), Type: <class 'numpy.ndarray'>
 
 >>> print(f"Cluster dictionary: {cobj.train_clusterdict.keys()}, \
-... Shape: {[len(x) for x in cobj.train_clusterdict.values()]}, \
-... Type: {type(cobj.train_clusterdict)}")
+...     Shape: {[len(x) for x in cobj.train_clusterdict.values()]}, \
+...     Type: {type(cobj.train_clusterdict)}")
 Cluster dictionary: dict_keys([0, 1, 2]), Shape: [1, 658, 341], Type: <class 'collections.defaultdict'>
 
 This first fit devided the data set into two clusters. As
@@ -182,7 +182,7 @@ distance matrix calculated (test):      False
 clustered :                             False
 children :                              False
 
-A child cluster class instance of cnn.CNNChild() is a fully functional
+A child cluster class instance of ``cnn.CNNChild()`` is a fully functional
 cluster object itself. New, as shown above, is here that the hierarchy
 level was incremented by one. We can now look at the distance
 distribution of the data subset in *child No. 1*.
@@ -219,7 +219,7 @@ dtype: object
    :alt: blobs
 
 When we are satisfied by the outcome, putting everything back together
-is easy.
+is easy by just calling ``cobj.reel()``.
 
 >>> cobj.train_children[1].train_clusterdict.keys()
 ... dict_keys([0, 1, 2])
@@ -261,7 +261,7 @@ Et voilà!
 
 How certain aspects of the module behave is defined by a config file,
 which is automatically tried to be saved in the users home directory as
-.cnnrc. A config file in the current working directory overides all
+``.cnnrc``. A config file in the current working directory overides all
 settings.
 
 >>> import pathlib
