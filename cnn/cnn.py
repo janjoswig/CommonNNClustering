@@ -908,8 +908,8 @@ children :                              {self.children_present}
                         ]
                     ] = _label + n_clusters
 
-        self.clean()
-        self.labels2dict()
+            self.clean()
+            self.labels2dict()
             
 
     def clean(self, mode='train'):
