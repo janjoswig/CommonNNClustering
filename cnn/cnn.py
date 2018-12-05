@@ -488,7 +488,7 @@ children :                              {self.children_present}
         
         n_points = len(self.train_dist_matrix)
         neighbours = np.asarray([
-            np.where(x <= radius_cutoff)[0] for x in self.train_dist_matrix
+            np.where((x > 0) & (x <= radius_cutoff))[0] for x in self.train_dist_matrix
             ])
         n_neighbours = np.asarray([len(x) for x in neighbours])
         include = np.ones(len(neighbours), dtype=bool)
