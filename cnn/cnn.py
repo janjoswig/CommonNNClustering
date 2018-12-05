@@ -574,9 +574,9 @@ children :                              {self.children_present}
                         cnn_cutoff,
                         member_cutoff,
                         max_clusters,
-                        len(_clusterdict) -1,
+                        len(self.train_clusterdict) -1,
                         largest,
-                        len(_clusterdict[0]) / n_points,
+                        len(self.train_clusterdict[0]) / n_points,
                         None,
                         ],
                         index=self.record._fields,
@@ -853,11 +853,15 @@ children :                              {self.children_present}
                     ref_index = []
                     cluster_data = []
                     part_startpoint = 0
+
+                    if self.train_refindex is None:
+                        ref_index.extend(_cluster)
+                    else:
+                        ref_index.extend(self.train_refindex[_cluster])
+
                     for part in range(self.train_shape['parts']):
                         part_endpoint = part_startpoint \
                             + self.train_shape['points'][part] -1
-                        
-                        ref_index.extend(_cluster)
 
                         cluster_data.append(
                             self.train[part][_cluster[
@@ -866,9 +870,10 @@ children :                              {self.children_present}
                                     >= part_startpoint)
                                     &
                                     (_cluster
-                                    <= part_endpoint))[0]]]
+                                    <= part_endpoint))[0]] - part_startpoint]
                                 )
                         part_startpoint = np.copy(part_endpoint)
+                        part_startpoint += 1
 
                     self.train_children[key].alias = f'child No. {key}'
                     self.train_children[key].train, \
@@ -935,8 +940,13 @@ children :                              {self.children_present}
 
     def labels2dict(self, mode='train'):
         if mode == 'train':
-            self.train_clusterdict = defaultdict(list)
+            self.train_clusterdict = defaultdict(SortedList)
             for _cluster in range(np.max(self.train_labels) +1):
+                self.train_clusterdict[_cluster].update(
+                    np.where(self.train_labels == _cluster)[0]
+                    )
+                
+                """
                 if self.train_refindex is None:
                     self.train_clusterdict[_cluster].extend(
                         np.where(self.train_labels == _cluster)[0]
@@ -945,7 +955,8 @@ children :                              {self.children_present}
                     self.train_clusterdict[_cluster].extend(
                         self.train_refindex[
                         np.where(self.train_labels == _cluster)[0]
-                        ])                 
+                        ])
+                """                         
         else:
             raise NotImplementedError()
 
@@ -956,10 +967,13 @@ children :                              {self.children_present}
                 )
             
             for key, value in self.train_clusterdict.items():
+                self.train_labels[value] = key
+                """
                 if self.train_refindex is None:
                     self.train_labels[value] = key 
                 else:
-                    self.train_labels[self.train_refindex[value]] = key 
+                    self.train_labels[self.train_refindex[value]] = key
+                """ 
         else:
             raise NotImplementedError()
 
