@@ -24,6 +24,8 @@ from itertools import cycle, islice
 from pathlib import Path
 
 def configure():
+    """Read from configuration file
+    """
     CWD = Path.cwd()
     CWD_CONFIG = Path(f"{CWD}/.cnnrc")
     HOME = Path.home()
