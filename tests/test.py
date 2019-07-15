@@ -1,10 +1,4 @@
-print(
-"""
-
-    Running test for cnn module functionality
-    
-"""
-)
+import unittest
 
 print("Importing ...\n")
 import cnn

@@ -17,11 +17,17 @@ from scipy.spatial.distance import cdist
 from scipy.signal import argrelextrema
 from functools import wraps
 import time
-import pandas as pd
+import pandas as pd # TODO get rid of this dependency?
 from configparser import ConfigParser
 # from cycler import cycler
 from itertools import cycle, islice
 from pathlib import Path
+
+from typing import List, Dict
+from typing import Union, Optional
+
+########################################################################
+# Global functions
 
 def configure():
     """Read from configuration file
@@ -47,7 +53,7 @@ def configure():
                                  #d35e60 #9067a7 #ab6857 #ccc210 #808585""",
                     'default_cnn_cutoff' : "1",
                     'default_radius_cutoff' : "1",
-                    'default_member_cutoff' : "1",              
+                    'default_member_cutoff' : "1",
                     }
             )
     if CWD_CONFIG.is_file():
@@ -262,7 +268,8 @@ children :                              {self.children_present}
 """
 
     def load(self, file_, mode='train'):
-        """Loads file content and return data and shape"""
+        """Loads file content and returns data and shape
+        """
         # add load option for dist_matrix, map_matrix
         
         extension = file_.rsplit('.', 1)[-1]
@@ -297,7 +304,8 @@ children :                              {self.children_present}
 
     def save(self, file_, content):
         """Saves content to file"""
-        extension = file_.rsplit('.', 1)[1]
+
+        extension = file_.rsplit('.', 1)[-1]
         if len(extension) == 1:
             extension = ''
         {
@@ -494,7 +502,7 @@ children :                              {self.children_present}
             ])
         n_neighbours = np.asarray([len(x) for x in neighbours])
         include = np.ones(len(neighbours), dtype=bool)
-        include[np.where(n_neighbours < cnn_cutoff)[0] ] = False
+        include[np.where(n_neighbours < cnn_cutoff)[0]] = False
         
         _clusterdict = defaultdict(SortedList)
         _clusterdict[0].update(np.where(include == False)[0])
@@ -516,6 +524,7 @@ children :                              {self.children_present}
             while new_point_added:
                 new_point_added = False
                 for member in _clusterdict[current][done:]:
+                    # Is the SortedList dangerous here?
                     for neighbour in neighbours[member]:
                         if include[neighbour]:
                             common_neighbours = (
@@ -539,8 +548,10 @@ children :                              {self.children_present}
                     enough = True
 
         
-        clusters_no_noise = {y: _clusterdict[y] 
-                    for y in _clusterdict if y != 0}
+        clusters_no_noise = {
+            y: _clusterdict[y] 
+            for y in _clusterdict if y != 0
+            }
         
         too_small = [
             _clusterdict.pop(y) 
@@ -792,7 +803,6 @@ children :                              {self.children_present}
 
         return _data, _shape
 
-
     def evaluate(self, mode='train', max_clusters=None,
                  plot='scatter', parts=(None, None, None),
                  points=(None, None, None), dim=None, show=True, save=False,
@@ -1031,6 +1041,10 @@ def dist(data):
     cobj = CNN(train=data)
     cobj.dist()
     return cobj.train_dist_matrix
+
+########################################################################
+
+# TODO Alter configuration mechanism to use .yaml?
 
 ########################################################################
 
