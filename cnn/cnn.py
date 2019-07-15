@@ -495,7 +495,7 @@ children :                              {self.children_present}
 
         if self.train_dist_matrix is None:
             self.dist()
-        
+
         n_points = len(self.train_dist_matrix)
         neighbours = np.asarray([
             np.where((x > 0) & (x <= radius_cutoff))[0] for x in self.train_dist_matrix
@@ -523,22 +523,25 @@ children :                              {self.children_present}
             done = 0
             while new_point_added:
                 new_point_added = False
-                for member in _clusterdict[current][done:]:
+                # for member in _clusterdict[current][done:]:
+                for member in [
+                    added_point for added_point in _clusterdict[current]
+                    if any(include[neighbours[added_point]])
+                    ]:
                     # Is the SortedList dangerous here?
-                    for neighbour in neighbours[member]:
-                        if include[neighbour]:
-                            common_neighbours = (
-                                set(neighbours[member])
-                                & set(neighbours[neighbour])
-                                )
+                    for neighbour in neighbours[member][include[neighbours[member]]]:
+                        common_neighbours = (
+                            set(neighbours[member])
+                            & set(neighbours[neighbour])
+                            )
 
-                            if len(common_neighbours) >= cnn_cutoff:
-                            # and (point in neighbours[neighbour])
-                            # and (neighbour in neighbours[point]):
-                                _clusterdict[current].add(neighbour)
-                                new_point_added = True
-                                _labels[neighbour] = current
-                                include[neighbour] = False
+                        if len(common_neighbours) >= cnn_cutoff:
+                        # and (point in neighbours[neighbour])
+                        # and (neighbour in neighbours[point]):
+                            _clusterdict[current].add(neighbour)
+                            new_point_added = True
+                            _labels[neighbour] = current
+                            include[neighbour] = False
 
                 done += 1   
             current += 1
@@ -547,7 +550,9 @@ children :                              {self.children_present}
                 if current == max_clusters+1:
                     enough = True
 
-        
+        # for key in _clusterdict:
+        #     _clusterdict[key].sort()
+
         clusters_no_noise = {
             y: _clusterdict[y] 
             for y in _clusterdict if y != 0
@@ -1049,4 +1054,4 @@ def dist(data):
 ########################################################################
 
 if __name__ == "__main__":
-    cnn.configure()
+    configure()

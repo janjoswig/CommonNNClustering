@@ -7,6 +7,7 @@ verify_ssl = true
 pylint = "*"
 ipython = "*"
 jupyter = "*"
+sklearn = "*"
 
 [packages]
 numpy = "*"
@@ -14,7 +15,6 @@ matplotlib = "*"
 pandas = "*"
 sortedcontainers = "*"
 scipy = "*"
-sklearn = "*"
 
 [requires]
 python_version = "3.7"
