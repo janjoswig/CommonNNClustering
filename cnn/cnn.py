@@ -398,10 +398,9 @@ children :                              {self.children_present}
         else:
             self.map_matrix = cdist(np.vstack(self.test), np.vstack(self.train))
             
-    def dist_hist(self, mode='train', bins=100, range=None,
-                  density=True, weights=None, xlabel='d / au', ylabel='',
-                  show=True, save=False, output='dist_hist.pdf', dpi=300,
-                  maxima=False):
+    def dist_hist(self, mode='train', show=True, save=False,
+                  output='dist_hist.pdf', maxima=False, hist_props=None,
+                  ax_props=None, save_props=None):
         """Shows/saves a histogram plot for distances in a given distance
         matrix"""
         
@@ -416,27 +415,56 @@ children :                              {self.children_present}
         elif mode == 'test':
             if self.test_dist_matrix is None:
                 print(
-"Train distance matrix not calculated. Calculating distance matrix."
+"Test distance matrix not calculated. Calculating distance matrix."
                 )
                 self.dist(mode=mode)           
             _dist_matrix = self.test_dist_matrix
-        
         else:
             raise ValueError(
                 "Mode not understood. Must be either 'train' or 'test'."
             )
 
+        # TODO make this a configuation option
+        hist_props_defaults = {
+            "bins": 100,
+            "density": True,
+        }
+
+        if hist_props is None:
+            hist_props = hist_props_defaults
+        else:
+            hist_props_defaults.update(hist_props)
+
+        # for kwarg, value in hist_props_defaults.items():
+        #     if kwarg not in hist_props:
+        #         hist_props[kwarg] = value
+
         flat_ = np.tril(_dist_matrix).flatten()
-        histogram, bins =  np.histogram(flat_[flat_ > 0],
-                                        bins=bins,
-                                        range=range,
-                                        density=density,
-                                        weights=weights)
+        histogram, bins =  np.histogram(
+            flat_[flat_ > 0],
+            **hist_props
+            )
+
         binmids = bins[:-1] + (bins[-1] - bins[0]) / ((len(bins) - 1)*2)
-                                                                          
+        
+        ylimit = np.max(histogram)*1.1
+
+        # TODO make this a configuation option
+        ax_props_defaults = {
+            "xlabel": "d / au",
+            "ylabel": '',
+            "xlim": (0, np.max(binmids)),
+            "ylim": (0, ylimit),
+        }
+
+        if ax_props is None:
+            ax_props = ax_props_defaults
+        else:
+            ax_props_defaults.update(ax_props)
+
         fig, ax = plt.subplots()
         ax.plot(binmids, histogram)
-        ylimit = np.max(histogram)*1.1
+
         if maxima:
             found = argrelextrema(histogram, np.greater)[0]
             settings['default_radius_cutoff'] = \
@@ -449,21 +477,28 @@ children :                              {self.children_present}
                             histogram[candidate]+(ylimit/100))
                     )
 
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-        ax.set_xlim(0, np.max(binmids))
-        ax.set_ylim(0, np.max(histogram)*1.1)
+        ax.set(**ax_props)
+
+        # TODO make this a configuation option
+        save_props_defaults = {}
+
+        if save_props is None:
+            save_props = save_props_defaults
+        else:
+            save_props_defaults.update(save_props)
+
         plt.tight_layout(pad=0.1)
         if save:
-            plt.savefig(output, dpi=dpi)
+            plt.savefig(output, **save_props)
         if show:
             plt.show()
         plt.close()
     
     @recorded
     @timed
-    def fit(self, radius_cutoff=None, cnn_cutoff=None,
-                member_cutoff=None, max_clusters=None, rec=True):
+    def fit(self, radius_cutoff: float=None, cnn_cutoff: int=None,
+                member_cutoff: int=None, max_clusters: int=None,
+                rec: bool=True) -> Optional[pd.DataFrame]:
         """Performs a CNN clustering of points in a given train 
         distance matrix"""
 
@@ -545,6 +580,7 @@ children :                              {self.children_present}
 
                 done += 1   
             current += 1
+            print(done)
 
             if max_clusters is not None:
                 if current == max_clusters+1:
