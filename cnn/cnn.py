@@ -29,6 +29,10 @@ from pathlib import Path
 from typing import List, Dict
 from typing import Union, Optional
 
+#######################################################################
+# TODO Consider two points at the same (within precision) coordinates
+# as one or treat seperately? 
+
 ########################################################################
 # Global functions
 
@@ -57,8 +61,11 @@ def configure():
                     'default_cnn_cutoff' : "1",
                     'default_radius_cutoff' : "1",
                     'default_member_cutoff' : "1",
+                    'float_precision' : 'sp',
+                    'int_precision' : 'sp',
                     }
             )
+
     if CWD_CONFIG.is_file():
         print(f"Configuration file found in {CWD}")
         config_.read(CWD_CONFIG)
@@ -88,7 +95,30 @@ def configure():
 
     settings = config_['settings']
     defaults = config_template['settings']
+    
+    global float_precision
+    global int_precision
+    
+    float_precision = settings.get(
+        'float_precision', defaults.get('float_precision')
+        )
 
+    int_precision = settings.get(
+        'int_precision', defaults.get('int_precision')
+        )
+# TODO Make this optional
+float_precision_map = {
+    'hp': np.float16,
+    'sp': np.float32,
+    'dp': np.float64,
+}
+
+int_precision_map = {
+    'qp': np.int8,
+    'hp': np.int16,
+    'sp': np.int32,
+    'dp': np.int64,
+}
 
 def timed(function_):
     """Decorator to measure execution time.  Forwards the output of the
@@ -120,17 +150,20 @@ def recorded(function_):
                 wrapped[-2]['time'] = wrapped[-1]
                 print(f'recording: ... \n{wrapped[-2]}')
                 self.summary = self.summary.append(
-                                                wrapped[-2], ignore_index=True
-                                                )
+                    wrapped[-2], ignore_index=True
+                    )
             else:
-                self.summary = self.summary.append(wrapped, ignore_index=True)
+                self.summary = self.summary.append(
+                    wrapped, ignore_index=True
+                    )
         return
     return wrapper
 
 class CNN():
     """CNN cluster object class"""
     
-    def get_shape(self, data):
+    @staticmethod
+    def get_shape(data):
         """Analyses the format of given data and fits it into standard
         format (parts, points, dimensions)."""
         if data is None:
@@ -142,7 +175,8 @@ class CNN():
         else:
             data_shape = np.shape(data[0])
             if np.shape(data_shape)[0] == 0:
-                data = np.array([[data]])
+                data = np.array([[data]],
+                    dtype=float_precision_map[float_precision])
                 return data, {
                     'parts': 1,
                     'points': [np.shape(data)[0]],
@@ -150,7 +184,8 @@ class CNN():
                     } 
 
             elif np.shape(data_shape)[0] == 1:
-                data = np.array([data])
+                data = np.array([data],
+                    dtype=float_precision_map[float_precision])
                 return data, {
                     'parts': 1,
                     'points': [np.shape(data)[1]],
@@ -158,7 +193,8 @@ class CNN():
                     }
 
             elif np.shape(data_shape)[0] == 2:
-                data = np.array([np.asarray(x) for x in data])
+                data = np.array([np.asarray(x) for x in data],
+                    dtype=float_precision_map[float_precision])
                 return data, {
                     'parts': np.shape(data)[0],
                     'points': [np.shape(x)[0] for x in data],
@@ -168,14 +204,17 @@ class CNN():
                 raise ValueError(
     f"Data shape {data_shape} not allowed"
     )
-
+    
+    # TODO Add precision argument on initilisation?
     def __init__(self, alias='root', train=None, test=None,
                  train_dist_matrix=None, test_dist_matrix=None,
                  map_matrix=None):
+        
         configure()
+
         # generic function feedback data container for CCN.cluster(); used only
         # to provide column identifiers.  maybe not too useful ...
-        
+        # TODO maybe put this module wide not as instance attribute?
         self.record = namedtuple(
                 'ClusterRecord',
                 [settings.get('record_points',
@@ -195,24 +234,150 @@ class CNN():
                 settings.get('record_noise',
                     defaults.get('record_noise', 'noise')),
                 settings.get('record_time',
-                    defaults.get('record_time', 'time')),])
-        self.alias = alias
-        self.hierarchy_level = 0
-        self.test = test
-        self.train = train
-        self.train_dist_matrix = train_dist_matrix
-        self.test_dist_matrix =  test_dist_matrix
-        self.map_matrix = map_matrix
-        self.test, self.test_shape = self.get_shape(self.test)
-        self.train, self.train_shape = self.get_shape(self.train)
-        self.test_clusterdict = None
-        self.test_labels = None
-        self.train_clusterdict = None
-        self.train_labels = None
-        self.summary = pd.DataFrame(columns=self.record._fields)
-        self.train_children = None
-        self.train_refindex = None
+                    defaults.get('record_time', 'time')),]
+                    )
 
+        self.__alias = alias
+        
+        # TODO rather a class attribute? 
+        self.__hierarchy_level = 0
+        
+        self.__test = test
+        self.__train = train
+        self.__train_dist_matrix = train_dist_matrix
+        self.__test_dist_matrix =  test_dist_matrix
+        self.__map_matrix = map_matrix
+        self.__test, self.__test_shape = self.get_shape(self.test)
+        self.__train, self.__train_shape = self.get_shape(self.train)
+        self.__test_clusterdict = None
+        self.__test_labels = None
+        self.__train_clusterdict = None
+        self.__train_labels = None
+        self.summary = pd.DataFrame(columns=self.record._fields)
+        self.__train_children = None
+        self.__train_refindex = None
+        # No children for test date. (Hierarchical) clustering should be 
+        # done on train data
+
+    @property
+    def alias(self):
+        return self.__alias
+
+    @alias.setter
+    def alias(self, a):
+        self.__alias = f"{a}"
+
+    @property
+    def hierarchy_level(self):
+        return self.__hierarchy_level
+
+    @hierarchy_level.setter
+    def hierarchy_level(self, level):
+        self.__hierarchy_level = int(level)
+
+    @property
+    def test(self):
+        return self.__test
+
+    @test.setter
+    def test(self, data):
+        # TODO control string, array, hdf5 file object handling
+        self.__test = data
+
+    @property
+    def train(self):
+        return self.__train
+
+    @train.setter
+    def train(self, data):
+        # TODO control string, array, hdf5 file object handling
+        self.__train = data
+
+    @property
+    def test_dist_matrix(self):
+        return self.__test_dist_matrix
+
+    @test_dist_matrix.setter
+    def test_dist_matrix(self, data):
+        # TODO control string, array, hdf5 file object handling
+        self.__test_dist_matrix = data
+
+    @property
+    def train_dist_matrix(self):
+        return self.__train_dist_matrix
+
+    @train_dist_matrix.setter
+    def train_dist_matrix(self, data):
+        # TODO control string, array, hdf5 file object handling
+        self.__train_dist_matrix = data
+
+    @property
+    def test_shape(self):
+        return self.__test_shape
+
+    @test_shape.setter
+    def test_shape(self, shape):
+        self.__test_shape = shape
+
+    @property
+    def train_shape(self):
+        return self.__train_shape
+
+    @train_shape.setter
+    def train_shape(self, shape):
+        self.__train_shape = shape
+
+    @property
+    def test_clusterdict(self):
+        return self.__test_clusterdict
+
+    @test_clusterdict.setter
+    def test_clusterdict(self, d):
+        self.__test_clusterdict = d
+
+    @property
+    def train_clusterdict(self):
+        return self.__train_clusterdict
+
+    @train_clusterdict.setter
+    def train_clusterdict(self, d):
+        self.__train_clusterdict = d        
+
+    @property
+    def test_labels(self):
+        return self.__test_labels
+
+    @test_labels.setter
+    def test_labels(self, d):
+        self.__test_labels = d
+
+    @property
+    def train_labels(self):
+        return self.__train_labels
+
+    @train_labels.setter
+    def train_labels(self, d):
+        self.__train_labels = d
+
+    # @property
+    # def summary(self):
+    #     return self.__summary
+
+    # @sumary.setter
+    # def summary(self, sum):
+    #     self.__train_labels = d
+
+    # No setter for summary. This should not be modified by the user.
+    # TODO Maybe remove the setter for other critical attributes as well.
+    # (shape, clusterdict, labels, children ...) -> may not work
+
+    @property
+    def train_children(self):
+        return self.__train_children
+
+    @property
+    def train_refindex(self):
+        return self.__train_refindex
 
     def check(self):
         if self.test is not None:
@@ -280,8 +445,10 @@ children :                              {self.children_present}
             extension = ''
         case_ = {
             'p' : lambda: pickle.load(open(file_, 'rb')),
-            'npy': lambda: np.load(file_),
-             '': lambda: np.loadtxt(file_),
+            'npy': lambda: np.load(file_,
+                dtype=float_precision_map[float_precision]),
+             '': lambda: np.loadtxt(file_,
+                dtype=float_precision_map[float_precision]),
              }
         data = case_.get(extension,
             f"Unknown filename extension .{extension}")()
@@ -1156,10 +1323,10 @@ class CNNChild(CNN):
     """CNN cluster object subclass. Increments the hierarchy level of
     the parent object when instanciated."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, alias='child'):
         super().__init__()
         self.hierarchy_level = parent.hierarchy_level +1
-        self.alias = 'child'
+        self.__alias = alias
 
 ########################################################################
 
