@@ -11,10 +11,13 @@ first released: 03.12.2018
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import cm
 from collections import defaultdict, namedtuple
 from sortedcontainers import SortedList
 from scipy.spatial.distance import cdist
 from scipy.signal import argrelextrema
+from scipy.interpolate import interp1d
+
 from functools import wraps
 import time
 import pandas as pd # TODO get rid of this dependency?
@@ -400,10 +403,13 @@ children :                              {self.children_present}
             
     def dist_hist(self, mode='train', show=True, save=False,
                   output='dist_hist.pdf', maxima=False, hist_props=None,
-                  ax_props=None, save_props=None):
+                  ax_props=None, inter_props=None, save_props=None):
         """Shows/saves a histogram plot for distances in a given distance
         matrix"""
         
+    # TODO Add option for kernel density estimation 
+    # (scipy.stats.gaussian_kde, statsmodels.nonparametric.kde) 
+
         if mode == 'train':
             if self.train_dist_matrix is None:
                 print(
@@ -430,36 +436,53 @@ children :                              {self.children_present}
             "density": True,
         }
 
-        if hist_props is None:
-            hist_props = hist_props_defaults
-        else:
-            hist_props_defaults.update(hist_props)
-
-        # for kwarg, value in hist_props_defaults.items():
-        #     if kwarg not in hist_props:
-        #         hist_props[kwarg] = value
+        if hist_props is not None:
+            hist_props_defaults.update(hist_props)            
 
         flat_ = np.tril(_dist_matrix).flatten()
         histogram, bins =  np.histogram(
             flat_[flat_ > 0],
-            **hist_props
+            **hist_props_defaults
             )
 
         binmids = bins[:-1] + (bins[-1] - bins[0]) / ((len(bins) - 1)*2)
-        
+
+        # TODO make this a configuation option
+        inter_props_defaults = {
+            "ifactor": 0.5,
+            "kind": 'linear',
+        }
+
+        if inter_props is not None:
+            inter_props_defaults.update(inter_props)
+            
+            ifactor = inter_props_defaults.pop("ifactor")
+            
+            ipoints = int(
+                np.ceil(len(binmids)*ifactor)
+                )
+            ibinmids = np.linspace(binmids[0], binmids[-1], ipoints)
+            histogram = interp1d(
+                binmids,
+                histogram,
+                **inter_props_defaults
+                )(ibinmids)
+
+            binmids = ibinmids
+
+            
         ylimit = np.max(histogram)*1.1
 
         # TODO make this a configuation option
         ax_props_defaults = {
             "xlabel": "d / au",
             "ylabel": '',
-            "xlim": (0, np.max(binmids)),
+            "yticks": (),
+            "xlim": (np.min(binmids), np.max(binmids)),
             "ylim": (0, ylimit),
         }
 
-        if ax_props is None:
-            ax_props = ax_props_defaults
-        else:
+        if ax_props is not None:
             ax_props_defaults.update(ax_props)
 
         fig, ax = plt.subplots()
@@ -477,19 +500,18 @@ children :                              {self.children_present}
                             histogram[candidate]+(ylimit/100))
                     )
 
-        ax.set(**ax_props)
+        ax.set(**ax_props_defaults)
 
         # TODO make this a configuation option
         save_props_defaults = {}
 
-        if save_props is None:
-            save_props = save_props_defaults
-        else:
+        if save_props is not None:
             save_props_defaults.update(save_props)
-
+        
+        # make this optional
         plt.tight_layout(pad=0.1)
         if save:
-            plt.savefig(output, **save_props)
+            plt.savefig(output, **save_props_defaults)
         if show:
             plt.show()
         plt.close()
@@ -555,7 +577,7 @@ children :                              {self.children_present}
             _labels[point] = current
             include[point] = False
 
-            done = 0
+            # done = 0
             while new_point_added:
                 new_point_added = False
                 # for member in _clusterdict[current][done:]:
@@ -578,9 +600,8 @@ children :                              {self.children_present}
                             _labels[neighbour] = current
                             include[neighbour] = False
 
-                done += 1   
+                # done += 1   
             current += 1
-            print(done)
 
             if max_clusters is not None:
                 if current == max_clusters+1:
@@ -847,7 +868,8 @@ children :                              {self.children_present}
     def evaluate(self, mode='train', max_clusters=None,
                  plot='scatter', parts=(None, None, None),
                  points=(None, None, None), dim=None, show=True, save=False,
-                 output='evaluation.pdf', dpi=300):
+                 output='evaluation.pdf', ax_props=None, save_props=None, 
+                 scatter_props=None, hist_props=None, contour_props=None):
         """Shows/saves a 2D histogram or scatter plot of a cluster result"""
         
         # To do: fix plotting when set is cut; make noise optional
@@ -874,20 +896,86 @@ children :                              {self.children_present}
         if max_clusters is not None:
             _labels[_labels > max_clusters] = 0
 
- 
-        color = settings.get('color', defaults.get('color'))
+        # TODO make this a configuation option
+        ax_props_defaults = {
+            "xlabel": "$x$",
+            "ylabel": "$y$",
+        }
 
+        if ax_props is not None:
+            ax_props_defaults.update(ax_props)
+        
         fig, ax = plt.subplots()
-        if color is not None:
-            # ax.set_prop_cycle((cycler(color=color.split())))
-            colors = np.array(list(islice(cycle(color.split()),
-                                          int(max(_labels) + 1)
-                                          ))) 
-            color = colors[_labels]
-                          
-        ax.scatter(_data[:, 0], _data[:, 1], alpha=0.5, s=10, color=color)
+        if plot == 'scatter':
+            color = settings.get('color', defaults.get('color'))
+            if color is not None:
+                colors = np.array(
+                    list(islice(cycle(
+                        color.split(' ')
+                            ),
+                        int(max(_labels) + 1)
+                        ))
+                    ) 
+
+                color = colors[_labels]
+
+            scatter_props_defaults = {
+                'c': color,
+                's': 10,
+            }
+
+            if scatter_props is not None:
+                scatter_props_defaults.update(scatter_props)
+
+            ax.scatter(_data[:, 0], _data[:, 1], **scatter_props_defaults)
+        
+        elif plot in ['contour', 'contourf', 'histogram']:
+            # TODO make this a configuation option
+            hist_props_defaults = {
+                "bins": 100,
+                "density": True,
+            }
+
+            if hist_props is not None:
+                hist_props_defaults.update(hist_props)
+            
+            H, xbins, ybins = np.histogram2d(_data[:, 0], _data[:, 1], **hist_props_defaults)
+            
+            xbinmids = xbins[:-1] + (xbins[-1] - xbins[0]) / ((len(xbins) - 1)*2)
+            ybinmids = ybins[:-1] + (ybins[-1] - ybins[0]) / ((len(ybins) - 1)*2)
+
+            contour_props_defaults = {
+                "cmap": cm.inferno,
+            }
+
+            if contour_props is not None:
+                contour_props_defaults.update(contour_props)
+
+            if plot == 'contour':
+                X, Y = np.meshgrid(xbinmids, ybinmids)
+                ax.contour(X, Y, H, **contour_props_defaults)
+
+            if plot == 'contourf':
+                X, Y = np.meshgrid(xbinmids, ybinmids)
+                ax.contourf(X, Y, H, **contour_props_defaults)
+
+        else:
+            raise ValueError(
+f"""Plot type {plot} not understood.
+Must be one of 'scatter', 'contour'
+"""
+            )
+
+        ax.set(**ax_props_defaults)
+        
+        # TODO make this a configuation option
+        save_props_defaults = {}
+
+        if save_props is not None:
+            save_props_defaults.update(save_props)
+
         if save:
-            plt.savefig(output, dpi=dpi)
+            plt.savefig(output, **save_props_defaults)
         if show:
             plt.show()
         plt.close()
