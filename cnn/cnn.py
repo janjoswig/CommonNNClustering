@@ -128,14 +128,14 @@ def timed(function_):
         go = time.time()
         wrapped = function_(*args, **kwargs)
         stop = time.time()
-        
-        stopped = stop - go
-        hours, rest = divmod(stopped, 3600)
-        minutes, seconds = divmod(rest, 60)
-        print(
-f"Execution time for call of {function_.__name__}(): \
-{int(hours)} hours, {int(minutes)} minutes, {seconds:.4f} seconds")
-        return wrapped, stopped
+        if wrapped is not None:
+            stopped = stop - go
+            hours, rest = divmod(stopped, 3600)
+            minutes, seconds = divmod(rest, 60)
+            print(
+    f"Execution time for call of {function_.__name__}(): \
+    {int(hours)} hours, {int(minutes)} minutes, {seconds:.4f} seconds")
+            return wrapped, stopped
     return wrapper
          
 def recorded(function_):
@@ -513,7 +513,7 @@ children :                              {self.children_present}
         self.train, self.train_shape = self.get_shape(self.train)
 
     @timed
-    def dist(self, mode='train', low_memory=False):
+    def dist(self, mode='train',  v=True, low_memory=False):
         """Computes a distance matrix (points x points) for points in given data
         of standard shape (parts, points, dimensions)"""
 
@@ -533,10 +533,12 @@ children :                              {self.children_present}
             raise ValueError(
             "Mode not understood. Must be one of 'train' or 'test'."
             )
+        
+        if v:
+            print(
+f"Calculating nxn distance matrix for {len(points)} points"
+            )
 
-        print(
-            f"Calculating nxn distance matrix for {len(points)} points"
-             )
         if low_memory:
             raise NotImplementedError()
         else:
@@ -687,10 +689,12 @@ children :                              {self.children_present}
     @timed
     def fit(self, radius_cutoff: float=None, cnn_cutoff: int=None,
                 member_cutoff: int=None, max_clusters: int=None,
-                rec: bool=True) -> Optional[pd.DataFrame]:
+                rec: bool=True, v=True) -> Optional[pd.DataFrame]:
         """Performs a CNN clustering of points in a given train 
         distance matrix"""
-
+        # go = time.time()
+        # print("Function called")
+        
         if radius_cutoff is None:
             radius_cutoff = float(settings.get(
                                 'default_radius_cutoff',
@@ -719,10 +723,14 @@ children :                              {self.children_present}
 
         if self.train_dist_matrix is None:
             self.dist()
+        
+        # print(f"Data checked: {time.time() - go}")
 
         n_points = len(self.train_dist_matrix)
+        # calculate neighbour list
         neighbours = np.asarray([
-            np.where((x > 0) & (x <= radius_cutoff))[0] for x in self.train_dist_matrix
+            np.where((x > 0) & (x <= radius_cutoff))[0]
+            for x in self.train_dist_matrix
             ])
         n_neighbours = np.asarray([len(x) for x in neighbours])
         include = np.ones(len(neighbours), dtype=bool)
@@ -733,8 +741,11 @@ children :                              {self.children_present}
         _labels = np.zeros(n_points).astype(int)
         current = 1
 
+        # print(f"Initialisation done: {time.time() - go}")
+
         enough = False
         while any(include) and not enough:
+            # find point with highest neighbour count
             point = np.where(
                 (n_neighbours == np.max(n_neighbours[include]))
                 & (include == True)
@@ -743,7 +754,7 @@ children :                              {self.children_present}
             new_point_added = True
             _labels[point] = current
             include[point] = False
-
+            # print(f"Opened cluster {current}: {time.time() - go}")
             # done = 0
             while new_point_added:
                 new_point_added = False
@@ -774,13 +785,14 @@ children :                              {self.children_present}
                 if current == max_clusters+1:
                     enough = True
 
-        # for key in _clusterdict:
-        #     _clusterdict[key].sort()
+        # print(f"Clustering done: {time.time() - go}")
 
         clusters_no_noise = {
             y: _clusterdict[y] 
             for y in _clusterdict if y != 0
             }
+
+        # print(f"Make clusters_no_noise copy: {time.time() - go}")
         
         too_small = [
             _clusterdict.pop(y) 
@@ -791,10 +803,12 @@ children :                              {self.children_present}
         if len(too_small) > 0:
             for entry in too_small:
                 _clusterdict[0].update(entry)
-        
+
         for x in set(_labels):
             if x not in set(_clusterdict):
                 _labels[_labels == x] = 0
+        
+        # print(f"Declared small clusters as noise: {time.time() - go}")
 
         if len(clusters_no_noise) == 0:
             largest = 0
@@ -804,12 +818,17 @@ children :                              {self.children_present}
                 for x in clusters_no_noise.values()
                     ])]) / n_points
         
+        # print(f"Found largest cluster: {time.time() - go}")
+        
         self.train_clusterdict = _clusterdict
         self.train_labels = _labels
         self.clean()
         self.labels2dict()
 
+        # print(f"Updated state: {time.time() - go}")
+
         if rec:
+            # print(f"Returning: {time.time() - go}")
             return pd.Series([
                         n_points,
                         radius_cutoff,
@@ -824,6 +843,7 @@ children :                              {self.children_present}
                         index=self.record._fields,
                         dtype='object',
                         )
+    
     @timed
     def predict(self, low_memory=False, radius_cutoff=1, cnn_cutoff=1,
         member_cutoff=1, max_clusters=None, include_all=True, cluster=None,
