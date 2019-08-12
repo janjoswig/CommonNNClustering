@@ -107,6 +107,7 @@ def configure():
         'int_precision', defaults.get('int_precision')
         )
 # TODO Make this optional
+# not really usable since numpy/scipy calculations are done in dp anyways
 float_precision_map = {
     'hp': np.float16,
     'sp': np.float32,
@@ -435,23 +436,43 @@ clustered :                             {self.clusters_present}
 children :                              {self.children_present}
 """
 
-    def load(self, file_, mode='train'):
+    def load(self, file_, mode='train', **kwargs):
         """Loads file content and returns data and shape
         """
         # add load option for dist_matrix, map_matrix
-        
-        extension = file_.rsplit('.', 1)[-1]
-        if len(extension) == 1:
-            extension = ''
+
+        extension = Path(file_).suffix
+
         case_ = {
-            'p' : lambda: pickle.load(open(file_, 'rb')),
-            'npy': lambda: np.load(file_,
-                dtype=float_precision_map[float_precision]),
-             '': lambda: np.loadtxt(file_,
-                dtype=float_precision_map[float_precision]),
+            '.p' : lambda: pickle.load(
+                open(file_, 'rb'),
+                **kwargs
+                ),
+            '.npy': lambda: np.load(
+                file_,
+                # dtype=float_precision_map[float_precision],
+                **kwargs
+                ),
+             '': lambda: np.loadtxt(
+                 file_,
+                # dtype=float_precision_map[float_precision],
+                **kwargs
+                ),
+             '.xvg': lambda: np.loadtxt(
+                 file_,
+                # dtype=float_precision_map[float_precision],
+                **kwargs
+                ),
+            '.dat': lambda: np.loadtxt(
+                file_,
+                # dtype=float_precision_map[float_precision],
+                **kwargs
+                ),
              }
-        data = case_.get(extension,
-            f"Unknown filename extension .{extension}")()
+        data = case_.get(
+            extension,
+            lambda: print(f"Unknown filename extension {extension}")
+            )()
     
         if mode == 'train':
             self.train, self.train_shape = self.get_shape(data)
