@@ -570,7 +570,7 @@ f"Calculating nxn distance matrix for {len(points)} points"
         else:
             self.map_matrix = cdist(np.vstack(self.test), np.vstack(self.train))
             
-    def dist_hist(self, mode='train', show=True, save=False,
+    def dist_hist(self, ax=None, mode='train', show=True, save=False,
                   output='dist_hist.pdf', maxima=False, hist_props=None,
                   ax_props=None, inter_props=None, save_props=None):
         """Shows/saves a histogram plot for distances in a given distance
@@ -653,8 +653,10 @@ f"Calculating nxn distance matrix for {len(points)} points"
 
         if ax_props is not None:
             ax_props_defaults.update(ax_props)
+        
+        if ax is None:
+            ax = plt.gca()
 
-        fig, ax = plt.subplots()
         ax.plot(binmids, histogram)
 
         if maxima:
@@ -683,8 +685,7 @@ f"Calculating nxn distance matrix for {len(points)} points"
             plt.savefig(output, **save_props_defaults)
         if show:
             plt.show()
-        plt.close()
-    
+
     @recorded
     @timed
     def fit(self, radius_cutoff: float=None, cnn_cutoff: int=None,
@@ -1059,7 +1060,9 @@ f"Calculating nxn distance matrix for {len(points)} points"
                  scatter_props=None, hist_props=None, contour_props=None):
         """Shows/saves a 2D histogram or scatter plot of a cluster result"""
         
-        # To do: fix plotting when set is cut; make noise optional
+        # TODO: fix plotting when set is cut
+        # TODO make noise optional
+        # TODO overlay clusters over noise
         _data, _ = self.query_data(mode=mode)
         if dim is None:
             dim = 0
@@ -1173,9 +1176,10 @@ Must be one of 'scatter', 'contour'
         
         if mode == 'train':
             if purge or self.train_children is None:
-                self.train_children = defaultdict(lambda: CNNChild(self))
+                self.__train_children = defaultdict(lambda: CNNChild(self))
             
             for key, _cluster in  self.train_clusterdict.items():
+                # TODO: What if no noise?
                 if len(_cluster) > 0:
                     _cluster = np.asarray(_cluster)
                     ref_index = []
@@ -1203,11 +1207,11 @@ Must be one of 'scatter', 'contour'
                         part_startpoint = np.copy(part_endpoint)
                         part_startpoint += 1
 
-                    self.train_children[key].alias = f'child No. {key}'
-                    self.train_children[key].train, \
-                    self.train_children[key].train_shape = \
-                    self.train_children[key].get_shape(cluster_data)
-                    self.train_children[key].train_refindex = np.asarray(
+                    self.__train_children[key].__alias = f'child No. {key}'
+                    self.__train_children[key].__train, \
+                    self.__train_children[key].__train_shape = \
+                    self.__train_children[key].get_shape(cluster_data)
+                    self.__train_children[key].__train_refindex = np.asarray(
                                                                        ref_index
                                                                        )
         else:

@@ -7,8 +7,9 @@ verify_ssl = true
 pylint = "*"
 ipython = "*"
 jupyter = "*"
-sklearn = "*"
-black = "*"
+jupyter_contrib_nbextensions = "*"
+scikit-learn = "*"
+pyqt5 = "*"
 
 [packages]
 numpy = "*"
