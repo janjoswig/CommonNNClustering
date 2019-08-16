@@ -1242,7 +1242,76 @@ Must be one of 'scatter', 'contour'
 
             self.clean()
             self.labels2dict()
+    
+    def pie(self, ax=None, pie_props=None):
+        size = 0.2
+        radius = 0.22
+        
+        if ax is None:
+            ax = plt.gca()
+        
+        def getpieces(c, pieces=None, level=0, ref="0"):
+            if not pieces:
+                pieces = {}
+            if not level in pieces:
+                pieces[level] = {}
             
+            if c.train_clusterdict:
+                ring = {k: len(v) for k, v in c.train_clusterdict.items()}
+                ringsum = np.sum(list(ring.values()))
+                ring = {k: v/ringsum for k, v in ring.items()}
+                pieces[level][ref] = ring
+            
+                if c.train_children:
+                    for number, child in c.train_children.items():
+                        getpieces(
+                            child, 
+                            pieces=pieces,
+                            level=level+1, 
+                            ref=".".join([ref, str(number)])
+                        )
+                    
+            return pieces
+        p = getpieces(self)
+        
+        ringvalues = []
+        for j in range(np.max(list(p[0]['0'].keys())) + 1):
+            if j in p[0]['0']:
+                ringvalues.append(p[0]['0'][j])
+        
+
+        ax.pie(ringvalues, radius=radius, colors=None,
+            wedgeprops=dict(width=size, edgecolor='w'))
+
+        # iterating through child levels
+        for i in range(1, np.max(list(p.keys()))+1):
+            # what has not been reclustered:
+            reclustered = np.asarray(
+                [key.rsplit('.', 1)[-1] for key in p[i].keys()]
+                ).astype(int)
+            # iterate over clusters of parent level
+            for ref, values in p[i-1].items():
+                # account for not reclustered clusters
+                for number in values:
+                    if number not in reclustered:
+                        p[i][".".join([ref, str(number)])] = {0: 1}
+
+            # iterate over clusters of child level
+            for ref in p[i]:
+                preref = ref.rsplit('.', 1)[0]
+                sufref = int(ref.rsplit('.', 1)[-1])
+                p[i][ref] = {
+                    k: v*p[i-1][preref][sufref]
+                    for k, v in p[i][ref].items()
+                }
+
+            ringvalues = []
+            for ref in sorted(list(p[i].keys())):
+                for j in p[i][ref]:
+                    ringvalues.append(p[i][ref][j])
+
+            ax.pie(ringvalues, radius=radius + i*size, colors=None,
+            wedgeprops=dict(width=size, edgecolor='w'))
 
     def clean(self, mode='train'):
         if mode == 'train':
