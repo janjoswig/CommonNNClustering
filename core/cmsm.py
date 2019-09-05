@@ -203,7 +203,24 @@ class CMSM():
 f"""Invalid value {largest} for keyword argument 'largest'. Must be one of 
 None, 'cluster_count', 'point_count'."""
                 )
+    
+    @staticmethod
+    def rownorm(T): 
+        rowsum = np.sum(T, axis=1)
+        return np.divide(T, rowsum[:, None])
 
+    def correctnumerics(self, T=None, tol=1e-8, rownorm=True):
+        # TODO: Maybe confusing -> separte instance from staticmethod
+        if T is None:
+        
+            self.__T[abs(self.__T < tol)] = 0
+            if rownorm:
+                self.__T = self.rownorm(self.__T)
+
+        else:
+            T[abs(T < tol)] = 0
+            if rownorm:
+                T = rownorm(T)
 
     def get_transitionmatrix(self, F, B, lag=0, n_clusters=None, rownorm=True):
         lag = int(lag)
@@ -219,8 +236,7 @@ None, 'cluster_count', 'point_count'."""
         # force symmetry
         T += T.T
         if rownorm:
-            rowsum = np.sum(T, axis=1)
-            T = np.divide(T, rowsum[:, None]) 
+            T = self.rownorm(T)
         
         return T
     
@@ -233,7 +249,7 @@ None, 'cluster_count', 'point_count'."""
             dtraj = np.array([])
         return dtraj[first:last+1]
 
-    def cmsm(self, dtrajs=None, lag=1, minlenfactor=10, v=True):
+    def cmsm(self, dtrajs=None, lag=1, minlenfactor=10, v=True, correct=False):
         """Estimate coreset markov model from characteristic functions
         at a given lagtime
         """
@@ -329,6 +345,9 @@ f"---------------------------------------------------------\n"
 
         # Weight T with the inverse M
         self.__T = np.dot(self.__T, np.linalg.inv(self.__M))
+
+        if correct:
+            self.correctnumerics()
 
     def diagonalise(self, T=None, **kwargs):
         if T is None:
