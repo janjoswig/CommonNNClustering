@@ -1124,11 +1124,13 @@ end='\r'
 
         return _data, _shape
 
-    def evaluate(self, mode='train', max_clusters=None,
-                 plot='scatter', parts=(None, None, None),
-                 points=(None, None, None), dim=None, show=True, save=False,
-                 output='evaluation.pdf', ax_props=None, save_props=None, 
-                 scatter_props=None, hist_props=None, contour_props=None):
+    def evaluate(self, ax=None, mode='train', max_clusters=None,
+                 plot='dots', parts=(None, None, None),
+                 points=(None, None, None), dim=None, show=False, save=False,
+                 output='evaluation.png', ax_props=None, save_props=None, 
+                 scatter_props=None, hist_props=None, dot_props=None, 
+                 dot_noise_props=None, scatter_noise_props=None,
+                 contour_props=None, original=False, annotate=True):
         """Shows/saves a 2D histogram or scatter plot of a cluster result"""
         
         # BROKEN!!!
@@ -1138,26 +1140,48 @@ end='\r'
         # TODO overlay clusters over noise
         _data, _ = self.query_data(mode=mode)
         if dim is None:
-            dim = 0
-        _data = [x[slice(*points), slice(dim, dim+2, 1)] 
-                        for x in _data[slice(*parts)]]
+            dim = (0, 1)
+        elif dim[1] < dim[0]:
+            dim = dim[::-1]
+
+        _data = [
+            x[slice(*points), slice(dim[0], dim[1]+1, dim[1]-dim[0])] 
+            for x in _data[slice(*parts)]
+            ]
 
         _data = np.vstack(_data)
 
-        if mode == 'test':
-            if self.test_labels is None:
-                _labels = np.ones(len(_data)).astype(int)
-            else:
-                _labels = self.test_labels
-        elif mode == 'train':
-            if self.train_labels is None:
-                _labels = np.ones(len(_data)).astype(int)
-            else:
-                _labels = self.train_labels
-        
-       
-        if max_clusters is not None:
-            _labels[_labels > max_clusters] = 0
+        # if mode == 'test':
+        #     if self.__test_labels is None:
+        #         _labels = np.ones(len(_data)).astype(int)
+        #     else:
+        #         _labels = self.test_labels
+        # elif mode == 'train':
+        #     if self.__train_labels is None:
+        #         _labels = np.ones(len(_data)).astype(int)
+        #     else:
+        #         _labels = self.train_labels
+        if mode == 'train':
+            try:
+                items = self.__train_clusterdict.items()
+                if max_clusters is None:
+                    max_clusters = max(self.__train_clusterdict)
+            except AttributeError:
+                original = True
+
+        elif mode == 'test':
+            try:
+                items = self.__test_clusterdict.items()
+                if max_clusters is None:
+                    max_clusters = max(self.__test_clusterdict)
+            except AttributeError:
+                original = True
+        else:
+            raise ValueError()
+
+
+        # if max_clusters is not None:
+        #     _labels[_labels > max_clusters] = 0
 
         # TODO make this a configuation option
         ax_props_defaults = {
@@ -1168,30 +1192,126 @@ end='\r'
         if ax_props is not None:
             ax_props_defaults.update(ax_props)
         
-        fig, ax = plt.subplots()
-        if plot == 'scatter':
-            color = settings.get('color', defaults.get('color'))
-            if color is not None:
-                colors = np.array(
-                    list(islice(cycle(
-                        color.split(' ')
-                            ),
-                        int(max(_labels) + 1)
-                        ))
-                    ) 
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.get_figure()
 
-                color = colors[_labels]
+        if plot == 'dots':
+            dot_props_defaults = {
+                'lw': 0,
+                'marker': '.',
+                'markersize': 4,
+                'markeredgecolor': 'none',
+                }
+
+            if dot_props is not None:
+                dot_props_defaults.update(dot_props)
+
+            dot_noise_props_defaults = {
+                'color': 'none',
+                'lw': 0,
+                'marker': '.',
+                'markersize': 4,
+                'markerfacecolor': 'k',
+                'markeredgecolor': 'none',   
+                'alpha': 0.3
+                }
+
+            if dot_noise_props is not None:
+                dot_noise_props_defaults.update(dot_noise_props)
+
+            if original:
+                ax.plot(
+                    _data[:, 0],
+                    _data[:, 1],
+                    **dot_props_defaults
+                    )
+
+            else:
+                for cluster, points in items:
+                    if cluster > max_clusters:
+                        break
+
+                    if cluster == 0:
+                        ax.plot(
+                            _data[points, 0],
+                            _data[points, 1],
+                            **dot_noise_props_defaults
+                        )
+                    else:
+                        ax.plot(
+                            _data[points, 0],
+                            _data[points, 1],
+                            **dot_props_defaults
+                            )
+                        if annotate:
+                            ax.annotate(
+                                f"{cluster}",
+                                xy=(np.mean(_data[points, 0]),
+                                    np.mean(_data[points, 1])),
+                                )
+
+        elif plot == 'scatter':
+            # color = settings.get('color', defaults.get('color'))
+            # if color is not None:
+            #     colors = np.array(
+            #         list(islice(cycle(
+            #             color.split(' ')
+            #                 ),
+            #             int(max(_labels) + 1)
+            #             ))
+            #         ) 
+
+            #    color = colors[_labels]
 
             scatter_props_defaults = {
-                'c': color,
                 's': 10,
             }
 
             if scatter_props is not None:
                 scatter_props_defaults.update(scatter_props)
 
-            ax.scatter(_data[:, 0], _data[:, 1], **scatter_props_defaults)
-        
+            scatter_noise_props_defaults = {
+                'color': 'k',
+                's': 10,
+                'alpha': 0.5
+            }
+
+            if scatter_noise_props is not None:
+                scatter_noise_props_defaults.update(scatter_noise_props)
+            
+            if original:
+                ax.scatter(
+                    _data[points, 0],
+                    _data[points, 1],
+                    **scatter_props_defaults
+                    )
+
+            else:
+                for cluster, points in items:
+                    if cluster > max_clusters:
+                        break
+
+                    if cluster == 0:
+                        ax.scatter(
+                            _data[points, 0],
+                            _data[points, 1],
+                            **scatter_noise_props_defaults
+                            )
+                    else:
+                        ax.scatter(
+                            _data[points, 0],
+                            _data[points, 1],
+                            **scatter_props_defaults
+                            )
+                        if annotate:
+                            ax.annotate(
+                                f"{cluster}",
+                                xy=(np.mean(_data[points, 0]),
+                                    np.mean(_data[points, 1])),
+                                )
+
         elif plot in ['contour', 'contourf', 'histogram']:
             # TODO make this a configuation option
             hist_props_defaults = {
@@ -1238,10 +1358,9 @@ Must be one of 'scatter', 'contour'
             save_props_defaults.update(save_props)
 
         if save:
-            plt.savefig(output, **save_props_defaults)
+            fig.savefig(output, **save_props_defaults)
         if show:
-            plt.show()
-        plt.close()
+            fig.show()
 
 
     def isolate(self, mode='train', purge=True):
@@ -1511,6 +1630,31 @@ Must be one of 'scatter', 'contour'
 
         else:
             raise NotImplementedError()
+
+
+
+    def get_dtraj(self, mode='train'):
+        _dtrajs = []
+
+        if mode == 'train':
+            _shape = self.__train_shape
+            _labels = self.__train_labels
+        elif mode == 'test':
+            _shape = self.__test_shape
+            _labels = self.__test_labels
+        else:
+            raise ValueError()
+            
+        part_startpoint = 0
+        for part in range(0, _shape['parts']):
+            part_endpoint = part_startpoint \
+                + _shape['points'][part]
+
+            _dtrajs.append(_labels[part_startpoint : part_endpoint])
+            
+            part_startpoint = np.copy(part_endpoint)
+        
+        return _dtrajs
 
 class CNNChild(CNN):
     """CNN cluster object subclass. Increments the hierarchy level of

@@ -4,12 +4,18 @@
 import numpy as np
 from scipy.linalg import eig
 import warnings
+from sortedcontainers import SortedDict
+import matplotlib.pyplot as plt
+from core.cnn import CNN
 
 class CMSM():
+    """Core set MSM class
+    """
     
     def __init__(self, dtrajs=None, T=None, unit="ps", step=1):
         self.dtrajs = dtrajs
         self.T = T
+        self.__tau = None
         self.M = None
         self.__Qminus = None
         self.__Qplus = None
@@ -21,15 +27,27 @@ class CMSM():
         self.__eigenvalues = None
         self.__unit = unit
         self.__step = step
+        self.__its = None
+        self.__Its = SortedDict()
+        self.__mode = None
+    
+    @staticmethod
+    def dtrajhandler(dtraj):
+        if isinstance(dtraj, list):
+            # TODO: format
+            return dtraj, "memory"
+        
+        if isinstance(dtraj, CNN):
+            raise NotImplementedError()
+
+            return dtraj, "memory"
+        
 
 
     @property
     def eigenvalues(self):
         if self.__eigenvalues is None:
-            self.__eigenvalues = eig(self.__T, left=False, right=False)
-            
-            self.__eigenvalues = np.sort(abs(self.__eigenvalues.real))
-            self.__eigenvalues = self.__eigenvalues[::-1]
+            self.get_eigvalues()
 
         return self.__eigenvalues
 
@@ -46,6 +64,14 @@ class CMSM():
         return self.__eigenvectors_left
 
     @property
+    def tau(self):
+        return self.__tau
+
+    @property
+    def mode(self):
+        return self.__mode
+
+    @property
     def dtrajs(self):
         return self.__dtrajs
 
@@ -54,7 +80,25 @@ class CMSM():
         # TODO modify setter, so dtraj can be passed correctly in
         # different formats: cobj, list of traces, path to file ...
         # Assume for now a list of np.ndarrays
-        self.__dtrajs = _dtrajs
+        self.__dtrajs, self.__mode = self.dtrajhandler(_dtrajs)
+
+    @property
+    def its(self):
+        if self.__its is None:
+            self.get_its()
+        return self.__its
+
+    @property
+    def Its(self):
+        return self.__Its
+
+    @property
+    def unit(self):
+        return self.__unit
+
+    @property
+    def step(self):
+        return self.__step
 
     @property
     def T(self):
@@ -179,30 +223,75 @@ None, 'cluster_count', 'point_count'."""
             T = np.divide(T, rowsum[:, None]) 
         
         return T
+    
+    @staticmethod
+    def trimzeros(dtraj):
+        nonzero = np.nonzero(dtraj)[0]
+        try:
+            first, last = nonzero[0], nonzero[-1]
+        except IndexError:
+            dtraj = np.array([])
+        return dtraj[first:last+1]
 
-
-
-    def cmsm(self, dtrajs=None, lag=1):
+    def cmsm(self, dtrajs=None, lag=1, minlenfactor=10, v=True):
         """Estimate coreset markov model from characteristic functions
         at a given lagtime
         """
+        if v:
+            print(
+f"\n*********************************************************\n" +
+f"---------------------------------------------------------\n" +
+f"Computing coreset MSM at lagtime {lag*self.__step} {self.__unit}\n" +
+f"---------------------------------------------------------\n"
+            )
 
         if dtrajs is None:
             dtrajs = self.__dtrajs
-        
+
+        # Remove leading and trailing 0s in trajectory
+        # for dtraj in dtrajs:
+        dtrajs = [
+            self.trimzeros(x)
+            for x in dtrajs
+            ]
+
         # Check if the provided trajectories are long enough
         length = [len(x) for x in dtrajs]
-        threshold = 10*lag
-        for c, i in enumerate(length, 1):
-            if i < threshold:
-                warnings.warn(
-f"""Trajectory #{c} is shorter then threshold steps and will not be used to
-compute the MSM.""" , UserWarning
-                    )
+        threshold = minlenfactor*lag
+        empty = []
+        tooshort = []
+        for c, i in enumerate(length):
+            if i == 0:
+                # warnings.warn(, UserWarning)
+                empty.append(c)
+            elif i < threshold:
+                # warnings.warn(, UserWarning)
+                tooshort.append(c)
 
         dtrajs = [x for c, x in enumerate(dtrajs) if length[c] >= threshold]
 
-        n_clusters = np.max(dtrajs)
+        n_clusters = max(np.max(x) for x in dtrajs)
+
+        if v:
+            if tooshort:
+                print(
+                    f"Trajectories {tooshort}\n" +
+                    f"are shorter then step threshold (lag*minlenfactor = {threshold})\n" +
+                    f"and will not be used to compute the MSM.\n"
+                    )
+
+            if empty:
+                print(
+                    f"Trajectories {empty}\n" + 
+                    f"are empty and will not be used to to compute the MSM.\n"
+                    )
+
+            print(
+                f"Using {len(dtrajs)} trajectories with {len(np.concatenate(dtrajs))} " +
+                f"steps over {n_clusters} coresets\n" +
+                f"---------------------------------------------------------\n" +
+                f"*********************************************************\n"
+                )
 
         # calculate milestone processes
         self.__Qminus = []
@@ -219,45 +308,115 @@ compute the MSM.""" , UserWarning
             f, b = self.get_characteristicf(qminus, qplus, n_clusters)
             self.__F.append(f)
             self.__B.append(b)
-        
-        # calculate transition matrix
-        self.__T = self.get_transitionmatrix(
-            self.__F, self.__B, lag=lag, n_clusters=n_clusters
-            )
-        
-        # get largest connected set
-        lcs = np.asarray(list(self.get_connected_sets(self.__T)))
-        self.__T = self.__T[np.meshgrid(lcs, lcs)]
 
         # calculate mass matrix
         self.__M = self.get_transitionmatrix(
             self.__F, self.__B, lag=0, n_clusters=n_clusters
             )
 
+        self.__M[np.isnan(self.__M)] = 0
+
+        # calculate transition matrix
+        self.__T = self.get_transitionmatrix(
+            self.__F, self.__B, lag=lag, n_clusters=n_clusters
+            )
+
+        self.__T[np.isnan(self.__M)] = 0
+        
+        # get largest connected set
+        lcs = list(self.get_connected_sets(self.__T))
+        self.__T = self.__T[tuple(np.meshgrid(lcs, lcs))].T
+
         # Weight T with the inverse M
         self.__T = np.dot(self.__T, np.linalg.inv(self.__M))
 
-def diagonalise(self, T=None, **kwargs):
-    if T is None:
-        T = self.__T
+    def diagonalise(self, T=None, **kwargs):
+        if T is None:
+            T = self.__T
 
-    self.__eigenvalues, self.__eigenvalues_left, self.__eigenvalues_right = eig(
-        T, left=True, right=True
-    )
+        self.__eigenvalues, self.__eigenvalues_left, self.__eigenvalues_right = eig(
+            T, left=True, right=True
+        )
 
-    self.__eigenvalues = np.sort(abs(self.__eigenvalues.real))
-    self.__eigenvalues = self.__eigenvalues[::-1]
+        self.__eigenvalues = np.sort(abs(self.__eigenvalues.real))
+        self.__eigenvalues = self.__eigenvalues[::-1]
 
-def get_its(self, processes=None):
-    if processes is None:
-        processes = len(self.__eigenvalues)
+    def get_eigvalues(self, T=None, **kwargs):
+        if T is None:
+            T = self.__T
 
-    its = -self.__tau / np.log(self.__eigenvalues)
+            self.__eigenvalues = eig(
+                T, left=False, right=False
+                )
 
-    return its[:processes]
+            self.__eigenvalues = np.sort(abs(self.__eigenvalues.real))
+            self.__eigenvalues = self.__eigenvalues[::-1]
+        
+        else:
+            # TODO: Maybe this is confusing behaviour
+            _eigenvalues = eig(
+                T, left=False, right=False
+                )
+
+            _eigenvalues = np.sort(abs(_eigenvalues.real))
+            _eigenvalues = _eigenvalues[::-1]
+
+            return _eigenvalues
 
 
+    def get_its(self, processes=None, purge=True):
+        if purge:
+            self.get_eigvalues()
 
-    
+        if processes is None:
+            processes = len(self.__eigenvalues)
 
-    
+        self.__its = (-self.__tau / np.log(self.__eigenvalues[1:]))[:processes]
+        self.__Its[self.tau] = self.__its
+
+
+    def plot_its(self, its=None, ax=None, processes=None, ax_props=None, 
+                 line_props=None, ref_props=None):
+        if its is None:
+            its = self.__Its
+
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.get_figure()
+
+        if processes is None:
+            processes = min([len(v) for v in its.values()])
+
+        line_props_defaults = {
+            }
+
+        if line_props is not None:
+            line_props_defaults.update(line_props)
+
+        ref_props_defaults = {
+            'linestyle': '--',
+            'color': 'k',
+            }
+
+        if ref_props is not None:
+            ref_props_defaults.update(ref_props)
+
+        time = np.array([k for k in its]) * self.__step
+        timescales = np.vstack([v for v in its.values()]) * self.__step
+        lines = ax.plot(time, timescales, **line_props_defaults)
+        ref = ax.plot(time, time, **ref_props_defaults)
+
+       
+        ax_props_defaults = {
+            'xlabel': r"$\tau$ " + f" / {self.__unit}",
+            'ylabel': f"its / {self.__unit}",
+            'xlim': (time[0], time[-1]),
+            }
+
+        if ax_props is not None:
+            ax_props_defaults.update(ax_props)
+
+        ax.set(**ax_props_defaults)
+        
+        return (fig, ax, lines, ref)

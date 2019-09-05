@@ -10,6 +10,7 @@ jupyter = "*"
 jupyter_contrib_nbextensions = "*"
 scikit-learn = "*"
 pyqt5 = "*"
+cython = "*"
 
 [packages]
 numpy = "*"
