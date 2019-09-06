@@ -54,13 +54,13 @@ class CMSM():
     @property
     def eigenvectors_right(self):
         if self.__eigenvectors_right is None:
-            _, self.eigenvectors_right = eig(self.__T, left=False, right=True)
+            _, self.__eigenvectors_right = eig(self.__T, left=False, right=True)
         return self.__eigenvectors_right
 
     @property
     def eigenvectors_left(self):
         if self.__eigenvectors_left is None:
-            _, self.eigenvectors_left = eig(self.__T, left=True, right=False)
+            _, self.__eigenvectors_left = eig(self.__T, left=True, right=False)
         return self.__eigenvectors_left
 
     @property
@@ -209,20 +209,27 @@ None, 'cluster_count', 'point_count'."""
         rowsum = np.sum(T, axis=1)
         return np.divide(T, rowsum[:, None])
 
-    def correctnumerics(self, T=None, tol=1e-8, rownorm=True):
+    def correctnumerics(self, T=None, tol=1e-8, norm=True, symmetry=True):
         # TODO: Maybe confusing -> separte instance from staticmethod
         if T is None:
-        
+
             self.__T[abs(self.__T < tol)] = 0
-            if rownorm:
+            if symmetry:
+                self.__T += self.__T.T 
+            if norm:
                 self.__T = self.rownorm(self.__T)
 
         else:
             T[abs(T < tol)] = 0
-            if rownorm:
-                T = rownorm(T)
+            if symmetry:
+                T += T.T
+            if norm:
+                T = self.rownorm(T)
+            
+            return T
 
-    def get_transitionmatrix(self, F, B, lag=0, n_clusters=None, rownorm=True):
+    def get_transitionmatrix(self, F, B, lag=0, n_clusters=None, norm=True, 
+                             symmetry=True):
         lag = int(lag)
         self.__tau = lag
 
@@ -234,8 +241,9 @@ None, 'cluster_count', 'point_count'."""
             T += np.dot(chi_f[:len(chi_f)-lag].T, B[c][lag:])
         
         # force symmetry
-        T += T.T
-        if rownorm:
+        if symmetry:
+            T += T.T
+        if norm:
             T = self.rownorm(T)
         
         return T
