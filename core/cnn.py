@@ -65,6 +65,7 @@ def configure():
                                  #6b4c9a #922428 #948b3d #7293cb #e1974c #84ba5b
                                  #d35e60 #9067a7 #ab6857 #ccc210 #808585""",
                     'default_cnn_cutoff' : "1",
+                    'default_cnn_offset' : "0",
                     'default_radius_cutoff' : "1",
                     'default_member_cutoff' : "1",
                     'float_precision' : 'sp',
@@ -726,6 +727,7 @@ f"Calculating nxn distance matrix for {len(points)} points"
     @timed
     def fit(self, radius_cutoff: float=None, cnn_cutoff: int=None,
                 member_cutoff: int=None, max_clusters: int=None,
+                cnn_offset: int=None,
                 rec: bool=True, v=True) -> Optional[pd.DataFrame]:
         """Performs a CNN clustering of points in a given train 
         distance matrix"""
@@ -747,32 +749,41 @@ f"Calculating nxn distance matrix for {len(points)} points"
                                 'default_member_cutoff',
                                 defaults.get('default_member_cutoff', 1)
                                 ))
+        if cnn_offset is None:
+            cnn_offset = int(settings.get(
+                                'default_cnn_offset',
+                                defaults.get('default_cnn_offset', 0)
+                                ))
 
-        if (self.train is None) and (self.test is not None):
+        cnn_cutoff -= cnn_offset
+        assert cnn_cutoff >= 0
+
+        if (self.__train is None) and (self.__test is not None):
             print(
                 "No train data present, but test data found. Switching data."
                  )
             self.switch_data()
-        elif (self.test is None) and (self.train is None):
+        elif (self.__test is None) and (self.__train is None):
             raise LookupError(
                 "Neither test nor train data present."
                 )
 
-        if self.train_dist_matrix is None:
+        if self.__train_dist_matrix is None:
             self.dist()
         
         # print(f"Data checked: {time.time() - go}")
 
-        n_points = len(self.train_dist_matrix)
+        n_points = len(self.__train_dist_matrix)
         # calculate neighbour list
         neighbours = np.asarray([
             np.where((x > 0) & (x <= radius_cutoff))[0]
-            for x in self.train_dist_matrix
+            for x in self.__train_dist_matrix
             ])
         n_neighbours = np.asarray([len(x) for x in neighbours])
         include = np.ones(len(neighbours), dtype=bool)
         include[np.where(n_neighbours < cnn_cutoff)[0]] = False
-        
+        # include[np.where(n_neighbours <= cnn_cutoff+1)[0]] = False
+
         _clusterdict = defaultdict(SortedList)
         _clusterdict[0].update(np.where(include == False)[0])
         _labels = np.zeros(n_points).astype(int)
@@ -786,7 +797,7 @@ f"Calculating nxn distance matrix for {len(points)} points"
             point = np.where(
                 (n_neighbours == np.max(n_neighbours[include]))
                 & (include == True)
-            )[0][0]
+                )[0][0]
             _clusterdict[current].add(point)
             new_point_added = True
             _labels[point] = current
@@ -1283,8 +1294,8 @@ end='\r'
             
             if original:
                 ax.scatter(
-                    _data[points, 0],
-                    _data[points, 1],
+                    _data[:, 0],
+                    _data[:, 1],
                     **scatter_props_defaults
                     )
 
