@@ -6,7 +6,9 @@ from scipy.linalg import eig
 import warnings
 from sortedcontainers import SortedDict
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
 from core.cnn import CNN
+from scipy.special import comb
 
 class CMSM():
     """Core set MSM class
@@ -54,13 +56,13 @@ class CMSM():
     @property
     def eigenvectors_right(self):
         if self.__eigenvectors_right is None:
-            _, self.__eigenvectors_right = eig(self.__T, left=False, right=True)
+            self.get_eigenvectors_right()
         return self.__eigenvectors_right
 
     @property
     def eigenvectors_left(self):
         if self.__eigenvectors_left is None:
-            _, self.__eigenvectors_left = eig(self.__T, left=True, right=False)
+            self.get_eigenvectors_left()
         return self.__eigenvectors_left
 
     @property
@@ -209,7 +211,7 @@ None, 'cluster_count', 'point_count'."""
         rowsum = np.sum(T, axis=1)
         return np.divide(T, rowsum[:, None])
 
-    def correctnumerics(self, T=None, tol=1e-8, norm=True, symmetry=True):
+    def correctnumerics(self, T=None, tol=1e-8, norm=True, symmetry=False):
         # TODO: Maybe confusing -> separte instance from staticmethod
         if T is None:
 
@@ -232,6 +234,9 @@ None, 'cluster_count', 'point_count'."""
                              symmetry=True):
         lag = int(lag)
         self.__tau = lag
+        self.__eigenvalues = None
+        self.__eigenvectors_left = None
+        self.__eigenvectors_right = None
 
         if n_clusters == None:
            n_clusters = len(F[0][0])
@@ -361,12 +366,64 @@ f"---------------------------------------------------------\n"
         if T is None:
             T = self.__T
 
-        self.__eigenvalues, self.__eigenvalues_left, self.__eigenvalues_right = eig(
-            T, left=True, right=True
-        )
+        if "left" in kwargs:
+            del kwargs["left"]
+        if "right" in kwargs:
+            del kwargs["right"]
 
-        self.__eigenvalues = np.sort(abs(self.__eigenvalues.real))
-        self.__eigenvalues = self.__eigenvalues[::-1]
+        self.__eigenvalues, self.__eigenvectors_left, self.__eigenvectors_right = eig(
+            T, left=True, right=True, **kwargs
+        )
+        
+        self.__eigenvalues = abs(self.__eigenvalues.real)
+        sortedi = np.argsort(self.__eigenvalues)[::-1]
+        self.__eigenvalues = self.__eigenvalues[sortedi]
+
+        self.__eigenvectors_right = self.__eigenvectors_right.T[sortedi]
+        self.__eigenvectors_left = self.__eigenvectors_left.T[sortedi]
+
+        if all(self.__eigenvectors_right[0] < 0): 
+            self.__eigenvectors_right *= -1
+
+    def get_eigenvectors_right(self, T=None, **kwargs):
+        if T is None:
+            T = self.__T
+
+        if "left" in kwargs:
+            del kwargs["left"]
+        if "right" in kwargs:
+            del kwargs["right"]
+
+        self.__eigenvalues, self.__eigenvectors_right = eig(
+            T, left=False, right=True, **kwargs
+        )
+        
+        self.__eigenvalues = abs(self.__eigenvalues.real)
+        sortedi = np.argsort(self.__eigenvalues)[::-1]
+        self.__eigenvalues = self.__eigenvalues[sortedi]
+
+        self.__eigenvectors_right = self.__eigenvectors_right.T[sortedi]
+        if all(self.__eigenvectors_right[0] < 0): 
+            self.__eigenvectors_right *= -1
+
+    def get_eigenvectors_left(self, T=None, **kwargs):
+        if T is None:
+            T = self.__T
+
+        if "left" in kwargs:
+            del kwargs["left"]
+        if "right" in kwargs:
+            del kwargs["right"]
+
+        self.__eigenvalues, self.__eigenvectors_left = eig(
+            T, left=True, right=False, **kwargs
+        )
+        
+        self.__eigenvalues = abs(self.__eigenvalues.real)
+        sortedi = np.argsort(self.__eigenvalues)[::-1]
+        self.__eigenvalues = self.__eigenvalues[sortedi] 
+
+        self.__eigenvectors_left = self.__eigenvectors_left[sortedi]
 
     def get_eigvalues(self, T=None, **kwargs):
         if T is None:
@@ -376,8 +433,7 @@ f"---------------------------------------------------------\n"
                 T, left=False, right=False
                 )
 
-            self.__eigenvalues = np.sort(abs(self.__eigenvalues.real))
-            self.__eigenvalues = self.__eigenvalues[::-1]
+            self.__eigenvalues = np.sort(abs(self.__eigenvalues.real))[::-1]
         
         else:
             # TODO: Maybe this is confusing behaviour
@@ -386,7 +442,7 @@ f"---------------------------------------------------------\n"
                 )
 
             _eigenvalues = np.sort(abs(_eigenvalues.real))
-            _eigenvalues = _eigenvalues[::-1]
+            _eigenvalues = _eigenvalues
 
             return _eigenvalues
 
@@ -447,3 +503,119 @@ f"---------------------------------------------------------\n"
         ax.set(**ax_props_defaults)
         
         return (fig, ax, lines, ref)
+
+    def plot_eigenvectors(self, ax=None, which='right', fill_props=None,
+                          line_props=None, plot="clamp", clampfactor=4,
+                          ax_props=None):
+
+        if which == 'right':
+            vectors = self.eigenvectors_right
+        elif which == 'left':
+            vectors = self.eigenvectors_left
+        else:
+            raise ValueError()
+
+        drawn = len(vectors)
+        if ax is None:
+            figsize = rcParams["figure.figsize"]
+            fig, Ax = plt.subplots(
+                drawn, 1, figsize=(figsize[0], figsize[1]*drawn)
+                )
+            if drawn == 1:
+                Ax = [Ax]
+        else:
+            fig = ax.get_figure()
+            raise NotImplementedError()
+
+        line_props_defaults = {
+            'color': 'k',
+            'lw': 1
+        }
+        if line_props is not None:
+            line_props_defaults.update(line_props)
+        
+        fill_props_defaults = {
+            'interpolate': True,
+        }
+
+        if fill_props is not None:
+            fill_props_defaults.update(fill_props)
+
+        index = np.linspace(1, drawn, drawn)
+
+        for axi, vector in enumerate(vectors):
+            if plot == 'clamp':
+                xpieces = []
+                ypieces = []
+                for c, value in enumerate(vector[:-1]):
+                    xpieces.append(np.linspace(0.8+c, 1.2+c, 2))
+                    ypieces.append([value, value])
+                    x = np.linspace(1.2+c, 1.8+c, 100)
+                    xpieces.append(x)
+                    ypieces.append(
+                        (smoothstep(
+                            x, x_min=1.2+c, x_max=1.8+c, y_min=0, y_max=1, N=clampfactor
+                            )*(vector[c+1] - value)) + value
+                    )
+                xpieces.append(np.linspace(0.8+c+1, 1.2+c+1, 2))
+                ypieces.append([vector[-1], vector[-1]])
+                xt = np.concatenate(xpieces)
+                yt = np.concatenate(ypieces)
+                Ax[axi].plot(xt, yt, **line_props_defaults)
+                Ax[axi].fill_between(
+                    xt, 0, yt,
+                    where=yt > 0,
+                    **fill_props_defaults
+                    )
+                Ax[axi].fill_between(
+                    xt, 0, yt,
+                    where=yt < 0,
+                    **fill_props_defaults
+                    )
+            elif plot == "step":
+                Ax[axi].step(x, vector, where='mid')
+            
+            Ax[axi].axhline(
+                y=0, xmin=0, xmax=drawn,
+                color='k', linestyle='--'
+                )
+
+            ax_props_defaults = {
+                "xticks": (),
+                "yticks": (),
+                "xlim": (index[0]-0.2, index[-1]+0.2),
+                "ylim": (-1.2, 1.2),
+                "ylabel": f"{axi+1}"
+                }
+
+            if ax_props is not None:
+                ax_props_defaults.update(ax_props)
+
+            Ax[axi].set(**ax_props_defaults)
+
+        Ax[axi].set(**{
+            "xticks": index,
+            "xlabel": 'set',
+            })
+
+        fig.subplots_adjust(
+            left=0.08,
+            bottom=0.1,
+            right=0.99,
+            top=0.99,
+            wspace=None,
+            hspace=0)
+
+        return fig, Ax
+        
+
+def smoothstep(x, x_min=0, x_max=1, y_min=0, y_max=1, N=1):
+    x = np.clip((x - x_min) / (x_max - x_min), y_min, y_max)
+
+    result = 0
+    for n in range(0, N + 1):
+         result += comb(N + n, n) * comb(2 * N + 1, N - n) * (-x) ** n
+
+    result *= x ** (N + 1)
+
+    return result
