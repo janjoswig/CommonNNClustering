@@ -380,10 +380,11 @@ f"---------------------------------------------------------\n"
         self.__eigenvalues = self.__eigenvalues[sortedi]
 
         self.__eigenvectors_right = self.__eigenvectors_right.T[sortedi]
-        self.__eigenvectors_left = self.__eigenvectors_left.T[sortedi]
+        self.__eigenvectors_left = self.__eigenvectors_left[:, sortedi]
 
-        if all(self.__eigenvectors_right[0] < 0): 
+        if all(self.__eigenvectors_right[0] < 0):
             self.__eigenvectors_right *= -1
+            self.__eigenvectors_left *= -1
 
     def get_eigenvectors_right(self, T=None, **kwargs):
         if T is None:
@@ -423,7 +424,10 @@ f"---------------------------------------------------------\n"
         sortedi = np.argsort(self.__eigenvalues)[::-1]
         self.__eigenvalues = self.__eigenvalues[sortedi] 
 
-        self.__eigenvectors_left = self.__eigenvectors_left[sortedi]
+        self.__eigenvectors_left = self.__eigenvectors_left[:, sortedi]
+
+        if all(self.__eigenvectors_left[0] < 0):
+            self.__eigenvectors_left *= -1
 
     def get_eigvalues(self, T=None, **kwargs):
         if T is None:
@@ -506,15 +510,18 @@ f"---------------------------------------------------------\n"
 
     def plot_eigenvectors(self, ax=None, which='right', fill_props=None,
                           line_props=None, plot="clamp", clampfactor=4,
-                          ax_props=None):
+                          ax_props=None, grid=True, grid_props=None, invert=False):
 
         if which == 'right':
             vectors = self.eigenvectors_right
         elif which == 'left':
-            vectors = self.eigenvectors_left
+            vectors = self.eigenvectors_left.T
         else:
             raise ValueError()
-
+        
+        if invert:
+            vectors *= -1
+            
         drawn = len(vectors)
         if ax is None:
             figsize = rcParams["figure.figsize"]
@@ -540,6 +547,15 @@ f"---------------------------------------------------------\n"
 
         if fill_props is not None:
             fill_props_defaults.update(fill_props)
+
+        grid_props_defaults = {
+            'which': "minor",
+            'axis': "x",
+            'alpha': 0.5
+        }
+
+        if grid_props is not None:
+            grid_props_defaults.update(grid_props)
 
         index = np.linspace(1, drawn, drawn)
 
@@ -579,6 +595,10 @@ f"---------------------------------------------------------\n"
                 y=0, xmin=0, xmax=drawn,
                 color='k', linestyle='--'
                 )
+
+            if grid:
+                Ax[axi].set_xticks((index[:-1]+0.5), minor=True)
+                Ax[axi].grid(**grid_props_defaults)
 
             ax_props_defaults = {
                 "xticks": (),
