@@ -9,6 +9,7 @@ first released: 03.12.2018
 """
 
 import pickle
+import tempfile
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -17,6 +18,7 @@ from sortedcontainers import SortedList
 from scipy.spatial.distance import cdist
 from scipy.signal import argrelextrema
 from scipy.interpolate import interp1d
+from scipy.spatial import cKDTree
 
 # import pyximport
 # pyximport.install()
@@ -30,15 +32,23 @@ from configparser import ConfigParser
 from itertools import cycle, islice
 from pathlib import Path
 
-from typing import List, Dict
-from typing import Union, Optional
+from typing import List, Dict, Tuple, Sequence
+from typing import Union, Optional, Type
 
 import warnings
+import random
+
+__docformat__ = "restructuredtext en"
+__author__ = "Jan-Oliver Joswig"
+__copyright__ = "Copyright 2019, Biomolecular Dynamics Group, FU-Berlin"
+__credits__ = ["Jan-Oliver Joswig", ]
+__maintainer__ = "Jan-Oliver Joswig"
+__email__ = "jan DOT joswig AT fu-berlin DOT de"
 
 #######################################################################
-# TODO Consider two points at the same (within precision) coordinates
-# as one or treat seperately? 
-
+# TODO: Consider yaml configuration instead of configparser
+# TODO: How to stream train/test from disk (memmap, hdf5, sqlite)
+# TODO: Store part stacked form of data?
 ########################################################################
 # Global functions
 
@@ -250,13 +260,13 @@ class CNN():
                     defaults.get('record_time', 'time')),]
                     )
         
-        self.__test = test
-        self.__train = train
+        self.test = test
+        self.train = train
+        # self.__train_stacked
+        # self.__test_stacked 
         self.__train_dist_matrix = train_dist_matrix
         self.__test_dist_matrix =  test_dist_matrix
         self.__map_matrix = map_matrix
-        self.__test, self.__test_shape = self.get_shape(self.__test)
-        self.__train, self.__train_shape = self.get_shape(self.__train)
         self.__test_clusterdict = None
         self.__test_labels = None
         self.__train_clusterdict = None
@@ -265,6 +275,10 @@ class CNN():
         self.__train_children = None
         self.__train_refindex = None
         self.__train_refindex_rel = None
+        self.__train_tree = None
+        self.__test_tree = None
+        self.__memory_assigned = None
+        self.__cache = None
         # No children for test date. (Hierarchical) clustering should be 
         # done on train data
 
@@ -291,7 +305,7 @@ class CNN():
     @test.setter
     def test(self, data):
         # TODO control string, array, hdf5 file object handling
-        self.__test = data
+        self.__test, self.__test_shape = self.get_shape(data)
 
     @property
     def train(self):
@@ -300,7 +314,7 @@ class CNN():
     @train.setter
     def train(self, data):
         # TODO control string, array, hdf5 file object handling
-        self.__train = data
+        self.__train, self.__train_shape = self.get_shape(data)
 
     @property
     def test_dist_matrix(self):
@@ -372,6 +386,18 @@ class CNN():
     def train_labels(self, d):
         self.__train_labels = d
 
+    @property
+    def train_tree(self):
+        return self.__train_tree
+
+    @property
+    def test_tree(self):
+        return self.__test_tree
+
+    @property
+    def memory_assigned(self):
+        return self.__memory_assigned
+
     # @property
     # def summary(self):
     #     return self.__summary
@@ -441,13 +467,13 @@ class CNN():
         self.check()
         return f"""cnn.CNN() cluster object 
 alias :                                 {self.alias}
-hierachy level:                         {self.hierarchy_level}
+hierachy level :                         {self.hierarchy_level}
 test data loaded :                      {self.test_present}
 test data shape :                       {self.test_shape_str}
 train data loaded :                     {self.train_present}
 train data shape :                      {self.train_shape_str}
-distance matrix calculated (train):     {self.train_dist_matrix_present}
-distance matrix calculated (test):      {self.test_dist_matrix_present}
+distance matrix calculated (train) :     {self.train_dist_matrix_present}
+distance matrix calculated (test) :      {self.test_dist_matrix_present}
 clustered :                             {self.clusters_present}
 children :                              {self.children_present}
 """
@@ -491,9 +517,9 @@ children :                              {self.children_present}
             )()
     
         if mode == 'train':
-            self.train, self.train_shape = self.get_shape(data)
+            self.__train, self.__train_shape = self.get_shape(data)
         elif mode == 'test':
-            self.test, self.test_shape = self.get_shape(data)
+            self.__test, self.__test_shape = self.get_shape(data)
         else:
             raise ValueError(
                 "Mode not understood. Only 'train' or 'test' allowed"
@@ -501,15 +527,15 @@ children :                              {self.children_present}
 
     def delete(self, mode='train'):
         if mode == 'train':
-            self.train = None
+            self.__train = None
         elif mode == 'test':
-            self.test = None
+            self.__test = None
         else:
             raise ValueError(
                 "Mode not understood. Only 'train' or 'test' allowed"
                             )
 
-    def save(self, file_, content):
+    def save(self, file_, content, **kwargs):
         """Saves content to file"""
 
         extension = file_.rsplit('.', 1)[-1]
@@ -517,16 +543,16 @@ children :                              {self.children_present}
             extension = ''
         {
         'p' : lambda: pickle.dump(open(file_, 'wb'), content),
-        'npy': lambda: np.save(file_, content),
-        '': lambda: np.savetxt(file_, content),
+        'npy': lambda: np.save(file_, content, **kwargs),
+        '': lambda: np.savetxt(file_, content, **kwargs),
         }.get(extension,
             f"Unknown filename extension .{extension}")()
 
     def switch_data(self):
-        self.train, self.test = self.test, self.train
-        self.train_shape, self.test_shape = self.test_shape, self.train_shape
-        self.train_dist_matrix, self.test_dist_matrix = \
-            self.test_dist_matrix, self.train_dist_matrix
+        self.__train, self.__test = self.__test, self.__train
+        self.__train_shape, self.__test_shape = self.__test_shape, self.__train_shape
+        self.__train_dist_matrix, self.__test_dist_matrix = \
+            self.__test_dist_matrix, self.__train_dist_matrix
 
     def cut(self, parts=(None, None, None), points=(None, None, None),
             dimensions=(None, None, None)):
@@ -534,82 +560,130 @@ children :                              {self.children_present}
         points, dimensions) a tuple (start:stop:step) can be
         specified."""
 
-        if (self.test is None) and (self.train is not None):
+        if (self.__test is None) and (self.__train is not None):
             print(
                 "No test data present, but train data found. Switching data."    
                  )
             self.switch_data()
-        elif self.train is None and self.test is None:
+        elif self.__train is None and self.__test is None:
             raise LookupError(
                 "Neither test nor train data present."
                 )
 
-        self.train = [x[slice(*points), slice(*dimensions)] 
-                        for x in self.test[slice(*parts)]]
+        self.__train = [x[slice(*points), slice(*dimensions)] 
+                        for x in self.__test[slice(*parts)]]
     
-        self.train, self.train_shape = self.get_shape(self.train)
+        self.__train, self.__train_shape = self.get_shape(self.__train)
 
     @timed
-    def dist(self, mode='train',  v=True, low_memory=False):
+    def dist(self, mode='train',  v=True, method='cdist', mmap=False,
+             mmap_file=None, chunksize=10000):
         """Computes a distance matrix (points x points) for points in given data
         of standard shape (parts, points, dimensions)"""
 
-        if (self.train is None) and (self.test is not None):
+        if (self.__train is None) and (self.__test is not None):
             print(
-                "No train data present, but test data found. Switching data."    
+                "No train data present, but test data found. Switching data."
                  )
             self.switch_data()
+        elif (self.__test is None) and (self.__train is None):
+            raise LookupError(
+                "Neither test nor train data present."
+                )
 
         if mode == 'train':
-            points = np.vstack(self.train)
-            # _dist_matrix = self.train_dist_matrix
+            data = self.__train
         elif mode == 'test':
-            points = np.vstack(self.test)
-            # _dist_matrix = self.test_dist_matrix
+            data = self.__test
         else:
             raise ValueError(
-            "Mode not understood. Must be one of 'train' or 'test'."
+f"Mode {mode} not understood. Must be one of 'train' or 'test'."
             )
         
-        if v:
-            print(
-f"Calculating nxn distance matrix for {len(points)} points"
-            )
-
-        if low_memory:
-            raise NotImplementedError()
+        if method == 'cdist':
+            points = np.vstack(data) # Data can not be streamed right now
+            if mmap:
+                if mmap_file is None:
+                    mmap_file = tempfile.TemporaryFile()
+                 
+                len_ = len(points)
+                _distance_matrix = np.memmap(
+                            mmap_file,
+                            dtype=float_precision_map[float_precision],
+                            mode='w+',
+                            shape=(len_, len_),
+                            )
+                chunks = np.ceil(len_ / chunksize).astype(int)
+                for chunk in range(chunks):
+                    _distance_matrix[chunk*chunksize : (chunk+1)*chunksize] = cdist(
+                        points[chunk*chunksize : (chunk+1)*chunksize], points
+                        )
+            else:
+                _distance_matrix = cdist(points, points)
+        
         else:
-            #_dist_matrix = cdist(points, points)
+            raise ValueError(
+f"Method {method} not understood. Must be one of 'cdist' or ... ."
+        )
 
-            if mode == 'train':
-                self.train_dist_matrix = cdist(points, points)
-            elif mode == 'test':
-                self.test_dist_matrix = cdist(points, points)
-                # _dist_matrix = self.test_dist_matrix
+        if mode == 'train':
+            self.__train_dist_matrix = _distance_matrix
+        elif mode == 'test':
+            self.__test_dist_matrix = _distance_matrix
 
     @timed
-    def map(self, nearest=None):
+    def map(self, method='cdist', mmap=False,
+             mmap_file=None, chunksize=10000): # nearest=None):
         """Computes a map matrix that maps an arbitrary data set to a
         reduced to set"""
 
-        if self.train is None or self.test is None:
+        if self.__train is None or self.__test is None:
             raise LookupError(
                 "Mapping requires a train and a test data set"
                 )
-        elif self.train_shape['dimensions'] != self.test_shape['dimensions']:
+        elif self.__train_shape['dimensions'] < self.__test_shape['dimensions']:
+            warnings.warn(
+                f"Mapping requires the same number of dimension in the train \
+                  and the test data set. Reducing test set dimensions to \
+                  {self.__train_shape['dimensions']}.",
+                  UserWarning
+                )
+        elif self.__train_shape['dimensions'] > self.__test_shape['dimensions']:
             raise ValueError(
-                "Mapping requires the same number of dimension in the train \
-                 and the test data set"
+                f"Mapping requires the same number of dimension in the train \
+                and the test data set."
                 )
 
-        if nearest is not None:
-            raise NotImplementedError()
+        if method == 'cdist':
+            _train = np.vstack(self.__train) # Data can not be streamed right now
+            _test = np.vstack(self.__test)
+            if mmap:
+                if mmap_file is None:
+                    mmap_file = tempfile.TemporaryFile()
+
+                len_train = len(_train) 
+                len_test = len(_test)
+                self.__map_matrix = np.memmap(
+                            mmap_file,
+                            dtype=float_precision_map[float_precision],
+                            mode='w+',
+                            shape=(len_test, len_train),
+                            )
+                chunks = np.ceil(len_test / chunksize).astype(int)
+                for chunk in range(chunks):
+                    self.__map_matrix[chunk*chunksize : (chunk+1)*chunksize] = cdist(
+                        _test[chunk*chunksize : (chunk+1)*chunksize], _train
+                        )
+            else:
+                self.__map_matrix = cdist(_test, _train)
+        
         else:
-            self.__map_matrix = cdist(np.vstack(self.test), np.vstack(self.train))
-            
-    def dist_hist(self, ax=None, mode='train', show=True, save=False,
-                  output='dist_hist.pdf', maxima=False, hist_props=None,
-                  ax_props=None, inter_props=None, save_props=None):
+            raise ValueError(
+f"Method {method} not understood. Must be one of 'cdist' or ... ."
+        )
+
+    def dist_hist(self, ax=None, mode="train", maxima=False, maxima_props=None, hist_props=None,
+                  ax_props=None, inter_props=None, **kwargs):
         """Shows/saves a histogram plot for distances in a given distance
         matrix"""
         
@@ -621,7 +695,7 @@ f"Calculating nxn distance matrix for {len(points)} points"
                 print(
 "Train distance matrix not calculated. Calculating distance matrix."
                 )
-                self.dist(mode=mode)
+                self.dist(mode=mode, **kwargs)
             _dist_matrix = self.train_dist_matrix
         
         elif mode == 'test':
@@ -629,7 +703,7 @@ f"Calculating nxn distance matrix for {len(points)} points"
                 print(
 "Test distance matrix not calculated. Calculating distance matrix."
                 )
-                self.dist(mode=mode)           
+                self.dist(mode=mode, **kwargs)           
             _dist_matrix = self.test_dist_matrix
         else:
             raise ValueError(
@@ -679,7 +753,7 @@ f"Calculating nxn distance matrix for {len(points)} points"
             
         ylimit = np.max(histogram)*1.1
 
-        # TODO make this a configuation option
+        # TODO make this a configuration option
         ax_props_defaults = {
             "xlabel": "d / au",
             "ylabel": '',
@@ -692,41 +766,43 @@ f"Calculating nxn distance matrix for {len(points)} points"
             ax_props_defaults.update(ax_props)
         
         if ax is None:
-            ax = plt.gca()
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.get_figure()
 
-        ax.plot(binmids, histogram)
+        line = ax.plot(binmids, histogram)
 
         if maxima:
-            found = argrelextrema(histogram, np.greater)[0]
+            maxima_props_ = {
+                "order": 2,
+                "mode": "clip"
+                }
+
+            if maxima_props is not None:
+                maxima_props_.update(maxima_props) 
+
+            found = argrelextrema(histogram, np.greater, **maxima_props_)[0]
             settings['default_radius_cutoff'] = \
                 f"{binmids[found[0]]:.2f}"
+            annotations = []
             for candidate in found:
-                ax.annotate(
-                    f"{binmids[candidate]:.2f}",
-                    xy=(binmids[candidate], histogram[candidate]),
-                    xytext=(binmids[candidate], 
-                            histogram[candidate]+(ylimit/100))
+                annotations.append(
+                    ax.annotate(
+                        f"{binmids[candidate]:.2f}",
+                        xy=(binmids[candidate], histogram[candidate]),
+                        xytext=(binmids[candidate], 
+                                histogram[candidate]+(ylimit/100))
+                        )
                     )
 
         ax.set(**ax_props_defaults)
 
-        # TODO make this a configuation option
-        save_props_defaults = {}
-
-        if save_props is not None:
-            save_props_defaults.update(save_props)
-        
-        # make this optional
-        plt.tight_layout(pad=0.1)
-        if save:
-            plt.savefig(output, **save_props_defaults)
-        if show:
-            plt.show()
+        return fig, ax, line, annotations
 
     @recorded
     @timed
-    def fit(self, radius_cutoff: float=None, cnn_cutoff: int=None,
-                member_cutoff: int=None, max_clusters: int=None,
+    def fit(self, radius_cutoff: Optional[float]=None, cnn_cutoff: Optional[int]=None,
+                member_cutoff: int=None, max_clusters: Optional[int]=None,
                 cnn_offset: int=None,
                 rec: bool=True, v=True) -> Optional[pd.DataFrame]:
         """Performs a CNN clustering of points in a given train 
@@ -776,7 +852,7 @@ f"Calculating nxn distance matrix for {len(points)} points"
         n_points = len(self.__train_dist_matrix)
         # calculate neighbour list
         neighbours = np.asarray([
-            np.where((x > 0) & (x <= radius_cutoff))[0]
+            np.where((x > 0) & (x < radius_cutoff))[0]
             for x in self.__train_dist_matrix
             ])
         n_neighbours = np.asarray([len(x) for x in neighbours])
@@ -793,11 +869,13 @@ f"Calculating nxn distance matrix for {len(points)} points"
 
         enough = False
         while any(include) and not enough:
-            # find point with highest neighbour count
+            # find point with currently highest neighbour count
             point = np.where(
                 (n_neighbours == np.max(n_neighbours[include]))
                 & (include == True)
                 )[0][0]
+            # point = np.argmax(n_neighbours[include])
+            
             _clusterdict[current].add(point)
             new_point_added = True
             _labels[point] = current
@@ -892,218 +970,413 @@ f"Calculating nxn distance matrix for {len(points)} points"
                         dtype='object',
                         )
     
-    def merge(self, clusters, mode='train'):
+    def merge(self, clusters, mode='train', which='labels'):
         """Merge a list of clusters into one"""
         if len(clusters) < 2:
             raise ValueError("List of cluster needs to habe at least 2 elements")
-        
-        if mode == 'train':
-            dict_ = self.__train_clusterdict
-        elif mode == 'test':
-            dict_ = self.__train_clusterdict
-            warnings.warn('Mode "test" not fully functional now' , UserWarning)
-        else:
-            raise ValueError(f'Mode "{mode}" not understood')
 
         if not isinstance(clusters, list):
             clusters = list(clusters)
         clusters.sort()
-            
+
         base = clusters[0]
-        for add in clusters[1:]:
-            dict_[base].update(dict_[add])
-            del dict_[add]
 
-        self.clean()
-        return
-
-
-    @timed
-    def predict(self, low_memory=False, radius_cutoff=1, cnn_cutoff=1,
-        member_cutoff=1, max_clusters=None, include_all=True, cluster=None,
-        purge=False):
-        
-        if low_memory:
-            # raise NotImplementedError()
-            if cluster is None:
-                train_neighbours = np.asarray([                  
-                    np.where(x <= radius_cutoff)[0] for x in self.__train_dist_matrix
-                    ])
+        if which == "labels":
+            if mode == 'train':
+                _labels = self.__train_labels
+            elif mode == 'test':
+                _labels = self.__test_labels
             else:
-                selected_members = np.concatenate(
-                    [self.__train_clusterdict[x] for x in cluster]
-                    )
-                all_neighbours = np.asarray([                  
-                    np.where(x <= radius_cutoff)[0] for x in self.__train_dist_matrix
-                    ])
-                train_neighbours = np.asarray([
-                    x[np.isin(x, selected_members)] for x in all_neighbours
-                    ])
-            
-            # n_points = np.sum(self.test_shape['points'])
-            _cdist = cdist
-            test = np.vstack(self.test)
-            train = np.vstack(self.train)
-            n_points = len(test)
+                raise ValueError(f'Mode "{mode}" not understood')
 
-            if (cluster is None) or (purge is True) or (self.__test_labels is None):
-                test_labels = np.zeros(n_points).astype(int)
+            for add in clusters[1:]:
+                _labels[_labels == add] = base
+            
+            if mode == 'train':
+                self.__train_labels = _labels
+            elif mode == 'test':
+                self.__test_labels = _labels
+
+            self.clean()
+            self.labels2dict()
+
+        elif which == "dict":
+            raise NotImplementedError()
+            
+            if mode == 'train':
+                dict_ = self.__train_clusterdict
+            elif mode == 'test':
+                dict_ = self.__test_clusterdict
+                warnings.warn('Mode "test" not fully functional now' , UserWarning)
             else:
-                test_labels = np.asarray([x if x not in cluster else 0 for x in self.__test_labels])
+                raise ValueError(f'Mode "{mode}" not understood')
 
-
-            if not include_all:
-                for point in range(n_points):
-                    if point % 5000 == 0: 
-                        print(
-f'Predicting cluster for point {1+point:>7} of {n_points:<7}',
-end='\r'
-                            )
-                    map_matrix_part = _cdist(np.array([test[point]]),
-                                             train)
-                     
-                    same = np.where(map_matrix_part[0] == 0)[0]
-                    if len(same) > 0:
-                        test_labels[point] = self.__train_labels[same[0]]
-                    else:
-                        test_neighbours = np.where(map_matrix_part[0] <= radius_cutoff)[0]
-                        if cluster is not None:
-                            test_neighbours = test_neighbours[
-                                np.isin(test_neighbours, selected_members)]
-                       
-                        common_neighbours = [
-                                    set(test_neighbours)
-                                    & set(train_neighbours[x])
-                                    for x in test_neighbours
-                                    ]
-
-                        cnn_fulfilled = np.where(
-                            np.asarray([
-                            len(x) for x in common_neighbours
-                            ]) >= cnn_cutoff)[0]
-
-                        if len(cnn_fulfilled) > 0:
-                            test_labels[point] = self.train_labels[
-                            test_neighbours[
-                            np.argmax(cnn_fulfilled)]] 
-            
-            else:             
-                for point in range(n_points):
-                    if point % 5000 == 0:
-                        print(
-                        f'Predicting cluster for point {1+point:6} of {n_points}',
-                        end='\r'
-                        )
-                
-                    map_matrix_part = _cdist(np.array([test[point]]),
-                                             train)
-                    test_neighbours = np.where(map_matrix_part[0] <= radius_cutoff)[0]
-                    if cluster is not None:
-                        test_neighbours = test_neighbours[
-                                np.isin(test_neighbours, selected_members)]
-
-                    common_neighbours = [
-                                set(test_neighbours)
-                                & set(train_neighbours[x])
-                                for x in test_neighbours
-                                ]
-
-                    cnn_fulfilled = np.where(
-                        np.asarray([
-                        len(x) for x in common_neighbours
-                        ]) >= cnn_cutoff)[0]
-
-                    if len(cnn_fulfilled) > 0:
-                        test_labels[point] = self.train_labels[
-                        test_neighbours[
-                        np.argmax(cnn_fulfilled)]] 
-
+            for add in clusters[1:]:
+                dict_[base].update(dict_[add])
+                del dict_[add]
 
         else:
-            if self.__map_matrix is None:
-                self.map()
-        
-            if cluster is None:
-                test_neighbours = np.asarray([
-                    np.where(x <= radius_cutoff)[0] for x in self.__map_matrix
-                    ])
+            raise ValueError()
+
+
+        return
+
+    def trash(self, clusters, mode='train', which='labels'):
+        """Merge a list of clusters into noise"""
+
+        if which == "labels":
+            if mode == 'train':
+                _labels = self.__train_labels
+            elif mode == 'test':
+                _labels = self.__test_labels
+            else:
+                raise ValueError(f'Mode "{mode}" not understood')
+
+            for add in clusters:
+                _labels[_labels == add] = 0
             
-                train_neighbours = np.asarray([                  
-                    np.where(x <= radius_cutoff)[0] for x in self.train_dist_matrix
-                    ])
+            if mode == 'train':
+                self.__train_labels = _labels
+            elif mode == 'test':
+                self.__test_labels = _labels
+
+            self.clean()
+            self.labels2dict()
+
+        elif which == "dict":
+            raise NotImplementedError()
+            
+            if mode == 'train':
+                dict_ = self.__train_clusterdict
+            elif mode == 'test':
+                dict_ = self.__train_clusterdict
+                warnings.warn('Mode "test" not fully functional now' , UserWarning)
             else:
-                selected_members = np.concatenate(
-                    [self.train_clusterdict[x] for x in cluster]
-                    )
-                all_neighbours = np.asarray([
-                    np.where(x <= radius_cutoff)[0] for x in self.__map_matrix
-                    ])
-                test_neighbours = np.asarray([
-                   x[np.isin(x, selected_members)] for x in all_neighbours
-                    ])
+                raise ValueError(f'Mode "{mode}" not understood')
 
-                all_neighbours = np.asarray([                  
-                    np.where(x <= radius_cutoff)[0] for x in self.train_dist_matrix
-                    ])
-                train_neighbours = np.asarray([
-                    x[np.isin(x, selected_members)] for x in all_neighbours
-                    ])
+            
+            for cluster in clusters:
+                dict_[0].update(dict_[cluster])
+                del dict_[cluster]
 
-            n_points = len(self.__map_matrix)
+            self.clean()
+            self.dict2labels()
 
-            if (cluster is None) or (purge is True) or (self.test_labels is None):
-                test_labels = np.zeros(n_points).astype(int)
-            else:
-                test_labels = np.asarray([x if x not in cluster else 0 for x in self.__test_labels])
+        else:
+            raise ValueError()
 
-            if not include_all:
-                for point in range(n_points):
-                    if point % 5000 == 0:
-                        print(f'Predicting cluster for point {1+point:6} of {n_points}',
-                            end='\r')
-                    same = np.where(self.__map_matrix[point] == 0)[0]
-                    if len(same) > 0:
-                        test_labels[point] = self.train_labels[same[0]]
-                    else:
-                        common_neighbours = [
-                            set(test_neighbours[point])
-                            & set(train_neighbours[x])
-                            for x in test_neighbours[point]
-                            ]
 
-                        cnn_fulfilled = np.where(
-                            np.asarray([
-                                len(x) for x in common_neighbours
-                                ]) >= cnn_cutoff)[0]
-              
-                        if len(cnn_fulfilled) > 0:
-                            test_labels[point] = self.train_labels[
-                                test_neighbours[point][
-                                    np.argmax(cnn_fulfilled)]] 
-            else:
-                for point in range(n_points):
-                    if point % 5000 == 0:
-                        print(f'Predicting cluster for point {1+point:6} of {n_points}',
-                            end='\r')
+    def kdtree(self, mode="train", **kwargs):
+        """CNN.method wrapper for scipy.spatial.cKDTree
+        """
+        if mode == "train":
+            self.__train_tree = cKDTree(np.vstack(self.__train), **kwargs)
+        elif mode == "test":
+            self.__test_tree = cKDTree(np.vstack(self.__test), **kwargs)
+    
+    @staticmethod
+    def get_neighbours(a: Type[np.ndarray], B: Type[np.ndarray],
+                       r: float) -> List[int]:
+        """Returns a list of indeces of points in B that are neighbours
+        of a within radius r."""
+        # r = r**2
+        return np.where(np.sum((B - a)**2, axis=1) < r)[0]
+
+    @timed
+    def predict(self, radius_cutoff: Optional[float]=None,
+        cnn_cutoff: Optional[int]=None, member_cutoff: Optional[int]=None,
+        include_all: bool=True, same_tol=1e-8, memorize: bool=True,
+        clusters: Optional[List[int]]=None, purge: bool=False,
+        cnn_offset: Optional[int]=None, behaviour="lookup",
+        method='plain', **kwargs) -> None:
+        """
+        Predict labels for points in a test set on the basis of assigned
+        labels to a train set by :method:`CNN.fit`
+
+        Parameters
+        ----------
+        radius_cutoff : float, default=1.0
+            Used to find nearest neighbours within distance r
+
+        cnn_cutoff : int, default=1
+            Similarity criterion; Points of the same cluster must have
+            at least n common nearest neighbours
+        
+        member_cutoff : int, default=1
+            Clusters must have more than m points or are declared noise
+        
+        include_all : bool, default=True
+            If False, keep cluster assignment for points in the test set
+            that have a maximum distance of :param:`same_tol` to a point
+            in the train set, i.e. they are (essentially the same point)
+            (currently not implemented)
+
+        same_tol : float, default=1e-8
+            Distance cutoff to treat points as the same, if 
+            :param:`include_all` is False
+        
+        clusters : List[int], Optional, default=None
+            Predict assignment of points only with respect to this list
+            of clusters
+
+        purge : bool, default=False
+            If True, reinitalise predicted labels.  Override assignment
+            memory.
+
+        memorize : bool, default=True
+            If True, remember which points in the test set have been
+            already assigned and exclude them from future predictions
+
+        cnn_offset : int, default=0
+            Mainly for backwards compatibility; Modifies the the 
+            cnn_cutoff
+
+        behaviour : str, default="lookup"
+            Controlls how the predictor operates:
+            
+            * "lookup", Use distance matrices CNN.train_dist_matrix and
+                CNN.map_matrix to lookup distances to generate the
+                neighbour lists.  If one of the matrices does not exist,
+                throw an error.  Consider memory mapping :param:`mmap`
+                when computing the distances with :method:`CNN.dist` and
+                :method:`CNN.map` for large data sets.
+
+            * "on-the-fly", Compute distances during the prediction
+                using the specified :param:`method`.
+
+            * "tree", Get the neighbour lists during the prediction from
+                a tree query
+        
+        method : str, default="plain"
+            Controlls which method is used to get the neighbour lists
+            within a given :param:`behaviour`:
+
+            * "lookup", parameter not used
+
+            * "on-the-fly", 
+                * "plain", uses :method:`CNN.get_neighbours`
+
+            * "tree", parameter not used
+        
+        **kwargs : 
+            Additional keyword arguments are passed to the method that
+            is used to compute the neighbour lists
+        """
+        
+        ################################################################
+        # TODO: Implement include_all mechanism.  The current version
+        #     acts like include_all = True.
+        ################################################################
+        
+        if radius_cutoff is None:
+            radius_cutoff = float(settings.get(
+                'default_radius_cutoff',
+                defaults.get('default_radius_cutoff', 1.)
+                ))
+
+        if cnn_cutoff is None:
+            cnn_cutoff = int(settings.get(
+                'default_cnn_cutoff',
+                defaults.get('default_cnn_cutoff', 1)
+                ))
+
+        if member_cutoff is None:
+            member_cutoff = int(settings.get(
+                'default_member_cutoff',
+                defaults.get('default_member_cutoff', 1)
+                ))
+
+        if cnn_offset is None:
+            cnn_offset = int(settings.get(
+                'default_cnn_offset',
+                defaults.get('default_cnn_offset', 0)
+                ))
+
+        cnn_cutoff -= cnn_offset
+
+        # TODO: Store a vstacked version in the first place
+        _test = np.vstack(self.__test)
+        len_ = len(_test)
+        
+        # TODO: Decouple memorize?
+        if purge or (clusters is None):
+            self.__test_labels = np.zeros(len_).astype(int)
+            self.__memory_assigned = np.ones(len_).astype(bool)
+            if clusters is None:
+                clusters = list(range(1, len(self.__train_clusterdict)+1))
+        else:
+           
+            if self.__memory_assigned is None:
+                self.__memory_assigned = np.ones(len_).astype(bool) 
+            
+            if self.__test_labels is None:
+                self.__test_labels = np.zeros(len_).astype(int)
+
+            for cluster in clusters:
+                self.__memory_assigned[self.__test_labels == cluster] = True
+                self.__test_labels[self.__test_labels == cluster] = 0
+                
+            _test = _test[self.__memory_assigned]
+
+        if behaviour == "on-the-fly":
+            if method == "plain":
+                # TODO: Store a vstacked version in the first place
+                _train = np.vstack(self.__train)
+                
+                r = radius_cutoff**2
                
-                    common_neighbours = [
-                        set(test_neighbours[point])
-                        & set(train_neighbours[x])
-                        for x in test_neighbours[point]
+                _test_labels = []
+            
+                for candidate in _test:
+                    _test_labels.append(0)
+                    neighbours = self.get_neighbours(
+                        candidate, _train, r
+                        )
+                    
+                    # TODO: Decouple this reduction if clusters is None
+                    try:
+                        neighbours = neighbours[
+                            np.isin(self.__train_labels[neighbours], clusters)
+                            ]
+                    except IndexError:
+                        pass
+                    else:
+                        for neighbour in neighbours:
+                            neighbour_neighbours = self.get_neighbours(
+                                _train[neighbour], _train, r
+                                )
+
+                            # TODO: Decouple this reduction if clusters is None
+                            try:
+                                neighbour_neighbours = neighbour_neighbours[
+                                    np.isin(
+                                        self.__train_labels[neighbour_neighbours],
+                                        clusters
+                                        )
+                                    ]
+                            except IndexError:
+                                pass
+                            else:
+                                if self.check_similarity_array(
+                                    neighbours, neighbour_neighbours, cnn_cutoff
+                                    ):
+                                    _test_labels[-1] = self.__train_labels[neighbour]
+                                    # break after first match
+                                    break
+            else:
+                raise ValueError()
+
+        elif behaviour == "lookup":
+            _test_labels = []
+            
+            for candidate in range(len(_test)):
+                _test_labels.append(0)
+                neighbours = np.where(
+                    self.__map_matrix[self.__memory_assigned][candidate] < radius_cutoff
+                    )[0]
+
+                # TODO: Decouple this reduction if clusters is None
+                try:
+                    neighbours = neighbours[
+                        np.isin(self.__train_labels[neighbours], clusters)
                         ]
+                except IndexError:
+                    pass
+                else:
+                    for neighbour in neighbours:
+                        neighbour_neighbours = np.where(
+                        self.__train_dist_matrix[neighbour] < radius_cutoff
+                        )[0]
 
-                    cnn_fulfilled = np.where(
-                        np.asarray([
-                            len(x) for x in common_neighbours
-                            ]) >= cnn_cutoff)[0]
-              
-                    if len(cnn_fulfilled) > 0:
-                        test_labels[point] = self.train_labels[
-                            test_neighbours[point][
-                                np.argmax(cnn_fulfilled)]]
+                        try:
+                            # TODO: Decouple this reduction if clusters is None
+                            neighbour_neighbours = neighbour_neighbours[
+                                np.isin(
+                                    self.__train_labels[neighbour_neighbours],
+                                    clusters
+                                    )
+                                ]
+                        except IndexError:
+                            pass
+                        else:
+                            if self.check_similarity_array(
+                                neighbours, neighbour_neighbours, cnn_cutoff
+                                ):
+                                _test_labels[-1] = self.__train_labels[neighbour]
+                                # break after first match
+                                break
 
-        self.__test_labels = test_labels
+        elif behaviour == "tree":
+            if self.__train_tree is None:
+                raise LookupError(
+"No search tree build for train data. Use CNN.kdtree(mode='train, **kwargs) first."
+                    )
+            
+            _train = np.vstack(self.__train)
+
+            _test_labels = []
+            
+            for candidate in _test:
+                _test_labels.append(0)
+                neighbours = np.asarray(self.__train_tree.query_ball_point(
+                    candidate, radius_cutoff, **kwargs
+                    ))
+                
+                # TODO: Decouple this reduction if clusters is None
+                try:
+                    neighbours = neighbours[
+                        np.isin(self.__train_labels[neighbours], clusters)
+                        ]
+                except IndexError:
+                    pass
+                else:
+                    for neighbour in neighbours:
+                        neighbour_neighbours = np.asarray(self.__train_tree.query_ball_point(
+                            _train[neighbour], radius_cutoff, **kwargs
+                            ))
+                        try:
+                            # TODO: Decouple this reduction if clusters is None
+                            neighbour_neighbours = neighbour_neighbours[
+                                np.isin(
+                                    self.__train_labels[neighbour_neighbours],
+                                    clusters
+                                    )
+                                ]
+                        except IndexError:
+                            pass
+                        else:
+                            if self.check_similarity_array(
+                                neighbours, neighbour_neighbours, cnn_cutoff
+                                ):
+                                _test_labels[-1] = self.__train_labels[neighbour]
+                                # break after first match
+                                break
+        else:
+            raise ValueError()
+
+        self.__test_labels[self.__memory_assigned] = _test_labels
         self.labels2dict(mode="test")
+
+        if memorize:         
+            self.__memory_assigned[np.where(self.__test_labels > 0)[0]] = False
+
+    @staticmethod
+    def check_similarity(a: List[int], b: List[int], c: int) -> bool:
+        """Returns True if list a and list b have at least c common elements
+        """
+        # Overlapping train and test sets
+        #  if len(set(a).intersection(b)) - 1 >= c: 
+        if len(set(a).intersection(b)) >= c:
+           return True
+
+    @staticmethod
+    def check_similarity_array(a: Type[np.ndarray], b: Type[np.ndarray], c: int) -> bool:
+        """Returns True if list a and list b have at least c common elements
+        """
+        # Overlapping train and test sets
+        #  if len(np.intersect1d(a, b, assume_unique=True)) - 1 >= c: 
+        if len(np.intersect1d(a, b, assume_unique=True)) >= c:
+           return True
 
     def query_data(self, mode='train'):
         """Helper function to evaluate user input. If data is required as
@@ -1361,17 +1634,8 @@ Must be one of 'scatter', 'contour'
             )
 
         ax.set(**ax_props_defaults)
-        
-        # TODO make this a configuation option
-        save_props_defaults = {}
 
-        if save_props is not None:
-            save_props_defaults.update(save_props)
-
-        if save:
-            fig.savefig(output, **save_props_defaults)
-        if show:
-            fig.show()
+        return fig, ax
 
 
     def isolate(self, mode='train', purge=True):
@@ -1537,31 +1801,44 @@ Must be one of 'scatter', 'contour'
             ax.pie(ringvalues, radius=radius + i*size, colors=None,
             wedgeprops=dict(width=size, edgecolor='w'))
 
-    def clean(self, mode='train'):
-        if mode == 'train':
+    def clean(self, which='labels', mode='train'):
+        if which == 'labels':
+            if mode == 'train':
+                _labels = self.__train_labels
+            elif mode == 'test':
+                _labels = self.__test_labels
+            else:
+                raise ValueError()
+
             # fixing  missing labels
-            n_clusters = len(set(self.train_labels))
+            n_clusters = len(set(_labels))
             for _cluster in range(1, n_clusters):
-                if _cluster not in set(self.train_labels):
-                    while _cluster not in set(self.train_labels):
-                        self.train_labels[self.train_labels > _cluster] -= 1
+                if _cluster not in set(_labels):
+                    while _cluster not in set(_labels):
+                        _labels[_labels > _cluster] -= 1
 
             # sorting by clustersize
-            n_clusters = np.max(self.train_labels)
+            n_clusters = np.max(_labels)
             frequency_counts = np.asarray([
-                len(np.where(self.train_labels == x)[0]) 
-                for x in set(self.train_labels[self.train_labels > 0])
+                len(np.where(_labels == x)[0]) 
+                for x in set(_labels[_labels > 0])
                 ])
             old_labels = np.argsort(frequency_counts)[::-1] +1
-            proxy_labels = np.copy(self.train_labels)
+            proxy_labels = np.copy(_labels)
             for new_label, old_label in enumerate(old_labels, 1):   
                 proxy_labels[
-                    np.where(self.train_labels == old_label)
+                    np.where(_labels == old_label)
                     ] = new_label
-            self.train_labels = proxy_labels
             
-        else:
+            if mode == 'train':
+                self.__train_labels = proxy_labels 
+            elif mode == 'test':
+                self.__test_labels = proxy_labels
+        
+        elif which == 'dict':
             raise NotImplementedError()
+        else:
+            raise ValueError()
 
     def labels2dict(self, mode='train'):
         if mode == 'train':
@@ -1593,12 +1870,12 @@ Must be one of 'scatter', 'contour'
 
     def dict2labels(self, mode='train'):
         if mode == 'train':
-            self.train_labels = np.zeros(
-                np.sum(len(x) for x in self.train_clusterdict.values())
+            self.__train_labels = np.zeros(
+                np.sum(len(x) for x in self.__train_clusterdict.values())
                 )
             
-            for key, value in self.train_clusterdict.items():
-                self.train_labels[value] = key
+            for key, value in self.__train_clusterdict.items():
+                self.__train_labels[value] = key
                 """
                 if self.train_refindex is None:
                     self.train_labels[value] = key 
@@ -1609,39 +1886,73 @@ Must be one of 'scatter', 'contour'
             raise NotImplementedError()
 
 
-    def make_ndx(self, mode='train'):
-        if mode == 'train':
-            if self.train_clusterdict is None:
-                if self.train_labels is not None:
-                    self.labels2dict()  
-                else:
-                    raise LookupError(
-                        "No labels or cluster dictionary found for mode 'train'"
-                                     )
-            part_startpoint = 0
-            for count, part in enumerate(range(self.train_shape['parts']), 1):
-                part_endpoint = part_startpoint \
-                    + self.train_shape['points'][part]
-                
-                with open(f"rep{count}.ndx", 'w') as file_:
-                    for _cluster in self.train_clusterdict.values():
-                        _cluster = np.asarray(_cluster)
-                        file_.write(f"[ core{_cluster} ]\n")
-                        for _member in _cluster[
-                            np.where(
-                                (_cluster
-                                >= part_startpoint)
-                                &
-                                (_cluster
-                                <= part_endpoint))[0]]:
-                            
-                            file_.write(f"{_member +1}\n")
+    def get_samples(self, mode='train', kind='mean', clusters=None,
+                    n_samples=1, byparts=True, skip=1, stride=1):
+        if clusters is None:
+            clusters = list(range(1, len()))
 
-                part_startpoint = np.copy(part_endpoint)
+        if mode == 'train':
+            dict_ = self.__train_clusterdict
+            _data = np.vstack(self.__train)
+            _shape = self.__train_shape
+        elif mode == 'test':
+            dict_ = self.__test_clusterdict
+            _data = np.vstack(self.__test)
+            _shape = self.__test_shape
+        else:
+            raise ValueError()
+        
+        if clusters is None:
+            clusters = list(range(1, len(dict_)+1))
+        
+        samples = defaultdict(list)
+        if kind == 'mean':
+            for cluster in clusters:
+                points = dict_[cluster]
+                mean = np.mean(_data[points], axis=0)
+                sumofsquares = np.sum((_data - mean)**2, axis=1)
+                include = np.ones(len(_data), dtype=bool)
+                n_samples_ = min(n_samples, len(points))
+                for s in range(n_samples_):
+                    least = sumofsquares[include].argmin()
+                    samples[cluster].extend(least)
+                    include[least] = False
+
+        elif kind == 'random':
+            for cluster in clusters:
+                points = np.asarray(dict_[cluster])
+                n_samples_ = min(n_samples, len(points))
+                samples[cluster].extend(
+                    points[
+                        np.asarray(random.sample(
+                            range(0, len(points)), n_samples
+                            ))
+                        ]
+                    )
+
+        elif kind == 'all':
+            for cluster in clusters:
+                samples[cluster].extend(
+                    np.asarray(dict_[cluster])[::stride]
+                    )
 
         else:
-            raise NotImplementedError()
+            raise ValueError()
 
+        if byparts:
+            part_borders = np.cumsum(_shape['points'])
+            for cluster, points in samples.items():
+                pointsbyparts = []
+                for point in points:
+                    part = np.searchsorted(part_borders, point)
+                    if part > 0:
+                        point = (point - part_borders[part - 1]) * skip
+                    pointsbyparts.append(
+                        (part, point)
+                        )
+                samples[cluster] = pointsbyparts
+        
+        return samples
 
 
     def get_dtraj(self, mode='train'):
