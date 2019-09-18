@@ -11,6 +11,8 @@ jupyter_contrib_nbextensions = "*"
 scikit-learn = "*"
 pyqt5 = "*"
 cython = "*"
+mypy = "*"
+black = "*"
 
 [packages]
 numpy = "*"

@@ -8,13 +8,16 @@ Author: Jan-Oliver Joswig,
 first released: 03.12.2018
 """
 
-import pickle
-import tempfile
+from __future__ import annotations
+
 import numpy as np
+import pandas as pd # TODO get rid of this dependency?
+import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib import cm
+
 from collections import defaultdict, namedtuple
 from sortedcontainers import SortedList
+
 from scipy.spatial.distance import cdist
 from scipy.signal import argrelextrema
 from scipy.interpolate import interp1d
@@ -24,19 +27,23 @@ from scipy.spatial import cKDTree
 # pyximport.install()
 # import .c.cfit
 
+import warnings
+import random
 from functools import wraps
 import time
-import pandas as pd # TODO get rid of this dependency?
+import pickle
+import tempfile
+from pathlib import Path
+
 from configparser import ConfigParser
 # from cycler import cycler
 from itertools import cycle, islice
-from pathlib import Path
 
 from typing import List, Dict, Tuple, Sequence
 from typing import Union, Optional, Type
 
-import warnings
-import random
+
+
 
 __docformat__ = "restructuredtext en"
 __author__ = "Jan-Oliver Joswig"
@@ -375,12 +382,12 @@ class CNN():
         self.__test_labels = d
 
     @property
-    def train_labels(self):
-        return self.__train_labels
-
-    @property
     def map_matrix(self):
         return self.__map_matrix    
+
+    @property
+    def train_labels(self):
+        return self.__train_labels
 
     @train_labels.setter
     def train_labels(self, d):
@@ -1408,25 +1415,105 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         return _data, _shape
 
-    def evaluate(self, ax=None, mode='train', max_clusters=None,
-                 plot='dots', parts=(None, None, None),
-                 points=(None, None, None), dim=None, show=False, save=False,
-                 output='evaluation.png', ax_props=None, save_props=None, 
-                 scatter_props=None, hist_props=None, dot_props=None, 
-                 dot_noise_props=None, scatter_noise_props=None,
-                 contour_props=None, original=False, annotate=True):
-        """Shows/saves a 2D histogram or scatter plot of a cluster result"""
+    def evaluate(
+        self,
+        ax: Optional[Type[mpl.axes._subplots.AxesSubplot]] = None,
+        mode: str='train', clusters: Optional[List[int]]=None,
+        original: bool=False, plot: str='dots',
+        parts: Optional[Tuple[Optional[int], Optional[int], Optional[int]]]=None,
+        points: Optional[Tuple[Optional[int], Optional[int], Optional[int]]]=None,
+        dim: Optional[Tuple[int, int]]=None,
+        ax_props: Optional[Dict]=None, annotate: bool=True,
+        annotate_pos: str="mean", annotate_props: Optional[Dict]=None,
+        scatter_props: Optional[Dict]=None,
+        scatter_noise_props: Optional[Dict]=None,
+        dot_props: Optional[Dict]=None, 
+        dot_noise_props: Optional[Dict]=None,
+        hist_props: Optional[Dict]=None,
+        contour_props: Optional[Dict]=None,
+        free_energy: bool=True
+        ):
         
-        # BROKEN!!!
+        """Returns a 2D plot of an original data set or a cluster result
 
-        # TODO fix plotting when set is cut
-        # TODO make noise optional
-        # TODO overlay clusters over noise
+        Parameters
+        ----------
+        ax : matplotlib.axes._subplots.AxesSubplot, default=None
+            The axes to which to add the plot.  If None, a new figure
+            with axes will be created.
+
+        mode : str, default="train"
+            Which data ("train" or "test") to use for this plot
+        
+        clusters : List[int], default=None
+            Cluster numbers to include in the plot.  If None, consider
+            all.
+        
+        original : bool, default=False
+            Allows to plot the original data instead of a cluster
+            result.  Overrides :param:`clusters`.  Will be considered
+            True, if no cluster result is present.
+
+        plot : str, default="dots"
+            The kind of plotting method to use.
+            
+            * "dots", Use :function:`ax.plot()`
+
+            * "",
+
+        parts : Tuple[int, int, int] (length 3), default=(None, None, None)
+            Use a slice (start, stop, stride) on the data parts before
+            plotting.
+
+        points : Tuple[int, int, int], default=(None, None, None)
+            Use a slice (start, stop, stride) on the data points before
+            plotting.
+
+        dim : Tuple[int, int], default=None
+            Use these two dimensions for plotting.  If None, uses
+            (0, 1).
+
+        annotate : bool, default=True
+            If there is a cluster result, plot the cluster numbers.  Uses
+            :param:`annotate_pos` to determinte the position of the
+            annotations.
+
+        annotate_pos : str or List[Tuple[int, int]], default="mean"
+            Where to put the cluster number annotation.  Can be one of:
+
+            * "mean", Use the cluster mean
+
+            * "random", Use a random point of the cluster
+
+            Alternatively a list of x, y positions can be passed to set
+            a specific point for each cluster (Not yet implemented)
+
+        annotate_props : Dict, default=None
+            Dictionary of keyword arguments passed to
+            :function:`ax.annotate(**kwargs)`.
+
+        ax_props : Dict, default=None
+            Dictionary of :param:`ax` properties to apply after
+            plotting via :function:`ax.set(**ax_props)`.  If None, uses
+            defaults that can be also defined in the configuration file.
+
+        (hist, contour, dot, scatter, dot_noise, scatter_noise)_props : Dict, default=None
+            Dictionaries of keyword arguments passed to various
+            functions.  If None, uses
+            defaults that can be also defined in the configuration file.
+        """
+
         _data, _ = self.query_data(mode=mode)
         if dim is None:
             dim = (0, 1)
         elif dim[1] < dim[0]:
             dim = dim[::-1]
+
+        if parts is None:
+            parts = (None, None, None)
+
+        if points is None:
+            points = (None, None, None)
 
         _data = [
             x[slice(*points), slice(dim[0], dim[1]+1, dim[1]-dim[0])] 
@@ -1435,37 +1522,23 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         _data = np.vstack(_data)
 
-        # if mode == 'test':
-        #     if self.__test_labels is None:
-        #         _labels = np.ones(len(_data)).astype(int)
-        #     else:
-        #         _labels = self.test_labels
-        # elif mode == 'train':
-        #     if self.__train_labels is None:
-        #         _labels = np.ones(len(_data)).astype(int)
-        #     else:
-        #         _labels = self.train_labels
         if mode == 'train':
             try:
                 items = self.__train_clusterdict.items()
-                if max_clusters is None:
-                    max_clusters = max(self.__train_clusterdict)
+                if clusters is None:
+                    clusters = list(range(len( items )))
             except AttributeError:
                 original = True
 
         elif mode == 'test':
             try:
                 items = self.__test_clusterdict.items()
-                if max_clusters is None:
-                    max_clusters = max(self.__test_clusterdict)
+                if clusters is None:
+                    clusters = list(range(len( items )))
             except AttributeError:
                 original = True
         else:
             raise ValueError()
-
-
-        # if max_clusters is not None:
-        #     _labels[_labels > max_clusters] = 0
 
         # TODO make this a configuation option
         ax_props_defaults = {
@@ -1475,13 +1548,23 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         if ax_props is not None:
             ax_props_defaults.update(ax_props)
-        
+
+        annotate_props_defaults = {
+            }
+
+        if annotate_props is not None:
+            annotate_props_defaults.update(annotate_props)
+
         if ax is None:
             fig, ax = plt.subplots()
         else:
             fig = ax.get_figure()
+        
+        # List of axes objects to return for faster access
+        plotted = []
 
         if plot == 'dots':
+            # TODO make this a configuation option
             dot_props_defaults = {
                 'lw': 0,
                 'marker': '.',
@@ -1498,7 +1581,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 'marker': '.',
                 'markersize': 4,
                 'markerfacecolor': 'k',
-                'markeredgecolor': 'none',   
+                'markeredgecolor': 'none',
                 'alpha': 0.3
                 }
 
@@ -1506,48 +1589,56 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 dot_noise_props_defaults.update(dot_noise_props)
 
             if original:
-                ax.plot(
+                # Plot the original data
+                plotted.append(ax.plot(
                     _data[:, 0],
                     _data[:, 1],
                     **dot_props_defaults
-                    )
+                    ))
 
             else:
-                for cluster, points in items:
-                    if cluster > max_clusters:
-                        break
+                # Loop through the cluster result
+                for cluster, cpoints in items:
+                    # plot if cluster is in the list of considered clusters
+                    if cluster in clusters:
 
-                    if cluster == 0:
-                        ax.plot(
-                            _data[points, 0],
-                            _data[points, 1],
-                            **dot_noise_props_defaults
-                        )
-                    else:
-                        ax.plot(
-                            _data[points, 0],
-                            _data[points, 1],
-                            **dot_props_defaults
-                            )
-                        if annotate:
-                            ax.annotate(
-                                f"{cluster}",
-                                xy=(np.mean(_data[points, 0]),
-                                    np.mean(_data[points, 1])),
-                                )
+                        # treat noise differently
+                        if cluster == 0:
+                            plotted.append(ax.plot(
+                                _data[cpoints, 0],
+                                _data[cpoints, 1],
+                                **dot_noise_props_defaults
+                                ))
+
+                        else:
+                            plotted.append(ax.plot(
+                                _data[cpoints, 0],
+                                _data[cpoints, 1],
+                                **dot_props_defaults
+                                ))
+
+                            if annotate:
+                                if annotate_pos == "mean":
+                                    xpos = np.mean(_data[cpoints, 0])
+                                    ypos = np.mean(_data[cpoints, 1])
+
+                                elif annotate_pos == "random":
+                                    choosen = random.sample(
+                                        cpoints, 1
+                                        )
+                                    xpos = _data[choosen, 0]
+                                    ypos = _data[choosen, 1]
+
+                                else:
+                                    raise ValueError()
+
+                                plotted.append(ax.annotate(
+                                    f"{cluster}",
+                                    xy=(xpos, ypos),
+                                    **annotate_props_defaults
+                                    ))
 
         elif plot == 'scatter':
-            # color = settings.get('color', defaults.get('color'))
-            # if color is not None:
-            #     colors = np.array(
-            #         list(islice(cycle(
-            #             color.split(' ')
-            #                 ),
-            #             int(max(_labels) + 1)
-            #             ))
-            #         ) 
-
-            #    color = colors[_labels]
 
             scatter_props_defaults = {
                 's': 10,
@@ -1566,76 +1657,133 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 scatter_noise_props_defaults.update(scatter_noise_props)
             
             if original:
-                ax.scatter(
+                plotted.append(ax.scatter(
                     _data[:, 0],
                     _data[:, 1],
                     **scatter_props_defaults
-                    )
+                    ))
 
             else:
-                for cluster, points in items:
-                    if cluster > max_clusters:
-                        break
+                for cluster, cpoints in items:
+                    if cluster in clusters:
+                            
+                        # treat noise differently
+                        if cluster == 0:
+                            plotted.append(ax.scatter(
+                                _data[cpoints, 0],
+                                _data[cpoints, 1],
+                                **scatter_noise_props_defaults
+                            ))
 
-                    if cluster == 0:
-                        ax.scatter(
-                            _data[points, 0],
-                            _data[points, 1],
-                            **scatter_noise_props_defaults
-                            )
-                    else:
-                        ax.scatter(
-                            _data[points, 0],
-                            _data[points, 1],
-                            **scatter_props_defaults
-                            )
-                        if annotate:
-                            ax.annotate(
-                                f"{cluster}",
-                                xy=(np.mean(_data[points, 0]),
-                                    np.mean(_data[points, 1])),
-                                )
+                        else:
+                            plotted.append(ax.scatter(
+                                _data[cpoints, 0],
+                                _data[cpoints, 1],
+                                **scatter_props_defaults
+                                ))
+
+                            if annotate:
+                                if annotate_pos == "mean":
+                                    xpos = np.mean(_data[cpoints, 0])
+                                    ypos = np.mean(_data[cpoints, 1])
+
+                                elif annotate_pos == "random":
+                                    choosen = random.sample(
+                                        cpoints, 1
+                                        )
+                                    xpos = _data[choosen, 0]
+                                    ypos = _data[choosen, 1]
+
+                                else:
+                                    raise ValueError()
+
+                                plotted.append(ax.annotate(
+                                    f"{cluster}",
+                                    xy=(xpos, ypos),
+                                    **annotate_props_defaults
+                                    ))
 
         elif plot in ['contour', 'contourf', 'histogram']:
-            # TODO make this a configuation option
+
+            contour_props_defaults = {
+                    "cmap": mpl.cm.inferno,
+                }
+
+            if contour_props is not None:
+                contour_props_defaults.update(contour_props)
+
             hist_props_defaults = {
-                "bins": 100,
-                "density": True,
+                "avoid_zero_count": False,
+                "mass": True,
+                "mids": True
             }
 
             if hist_props is not None:
                 hist_props_defaults.update(hist_props)
             
-            H, xbins, ybins = np.histogram2d(_data[:, 0], _data[:, 1], **hist_props_defaults)
+            avoid_zero_count = hist_props_defaults['avoid_zero_count']
+            del hist_props_defaults['avoid_zero_count']
+
+            mass = hist_props_defaults['mass']
+            del hist_props_defaults['mass']
+
+            mids = hist_props_defaults['mids']
+            del hist_props_defaults['mids']
+
+            if original:
+                x_, y_, H = get_histogram(
+                    _data[:, 0], _data[:, 1],
+                    mids=mids,
+                    mass=mass,
+                    avoid_zero_count=avoid_zero_count,
+                    hist_props=hist_props_defaults
+                )
+
+                if free_energy:
+                    dG = np.inf * np.ones(shape=H.shape)
+
+                    nonzero = H.nonzero()
+                    dG[nonzero] = -np.log(H[nonzero])
+                    dG[nonzero] -= np.min(dG[nonzero])
+                    H = dG
+
+                if plot == "histogram":
+                    # Plotting the histogram directly
+                    # imshow, pcolormesh, NonUniformImage ...
+                    # Not implemented, instead return the histogram
+                    warnings.warn(
+"""Plotting a histogram of the data directly is currently not supported.
+Returning the edges and the histogram instead.
+""",
+UserWarning
+                    )
+                    return x_, y_, H
+
+                elif plot == 'contour':
+                    X, Y = np.meshgrid(x_, y_)
+                    plotted.append(
+                        ax.contour(X, Y, H, **contour_props_defaults)
+                        )
+
+                elif plot == 'contourf':
+                    X, Y = np.meshgrid(x_, y_)
+                    plotted.append(
+                        ax.contourf(X, Y, H, **contour_props_defaults)
+                        )
+
+                else:
+                    raise ValueError(
+        f"""Plot type {plot} not understood.
+        Must be one of 'dots, 'scatter' or 'contour(f)'
+        """
+                    )
             
-            xbinmids = xbins[:-1] + (xbins[-1] - xbins[0]) / ((len(xbins) - 1)*2)
-            ybinmids = ybins[:-1] + (ybins[-1] - ybins[0]) / ((len(ybins) - 1)*2)
-
-            contour_props_defaults = {
-                "cmap": cm.inferno,
-            }
-
-            if contour_props is not None:
-                contour_props_defaults.update(contour_props)
-
-            if plot == 'contour':
-                X, Y = np.meshgrid(xbinmids, ybinmids)
-                ax.contour(X, Y, H, **contour_props_defaults)
-
-            if plot == 'contourf':
-                X, Y = np.meshgrid(xbinmids, ybinmids)
-                ax.contourf(X, Y, H, **contour_props_defaults)
-
-        else:
-            raise ValueError(
-f"""Plot type {plot} not understood.
-Must be one of 'scatter', 'contour'
-"""
-            )
+            else:
+                raise NotImplementedError()
 
         ax.set(**ax_props_defaults)
 
-        return fig, ax
+        return fig, ax, plotted
 
 
     def isolate(self, mode='train', purge=True):
@@ -1988,6 +2136,68 @@ class CNNChild(CNN):
         self.__alias = alias
 
 ########################################################################
+
+def get_histogram(x, y, mids=True, mass=True, avoid_zero_count=True, hist_props=None):
+    """Compute a two-dimensional histogram.  Taken and modified from
+    pyemma.plots.
+
+    Parameters
+    ----------
+    x : ndarray(T)
+        Sample x-coordinates.
+    y : ndarray(T)
+        Sample y-coordinates.
+    hist_props : Dict, optional
+        kwargs passed to numpy.histogram2d
+    avoid_zero_count : bool, optional, default=True
+        Avoid zero counts by lifting all histogram elements to the
+        minimum value before computing the free energy. If False,
+        zero histogram counts would yield infinity in the free energy.
+    mass : bool, default=True
+        Norm the histogram by the total number of counts, so that
+        each bin holds the probability mass values where all
+        probabilities sum to 1
+    mids : bool, default=True
+       Return the mids of the bin edges instead of the actual edges
+
+    Returns
+    -------
+    x_ : ndarray(nbins, nbins)
+        The bins' x-coordinates in meshgrid format.
+    y_ : ndarray(nbins, nbins)
+        The bins' y-coordinates in meshgrid format.
+    z : ndarray(nbins, nbins)
+        Histogram counts in meshgrid format.
+
+    """
+    
+    hpt = {
+        'bins': 100,
+    }
+    
+    if hist_props is not None:
+        hpt.update(hist_props)
+    
+    z, x_, y_ = np.histogram2d(
+        x, y, **hpt
+        )
+    
+    if mids:
+        x_ = 0.5 * (x_[:-1] + x_[1:])
+        y_ = 0.5 * (y_[:-1] + y_[1:])
+
+        # x_ = x_[:-1] + (x_[-1] - x_[0]) / ((len(x_) - 1)*2)
+        # y_ = y_[:-1] + (y_[-1] - y_[0]) / ((len(y_) - 1)*2)
+    
+    if avoid_zero_count:
+        z = np.maximum(z, np.min(z[z.nonzero()]))
+
+    if mass:
+        z /= float(z.sum())
+        
+    return x_, y_, z.T # transpose to match x/y-directions
+
+
 
 def dist(data):
     """High level wrapper function for cnn.CNN().dist(). Takes data and
