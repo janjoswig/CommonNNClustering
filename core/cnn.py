@@ -29,6 +29,7 @@ from scipy.spatial import cKDTree
 
 import warnings
 import random
+import json
 from functools import wraps
 import time
 import pickle
@@ -172,9 +173,10 @@ def recorded(function_):
     def wrapper(self, *args, **kwargs):
         wrapped = function_(self, *args, **kwargs)
         if wrapped is not None:
+            print(f'recording: ...')
             if len(wrapped) > 1:
                 wrapped[-2]['time'] = wrapped[-1]
-                print(f'recording: ... \n{wrapped[-2]}')
+                # print(f'recording: ... \n{wrapped[-2]}')
                 self.summary = self.summary.append(
                     wrapped[-2], ignore_index=True
                     )
@@ -267,6 +269,12 @@ class CNN():
                     defaults.get('record_time', 'time')),]
                     )
         
+        self.__record_dtypes = [
+            pd.Int64Dtype(), np.float64, pd.Int64Dtype(), pd.Int64Dtype(),
+            pd.Int64Dtype(), pd.Int64Dtype(), np.float64, np.float64,
+            np.float64
+            ]
+
         self.test = test
         self.train = train
         # self.__train_stacked
@@ -278,7 +286,10 @@ class CNN():
         self.__test_labels = None
         self.__train_clusterdict = None
         self.__train_labels = None
-        self.summary = pd.DataFrame(columns=self.record._fields)
+        self.summary = TypedDataFrame(
+            columns=self.record._fields,
+            dtypes=self.__record_dtypes
+            )
         self.__train_children = None
         self.__train_refindex = None
         self.__train_refindex_rel = None
@@ -438,17 +449,17 @@ class CNN():
                 self.test_shape_str['points'] += ["..."]
         else:
             self.test_present = False 
-            self.test_shape_str = None
+            self.test_shape_str = {"parts": None, "points": None, "dimensions":None}
 
         if self.train is not None:
             self.train_present = True
             self.train_shape_str = {**self.train_shape}
             self.train_shape_str['points'] = self.train_shape_str['points'][:5]
             if len(self.train_shape['points']) > 5:
-                self.train_shape_str['points'] += ["..."]    
+                self.train_shape_str['points'] += ["..."]
         else:
             self.train_present = False            
-            self.train_shape_str = None
+            self.train_shape_str = {"parts": None, "points": None, "dimensions":None}
 
         if self.train_dist_matrix is not None:
             self.train_dist_matrix_present = True
@@ -472,17 +483,25 @@ class CNN():
 
     def __str__(self):
         self.check()
-        return f"""cnn.CNN() cluster object 
-alias :                                 {self.alias}
+
+        return f"""cnn.CNN cluster object
+--------------------------------------------------------------------------------
+alias :                                  {self.alias}
 hierachy level :                         {self.hierarchy_level}
-test data loaded :                      {self.test_present}
-test data shape :                       {self.test_shape_str}
-train data loaded :                     {self.train_present}
-train data shape :                      {self.train_shape_str}
+
+test data shape :                        Parts      - {self.test_shape_str["parts"]}
+                                         Points     - {self.test_shape_str["points"]}
+                                         Dimensions - {self.test_shape_str["dimensions"]}
+
+train data shape :                       Parts      - {self.train_shape_str["parts"]}
+                                         Points     - {self.train_shape_str["points"]}
+                                         Dimensions - {self.train_shape_str["dimensions"]}
+
 distance matrix calculated (train) :     {self.train_dist_matrix_present}
 distance matrix calculated (test) :      {self.test_dist_matrix_present}
-clustered :                             {self.clusters_present}
-children :                              {self.children_present}
+clustered :                              {self.clusters_present}
+children :                               {self.children_present}
+--------------------------------------------------------------------------------
 """
 
     def load(self, file_, mode='train', **kwargs):
@@ -959,23 +978,39 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         self.labels2dict()
 
         # print(f"Updated state: {time.time() - go}")
+        cresult = TypedDataFrame(
+            self.record._fields,
+            self.__record_dtypes,
+            content=[
+                [n_points],
+                [radius_cutoff],
+                [cnn_cutoff],
+                [member_cutoff],
+                [max_clusters],
+                [len(self.__train_clusterdict) -1],
+                [largest],
+                [len(self.__train_clusterdict[0]) / n_points],
+                [None],
+                ],
+            )
+
+        if v:
+            print(
+"\n-------------------------------------------------------------------------------"
+            )
+            print(cresult[list(self.record._fields)[:-1]].to_string(
+                na_rep="None", index=False, line_width=80,
+                header=["  #points  ", "  R  ", "  N  ", "  M  ",
+                        "  max  ", "  #clusters  ", "  %largest  ", "  %noise  "],
+                justify="center"
+                ))
+            print(
+"-------------------------------------------------------------------------------"
+            )
 
         if rec:
-            # print(f"Returning: {time.time() - go}")
-            return pd.Series([
-                        n_points,
-                        radius_cutoff,
-                        cnn_cutoff,
-                        member_cutoff,
-                        max_clusters,
-                        len(self.train_clusterdict) -1,
-                        largest,
-                        len(self.train_clusterdict[0]) / n_points,
-                        None,
-                        ],
-                        index=self.record._fields,
-                        dtype='object',
-                        )
+            return(cresult)
+
     
     def merge(self, clusters, mode='train', which='labels'):
         """Merge a list of clusters into one"""
@@ -1275,13 +1310,14 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         elif behaviour == "lookup":
             _test_labels = []
-            
+
             for candidate in range(len(_test)):
+
                 _test_labels.append(0)
                 neighbours = np.where(
                     self.__map_matrix[self.__memory_assigned][candidate] < radius_cutoff
                     )[0]
-
+                
                 # TODO: Decouple this reduction if clusters is None
                 try:
                     neighbours = neighbours[
@@ -1292,7 +1328,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 else:
                     for neighbour in neighbours:
                         neighbour_neighbours = np.where(
-                        self.__train_dist_matrix[neighbour] < radius_cutoff
+                        self.__train_dist_matrix[neighbour] < radius_cutoff # > 0
                         )[0]
 
                         try:
@@ -1311,6 +1347,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                                 ):
                                 _test_labels[-1] = self.__train_labels[neighbour]
                                 # break after first match
+
                                 break
 
         elif behaviour == "tree":
@@ -1359,7 +1396,9 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                                 # break after first match
                                 break
         else:
-            raise ValueError()
+            raise ValueError(
+f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "tree"'
+            )
 
         self.__test_labels[self.__memory_assigned] = _test_labels
         self.labels2dict(mode="test")
@@ -1777,7 +1816,7 @@ UserWarning
         Must be one of 'dots, 'scatter' or 'contour(f)'
         """
                     )
-            
+
             else:
                 raise NotImplementedError()
 
@@ -1786,8 +1825,65 @@ UserWarning
         return fig, ax, plotted
 
 
+    def summarize(self, ax=None, quant: str="time", treat_nan=None,
+                  ax_props=None, contour_props=None) -> Tuple:
+        """Generates a 2D plot of property values ("time", "noise",
+        "n_clusters", "largest") against cluster parameters 
+        radius_cutoff and cnn_cutoff."""
+
+        if len(self.summary) == 0:
+            raise LookupError(
+"""No cluster result summary present"""
+                )
+
+        pivot = self.summary.groupby(
+            ["radius_cutoff", "cnn_cutoff"]
+            ).mean()[quant].reset_index().pivot(
+                "radius_cutoff", "cnn_cutoff"
+                )
+
+
+        X_, Y_ = np.meshgrid(
+            pivot.index.values, pivot.columns.levels[1].values
+            )
+
+        values_ = pivot.values.T
+
+        if treat_nan is not None:
+            values_[np.isnan(values_)] == treat_nan
+
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.get_figure()
+
+        ax_props_defaults = {
+            "xlabel": "$R$",
+            "ylabel": "$N$",
+        }
+
+        if ax_props is not None:
+            ax_props_defaults.update(ax_props)
+
+        contour_props_defaults = {
+                "cmap": mpl.cm.inferno,
+            }
+
+        if contour_props is not None:
+            contour_props_defaults.update(contour_props)
+
+        plotted = []
+
+        plotted.append(
+            ax.contourf(X_, Y_, values_, **contour_props_defaults)
+            )
+
+        ax.set(**ax_props_defaults)
+
+        return fig, ax, plotted
+
     def isolate(self, mode='train', purge=True):
-        """Isolates points per clusters based on a cluster result"""        
+        """Isolates points per clusters based on a cluster result"""
         
         if mode == 'train':
             if purge or self.__train_children is None:
@@ -2197,7 +2293,18 @@ def get_histogram(x, y, mids=True, mass=True, avoid_zero_count=True, hist_props=
         
     return x_, y_, z.T # transpose to match x/y-directions
 
+def TypedDataFrame(columns, dtypes, content=None, index=None):
+    assert len(columns) == len(dtypes)
+    
+    if content is None:
+        content = [[] for i in range(len(columns))]
 
+    df = pd.DataFrame({
+        k: pd.array(c, dtype=v)
+        for k, v, c in zip(columns, dtypes, content)
+        })
+
+    return df
 
 def dist(data):
     """High level wrapper function for cnn.CNN().dist(). Takes data and
