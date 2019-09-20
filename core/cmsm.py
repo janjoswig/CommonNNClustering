@@ -258,9 +258,10 @@ None, 'cluster_count', 'point_count'."""
         nonzero = np.nonzero(dtraj)[0]
         try:
             first, last = nonzero[0], nonzero[-1]
+            dtraj = dtraj[first:last+1]
         except IndexError:
             dtraj = np.array([])
-        return dtraj[first:last+1]
+        return dtraj
 
     def cmsm(self, dtrajs=None, lag=1, minlenfactor=10, v=True, correct=False):
         """Estimate coreset markov model from characteristic functions

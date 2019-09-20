@@ -35,6 +35,8 @@ import time
 import pickle
 import tempfile
 from pathlib import Path
+import colorama
+import tqdm
 
 from configparser import ConfigParser
 # from cycler import cycler
@@ -484,7 +486,7 @@ class CNN():
     def __str__(self):
         self.check()
 
-        return f"""cnn.CNN cluster object
+        return f"""{colorama.Fore.BLUE}cnn.CNN cluster object{colorama.Fore.RESET}
 --------------------------------------------------------------------------------
 alias :                                  {self.alias}
 hierachy level :                         {self.hierarchy_level}
@@ -1040,7 +1042,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 self.__test_labels = _labels
 
             self.clean()
-            self.labels2dict()
+            self.labels2dict(mode=mode)
 
         elif which == "dict":
             raise NotImplementedError()
@@ -1056,6 +1058,9 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
             for add in clusters[1:]:
                 dict_[base].update(dict_[add])
                 del dict_[add]
+
+            self.clean()
+            self.dict2labels(mode=mode)
 
         else:
             raise ValueError()
@@ -1130,7 +1135,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         include_all: bool=True, same_tol=1e-8, memorize: bool=True,
         clusters: Optional[List[int]]=None, purge: bool=False,
         cnn_offset: Optional[int]=None, behaviour="lookup",
-        method='plain', **kwargs) -> None:
+        method='plain', progress=True, **kwargs) -> None:
         """
         Predict labels for points in a test set on the basis of assigned
         labels to a train set by :method:`CNN.fit`
@@ -1200,6 +1205,9 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
             * "tree", parameter not used
         
+        progress : bool, default=True
+            Show a progress bar
+
         **kwargs : 
             Additional keyword arguments are passed to the method that
             is used to compute the neighbour lists
@@ -1262,6 +1270,8 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 
             _test = _test[self.__memory_assigned]
             _map = self.__map_matrix[self.__memory_assigned]
+        
+        progress = not progress
 
         if behaviour == "on-the-fly":
             if method == "plain":
@@ -1272,7 +1282,9 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                
                 _test_labels = []
             
-                for candidate in _test:
+                for candidate in tqdm.tqdm(_test, desc="Predicting",
+                    disable=progress, unit="Points", unit_scale=True,
+                    bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
                     _test_labels.append(0)
                     neighbours = self.get_neighbours(
                         candidate, _train, r
@@ -1313,8 +1325,10 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         elif behaviour == "lookup":
             _test_labels = []
-
-            for candidate in range(len(_test)):
+                            
+            for candidate in tqdm.tqdm(range(len(_test)), desc="Predicting",
+                disable=progress, unit="Points", unit_scale=True,
+                bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
 
                 _test_labels.append(0)
                 neighbours = np.where(
@@ -1364,7 +1378,9 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
             _test_labels = []
             
-            for candidate in _test:
+            for candidate in tqdm.tqdm(_test, desc="Predicting",
+                disable=progress, unit="Points", unit_scale=True,
+                bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
                 _test_labels.append(0)
                 neighbours = np.asarray(self.__train_tree.query_ball_point(
                     candidate, radius_cutoff, **kwargs
