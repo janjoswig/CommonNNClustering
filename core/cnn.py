@@ -996,7 +996,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         if v:
             print(
-"\n-------------------------------------------------------------------------------"
+"\n--------------------------------------------------------------------------------"
             )
             print(cresult[list(self.record._fields)[:-1]].to_string(
                 na_rep="None", index=False, line_width=80,
@@ -1005,7 +1005,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 justify="center"
                 ))
             print(
-"-------------------------------------------------------------------------------"
+"--------------------------------------------------------------------------------"
             )
 
         if rec:
@@ -1238,6 +1238,8 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         # TODO: Store a vstacked version in the first place
         _test = np.vstack(self.__test)
+        _map = self.__map_matrix
+
         len_ = len(_test)
         
         # TODO: Decouple memorize?
@@ -1259,6 +1261,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 self.__test_labels[self.__test_labels == cluster] = 0
                 
             _test = _test[self.__memory_assigned]
+            _map = self.__map_matrix[self.__memory_assigned]
 
         if behaviour == "on-the-fly":
             if method == "plain":
@@ -1315,7 +1318,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
                 _test_labels.append(0)
                 neighbours = np.where(
-                    self.__map_matrix[self.__memory_assigned][candidate] < radius_cutoff
+                    _map[candidate] < radius_cutoff
                     )[0]
                 
                 # TODO: Decouple this reduction if clusters is None
@@ -1328,7 +1331,8 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 else:
                     for neighbour in neighbours:
                         neighbour_neighbours = np.where(
-                        self.__train_dist_matrix[neighbour] < radius_cutoff # > 0
+                        (self.__train_dist_matrix[neighbour] < radius_cutoff) &
+                        (self.__train_dist_matrix[neighbour] > 0)
                         )[0]
 
                         try:
