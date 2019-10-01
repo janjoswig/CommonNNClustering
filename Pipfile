@@ -21,6 +21,7 @@ pandas = "*"
 sortedcontainers = "*"
 scipy = "*"
 colorama = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.7"

@@ -384,7 +384,7 @@ class CNN():
 
     @train_clusterdict.setter
     def train_clusterdict(self, d):
-        self.__train_clusterdict = d        
+        self.__train_clusterdict = d
 
     @property
     def test_labels(self):
@@ -417,6 +417,10 @@ class CNN():
     @property
     def memory_assigned(self):
         return self.__memory_assigned
+
+    @memory_assigned.setter
+    def memory_assigned(self, mem):
+        self.__memory_assigned = mem
 
     # @property
     # def summary(self):
@@ -605,7 +609,7 @@ children :                               {self.children_present}
 
     @timed
     def dist(self, mode='train',  v=True, method='cdist', mmap=False,
-             mmap_file=None, chunksize=10000):
+             mmap_file=None, chunksize=10000, progress=True,):
         """Computes a distance matrix (points x points) for points in given data
         of standard shape (parts, points, dimensions)"""
 
@@ -627,7 +631,8 @@ children :                               {self.children_present}
             raise ValueError(
 f"Mode {mode} not understood. Must be one of 'train' or 'test'."
             )
-        
+        progress = not progress
+
         if method == 'cdist':
             points = np.vstack(data) # Data can not be streamed right now
             if mmap:
@@ -642,7 +647,13 @@ f"Mode {mode} not understood. Must be one of 'train' or 'test'."
                             shape=(len_, len_),
                             )
                 chunks = np.ceil(len_ / chunksize).astype(int)
-                for chunk in range(chunks):
+                for chunk in tqdm.tqdm(range(chunks), desc="Mapping",
+                        disable=progress, unit="Chunks", unit_scale=True,
+                        bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (
+                            colorama.Style.BRIGHT,
+                            colorama.Fore.BLUE,
+                            colorama.Fore.RESET)
+                            ):
                     _distance_matrix[chunk*chunksize : (chunk+1)*chunksize] = cdist(
                         points[chunk*chunksize : (chunk+1)*chunksize], points
                         )
@@ -661,7 +672,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
     @timed
     def map(self, method='cdist', mmap=False,
-             mmap_file=None, chunksize=10000): # nearest=None):
+             mmap_file=None, chunksize=10000, progress=True): # nearest=None):
         """Computes a map matrix that maps an arbitrary data set to a
         reduced to set"""
 
@@ -682,6 +693,8 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 and the test data set."
                 )
 
+        progress = not progress
+
         if method == 'cdist':
             _train = np.vstack(self.__train) # Data can not be streamed right now
             _test = np.vstack(self.__test)
@@ -698,7 +711,13 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                             shape=(len_test, len_train),
                             )
                 chunks = np.ceil(len_test / chunksize).astype(int)
-                for chunk in range(chunks):
+                for chunk in tqdm.tqdm(range(chunks), desc="Mapping",
+                        disable=progress, unit="Chunks", unit_scale=True,
+                        bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (
+                            colorama.Style.BRIGHT,
+                            colorama.Fore.BLUE,
+                            colorama.Fore.RESET)
+                            ):
                     self.__map_matrix[chunk*chunksize : (chunk+1)*chunksize] = cdist(
                         _test[chunk*chunksize : (chunk+1)*chunksize], _train
                         )
@@ -822,6 +841,8 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                                 histogram[candidate]+(ylimit/100))
                         )
                     )
+        else:
+            annotations = None
 
         ax.set(**ax_props_defaults)
 
@@ -1041,7 +1062,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
             elif mode == 'test':
                 self.__test_labels = _labels
 
-            self.clean()
+            self.clean(mode=mode)
             self.labels2dict(mode=mode)
 
         elif which == "dict":
@@ -1059,7 +1080,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 dict_[base].update(dict_[add])
                 del dict_[add]
 
-            self.clean()
+            self.clean(mode=mode)
             self.dict2labels(mode=mode)
 
         else:
@@ -1087,8 +1108,8 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
             elif mode == 'test':
                 self.__test_labels = _labels
 
-            self.clean()
-            self.labels2dict()
+            self.clean(mode=mode)
+            self.labels2dict(mode=mode)
 
         elif which == "dict":
             raise NotImplementedError()
@@ -1106,8 +1127,8 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 dict_[0].update(dict_[cluster])
                 del dict_[cluster]
 
-            self.clean()
-            self.dict2labels()
+            self.clean(mode=mode)
+            self.dict2labels(mode=mode)
 
         else:
             raise ValueError()
@@ -1246,7 +1267,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         # TODO: Store a vstacked version in the first place
         _test = np.vstack(self.__test)
-        _map = self.__map_matrix
+        # _map = self.__map_matrix
 
         len_ = len(_test)
         
@@ -1256,6 +1277,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
             self.__memory_assigned = np.ones(len_).astype(bool)
             if clusters is None:
                 clusters = list(range(1, len(self.__train_clusterdict)+1))
+
         else:
            
             if self.__memory_assigned is None:
@@ -1269,7 +1291,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 self.__test_labels[self.__test_labels == cluster] = 0
                 
             _test = _test[self.__memory_assigned]
-            _map = self.__map_matrix[self.__memory_assigned]
+            # _map = self.__map_matrix[self.__memory_assigned]
         
         progress = not progress
 
@@ -1324,6 +1346,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 raise ValueError()
 
         elif behaviour == "lookup":
+            _map = self.__map_matrix[self.__memory_assigned]
             _test_labels = []
                             
             for candidate in tqdm.tqdm(range(len(_test)), desc="Predicting",
@@ -1490,7 +1513,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         dot_noise_props: Optional[Dict]=None,
         hist_props: Optional[Dict]=None,
         contour_props: Optional[Dict]=None,
-        free_energy: bool=True
+        free_energy: bool=True, mask = None,
         ):
         
         """Returns a 2D plot of an original data set or a cluster result
@@ -1560,6 +1583,8 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
             Dictionaries of keyword arguments passed to various
             functions.  If None, uses
             defaults that can be also defined in the configuration file.
+
+        mask : Sequence[bool]
         """
 
         _data, _ = self.query_data(mode=mode)
@@ -1580,6 +1605,8 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
             ]
 
         _data = np.vstack(_data)
+        if mask is not None:
+            _data = _data[np.asarray(mask)]
 
         if mode == 'train':
             try:
@@ -1838,7 +1865,54 @@ UserWarning
                     )
 
             else:
-                raise NotImplementedError()
+                for cluster, cpoints in items:
+                    if cluster in clusters:
+                        x_, y_, H = get_histogram(
+                            _data[cpoints, 0], _data[cpoints, 1],
+                            mids=mids,
+                            mass=mass,
+                            avoid_zero_count=avoid_zero_count,
+                            hist_props=hist_props_defaults
+                        )
+
+                        if free_energy:
+                            dG = np.inf * np.ones(shape=H.shape)
+
+                            nonzero = H.nonzero()
+                            dG[nonzero] = -np.log(H[nonzero])
+                            dG[nonzero] -= np.min(dG[nonzero])
+                            H = dG
+
+                        if plot == "histogram":
+                            # Plotting the histogram directly
+                            # imshow, pcolormesh, NonUniformImage ...
+                            # Not implemented, instead return the histogram
+                            warnings.warn(
+        """Plotting a histogram of the data directly is currently not supported.
+        Returning the edges and the histogram instead.
+        """,
+        UserWarning
+                            )
+                            return x_, y_, H
+
+                        elif plot == 'contour':
+                            X, Y = np.meshgrid(x_, y_)
+                            plotted.append(
+                                ax.contour(X, Y, H, **contour_props_defaults)
+                                )
+
+                        elif plot == 'contourf':
+                            X, Y = np.meshgrid(x_, y_)
+                            plotted.append(
+                                ax.contourf(X, Y, H, **contour_props_defaults)
+                                )
+
+                        else:
+                            raise ValueError(
+                f"""Plot type {plot} not understood.
+                Must be one of 'dots, 'scatter' or 'contour(f)'
+                """
+                    )
 
         ax.set(**ax_props_defaults)
 

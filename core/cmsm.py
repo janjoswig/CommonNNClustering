@@ -133,6 +133,10 @@ class CMSM():
     @property
     def B(self):
         return self.__B
+
+    @property
+    def lcs(self):
+        return self.__lcs
     
     def get_milestoning(self, dtraj):
         """Neglect transitions to noise as state transition
@@ -263,7 +267,7 @@ None, 'cluster_count', 'point_count'."""
             dtraj = np.array([])
         return dtraj
 
-    def cmsm(self, dtrajs=None, lag=1, minlenfactor=10, v=True, correct=False):
+    def cmsm(self, dtrajs=None, lag=1, minlenfactor=10, v=True, correct=False, trim=1000):
         """Estimate coreset markov model from characteristic functions
         at a given lagtime
         """
@@ -281,7 +285,7 @@ f"---------------------------------------------------------\n"
         # Remove leading and trailing 0s in trajectory
         # for dtraj in dtrajs:
         dtrajs = [
-            self.trimzeros(x)
+            self.trimzeros(x[trim:])
             for x in dtrajs
             ]
 
@@ -318,9 +322,7 @@ f"---------------------------------------------------------\n"
 
             print(
                 f"Using {len(dtrajs)} trajectories with {len(np.concatenate(dtrajs))} " +
-                f"steps over {n_clusters} coresets\n" +
-                f"---------------------------------------------------------\n" +
-                f"*********************************************************\n"
+                f"steps over {n_clusters} coresets\n"
                 )
 
         # calculate milestone processes
@@ -354,8 +356,23 @@ f"---------------------------------------------------------\n"
         self.__T[np.isnan(self.__M)] = 0
         
         # get largest connected set
-        lcs = list(self.get_connected_sets(self.__T))
-        self.__T = self.__T[tuple(np.meshgrid(lcs, lcs))].T
+        self.__lcs = list(self.get_connected_sets(self.__T))
+        if v:
+            if len(self.__lcs) < n_clusters:
+                print(
+                    f"The largest connected set has {len(self.__lcs)} members\n" +
+                    # f"{[x+1 for x in self.__lcs]}\n" +
+                    f"---------------------------------------------------------\n" +
+                    f"*********************************************************\n"
+                    )
+            else:
+                print(
+                    f"All sets are connected\n"
+                    f"---------------------------------------------------------\n" +
+                    f"*********************************************************\n"
+                    )
+        self.__T = self.__T[tuple(np.meshgrid(self.__lcs, self.__lcs))].T
+        self.__M = self.__M[tuple(np.meshgrid(self.__lcs, self.__lcs))].T
 
         # Weight T with the inverse M
         self.__T = np.dot(self.__T, np.linalg.inv(self.__M))
@@ -616,6 +633,7 @@ f"---------------------------------------------------------\n"
 
         Ax[axi].set(**{
             "xticks": index,
+            "xticklabels": [x + 1 for x in self.__lcs],
             "xlabel": 'set',
             })
 
