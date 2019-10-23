@@ -4,13 +4,13 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pylint = "*"
 ipython = "*"
 jupyter = "*"
 jupyter_contrib_nbextensions = "*"
 scikit-learn = "*"
 pyqt5 = "*"
 cython = "*"
+flake8 = "*"
 mypy = "*"
 black = "*"
 
@@ -24,7 +24,7 @@ colorama = "*"
 tqdm = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.7.5"
 
 [pipenv]
 allow_prereleases = true

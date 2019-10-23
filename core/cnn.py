@@ -1,32 +1,21 @@
-"""This is cnn v0.1
+#!/usr/bin/env python
+
+"""This is the core.cnn module - A Python module for the common-nearest-
+neighbour (CNN) cluster algorithm.
 
 The functionality provided in this module is based on code implemented
 by Oliver Lemke in the script collection CNNClustering available on
-git-hub (https://github.com/BDGSoftware/CNNClustering.git).
+git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
 
-Author: Jan-Oliver Joswig, 
-first released: 03.12.2018
+    B. Keller, X. Daura, W. F. van Gunsteren J. Chem. Phys., 2010, 132, 074110.
+    O. Lemke, B.G. Keller, J. Chem. Phys., 2016, 145, 164104.
+    O. Lemke, B.G. Keller, Algorithms, 2018, 11, 19.
 """
 
+# TODO Port to Python 3.8 as soon as possible
 from __future__ import annotations
 
-import numpy as np
-import pandas as pd # TODO get rid of this dependency?
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-
 from collections import defaultdict, namedtuple
-from sortedcontainers import SortedList
-
-from scipy.spatial.distance import cdist
-from scipy.signal import argrelextrema
-from scipy.interpolate import interp1d
-from scipy.spatial import cKDTree
-
-# import pyximport
-# pyximport.install()
-# import .c.cfit
-
 import warnings
 import random
 import json
@@ -35,33 +24,36 @@ import time
 import pickle
 import tempfile
 from pathlib import Path
-import colorama
-import tqdm
-
 from configparser import ConfigParser
-# from cycler import cycler
-from itertools import cycle, islice
-
 from typing import List, Dict, Tuple, Sequence
 from typing import Union, Optional, Type
 
+# from cycler import cycler
+# from itertools import cycle, islice
 
+import numpy as np
+import pandas as pd # TODO get rid of this dependency?
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from sortedcontainers import SortedList
+from scipy.spatial.distance import cdist
+from scipy.signal import argrelextrema
+from scipy.interpolate import interp1d
+from scipy.spatial import cKDTree
+import colorama
+import tqdm
 
+# import pyximport
+# pyximport.install()
+# import .c.cfit
 
-__docformat__ = "restructuredtext en"
-__author__ = "Jan-Oliver Joswig"
-__copyright__ = "Copyright 2019, Biomolecular Dynamics Group, FU-Berlin"
-__credits__ = ["Jan-Oliver Joswig", ]
-__maintainer__ = "Jan-Oliver Joswig"
-__email__ = "jan DOT joswig AT fu-berlin DOT de"
-
-#######################################################################
+########################################################################
 # TODO: Consider yaml configuration instead of configparser
 # TODO: How to stream train/test from disk (memmap, hdf5, sqlite)
-# TODO: Store part stacked form of data?
 ########################################################################
-# Global functions
 
+
+# Global functions
 def configure():
     """Read from configuration file
     """
@@ -122,11 +114,11 @@ def configure():
 
     settings = config_['settings']
     defaults = config_template['settings']
-    
+
 # TODO Reconsider use of precision
     global float_precision
     global int_precision
-    
+
     float_precision = settings.get(
         'float_precision', defaults.get('float_precision')
         )
