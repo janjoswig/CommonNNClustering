@@ -32,7 +32,7 @@ from typing import Union, Optional, Type
 # from itertools import cycle, islice
 
 import numpy as np
-import pandas as pd # TODO get rid of this dependency?
+import pandas as pd  # TODO make this dependency optional?
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from sortedcontainers import SortedList
@@ -53,37 +53,41 @@ import tqdm
 ########################################################################
 
 
-# Global functions
 def configure():
-    """Read from configuration file
+    """Read options from configuration file
     """
+
     CWD = Path.cwd()
     CWD_CONFIG = Path(f"{CWD}/.cnnrc")
     HOME = Path.home()
     HOME_CONFIG = Path(f"{HOME}/.cnnrc")
+
     config_ = ConfigParser(default_section="settings")
     config_template = ConfigParser(
-            default_section="settings",
-            defaults={'record_points': "points",
-                    'record_radius_cutoff' : "radius_cutoff",
-                    'record_cnn_cutoff' : "cnn_cutoff",
-                    'record_member_cutoff' : "member_cutoff",
-                    'record_max_cluster' : "max_cluster",
-                    'record_n_cluster' : "n_cluster",
-                    'record_largest' : "largest",
-                    'record_noise' : "noise",
-                    'record_time' : "time",
-                    'color' : """#000000 #396ab1 #da7c30 #3e9651 #cc2529 #535154
-                                 #6b4c9a #922428 #948b3d #7293cb #e1974c #84ba5b
-                                 #d35e60 #9067a7 #ab6857 #ccc210 #808585""",
-                    'default_cnn_cutoff' : "1",
-                    'default_cnn_offset' : "0",
-                    'default_radius_cutoff' : "1",
-                    'default_member_cutoff' : "1",
-                    'float_precision' : 'sp',
-                    'int_precision' : 'sp',
-                    }
-            )
+        default_section="settings",
+        defaults={
+            'record_points': "points",
+            'record_radius_cutoff': "radius_cutoff",
+            'record_cnn_cutoff': "cnn_cutoff",
+            'record_member_cutoff': "member_cutoff",
+            'record_max_cluster': "max_cluster",
+            'record_n_cluster': "n_cluster",
+            'record_largest': "largest",
+            'record_noise': "noise",
+            'record_time': "time",
+            'color': """
+                #000000 #396ab1 #da7c30 #3e9651 #cc2529 #535154
+                #6b4c9a #922428 #948b3d #7293cb #e1974c #84ba5b
+                #d35e60 #9067a7 #ab6857 #ccc210 #808585
+                """,
+            'default_cnn_cutoff': "1",
+            'default_cnn_offset': "0",
+            'default_radius_cutoff': "1",
+            'default_member_cutoff': "1",
+            'float_precision': 'sp',
+            'int_precision': 'sp',
+            }
+        )
 
     if CWD_CONFIG.is_file():
         print(f"Configuration file found in {CWD}")
@@ -115,7 +119,7 @@ def configure():
     settings = config_['settings']
     defaults = config_template['settings']
 
-# TODO Reconsider use of precision
+    # TODO Reconsider use of precision
     global float_precision
     global int_precision
 
@@ -126,6 +130,8 @@ def configure():
     int_precision = settings.get(
         'int_precision', defaults.get('int_precision')
         )
+
+
 # TODO Make this optional
 # not really usable since numpy/scipy calculations are done in dp anyways
 float_precision_map = {
@@ -140,6 +146,7 @@ int_precision_map = {
     'sp': np.int32,
     'dp': np.int64,
 }
+
 
 def timed(function_):
     """Decorator to measure execution time.  Forwards the output of the
@@ -158,11 +165,13 @@ def timed(function_):
     {int(hours)} hours, {int(minutes)} minutes, {seconds:.4f} seconds")
             return wrapped, stopped
     return wrapper
-         
+
+
 def recorded(function_):
     """Decorator to format function feedback.  Feedback needs to be
        pandas series in record format.  If execution time was measured,
        this will be included in the summary."""
+
     @wraps(function_)
     def wrapper(self, *args, **kwargs):
         wrapped = function_(self, *args, **kwargs)
@@ -181,9 +190,10 @@ def recorded(function_):
         return
     return wrapper
 
+
 class CNN():
     """CNN cluster object class"""
-    
+
     @staticmethod
     def get_shape(data):
         """Analyses the format of given data and fits it into standard
@@ -202,7 +212,7 @@ class CNN():
                     'parts': 1,
                     'points': [np.shape(data)[0]],
                     'dimensions': 1,
-                    } 
+                    }
 
             elif np.shape(data_shape)[0] == 1:
                 data = np.array([data])
@@ -222,19 +232,19 @@ class CNN():
                     }
             else:
                 raise ValueError(
-    f"Data shape {data_shape} not allowed"
-    )
-    
+f"Data shape {data_shape} not allowed"
+                    )
+
     # TODO Add precision argument on initilisation?
     def __init__(self, alias='root', train=None, test=None,
                  train_dist_matrix=None, test_dist_matrix=None,
                  map_matrix=None):
 
         self.__alias = alias
-        
-        # TODO rather a class attribute? 
+
+        # TODO rather a class attribute?
         self.__hierarchy_level = 0
-        
+
         if self.__hierarchy_level == 0:
             configure()
 
@@ -242,27 +252,27 @@ class CNN():
         # to provide column identifiers.  maybe not too useful ...
         # TODO maybe put this module wide not as instance attribute?
         self.record = namedtuple(
-                'ClusterRecord',
-                [settings.get('record_points',
-                    defaults.get('record_points', 'points')),
-                settings.get('record_radius_cutoff',
-                    defaults.get('record_radius_cutoff', 'radius_cutoff')),
-                settings.get('record_cnn_cutoff',
-                    defaults.get('record_cnn_cutoff', 'cnn_cutoff')),
-                settings.get('record_member_cutoff',
-                    defaults.get('record_member_cutoff', 'member_cutoff')),
-                settings.get('record_max_clusters',
-                    defaults.get('record_max_clusters', 'max_clusters')),
-                settings.get('record_n_clusters',
-                    defaults.get('record_n_clusters', 'n_clusters')),
-                settings.get('record_largest',
-                    defaults.get('record_largest', 'largest')),
-                settings.get('record_noise',
-                    defaults.get('record_noise', 'noise')),
-                settings.get('record_time',
-                    defaults.get('record_time', 'time')),]
-                    )
-        
+            'ClusterRecord',
+            [settings.get('record_points',
+             defaults.get('record_points', 'points')),
+             settings.get('record_radius_cutoff',
+             defaults.get('record_radius_cutoff', 'radius_cutoff')),
+             settings.get('record_cnn_cutoff',
+             defaults.get('record_cnn_cutoff', 'cnn_cutoff')),
+             settings.get('record_member_cutoff',
+             defaults.get('record_member_cutoff', 'member_cutoff')),
+             settings.get('record_max_clusters',
+             defaults.get('record_max_clusters', 'max_clusters')),
+             settings.get('record_n_clusters',
+             defaults.get('record_n_clusters', 'n_clusters')),
+             settings.get('record_largest',
+             defaults.get('record_largest', 'largest')),
+             settings.get('record_noise',
+             defaults.get('record_noise', 'noise')),
+             settings.get('record_time',
+             defaults.get('record_time', 'time')), ]
+            )
+
         self.__record_dtypes = [
             pd.Int64Dtype(), np.float64, pd.Int64Dtype(), pd.Int64Dtype(),
             pd.Int64Dtype(), pd.Int64Dtype(), np.float64, np.float64,
@@ -272,7 +282,7 @@ class CNN():
         self.test = test
         self.train = train
         # self.__train_stacked
-        # self.__test_stacked 
+        # self.__test_stacked
         self.__train_dist_matrix = train_dist_matrix
         self.__test_dist_matrix =  test_dist_matrix
         self.__map_matrix = map_matrix
@@ -291,7 +301,7 @@ class CNN():
         self.__test_tree = None
         self.__memory_assigned = None
         self.__cache = None
-        # No children for test date. (Hierarchical) clustering should be 
+        # No children for test date. (Hierarchical) clustering should be
         # done on train data
 
     @property
@@ -388,7 +398,7 @@ class CNN():
 
     @property
     def map_matrix(self):
-        return self.__map_matrix    
+        return self.__map_matrix
 
     @property
     def train_labels(self):
@@ -446,8 +456,8 @@ class CNN():
             if len(self.test_shape['points']) > 5:
                 self.test_shape_str['points'] += ["..."]
         else:
-            self.test_present = False 
-            self.test_shape_str = {"parts": None, "points": None, "dimensions":None}
+            self.test_present = False
+            self.test_shape_str = {"parts": None, "points": None, "dimensions": None}
 
         if self.train is not None:
             self.train_present = True
@@ -456,8 +466,8 @@ class CNN():
             if len(self.train_shape['points']) > 5:
                 self.train_shape_str['points'] += ["..."]
         else:
-            self.train_present = False            
-            self.train_shape_str = {"parts": None, "points": None, "dimensions":None}
+            self.train_present = False
+            self.train_shape_str = {"parts": None, "points": None, "dimensions": None}
 
         if self.train_dist_matrix is not None:
             self.train_dist_matrix_present = True
@@ -473,7 +483,7 @@ class CNN():
             self.clusters_present = True
         else:
             self.clusters_present = False
-        
+
         if self.train_children is not None:
             self.children_present = True
         else:
@@ -539,7 +549,7 @@ children :                               {self.children_present}
             extension,
             lambda: print(f"Unknown filename extension {extension}")
             )()
-    
+
         if mode == 'train':
             self.__train, self.__train_shape = self.get_shape(data)
         elif mode == 'test':
@@ -566,11 +576,11 @@ children :                               {self.children_present}
         if len(extension) == 1:
             extension = ''
         {
-        'p' : lambda: pickle.dump(open(file_, 'wb'), content),
-        'npy': lambda: np.save(file_, content, **kwargs),
-        '': lambda: np.savetxt(file_, content, **kwargs),
+            'p' : lambda: pickle.dump(open(file_, 'wb'), content),
+            'npy': lambda: np.save(file_, content, **kwargs),
+            '': lambda: np.savetxt(file_, content, **kwargs),
         }.get(extension,
-            f"Unknown filename extension .{extension}")()
+              f"Unknown filename extension .{extension}")()
 
     def switch_data(self):
         self.__train, self.__test = self.__test, self.__train
@@ -586,7 +596,7 @@ children :                               {self.children_present}
 
         if (self.__test is None) and (self.__train is not None):
             print(
-                "No test data present, but train data found. Switching data."    
+                "No test data present, but train data found. Switching data."
                  )
             self.switch_data()
         elif self.__train is None and self.__test is None:
@@ -594,9 +604,9 @@ children :                               {self.children_present}
                 "Neither test nor train data present."
                 )
 
-        self.__train = [x[slice(*points), slice(*dimensions)] 
+        self.__train = [x[slice(*points), slice(*dimensions)]
                         for x in self.__test[slice(*parts)]]
-    
+
         self.__train, self.__train_shape = self.get_shape(self.__train)
 
     @timed
@@ -622,7 +632,8 @@ children :                               {self.children_present}
         else:
             raise ValueError(
 f"Mode {mode} not understood. Must be one of 'train' or 'test'."
-            )
+                )
+
         progress = not progress
 
         if method == 'cdist':
@@ -630,7 +641,7 @@ f"Mode {mode} not understood. Must be one of 'train' or 'test'."
             if mmap:
                 if mmap_file is None:
                     mmap_file = tempfile.TemporaryFile()
-                 
+
                 len_ = len(points)
                 _distance_matrix = np.memmap(
                             mmap_file,
@@ -639,19 +650,21 @@ f"Mode {mode} not understood. Must be one of 'train' or 'test'."
                             shape=(len_, len_),
                             )
                 chunks = np.ceil(len_ / chunksize).astype(int)
-                for chunk in tqdm.tqdm(range(chunks), desc="Mapping",
-                        disable=progress, unit="Chunks", unit_scale=True,
-                        bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (
-                            colorama.Style.BRIGHT,
-                            colorama.Fore.BLUE,
-                            colorama.Fore.RESET)
-                            ):
-                    _distance_matrix[chunk*chunksize : (chunk+1)*chunksize] = cdist(
-                        points[chunk*chunksize : (chunk+1)*chunksize], points
+                for chunk in tqdm.tqdm(
+                    range(chunks), desc="Mapping",
+                    disable=progress, unit="Chunks", unit_scale=True,
+                    bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (
+                        colorama.Style.BRIGHT,
+                        colorama.Fore.BLUE,
+                        colorama.Fore.RESET
+                        )
+                    ):
+                    _distance_matrix[chunk*chunksize: (chunk+1)*chunksize] = cdist(
+                        points[chunk*chunksize: (chunk+1)*chunksize], points
                         )
             else:
                 _distance_matrix = cdist(points, points)
-        
+
         else:
             raise ValueError(
 f"Method {method} not understood. Must be one of 'cdist' or ... ."
@@ -694,7 +707,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 if mmap_file is None:
                     mmap_file = tempfile.TemporaryFile()
 
-                len_train = len(_train) 
+                len_train = len(_train)
                 len_test = len(_test)
                 self.__map_matrix = np.memmap(
                             mmap_file,
@@ -715,7 +728,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                         )
             else:
                 self.__map_matrix = cdist(_test, _train)
-        
+
         else:
             raise ValueError(
 f"Method {method} not understood. Must be one of 'cdist' or ... ."
@@ -725,9 +738,9 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                   ax_props=None, inter_props=None, **kwargs):
         """Shows/saves a histogram plot for distances in a given distance
         matrix"""
-        
-    # TODO Add option for kernel density estimation 
-    # (scipy.stats.gaussian_kde, statsmodels.nonparametric.kde) 
+
+    # TODO Add option for kernel density estimation
+    # (scipy.stats.gaussian_kde, statsmodels.nonparametric.kde)
 
         if mode == 'train':
             if self.train_dist_matrix is None:
@@ -736,13 +749,13 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 )
                 self.dist(mode=mode, **kwargs)
             _dist_matrix = self.train_dist_matrix
-        
+
         elif mode == 'test':
             if self.test_dist_matrix is None:
                 print(
 "Test distance matrix not calculated. Calculating distance matrix."
                 )
-                self.dist(mode=mode, **kwargs)           
+                self.dist(mode=mode, **kwargs)
             _dist_matrix = self.test_dist_matrix
         else:
             raise ValueError(
@@ -756,7 +769,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         }
 
         if hist_props is not None:
-            hist_props_defaults.update(hist_props)            
+            hist_props_defaults.update(hist_props)
 
         flat_ = np.tril(_dist_matrix).flatten()
         histogram, bins =  np.histogram(
@@ -774,9 +787,9 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         if inter_props is not None:
             inter_props_defaults.update(inter_props)
-            
+
             ifactor = inter_props_defaults.pop("ifactor")
-            
+
             ipoints = int(
                 np.ceil(len(binmids)*ifactor)
                 )
@@ -789,7 +802,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
             binmids = ibinmids
 
-            
+
         ylimit = np.max(histogram)*1.1
 
         # TODO make this a configuration option
@@ -803,7 +816,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         if ax_props is not None:
             ax_props_defaults.update(ax_props)
-        
+
         if ax is None:
             fig, ax = plt.subplots()
         else:
@@ -818,7 +831,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 }
 
             if maxima_props is not None:
-                maxima_props_.update(maxima_props) 
+                maxima_props_.update(maxima_props)
 
             found = argrelextrema(histogram, np.greater, **maxima_props_)[0]
             settings['default_radius_cutoff'] = \
@@ -829,7 +842,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                     ax.annotate(
                         f"{binmids[candidate]:.2f}",
                         xy=(binmids[candidate], histogram[candidate]),
-                        xytext=(binmids[candidate], 
+                        xytext=(binmids[candidate],
                                 histogram[candidate]+(ylimit/100))
                         )
                     )
@@ -846,11 +859,11 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 member_cutoff: int=None, max_clusters: Optional[int]=None,
                 cnn_offset: int=None,
                 rec: bool=True, v=True) -> Optional[pd.DataFrame]:
-        """Performs a CNN clustering of points in a given train 
+        """Performs a CNN clustering of points in a given train
         distance matrix"""
         # go = time.time()
         # print("Function called")
-        
+
         if radius_cutoff is None:
             radius_cutoff = float(settings.get(
                                 'default_radius_cutoff',
@@ -887,7 +900,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         if self.__train_dist_matrix is None:
             self.dist()
-        
+
         # print(f"Data checked: {time.time() - go}")
 
         n_points = len(self.__train_dist_matrix)
@@ -916,7 +929,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 & (include == True)
                 )[0][0]
             # point = np.argmax(n_neighbours[include])
-            
+
             _clusterdict[current].add(point)
             new_point_added = True
             _labels[point] = current
@@ -945,7 +958,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                             _labels[neighbour] = current
                             include[neighbour] = False
 
-                # done += 1   
+                # done += 1
             current += 1
 
             if max_clusters is not None:
@@ -955,18 +968,18 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         # print(f"Clustering done: {time.time() - go}")
 
         clusters_no_noise = {
-            y: _clusterdict[y] 
+            y: _clusterdict[y]
             for y in _clusterdict if y != 0
             }
 
         # print(f"Make clusters_no_noise copy: {time.time() - go}")
-        
+
         too_small = [
-            _clusterdict.pop(y) 
-            for y in [x[0] 
+            _clusterdict.pop(y)
+            for y in [x[0]
             for x in clusters_no_noise.items() if len(x[1]) <= member_cutoff]
             ]
-        
+
         if len(too_small) > 0:
             for entry in too_small:
                 _clusterdict[0].update(entry)
@@ -974,19 +987,19 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         for x in set(_labels):
             if x not in set(_clusterdict):
                 _labels[_labels == x] = 0
-        
+
         # print(f"Declared small clusters as noise: {time.time() - go}")
 
         if len(clusters_no_noise) == 0:
             largest = 0
         else:
             largest = len(_clusterdict[1 + np.argmax([
-                len(x) 
+                len(x)
                 for x in clusters_no_noise.values()
                     ])]) / n_points
-        
+
         # print(f"Found largest cluster: {time.time() - go}")
-        
+
         self.train_clusterdict = _clusterdict
         self.train_labels = _labels
         self.clean()
@@ -1026,7 +1039,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         if rec:
             return(cresult)
 
-    
+
     def merge(self, clusters, mode='train', which='labels'):
         """Merge a list of clusters into one"""
         if len(clusters) < 2:
@@ -1048,7 +1061,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
             for add in clusters[1:]:
                 _labels[_labels == add] = base
-            
+
             if mode == 'train':
                 self.__train_labels = _labels
             elif mode == 'test':
@@ -1059,7 +1072,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         elif which == "dict":
             raise NotImplementedError()
-            
+
             if mode == 'train':
                 dict_ = self.__train_clusterdict
             elif mode == 'test':
@@ -1094,7 +1107,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
             for add in clusters:
                 _labels[_labels == add] = 0
-            
+
             if mode == 'train':
                 self.__train_labels = _labels
             elif mode == 'test':
@@ -1105,7 +1118,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         elif which == "dict":
             raise NotImplementedError()
-            
+
             if mode == 'train':
                 dict_ = self.__train_clusterdict
             elif mode == 'test':
@@ -1114,7 +1127,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
             else:
                 raise ValueError(f'Mode "{mode}" not understood')
 
-            
+
             for cluster in clusters:
                 dict_[0].update(dict_[cluster])
                 del dict_[cluster]
@@ -1133,7 +1146,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
             self.__train_tree = cKDTree(np.vstack(self.__train), **kwargs)
         elif mode == "test":
             self.__test_tree = cKDTree(np.vstack(self.__test), **kwargs)
-    
+
     @staticmethod
     def get_neighbours(a: Type[np.ndarray], B: Type[np.ndarray],
                        r: float) -> List[int]:
@@ -1161,10 +1174,10 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         cnn_cutoff : int, default=1
             Similarity criterion; Points of the same cluster must have
             at least n common nearest neighbours
-        
+
         member_cutoff : int, default=1
             Clusters must have more than m points or are declared noise
-        
+
         include_all : bool, default=True
             If False, keep cluster assignment for points in the test set
             that have a maximum distance of :param:`same_tol` to a point
@@ -1172,9 +1185,9 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
             (currently not implemented)
 
         same_tol : float, default=1e-8
-            Distance cutoff to treat points as the same, if 
+            Distance cutoff to treat points as the same, if
             :param:`include_all` is False
-        
+
         clusters : List[int], Optional, default=None
             Predict assignment of points only with respect to this list
             of clusters
@@ -1188,12 +1201,12 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
             already assigned and exclude them from future predictions
 
         cnn_offset : int, default=0
-            Mainly for backwards compatibility; Modifies the the 
+            Mainly for backwards compatibility; Modifies the the
             cnn_cutoff
 
         behaviour : str, default="lookup"
             Controlls how the predictor operates:
-            
+
             * "lookup", Use distance matrices CNN.train_dist_matrix and
                 CNN.map_matrix to lookup distances to generate the
                 neighbour lists.  If one of the matrices does not exist,
@@ -1206,31 +1219,31 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
             * "tree", Get the neighbour lists during the prediction from
                 a tree query
-        
+
         method : str, default="plain"
             Controlls which method is used to get the neighbour lists
             within a given :param:`behaviour`:
 
             * "lookup", parameter not used
 
-            * "on-the-fly", 
+            * "on-the-fly",
                 * "plain", uses :method:`CNN.get_neighbours`
 
             * "tree", parameter not used
-        
+
         progress : bool, default=True
             Show a progress bar
 
-        **kwargs : 
+        **kwargs :
             Additional keyword arguments are passed to the method that
             is used to compute the neighbour lists
         """
-        
+
         ################################################################
         # TODO: Implement include_all mechanism.  The current version
         #     acts like include_all = True.
         ################################################################
-        
+
         if radius_cutoff is None:
             radius_cutoff = float(settings.get(
                 'default_radius_cutoff',
@@ -1262,7 +1275,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         # _map = self.__map_matrix
 
         len_ = len(_test)
-        
+
         # TODO: Decouple memorize?
         if purge or (clusters is None):
             self.__test_labels = np.zeros(len_).astype(int)
@@ -1271,31 +1284,31 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 clusters = list(range(1, len(self.__train_clusterdict)+1))
 
         else:
-           
+
             if self.__memory_assigned is None:
-                self.__memory_assigned = np.ones(len_).astype(bool) 
-            
+                self.__memory_assigned = np.ones(len_).astype(bool)
+
             if self.__test_labels is None:
                 self.__test_labels = np.zeros(len_).astype(int)
 
             for cluster in clusters:
                 self.__memory_assigned[self.__test_labels == cluster] = True
                 self.__test_labels[self.__test_labels == cluster] = 0
-                
+
             _test = _test[self.__memory_assigned]
             # _map = self.__map_matrix[self.__memory_assigned]
-        
+
         progress = not progress
 
         if behaviour == "on-the-fly":
             if method == "plain":
                 # TODO: Store a vstacked version in the first place
                 _train = np.vstack(self.__train)
-                
+
                 r = radius_cutoff**2
-               
+
                 _test_labels = []
-            
+
                 for candidate in tqdm.tqdm(_test, desc="Predicting",
                     disable=progress, unit="Points", unit_scale=True,
                     bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
@@ -1303,7 +1316,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                     neighbours = self.get_neighbours(
                         candidate, _train, r
                         )
-                    
+
                     # TODO: Decouple this reduction if clusters is None
                     try:
                         neighbours = neighbours[
@@ -1340,7 +1353,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         elif behaviour == "lookup":
             _map = self.__map_matrix[self.__memory_assigned]
             _test_labels = []
-                            
+
             for candidate in tqdm.tqdm(range(len(_test)), desc="Predicting",
                 disable=progress, unit="Points", unit_scale=True,
                 bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
@@ -1349,7 +1362,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 neighbours = np.where(
                     _map[candidate] < radius_cutoff
                     )[0]
-                
+
                 # TODO: Decouple this reduction if clusters is None
                 try:
                     neighbours = neighbours[
@@ -1388,11 +1401,11 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 raise LookupError(
 "No search tree build for train data. Use CNN.kdtree(mode='train, **kwargs) first."
                     )
-            
+
             _train = np.vstack(self.__train)
 
             _test_labels = []
-            
+
             for candidate in tqdm.tqdm(_test, desc="Predicting",
                 disable=progress, unit="Points", unit_scale=True,
                 bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
@@ -1400,7 +1413,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 neighbours = np.asarray(self.__train_tree.query_ball_point(
                     candidate, radius_cutoff, **kwargs
                     ))
-                
+
                 # TODO: Decouple this reduction if clusters is None
                 try:
                     neighbours = neighbours[
@@ -1438,7 +1451,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         self.__test_labels[self.__memory_assigned] = _test_labels
         self.labels2dict(mode="test")
 
-        if memorize:         
+        if memorize:
             self.__memory_assigned[np.where(self.__test_labels > 0)[0]] = False
 
     @staticmethod
@@ -1446,7 +1459,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         """Returns True if list a and list b have at least c common elements
         """
         # Overlapping train and test sets
-        #  if len(set(a).intersection(b)) - 1 >= c: 
+        #  if len(set(a).intersection(b)) - 1 >= c:
         if len(set(a).intersection(b)) >= c:
            return True
 
@@ -1455,7 +1468,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         """Returns True if list a and list b have at least c common elements
         """
         # Overlapping train and test sets
-        #  if len(np.intersect1d(a, b, assume_unique=True)) - 1 >= c: 
+        #  if len(np.intersect1d(a, b, assume_unique=True)) - 1 >= c:
         if len(np.intersect1d(a, b, assume_unique=True)) >= c:
            return True
 
@@ -1463,7 +1476,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         """Helper function to evaluate user input. If data is required as
         keyword argument and data=None is passed, the default data used is
         either self.rdata or self.data."""
-        
+
         if mode == 'train':
             if self.train is not None:
                 _data = self.train
@@ -1474,7 +1487,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
                     )
             else:
                 _data = self.test
-                _shape = self.test_shape  
+                _shape = self.test_shape
         elif mode == 'test':
             if self.test is not None:
                 _data = self.test
@@ -1485,7 +1498,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
                     )
             else:
                 _data = self.train
-                _shape = self.train_shape        
+                _shape = self.train_shape
 
         return _data, _shape
 
@@ -1501,13 +1514,13 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         annotate_pos: str="mean", annotate_props: Optional[Dict]=None,
         scatter_props: Optional[Dict]=None,
         scatter_noise_props: Optional[Dict]=None,
-        dot_props: Optional[Dict]=None, 
+        dot_props: Optional[Dict]=None,
         dot_noise_props: Optional[Dict]=None,
         hist_props: Optional[Dict]=None,
         contour_props: Optional[Dict]=None,
         free_energy: bool=True, mask = None,
         ):
-        
+
         """Returns a 2D plot of an original data set or a cluster result
 
         Parameters
@@ -1518,11 +1531,11 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
 
         mode : str, default="train"
             Which data ("train" or "test") to use for this plot
-        
+
         clusters : List[int], default=None
             Cluster numbers to include in the plot.  If None, consider
             all.
-        
+
         original : bool, default=False
             Allows to plot the original data instead of a cluster
             result.  Overrides :param:`clusters`.  Will be considered
@@ -1530,7 +1543,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
 
         plot : str, default="dots"
             The kind of plotting method to use.
-            
+
             * "dots", Use :function:`ax.plot()`
 
             * "",
@@ -1592,7 +1605,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
             points = (None, None, None)
 
         _data = [
-            x[slice(*points), slice(dim[0], dim[1]+1, dim[1]-dim[0])] 
+            x[slice(*points), slice(dim[0], dim[1]+1, dim[1]-dim[0])]
             for x in _data[slice(*parts)]
             ]
 
@@ -1637,7 +1650,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
             fig, ax = plt.subplots()
         else:
             fig = ax.get_figure()
-        
+
         # List of axes objects to return for faster access
         plotted = []
 
@@ -1733,7 +1746,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
 
             if scatter_noise_props is not None:
                 scatter_noise_props_defaults.update(scatter_noise_props)
-            
+
             if original:
                 plotted.append(ax.scatter(
                     _data[:, 0],
@@ -1744,7 +1757,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
             else:
                 for cluster, cpoints in items:
                     if cluster in clusters:
-                            
+
                         # treat noise differently
                         if cluster == 0:
                             plotted.append(ax.scatter(
@@ -1798,7 +1811,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
 
             if hist_props is not None:
                 hist_props_defaults.update(hist_props)
-            
+
             avoid_zero_count = hist_props_defaults['avoid_zero_count']
             del hist_props_defaults['avoid_zero_count']
 
@@ -1914,7 +1927,7 @@ UserWarning
     def summarize(self, ax=None, quant: str="time", treat_nan=None,
                   ax_props=None, contour_props=None) -> Tuple:
         """Generates a 2D plot of property values ("time", "noise",
-        "n_clusters", "largest") against cluster parameters 
+        "n_clusters", "largest") against cluster parameters
         radius_cutoff and cnn_cutoff."""
 
         if len(self.summary) == 0:
@@ -1970,11 +1983,11 @@ UserWarning
 
     def isolate(self, mode='train', purge=True):
         """Isolates points per clusters based on a cluster result"""
-        
+
         if mode == 'train':
             if purge or self.__train_children is None:
                 self.__train_children = defaultdict(lambda: CNNChild(self))
-            
+
             for key, _cluster in  self.__train_clusterdict.items():
                 # TODO: What if no noise?
                 if len(_cluster) > 0:
@@ -2027,7 +2040,7 @@ UserWarning
                 "No child clusters isolated"
                              )
         # TODO: Implement "deep" for degree of decent into hierarchy structure
-    
+
         for _cluster in self.__train_children.values():
             n_clusters = max(self.__train_clusterdict)
             if _cluster.__train_labels is not None:
@@ -2060,43 +2073,43 @@ UserWarning
 
             self.clean()
             self.labels2dict()
-    
+
     def pie(self, ax=None, pie_props=None):
         size = 0.2
         radius = 0.22
-        
+
         if ax is None:
             ax = plt.gca()
-        
+
         def getpieces(c, pieces=None, level=0, ref="0"):
             if not pieces:
                 pieces = {}
             if not level in pieces:
                 pieces[level] = {}
-            
+
             if c.train_clusterdict:
                 ring = {k: len(v) for k, v in c.train_clusterdict.items()}
                 ringsum = np.sum(list(ring.values()))
                 ring = {k: v/ringsum for k, v in ring.items()}
                 pieces[level][ref] = ring
-            
+
                 if c.train_children:
                     for number, child in c.train_children.items():
                         getpieces(
-                            child, 
+                            child,
                             pieces=pieces,
-                            level=level+1, 
+                            level=level+1,
                             ref=".".join([ref, str(number)])
                         )
-                    
+
             return pieces
         p = getpieces(self)
-        
+
         ringvalues = []
         for j in range(np.max(list(p[0]['0'].keys())) + 1):
             if j in p[0]['0']:
                 ringvalues.append(p[0]['0'][j])
-        
+
 
         ax.pie(ringvalues, radius=radius, colors=None,
             wedgeprops=dict(width=size, edgecolor='w'))
@@ -2150,21 +2163,21 @@ UserWarning
             # sorting by clustersize
             n_clusters = np.max(_labels)
             frequency_counts = np.asarray([
-                len(np.where(_labels == x)[0]) 
+                len(np.where(_labels == x)[0])
                 for x in set(_labels[_labels > 0])
                 ])
             old_labels = np.argsort(frequency_counts)[::-1] +1
             proxy_labels = np.copy(_labels)
-            for new_label, old_label in enumerate(old_labels, 1):   
+            for new_label, old_label in enumerate(old_labels, 1):
                 proxy_labels[
                     np.where(_labels == old_label)
                     ] = new_label
-            
+
             if mode == 'train':
-                self.__train_labels = proxy_labels 
+                self.__train_labels = proxy_labels
             elif mode == 'test':
                 self.__test_labels = proxy_labels
-        
+
         elif which == 'dict':
             raise NotImplementedError()
         else:
@@ -2177,7 +2190,7 @@ UserWarning
                 self.__train_clusterdict[_cluster].update(
                     np.where(self.__train_labels == _cluster)[0]
                     )
-                
+
                 """
                 if self.train_refindex is None:
                     self.train_clusterdict[_cluster].extend(
@@ -2188,7 +2201,7 @@ UserWarning
                         self.train_refindex[
                         np.where(self.train_labels == _cluster)[0]
                         ])
-                """                         
+                """
         elif mode == 'test':
             self.__test_clusterdict = defaultdict(SortedList)
             for _cluster in range(np.max(self.__test_labels) +1):
@@ -2203,15 +2216,15 @@ UserWarning
             self.__train_labels = np.zeros(
                 np.sum(len(x) for x in self.__train_clusterdict.values())
                 )
-            
+
             for key, value in self.__train_clusterdict.items():
                 self.__train_labels[value] = key
                 """
                 if self.train_refindex is None:
-                    self.train_labels[value] = key 
+                    self.train_labels[value] = key
                 else:
                     self.train_labels[self.train_refindex[value]] = key
-                """ 
+                """
         else:
             raise NotImplementedError()
 
@@ -2231,10 +2244,10 @@ UserWarning
             _shape = self.__test_shape
         else:
             raise ValueError()
-        
+
         if clusters is None:
             clusters = list(range(1, len(dict_)+1))
-        
+
         samples = defaultdict(list)
         if kind == 'mean':
             for cluster in clusters:
@@ -2281,7 +2294,7 @@ UserWarning
                         (part, point)
                         )
                 samples[cluster] = pointsbyparts
-        
+
         return samples
 
 
@@ -2296,16 +2309,16 @@ UserWarning
             _labels = self.__test_labels
         else:
             raise ValueError()
-            
+
         part_startpoint = 0
         for part in range(0, _shape['parts']):
             part_endpoint = part_startpoint \
                 + _shape['points'][part]
 
             _dtrajs.append(_labels[part_startpoint : part_endpoint])
-            
+
             part_startpoint = np.copy(part_endpoint)
-        
+
         return _dtrajs
 
 class CNNChild(CNN):
@@ -2352,36 +2365,36 @@ def get_histogram(x, y, mids=True, mass=True, avoid_zero_count=True, hist_props=
         Histogram counts in meshgrid format.
 
     """
-    
+
     hpt = {
         'bins': 100,
     }
-    
+
     if hist_props is not None:
         hpt.update(hist_props)
-    
+
     z, x_, y_ = np.histogram2d(
         x, y, **hpt
         )
-    
+
     if mids:
         x_ = 0.5 * (x_[:-1] + x_[1:])
         y_ = 0.5 * (y_[:-1] + y_[1:])
 
         # x_ = x_[:-1] + (x_[-1] - x_[0]) / ((len(x_) - 1)*2)
         # y_ = y_[:-1] + (y_[-1] - y_[0]) / ((len(y_) - 1)*2)
-    
+
     if avoid_zero_count:
         z = np.maximum(z, np.min(z[z.nonzero()]))
 
     if mass:
         z /= float(z.sum())
-        
+
     return x_, y_, z.T # transpose to match x/y-directions
 
 def TypedDataFrame(columns, dtypes, content=None, index=None):
     assert len(columns) == len(dtypes)
-    
+
     if content is None:
         content = [[] for i in range(len(columns))]
 
