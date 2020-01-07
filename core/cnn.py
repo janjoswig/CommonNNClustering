@@ -1496,7 +1496,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
 
     def evaluate(
         self,
-        ax: Optional[Type[mpl.axes._subplots.AxesSubplot]] = None,
+        ax: Optional[Type[mpl.axes.SubplotBase]] = None,
         mode: str='train', clusters: Optional[List[int]]=None,
         original: bool=False, plot: str='dots',
         parts: Optional[Tuple[Optional[int], Optional[int], Optional[int]]]=None,
