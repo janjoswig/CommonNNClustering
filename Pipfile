@@ -13,6 +13,7 @@ cython = "*"
 flake8 = "*"
 mypy = "*"
 black = "*"
+pytest = "*"
 
 [packages]
 numpy = "*"

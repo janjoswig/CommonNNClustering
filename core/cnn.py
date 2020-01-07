@@ -12,13 +12,10 @@ git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
     O. Lemke, B.G. Keller, Algorithms, 2018, 11, 19.
 """
 
-# TODO Port to Python 3.8 as soon as possible
-from __future__ import annotations
-
 from collections import defaultdict, namedtuple
 import warnings
 import random
-import json
+# import json  # unused
 from functools import wraps
 import time
 import pickle
@@ -46,11 +43,6 @@ import tqdm
 # import pyximport
 # pyximport.install()
 # import .c.cfit
-
-########################################################################
-# TODO: Consider yaml configuration instead of configparser
-# TODO: How to stream train/test from disk (memmap, hdf5, sqlite)
-########################################################################
 
 
 def configure():
