@@ -15,11 +15,13 @@ git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
 from collections import defaultdict, namedtuple
 import warnings
 import random
-# import json  # unused
+import json  # unused
+import yaml
 from functools import wraps
 import time
 import pickle
 import tempfile
+import copy
 from pathlib import Path
 from configparser import ConfigParser
 from typing import List, Dict, Tuple, Sequence
@@ -44,15 +46,50 @@ import tqdm
 # pyximport.install()
 # import .c.cfit
 
+defaults = {
+    'record_points': "points"
+    }
 
-def configure():
+settings = copy.copy(defaults)
+
+
+def configure(reset: bool = False):
+    """Configuration file parsing
+
+    Read a configuration file .corerc from one of the standard locations
+    in the following order of priority:
+
+        - current working directory
+        - user home directory
+    """
+
+    global defaults
+    global settings
+
+    if reset:
+        settings.update(defaults)
+    else:
+        cwd_rc = Path.cwd() / ".corerc"
+        if cwd_rc.is_file():
+            # load yaml
+            # update settings
+            return
+
+        home_rc = Path.home() / ".corerc"
+        if home_rc.is_file():
+            return
+
+        # print("No configuration file found. Using defaults.")
+
+
+def configure_deprecated():
     """Read options from configuration file
     """
 
     CWD = Path.cwd()
-    CWD_CONFIG = Path(f"{CWD}/.cnnrc")
+    CWD_CONFIG = Path(f"{CWD}/.corerc")
     HOME = Path.home()
-    HOME_CONFIG = Path(f"{HOME}/.cnnrc")
+    HOME_CONFIG = Path(f"{HOME}/.corerc")
 
     config_ = ConfigParser(default_section="settings")
     config_template = ConfigParser(
