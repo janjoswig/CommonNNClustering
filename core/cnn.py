@@ -47,6 +47,19 @@ import tqdm
 # import .c.cfit
 
 
+class MetaSettings(type):
+    """Meta class to derive Settings class
+
+    Unused. Might be useful, if __defaults attribute needs to be
+    accessed as class property from the Settings class (not the
+    settings) instance.
+    """
+
+    @property
+    def defaults(cls):
+        return cls.__defaults
+
+
 class Settings(dict):
     """Class to expose and handle configuration"""
 
@@ -68,6 +81,10 @@ class Settings(dict):
         'int_precision': 'sp',
         }
 
+    @property
+    def defaults(cls):
+        return cls.__defaults
+
     __float_precision_map = {
         'hp': np.float16,
         'sp': np.float32,
@@ -80,6 +97,14 @@ class Settings(dict):
         'sp': np.int32,
         'dp': np.int64,
     }
+
+    @property
+    def int_precision_map(cls):
+        return cls.__int_precision_map
+
+    @property
+    def float_precision_map(cls):
+        return cls.__float_precision_map
 
     @property
     def cfgfile(self):
@@ -241,23 +266,23 @@ class CNN():
         self.record = namedtuple(
             'ClusterRecord', [
                 settings.get('record_points',
-                             settings.__defaults['record_points']),
+                             settings.defaults['record_points']),
                 settings.get('record_radius_cutoff',
-                             settings.__defaults['record_radius_cutoff']),
+                             settings.defaults['record_radius_cutoff']),
                 settings.get('record_cnn_cutoff',
-                             settings.__defaults['record_cnn_cutoff']),
+                             settings.defaults['record_cnn_cutoff']),
                 settings.get('record_member_cutoff',
-                             settings.__defaults['record_member_cutoff']),
-                settings.get('record_max_clusters',
-                             settings.__defaults['record_max_clusters']),
-                settings.get('record_n_clusters',
-                             settings.__defaults['record_n_clusters']),
+                             settings.defaults['record_member_cutoff']),
+                settings.get('record_max_cluster',
+                             settings.defaults['record_max_cluster']),
+                settings.get('record_n_cluster',
+                             settings.defaults['record_n_cluster']),
                 settings.get('record_largest',
-                             settings.__defaults['record_largest']),
+                             settings.defaults['record_largest']),
                 settings.get('record_noise',
-                             settings.__defaults['record_noise']),
+                             settings.defaults['record_noise']),
                 settings.get('record_time',
-                             settings.__defaults['record_time']),
+                             settings.defaults['record_time']),
                 ]
             )
 
@@ -633,7 +658,7 @@ f"Mode {mode} not understood. Must be one of 'train' or 'test'."
                 len_ = len(points)
                 _distance_matrix = np.memmap(
                             mmap_file,
-                            dtype=float_precision_map[float_precision],
+                            dtype=settings.float_precision_map[settings["float_precision"]],
                             mode='w+',
                             shape=(len_, len_),
                             )
@@ -699,7 +724,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 len_test = len(_test)
                 self.__map_matrix = np.memmap(
                             mmap_file,
-                            dtype=float_precision_map[float_precision],
+                            dtype=settings.float_precision_map[settings["float_precision"]],
                             mode='w+',
                             shape=(len_test, len_train),
                             )
@@ -860,28 +885,28 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
             radius_cutoff = float(
                 settings.get(
                     'default_radius_cutoff',
-                    settings.__defaults.get('default_radius_cutoff')
+                    settings.defaults.get('default_radius_cutoff')
                     )
                 )
         if cnn_cutoff is None:
             cnn_cutoff = int(
                 settings.get(
                     'default_cnn_cutoff',
-                    settings.__defaults.get('default_cnn_cutoff')
+                    settings.defaults.get('default_cnn_cutoff')
                     )
                 )
         if member_cutoff is None:
             member_cutoff = int(
                 settings.get(
                     'default_member_cutoff',
-                    settings.__defaults.get('default_member_cutoff')
+                    settings.defaults.get('default_member_cutoff')
                     )
                 )
         if cnn_offset is None:
             cnn_offset = int(
                 settings.get(
                     'default_cnn_offset',
-                    settings.__defaults.get('default_cnn_offset')
+                    settings.defaults.get('default_cnn_offset')
                     )
                 )
 
@@ -1251,28 +1276,28 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
             radius_cutoff = float(
                 settings.get(
                     'default_radius_cutoff',
-                    settings.__defaults.get('default_radius_cutoff')
+                    settings.defaults.get('default_radius_cutoff')
                     )
                 )
         if cnn_cutoff is None:
             cnn_cutoff = int(
                 settings.get(
                     'default_cnn_cutoff',
-                    settings.__defaults.get('default_cnn_cutoff')
+                    settings.defaults.get('default_cnn_cutoff')
                     )
                 )
         if member_cutoff is None:
             member_cutoff = int(
                 settings.get(
                     'default_member_cutoff',
-                    settings.__defaults.get('default_member_cutoff')
+                    settings.defaults.get('default_member_cutoff')
                     )
                 )
         if cnn_offset is None:
             cnn_offset = int(
                 settings.get(
                     'default_cnn_offset',
-                    settings.__defaults.get('default_cnn_offset')
+                    settings.defaults.get('default_cnn_offset')
                     )
                 )
 
