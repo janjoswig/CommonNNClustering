@@ -46,135 +46,101 @@ import tqdm
 # pyximport.install()
 # import .c.cfit
 
-defaults = {
-    'record_points': "points"
+
+class Settings(dict):
+    """Class to expose and handle configuration"""
+
+    __defaults = {
+        'record_points': "points",
+        'record_radius_cutoff': "radius_cutoff",
+        'record_cnn_cutoff': "cnn_cutoff",
+        'record_member_cutoff': "member_cutoff",
+        'record_max_cluster': "max_cluster",
+        'record_n_cluster': "n_cluster",
+        'record_largest': "largest",
+        'record_noise': "noise",
+        'record_time': "time",
+        'default_cnn_cutoff': "1",
+        'default_cnn_offset': "0",
+        'default_radius_cutoff': "1",
+        'default_member_cutoff': "1",
+        'float_precision': 'sp',
+        'int_precision': 'sp',
+        }
+
+    __float_precision_map = {
+        'hp': np.float16,
+        'sp': np.float32,
+        'dp': np.float64,
     }
 
-settings = copy.copy(defaults)
+    __int_precision_map = {
+        'qp': np.int8,
+        'hp': np.int16,
+        'sp': np.int32,
+        'dp': np.int64,
+    }
 
+    @property
+    def cfgfile(self):
+        return self.__cfgfile
 
-def configure(reset: bool = False):
-    """Configuration file parsing
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.update(type(self).__defaults)
+        self.update(*args, **kwargs)
 
-    Read a configuration file .corerc from one of the standard locations
-    in the following order of priority:
+        self.__cfgfile = None
 
-        - current working directory
-        - user home directory
-    """
+    def __setitem__(self, key, val):
+        if key in type(self).__defaults:
+            super().__setitem__(key, val)
+        else:
+            print(f"Unknown option: {key}")
 
-    global defaults
-    global settings
+    def update(self, *args, **kwargs):
+        for k, v in dict(*args, **kwargs).items():
+            self[k] = v
 
-    if reset:
-        settings.update(defaults)
-    else:
-        cwd_rc = Path.cwd() / ".corerc"
-        if cwd_rc.is_file():
-            # load yaml
-            # update settings
-            return
+    def configure(self, path=None, reset: bool = False):
+        """Configuration file parsing
 
-        home_rc = Path.home() / ".corerc"
-        if home_rc.is_file():
-            return
+        Read a configuration file .corerc from one of the standard locations
+        in the following order of priority:
 
-        # print("No configuration file found. Using defaults.")
+            - current working directory
+            - user home directory
+        """
 
+        if reset:
+            self.update(type(self).__defaults)
+        else:
+            if path is None:
+                path = []
+            else:
+                path = [path]
 
-def configure_deprecated():
-    """Read options from configuration file
-    """
+            path.extend([Path.cwd() / ".corerc",
+                         Path.home() / ".corerc"])
 
-    CWD = Path.cwd()
-    CWD_CONFIG = Path(f"{CWD}/.corerc")
-    HOME = Path.home()
-    HOME_CONFIG = Path(f"{HOME}/.corerc")
+            places = iter(path)
 
-    config_ = ConfigParser(default_section="settings")
-    config_template = ConfigParser(
-        default_section="settings",
-        defaults={
-            'record_points': "points",
-            'record_radius_cutoff': "radius_cutoff",
-            'record_cnn_cutoff': "cnn_cutoff",
-            'record_member_cutoff': "member_cutoff",
-            'record_max_cluster': "max_cluster",
-            'record_n_cluster': "n_cluster",
-            'record_largest': "largest",
-            'record_noise': "noise",
-            'record_time': "time",
-            'color': """
-                #000000 #396ab1 #da7c30 #3e9651 #cc2529 #535154
-                #6b4c9a #922428 #948b3d #7293cb #e1974c #84ba5b
-                #d35e60 #9067a7 #ab6857 #ccc210 #808585
-                """,
-            'default_cnn_cutoff': "1",
-            'default_cnn_offset': "0",
-            'default_radius_cutoff': "1",
-            'default_member_cutoff': "1",
-            'float_precision': 'sp',
-            'int_precision': 'sp',
-            }
-        )
+            # find configuration file
+            while True:
+                try:
+                    cfgfile = next(places)
+                except StopIteration:
+                    self.__cfgfile = None
+                    break
+                else:
+                    if cfgfile.is_file():
+                        with open(cfgfile, 'r') as ymlfile:
+                            self.update(yaml.load(
+                                ymlfile, Loader=yaml.SafeLoader
+                                ))
 
-    if CWD_CONFIG.is_file():
-        print(f"Configuration file found in {CWD}")
-        config_.read(CWD_CONFIG)
-    elif HOME_CONFIG.is_file():
-        print(f"Configuration file found in {HOME}")
-        config_.read(HOME_CONFIG)
-    else:
-        print("No user configuration file found. Using default setup")
-        config_ = config_template
-        try:
-            with open(HOME_CONFIG, 'w') as configfile:
-                config_.write(configfile)
-            print(f"Writing configuration file to {HOME_CONFIG}")
-        except PermissionError:
-            print(
-    f"Attempt to write configuration file to {HOME_CONFIG} failed: \
-      Permission denied!"
-            )
-        except FileNotFoundError:
-            print(
-    f"Attempt to write configuration file to {HOME_CONFIG} failed: \
-      No such file or directory!"
-            )
-
-    global settings
-    global defaults
-
-    settings = config_['settings']
-    defaults = config_template['settings']
-
-    # TODO Reconsider use of precision
-    global float_precision
-    global int_precision
-
-    float_precision = settings.get(
-        'float_precision', defaults.get('float_precision')
-        )
-
-    int_precision = settings.get(
-        'int_precision', defaults.get('int_precision')
-        )
-
-
-# TODO Make this optional
-# not really usable since numpy/scipy calculations are done in dp anyways
-float_precision_map = {
-    'hp': np.float16,
-    'sp': np.float32,
-    'dp': np.float64,
-}
-
-int_precision_map = {
-    'qp': np.int8,
-    'hp': np.int16,
-    'sp': np.int32,
-    'dp': np.int64,
-}
+                        self.__cfgfile = cfgfile
+                        break
 
 
 def timed(function_):
@@ -261,45 +227,38 @@ class CNN():
                     }
             else:
                 raise ValueError(
-f"Data shape {data_shape} not allowed"
+                    f"Data shape {data_shape} not allowed"
                     )
 
-    # TODO Add precision argument on initilisation?
     def __init__(self, alias='root', train=None, test=None,
                  train_dist_matrix=None, test_dist_matrix=None,
                  map_matrix=None):
 
         self.__alias = alias
-
-        # TODO rather a class attribute?
         self.__hierarchy_level = 0
 
-        if self.__hierarchy_level == 0:
-            configure()
-
-        # generic function feedback data container for CCN.cluster(); used only
-        # to provide column identifiers.  maybe not too useful ...
-        # TODO maybe put this module wide not as instance attribute?
+        # generic function feedback data container for CCN.cluster()
         self.record = namedtuple(
-            'ClusterRecord',
-            [settings.get('record_points',
-             defaults.get('record_points', 'points')),
-             settings.get('record_radius_cutoff',
-             defaults.get('record_radius_cutoff', 'radius_cutoff')),
-             settings.get('record_cnn_cutoff',
-             defaults.get('record_cnn_cutoff', 'cnn_cutoff')),
-             settings.get('record_member_cutoff',
-             defaults.get('record_member_cutoff', 'member_cutoff')),
-             settings.get('record_max_clusters',
-             defaults.get('record_max_clusters', 'max_clusters')),
-             settings.get('record_n_clusters',
-             defaults.get('record_n_clusters', 'n_clusters')),
-             settings.get('record_largest',
-             defaults.get('record_largest', 'largest')),
-             settings.get('record_noise',
-             defaults.get('record_noise', 'noise')),
-             settings.get('record_time',
-             defaults.get('record_time', 'time')), ]
+            'ClusterRecord', [
+                settings.get('record_points',
+                             settings.__defaults['record_points']),
+                settings.get('record_radius_cutoff',
+                             settings.__defaults['record_radius_cutoff']),
+                settings.get('record_cnn_cutoff',
+                             settings.__defaults['record_cnn_cutoff']),
+                settings.get('record_member_cutoff',
+                             settings.__defaults['record_member_cutoff']),
+                settings.get('record_max_clusters',
+                             settings.__defaults['record_max_clusters']),
+                settings.get('record_n_clusters',
+                             settings.__defaults['record_n_clusters']),
+                settings.get('record_largest',
+                             settings.__defaults['record_largest']),
+                settings.get('record_noise',
+                             settings.__defaults['record_noise']),
+                settings.get('record_time',
+                             settings.__defaults['record_time']),
+                ]
             )
 
         self.__record_dtypes = [
@@ -884,35 +843,47 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
     @recorded
     @timed
-    def fit(self, radius_cutoff: Optional[float]=None, cnn_cutoff: Optional[int]=None,
-                member_cutoff: int=None, max_clusters: Optional[int]=None,
-                cnn_offset: int=None,
-                rec: bool=True, v=True) -> Optional[pd.DataFrame]:
+    def fit(
+            self, radius_cutoff: Optional[float] = None,
+            cnn_cutoff: Optional[int] = None,
+            member_cutoff: int = None,
+            max_clusters: Optional[int] = None,
+            cnn_offset: int = None,
+            rec: bool = True, v=True
+            ) -> Optional[pd.DataFrame]:
         """Performs a CNN clustering of points in a given train
         distance matrix"""
         # go = time.time()
         # print("Function called")
 
         if radius_cutoff is None:
-            radius_cutoff = float(settings.get(
-                                'default_radius_cutoff',
-                                defaults.get('default_radius_cutoff', 1)
-                                ))
+            radius_cutoff = float(
+                settings.get(
+                    'default_radius_cutoff',
+                    settings.__defaults.get('default_radius_cutoff')
+                    )
+                )
         if cnn_cutoff is None:
-            cnn_cutoff = int(settings.get(
-                                'default_cnn_cutoff',
-                                defaults.get('default_cnn_cutoff', 1)
-                                ))
+            cnn_cutoff = int(
+                settings.get(
+                    'default_cnn_cutoff',
+                    settings.__defaults.get('default_cnn_cutoff')
+                    )
+                )
         if member_cutoff is None:
-            member_cutoff = int(settings.get(
-                                'default_member_cutoff',
-                                defaults.get('default_member_cutoff', 1)
-                                ))
+            member_cutoff = int(
+                settings.get(
+                    'default_member_cutoff',
+                    settings.__defaults.get('default_member_cutoff')
+                    )
+                )
         if cnn_offset is None:
-            cnn_offset = int(settings.get(
-                                'default_cnn_offset',
-                                defaults.get('default_cnn_offset', 0)
-                                ))
+            cnn_offset = int(
+                settings.get(
+                    'default_cnn_offset',
+                    settings.__defaults.get('default_cnn_offset')
+                    )
+                )
 
         cnn_cutoff -= cnn_offset
         assert cnn_cutoff >= 0
@@ -1067,7 +1038,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         if rec:
             return(cresult)
-
+        return
 
     def merge(self, clusters, mode='train', which='labels'):
         """Merge a list of clusters into one"""
@@ -1119,7 +1090,6 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         else:
             raise ValueError()
-
 
         return
 
@@ -1185,12 +1155,16 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         return np.where(np.sum((B - a)**2, axis=1) < r)[0]
 
     @timed
-    def predict(self, radius_cutoff: Optional[float]=None,
-        cnn_cutoff: Optional[int]=None, member_cutoff: Optional[int]=None,
-        include_all: bool=True, same_tol=1e-8, memorize: bool=True,
-        clusters: Optional[List[int]]=None, purge: bool=False,
-        cnn_offset: Optional[int]=None, behaviour="lookup",
-        method='plain', progress=True, **kwargs) -> None:
+    def predict(
+            self, radius_cutoff: Optional[float] = None,
+            cnn_cutoff: Optional[int] = None,
+            member_cutoff: Optional[int] = None,
+            include_all: bool = True, same_tol=1e-8, memorize: bool = True,
+            clusters: Optional[List[int]] = None, purge: bool = False,
+            cnn_offset: Optional[int] = None, behaviour="lookup",
+            method='plain', progress=True, **kwargs
+            ) -> None:
+
         """
         Predict labels for points in a test set on the basis of assigned
         labels to a train set by :method:`CNN.fit`
@@ -1274,28 +1248,33 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         ################################################################
 
         if radius_cutoff is None:
-            radius_cutoff = float(settings.get(
-                'default_radius_cutoff',
-                defaults.get('default_radius_cutoff', 1.)
-                ))
-
+            radius_cutoff = float(
+                settings.get(
+                    'default_radius_cutoff',
+                    settings.__defaults.get('default_radius_cutoff')
+                    )
+                )
         if cnn_cutoff is None:
-            cnn_cutoff = int(settings.get(
-                'default_cnn_cutoff',
-                defaults.get('default_cnn_cutoff', 1)
-                ))
-
+            cnn_cutoff = int(
+                settings.get(
+                    'default_cnn_cutoff',
+                    settings.__defaults.get('default_cnn_cutoff')
+                    )
+                )
         if member_cutoff is None:
-            member_cutoff = int(settings.get(
-                'default_member_cutoff',
-                defaults.get('default_member_cutoff', 1)
-                ))
-
+            member_cutoff = int(
+                settings.get(
+                    'default_member_cutoff',
+                    settings.__defaults.get('default_member_cutoff')
+                    )
+                )
         if cnn_offset is None:
-            cnn_offset = int(settings.get(
-                'default_cnn_offset',
-                defaults.get('default_cnn_offset', 0)
-                ))
+            cnn_offset = int(
+                settings.get(
+                    'default_cnn_offset',
+                    settings.__defaults.get('default_cnn_offset')
+                    )
+                )
 
         cnn_cutoff -= cnn_offset
 
@@ -2443,10 +2422,12 @@ def dist(data):
     return cobj.train_dist_matrix
 
 ########################################################################
+# Configuration setup
 
-# TODO Alter configuration mechanism to use .yaml?
+settings = Settings()
+settings.configure()
 
 ########################################################################
 
 if __name__ == "__main__":
-    configure()
+    pass
