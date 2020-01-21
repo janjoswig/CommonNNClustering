@@ -13,7 +13,7 @@ from scipy.special import comb
 class CMSM():
     """Core set MSM class
     """
-    
+
     def __init__(self, dtrajs=None, T=None, unit="ps", step=1):
         self.dtrajs = dtrajs
         self.T = T
@@ -32,18 +32,18 @@ class CMSM():
         self.__its = None
         self.__Its = SortedDict()
         self.__mode = None
-    
+
     @staticmethod
     def dtrajhandler(dtraj):
         if isinstance(dtraj, list):
             # TODO: format
             return dtraj, "memory"
-        
+
         if isinstance(dtraj, CNN):
             raise NotImplementedError()
 
             return dtraj, "memory"
-        
+
 
 
     @property
@@ -121,7 +121,7 @@ class CMSM():
     @property
     def Qminus(self):
         return self.__Qminus
-    
+
     @property
     def Qplus(self):
         return self.__Qplus
@@ -129,7 +129,7 @@ class CMSM():
     @property
     def F(self):
         return self.__F
-    
+
     @property
     def B(self):
         return self.__B
@@ -137,13 +137,13 @@ class CMSM():
     @property
     def lcs(self):
         return self.__lcs
-    
+
     def get_milestoning(self, dtraj):
         """Neglect transitions to noise as state transition
         """
 
-        qminus = np.copy(dtraj) # where do we come from?
-        qplus = np.copy(dtraj) # where do we go next?
+        qminus = np.copy(dtraj)  # where do we come from?
+        qplus = np.copy(dtraj)  # where do we go next?
 
         for c, i in enumerate(dtraj[1:], 1):
             if i == 0:
@@ -156,18 +156,18 @@ class CMSM():
         return qminus, qplus
 
     def get_characteristicf(self, qminus, qplus, n_clusters):
-        
+
         assert len(qminus) == len(qplus)
-        
+
         chi_f = np.zeros((len(qminus), n_clusters), dtype=int)
         chi_b = np.zeros((len(qplus), n_clusters), dtype=int)
-        
+
         for c, i in enumerate(range(n_clusters), 1):
             chi_f[qminus == c, i] = 1
             chi_b[qplus == c, i] = 1
 
         return chi_f, chi_b
-    
+
     def get_connected_sets(self, T, largest='cluster_count', v=True):
         """
         largest: None, 'cluster_count', 'point_count'
@@ -196,7 +196,7 @@ class CMSM():
                             original_set.remove(connected_cluster)
                 added_set = added_set_support.copy()
             connected_sets.append(current_set)
-        
+
         if largest is None:
             return connected_sets
         elif largest == 'cluster_count':
@@ -206,12 +206,12 @@ class CMSM():
             raise NotImplementedError()
         else:
             raise ValueError(
-f"""Invalid value {largest} for keyword argument 'largest'. Must be one of 
+f"""Invalid value {largest} for keyword argument 'largest'. Must be one of
 None, 'cluster_count', 'point_count'."""
                 )
-    
+
     @staticmethod
-    def rownorm(T): 
+    def rownorm(T):
         rowsum = np.sum(T, axis=1)
         return np.divide(T, rowsum[:, None])
 
@@ -221,7 +221,7 @@ None, 'cluster_count', 'point_count'."""
 
             self.__T[abs(self.__T < tol)] = 0
             if symmetry:
-                self.__T += self.__T.T 
+                self.__T += self.__T.T
             if norm:
                 self.__T = self.rownorm(self.__T)
 
@@ -231,10 +231,10 @@ None, 'cluster_count', 'point_count'."""
                 T += T.T
             if norm:
                 T = self.rownorm(T)
-            
+
             return T
 
-    def get_transitionmatrix(self, F, B, lag=0, n_clusters=None, norm=True, 
+    def get_transitionmatrix(self, F, B, lag=0, n_clusters=None, norm=True,
                              symmetry=True):
         lag = int(lag)
         self.__tau = lag
@@ -242,21 +242,21 @@ None, 'cluster_count', 'point_count'."""
         self.__eigenvectors_left = None
         self.__eigenvectors_right = None
 
-        if n_clusters == None:
-           n_clusters = len(F[0][0])
+        if n_clusters is None:
+            n_clusters = len(F[0][0])
 
         T = np.zeros((n_clusters, n_clusters))
         for c, chi_f in enumerate(F):
             T += np.dot(chi_f[:len(chi_f)-lag].T, B[c][lag:])
-        
+
         # force symmetry
         if symmetry:
             T += T.T
         if norm:
             T = self.rownorm(T)
-        
+
         return T
-    
+
     @staticmethod
     def trimzeros(dtraj):
         nonzero = np.nonzero(dtraj)[0]
@@ -267,7 +267,9 @@ None, 'cluster_count', 'point_count'."""
             dtraj = np.array([])
         return dtraj
 
-    def cmsm(self, dtrajs=None, lag=1, minlenfactor=10, v=True, correct=False, trim=1000):
+    def cmsm(
+            self, dtrajs=None, lag=1, minlenfactor=10, v=True,
+            correct=False, trim=0):
         """Estimate coreset markov model from characteristic functions
         at a given lagtime
         """
@@ -316,7 +318,7 @@ f"---------------------------------------------------------\n"
 
             if empty:
                 print(
-                    f"Trajectories {empty}\n" + 
+                    f"Trajectories {empty}\n" +
                     f"are empty and will not be used to to compute the MSM.\n"
                     )
 
@@ -354,7 +356,7 @@ f"---------------------------------------------------------\n"
             )
 
         self.__T[np.isnan(self.__M)] = 0
-        
+
         # get largest connected set
         self.__lcs = list(self.get_connected_sets(self.__T))
         if v:
@@ -392,7 +394,7 @@ f"---------------------------------------------------------\n"
         self.__eigenvalues, self.__eigenvectors_left, self.__eigenvectors_right = eig(
             T, left=True, right=True, **kwargs
         )
-        
+
         self.__eigenvalues = abs(self.__eigenvalues.real)
         sortedi = np.argsort(self.__eigenvalues)[::-1]
         self.__eigenvalues = self.__eigenvalues[sortedi]
@@ -416,13 +418,13 @@ f"---------------------------------------------------------\n"
         self.__eigenvalues, self.__eigenvectors_right = eig(
             T, left=False, right=True, **kwargs
         )
-        
+
         self.__eigenvalues = abs(self.__eigenvalues.real)
         sortedi = np.argsort(self.__eigenvalues)[::-1]
         self.__eigenvalues = self.__eigenvalues[sortedi]
 
         self.__eigenvectors_right = self.__eigenvectors_right.T[sortedi]
-        if all(self.__eigenvectors_right[0] < 0): 
+        if all(self.__eigenvectors_right[0] < 0):
             self.__eigenvectors_right *= -1
 
     def get_eigenvectors_left(self, T=None, **kwargs):
@@ -437,10 +439,10 @@ f"---------------------------------------------------------\n"
         self.__eigenvalues, self.__eigenvectors_left = eig(
             T, left=True, right=False, **kwargs
         )
-        
+
         self.__eigenvalues = abs(self.__eigenvalues.real)
         sortedi = np.argsort(self.__eigenvalues)[::-1]
-        self.__eigenvalues = self.__eigenvalues[sortedi] 
+        self.__eigenvalues = self.__eigenvalues[sortedi]
 
         self.__eigenvectors_left = self.__eigenvectors_left[:, sortedi]
 
@@ -456,7 +458,7 @@ f"---------------------------------------------------------\n"
                 )
 
             self.__eigenvalues = np.sort(abs(self.__eigenvalues.real))[::-1]
-        
+
         else:
             # TODO: Maybe this is confusing behaviour
             _eigenvalues = eig(
@@ -468,7 +470,6 @@ f"---------------------------------------------------------\n"
 
             return _eigenvalues
 
-
     def get_its(self, processes=None, purge=True):
         if purge:
             self.get_eigvalues()
@@ -479,8 +480,7 @@ f"---------------------------------------------------------\n"
         self.__its = (-self.__tau / np.log(self.__eigenvalues[1:]))[:processes]
         self.__Its[self.tau] = self.__its
 
-
-    def plot_its(self, its=None, ax=None, processes=None, ax_props=None, 
+    def plot_its(self, its=None, ax=None, processes=None, ax_props=None,
                  line_props=None, ref_props=None):
         if its is None:
             its = self.__Its
@@ -512,7 +512,6 @@ f"---------------------------------------------------------\n"
         lines = ax.plot(time, timescales, **line_props_defaults)
         ref = ax.plot(time, time, **ref_props_defaults)
 
-       
         ax_props_defaults = {
             'xlabel': r"$\tau$ " + f" / {self.__unit}",
             'ylabel': f"its / {self.__unit}",
@@ -523,7 +522,7 @@ f"---------------------------------------------------------\n"
             ax_props_defaults.update(ax_props)
 
         ax.set(**ax_props_defaults)
-        
+
         return (fig, ax, lines, ref)
 
     def plot_eigenvectors(self, ax=None, which='right', fill_props=None,
@@ -536,10 +535,10 @@ f"---------------------------------------------------------\n"
             vectors = self.eigenvectors_left.T
         else:
             raise ValueError()
-        
+
         if invert:
             vectors *= -1
-            
+
         drawn = len(vectors)
         if ax is None:
             figsize = rcParams["figure.figsize"]
@@ -558,7 +557,7 @@ f"---------------------------------------------------------\n"
         }
         if line_props is not None:
             line_props_defaults.update(line_props)
-        
+
         fill_props_defaults = {
             'interpolate': True,
         }
@@ -588,7 +587,9 @@ f"---------------------------------------------------------\n"
                     xpieces.append(x)
                     ypieces.append(
                         (smoothstep(
-                            x, x_min=1.2+c, x_max=1.8+c, y_min=0, y_max=1, N=clampfactor
+                            x,
+                            x_min=1.2+c, x_max=1.8+c,
+                            y_min=0, y_max=1, N=clampfactor
                             )*(vector[c+1] - value)) + value
                     )
                 xpieces.append(np.linspace(0.8+c+1, 1.2+c+1, 2))
@@ -608,7 +609,7 @@ f"---------------------------------------------------------\n"
                     )
             elif plot == "step":
                 Ax[axi].step(x, vector, where='mid')
-            
+
             Ax[axi].axhline(
                 y=0, xmin=0, xmax=drawn,
                 color='k', linestyle='--'
@@ -646,7 +647,7 @@ f"---------------------------------------------------------\n"
             hspace=0)
 
         return fig, Ax
-        
+
 
 def smoothstep(x, x_min=0, x_max=1, y_min=0, y_max=1, N=1):
     x = np.clip((x - x_min) / (x_max - x_min), y_min, y_max)
