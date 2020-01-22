@@ -248,12 +248,15 @@ None, 'cluster_count', 'point_count'."""
         T = np.zeros((n_clusters, n_clusters))
         for c, chi_f in enumerate(F):
             T += np.dot(chi_f[:len(chi_f)-lag].T, B[c][lag:])
-
+        
         # force symmetry
         if symmetry:
             T += T.T
         if norm:
             T = self.rownorm(T)
+        
+        # convert nan to zero
+        T = np.nan_to_num(T, copy=False)
 
         return T
 
@@ -269,7 +272,7 @@ None, 'cluster_count', 'point_count'."""
 
     def cmsm(
             self, dtrajs=None, lag=1, minlenfactor=10, v=True,
-            correct=False, trim=0):
+            correct=False, trim=0, ignore_states=None):
         """Estimate coreset markov model from characteristic functions
         at a given lagtime
         """
@@ -283,6 +286,12 @@ f"---------------------------------------------------------\n"
 
         if dtrajs is None:
             dtrajs = self.__dtrajs
+
+        # Ignore states
+        if ignore_states:
+            for x in dtrajs:
+                x[np.isin(x, ignore_states)] = 0
+
 
         # Remove leading and trailing 0s in trajectory
         # for dtraj in dtrajs:
@@ -348,14 +357,10 @@ f"---------------------------------------------------------\n"
             self.__F, self.__B, lag=0, n_clusters=n_clusters
             )
 
-        self.__M[np.isnan(self.__M)] = 0
-
         # calculate transition matrix
         self.__T = self.get_transitionmatrix(
             self.__F, self.__B, lag=lag, n_clusters=n_clusters
             )
-
-        self.__T[np.isnan(self.__M)] = 0
 
         # get largest connected set
         self.__lcs = list(self.get_connected_sets(self.__T))
@@ -525,9 +530,10 @@ f"---------------------------------------------------------\n"
 
         return (fig, ax, lines, ref)
 
-    def plot_eigenvectors(self, ax=None, which='right', fill_props=None,
-                          line_props=None, plot="clamp", clampfactor=4,
-                          ax_props=None, grid=True, grid_props=None, invert=False):
+    def plot_eigenvectors(
+            self, ax=None, which='right', norm=True, fill_props=None,
+            line_props=None, plot="clamp", clampfactor=4,
+            ax_props=None, grid=True, grid_props=None, invert=False):
 
         if which == 'right':
             vectors = self.eigenvectors_right
@@ -538,6 +544,10 @@ f"---------------------------------------------------------\n"
 
         if invert:
             vectors *= -1
+
+        if norm:
+            vectors[vectors > 0] /= np.max(vectors)
+            vectors[vectors < 0] /= -np.min(vectors)
 
         drawn = len(vectors)
         if ax is None:
