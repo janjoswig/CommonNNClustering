@@ -546,8 +546,8 @@ f"---------------------------------------------------------\n"
             vectors *= -1
 
         if norm:
-            vectors[vectors > 0] /= np.max(vectors)
-            vectors[vectors < 0] /= -np.min(vectors)
+            globalmax = np.max([abs(np.max(vectors)), abs(np.min(vectors))])
+            vectors /= globalmax
 
         drawn = len(vectors)
         if ax is None:

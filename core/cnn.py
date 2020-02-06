@@ -1557,6 +1557,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         hist_props: Optional[Dict]=None,
         contour_props: Optional[Dict]=None,
         free_energy: bool=True, mask = None,
+        threshold=None,
         ):
 
         """Returns a 2D plot of an original data set or a cluster result
@@ -2348,6 +2349,7 @@ UserWarning
         else:
             raise ValueError()
 
+        # TODO: Better use numpy split()?
         part_startpoint = 0
         for part in range(0, _shape['parts']):
             part_endpoint = part_startpoint \
