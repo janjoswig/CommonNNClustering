@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """This is the core.cnn module - A Python module for the common-nearest-
-neighbour (CNN) cluster algorithm.
+    neighbour (CNN) cluster algorithm.
 
 The functionality provided in this module is based on code implemented
 by Oliver Lemke in the script collection CNNClustering available on
@@ -45,19 +45,6 @@ import tqdm
 # import pyximport
 # pyximport.install()
 # import .c.cfit
-
-
-class MetaSettings(type):
-    """Meta class to derive Settings class
-
-    Unused. Might be useful, if __defaults attribute needs to be
-    accessed as class property from the Settings class (not the
-    settings) instance.
-    """
-
-    @property
-    def defaults(cls):
-        return cls.__defaults
 
 
 class Settings(dict):
@@ -170,7 +157,7 @@ class Settings(dict):
 
 def timed(function_):
     """Decorator to measure execution time.  Forwards the output of the
-       wrapped function and measured excecution time."""
+        wrapped function and measured excecution time."""
     @wraps(function_)
     def wrapper(*args, **kwargs):
         go = time.time()
@@ -211,7 +198,7 @@ def recorded(function_):
     return wrapper
 
 
-class CNN():
+class CNN:
     """CNN cluster object class"""
 
     @staticmethod
@@ -256,8 +243,8 @@ class CNN():
                     )
 
     def __init__(self, alias='root', train=None, test=None,
-                 train_dist_matrix=None, test_dist_matrix=None,
-                 map_matrix=None):
+            train_dist_matrix=None, test_dist_matrix=None,
+            map_matrix=None):
 
         self.__alias = alias
         self.__hierarchy_level = 0
@@ -314,7 +301,7 @@ class CNN():
         self.__test_tree = None
         self.__memory_assigned = None
         self.__cache = None
-        # No children for test date. (Hierarchical) clustering should be
+        # No children for test data. (Hierarchical) clustering should be
         # done on train data
 
     @property
