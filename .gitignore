@@ -4,3 +4,5 @@ __pycache__/*
 .vscode/
 tests/.ipynb_checkpoints/
 .mypy_cache/
+Pipfile.lock
+.python-version
