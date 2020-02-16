@@ -622,6 +622,11 @@ children :                               {self.children_present}
 
         self.__train, self.__train_shape = self.get_shape(self.__train)
 
+    def loop_over_points(self):
+        for i in self.__train:
+            for j in i:
+                yield j
+
     @timed
     def dist(self, mode='train',  v=True, method='cdist', mmap=False,
              mmap_file=None, chunksize=10000, progress=True,):
@@ -1494,7 +1499,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         # Overlapping train and test sets
         #  if len(set(a).intersection(b)) - 1 >= c:
         if len(set(a).intersection(b)) >= c:
-           return True
+            return True
 
     @staticmethod
     def check_similarity_array(a: Type[np.ndarray], b: Type[np.ndarray], c: int) -> bool:
@@ -1503,7 +1508,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         # Overlapping train and test sets
         #  if len(np.intersect1d(a, b, assume_unique=True)) - 1 >= c:
         if len(np.intersect1d(a, b, assume_unique=True)) >= c:
-           return True
+            return True
 
     def query_data(self, mode='train'):
         """Helper function to evaluate user input. If data is required as
@@ -1552,6 +1557,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         hist_props: Optional[Dict]=None,
         contour_props: Optional[Dict]=None,
         free_energy: bool=True, mask = None,
+        threshold=None,
         ):
 
         """Returns a 2D plot of an original data set or a cluster result
@@ -2343,6 +2349,7 @@ UserWarning
         else:
             raise ValueError()
 
+        # TODO: Better use numpy split()?
         part_startpoint = 0
         for part in range(0, _shape['parts']):
             part_endpoint = part_startpoint \
