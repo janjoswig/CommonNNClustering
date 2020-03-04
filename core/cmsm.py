@@ -35,6 +35,9 @@ class CMSM():
 
     @staticmethod
     def dtrajhandler(dtraj):
+        if dtraj is None:
+            return None, None
+
         if isinstance(dtraj, list):
             # TODO: format
             return dtraj, "memory"
@@ -93,6 +96,15 @@ class CMSM():
     @property
     def Its(self):
         return self.__Its
+
+    @Its.setter
+    def Its(self, _Its):
+        if not isinstance(_Its, dict):
+            raise TypeError()
+        else:
+            self.__Its = SortedDict(
+                {int(k): np.asarray(v) for k, v in _Its.items()}
+                )
 
     @property
     def unit(self):
@@ -248,13 +260,13 @@ None, 'cluster_count', 'point_count'."""
         T = np.zeros((n_clusters, n_clusters))
         for c, chi_f in enumerate(F):
             T += np.dot(chi_f[:len(chi_f)-lag].T, B[c][lag:])
-        
+
         # force symmetry
         if symmetry:
             T += T.T
         if norm:
             T = self.rownorm(T)
-        
+
         # convert nan to zero
         T = np.nan_to_num(T, copy=False)
 
@@ -411,7 +423,7 @@ f"---------------------------------------------------------\n"
             self.__eigenvectors_right *= -1
             self.__eigenvectors_left *= -1
 
-    def get_eigenvectors_right(self, T=None, **kwargs):
+    def get_eigenvectors_right(self, T=None, norm=False, **kwargs):
         if T is None:
             T = self.__T
 
@@ -431,6 +443,14 @@ f"---------------------------------------------------------\n"
         self.__eigenvectors_right = self.__eigenvectors_right.T[sortedi]
         if all(self.__eigenvectors_right[0] < 0):
             self.__eigenvectors_right *= -1
+
+        if norm:
+            for i in self.__eigenvectors_right:
+                globalmax = np.max(
+                    [np.absolute(np.max(i)),
+                     np.absolute(np.min(i))]
+                    )
+                i = i/globalmax
 
     def get_eigenvectors_left(self, T=None, **kwargs):
         if T is None:
