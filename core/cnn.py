@@ -47,9 +47,30 @@ import tqdm
 # import .c.cfit
 
 
-class Settings(dict):
-    """Class to expose and handle configuration"""
+class MetaSettings(type):
+    """Metaclass to inherit class with classproperties
 
+    Classes constructed with this metaclass have a __defaults class
+    attribute that can be accessed as a property defaults from the
+    class.
+    """
+
+    __defaults: Dict[str, str] = {}
+
+    @property
+    def defaults(cls):
+        return cls.__dict__[f"_{cls.__name__}__defaults"]
+
+
+class Settings(dict, metaclass=MetaSettings):
+    """Class to expose and handle configuration
+
+    Inherits from MetaSettings to allow access to the class attribute
+    __defaults as a property.
+    """
+
+    # Defaults shared by all instances of this class
+    # Namemangling allows different defaults in subclasses
     __defaults = {
         'record_points': "points",
         'record_radius_cutoff': "radius_cutoff",
@@ -69,8 +90,9 @@ class Settings(dict):
         }
 
     @property
-    def defaults(cls):
-        return cls.__defaults
+    def defaults(self):
+        """Return class attribute from instance"""
+        return type(self).__defaults
 
     __float_precision_map = {
         'hp': np.float16,
