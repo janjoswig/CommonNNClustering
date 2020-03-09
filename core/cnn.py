@@ -7,9 +7,9 @@ The functionality provided in this module is based on code implemented
 by Oliver Lemke in the script collection CNNClustering available on
 git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
 
-    B. Keller, X. Daura, W. F. van Gunsteren J. Chem. Phys., 2010, 132, 074110.
-    O. Lemke, B.G. Keller, J. Chem. Phys., 2016, 145, 164104.
-    O. Lemke, B.G. Keller, Algorithms, 2018, 11, 19.
+    * B. Keller, X. Daura, W. F. van Gunsteren J. Chem. Phys., 2010, 132, 074110.
+    * O. Lemke, B.G. Keller, J. Chem. Phys., 2016, 145, 164104.
+    * O. Lemke, B.G. Keller, Algorithms, 2018, 11, 19.
 """
 
 from collections import defaultdict, namedtuple
@@ -23,7 +23,7 @@ import tempfile
 import copy
 from pathlib import Path
 from typing import List, Dict, Tuple, Sequence
-from typing import Union, Optional, Type
+from typing import Union, Optional, Type, Any
 
 import numpy as np
 import pandas as pd  # TODO make this dependency optional?
@@ -40,7 +40,7 @@ import tqdm
 
 def timed(function_):
     """Decorator to measure execution time.  Forwards the output of the
-        wrapped function and measured excecution time."""
+        wrapped function and measured execution time."""
     @wraps(function_)
     def wrapper(*args, **kwargs):
         go = time.time()
@@ -129,11 +129,11 @@ class CNN:
                     f"Data shape {data_shape} not allowed"
                     )
 
-    def __init__(self, alias='root', train=None, test=None,
+    def __init__(self, train=None, test=None, alias='root',
             train_dist_matrix=None, test_dist_matrix=None,
-            map_matrix=None):
+            map_matrix=None) -> None:
 
-        self.__alias = alias
+        self.alias = alias
         self.__hierarchy_level = 0
 
         # generic function feedback data container for CCN.cluster()
@@ -190,14 +190,6 @@ class CNN:
         self.__cache = None
         # No children for test data. (Hierarchical) clustering should be
         # done on train data
-
-    @property
-    def alias(self):
-        return self.__alias
-
-    @alias.setter
-    def alias(self, a):
-        self.__alias = f"{a}"
 
     @property
     def hierarchy_level(self):
@@ -1071,7 +1063,7 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         """
         Predict labels for points in a test set on the basis of assigned
-        labels to a train set by :method:`CNN.fit`
+        labels to a train set by :meth:`CNN.fit`
 
         Parameters
         ----------
@@ -1087,13 +1079,13 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         include_all : bool, default=True
             If False, keep cluster assignment for points in the test set
-            that have a maximum distance of :param:`same_tol` to a point
+            that have a maximum distance of `same_tol` to a point
             in the train set, i.e. they are (essentially the same point)
             (currently not implemented)
 
         same_tol : float, default=1e-8
             Distance cutoff to treat points as the same, if
-            :param:`include_all` is False
+            `include_all` is False
 
         clusters : List[int], Optional, default=None
             Predict assignment of points only with respect to this list
@@ -1117,24 +1109,24 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
             * "lookup", Use distance matrices CNN.train_dist_matrix and
                 CNN.map_matrix to lookup distances to generate the
                 neighbour lists.  If one of the matrices does not exist,
-                throw an error.  Consider memory mapping :param:`mmap`
-                when computing the distances with :method:`CNN.dist` and
-                :method:`CNN.map` for large data sets.
+                throw an error.  Consider memory mapping `mmap`
+                when computing the distances with :py:meth:`CNN.dist` and
+                :py:meth:`CNN.map` for large data sets.
 
             * "on-the-fly", Compute distances during the prediction
-                using the specified :param:`method`.
+                using the specified `method`.
 
             * "tree", Get the neighbour lists during the prediction from
                 a tree query
 
         method : str, default="plain"
             Controlls which method is used to get the neighbour lists
-            within a given :param:`behaviour`:
+            within a given `behaviour`:
 
             * "lookup", parameter not used
 
             * "on-the-fly",
-                * "plain", uses :method:`CNN.get_neighbours`
+                * "plain", uses :py:meth:`CNN.get_neighbours`
 
             * "tree", parameter not used
 
@@ -1436,73 +1428,75 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
 
         """Returns a 2D plot of an original data set or a cluster result
 
-        Parameters
-        ----------
-        ax : matplotlib.axes._subplots.AxesSubplot, default=None
-            The axes to which to add the plot.  If None, a new figure
-            with axes will be created.
+        Args:
+            ax: matplotlib.axes._subplots.AxesSubplot, default=None
+                The axes to which to add the plot.  If None, a new figure
+                with axes will be created.
 
-        mode : str, default="train"
-            Which data ("train" or "test") to use for this plot
+            mode: str, default="train"
+                Which data ("train" or "test") to use for this plot
 
-        clusters : List[int], default=None
-            Cluster numbers to include in the plot.  If None, consider
-            all.
+            clusters : List[int], default=None
+                Cluster numbers to include in the plot.  If None, consider
+                all.
 
-        original : bool, default=False
-            Allows to plot the original data instead of a cluster
-            result.  Overrides :param:`clusters`.  Will be considered
-            True, if no cluster result is present.
+            original: bool, default=False
+                Allows to plot the original data instead of a cluster
+                result.  Overrides `clusters`.  Will be considered
+                True, if no cluster result is present.
 
-        plot : str, default="dots"
-            The kind of plotting method to use.
+            plot: str, default="dots"
+                The kind of plotting method to use.
 
-            * "dots", Use :function:`ax.plot()`
+                * "dots", Use :func:`ax.plot()`
 
-            * "",
+                * "",
 
-        parts : Tuple[int, int, int] (length 3), default=(None, None, None)
-            Use a slice (start, stop, stride) on the data parts before
-            plotting.
+            parts: Tuple[int, int, int] (length 3), default=(None, None, None)
+                Use a slice (start, stop, stride) on the data parts before
+                plotting.
 
-        points : Tuple[int, int, int], default=(None, None, None)
-            Use a slice (start, stop, stride) on the data points before
-            plotting.
+            points: Tuple[int, int, int], default=(None, None, None)
+                Use a slice (start, stop, stride) on the data points before
+                plotting.
 
-        dim : Tuple[int, int], default=None
-            Use these two dimensions for plotting.  If None, uses
-            (0, 1).
+            dim: Tuple[int, int], default=None
+                Use these two dimensions for plotting.  If None, uses
+                (0, 1).
 
-        annotate : bool, default=True
-            If there is a cluster result, plot the cluster numbers.  Uses
-            :param:`annotate_pos` to determinte the position of the
-            annotations.
+            annotate: bool, default=True
+                If there is a cluster result, plot the cluster numbers.  Uses
+                `annotate_pos` to determinte the position of the
+                annotations.
 
-        annotate_pos : str or List[Tuple[int, int]], default="mean"
-            Where to put the cluster number annotation.  Can be one of:
+            annotate_pos: str or List[Tuple[int, int]], default="mean"
+                Where to put the cluster number annotation.  Can be one of:
 
-            * "mean", Use the cluster mean
+                * "mean", Use the cluster mean
 
-            * "random", Use a random point of the cluster
+                * "random", Use a random point of the cluster
 
-            Alternatively a list of x, y positions can be passed to set
-            a specific point for each cluster (Not yet implemented)
+                Alternatively a list of x, y positions can be passed to set
+                a specific point for each cluster (Not yet implemented)
 
-        annotate_props : Dict, default=None
-            Dictionary of keyword arguments passed to
-            :function:`ax.annotate(**kwargs)`.
+            annotate_props: Dict, default=None
+                Dictionary of keyword arguments passed to
+                :func:`ax.annotate(**kwargs)`.
 
-        ax_props : Dict, default=None
-            Dictionary of :param:`ax` properties to apply after
-            plotting via :function:`ax.set(**ax_props)`.  If None, uses
-            defaults that can be also defined in the configuration file.
+            ax_props: Dict, default=None
+                Dictionary of `ax` properties to apply after
+                plotting via :func:`ax.set(**ax_props)`.  If None, uses
+                defaults that can be also defined in the configuration file.
 
-        (hist, contour, dot, scatter, dot_noise, scatter_noise)_props : Dict, default=None
-            Dictionaries of keyword arguments passed to various
-            functions.  If None, uses
-            defaults that can be also defined in the configuration file.
+            (hist, contour, dot, scatter, dot_noise, scatter_noise)_props: Dict, default=None
+                Dictionaries of keyword arguments passed to various
+                functions.  If None, uses
+                defaults that can be also defined in the configuration file.
 
-        mask : Sequence[bool]
+            mask: Sequence[bool]
+
+        Returns:
+            List of plotted elements
         """
 
         _data, _ = self.query_data(mode=mode)
@@ -1933,7 +1927,7 @@ UserWarning
                         part_startpoint = np.copy(part_endpoint)
                         part_startpoint += 1
 
-                    self.__train_children[key].__alias = f'child No. {key}'
+                    self.__train_children[key].alias = f'child No. {key}'
                     self.__train_children[key].__train, \
                     self.__train_children[key].__train_shape = \
                     self.__train_children[key].get_shape(cluster_data)
@@ -2242,61 +2236,50 @@ class CNNChild(CNN):
     def __init__(self, parent, alias='child'):
         super().__init__()
         self.hierarchy_level = parent.hierarchy_level +1
-        self.__alias = alias
+        self.alias = alias
 
-########################################################################
 
-def get_histogram(x, y, mids=True, mass=True, avoid_zero_count=True, hist_props=None):
+def get_histogram(x: Sequence[float], y: Sequence[float],
+        mids: bool = True, mass: bool = True,
+        avoid_zero_count: bool = True,
+        hist_props: Optional[Dict['str', Any]] = None
+        ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Compute a two-dimensional histogram.  Taken and modified from
     pyemma.plots.
 
-    Parameters
-    ----------
-    x : ndarray(T)
-        Sample x-coordinates.
-    y : ndarray(T)
-        Sample y-coordinates.
-    hist_props : Dict, optional
-        kwargs passed to numpy.histogram2d
-    avoid_zero_count : bool, optional, default=True
-        Avoid zero counts by lifting all histogram elements to the
-        minimum value before computing the free energy. If False,
-        zero histogram counts would yield infinity in the free energy.
-    mass : bool, default=True
-        Norm the histogram by the total number of counts, so that
-        each bin holds the probability mass values where all
-        probabilities sum to 1
-    mids : bool, default=True
-       Return the mids of the bin edges instead of the actual edges
+    Args:
+        x: Sample x-coordinates.
+        y: Sample y-coordinates.
+        hist_props: Kwargs passed to numpy.histogram2d
+        avoid_zero_count: Avoid zero counts by lifting all histogram
+            elements to the minimum value before computing the free
+            energy.  If False, zero histogram counts yield infinity in
+            the free energy.
+        mass: Norm the histogram by the total number of counts, so that
+            each bin holds the probability mass values where all
+            probabilities sum to 1
+        mids: Return the mids of the bin edges instead of the actual
+            edges
 
-    Returns
-    -------
-    x_ : ndarray(nbins, nbins)
-        The bins' x-coordinates in meshgrid format.
-    y_ : ndarray(nbins, nbins)
-        The bins' y-coordinates in meshgrid format.
-    z : ndarray(nbins, nbins)
-        Histogram counts in meshgrid format.
+    Returns:
+        The x- and y-edges and the data of the computed histogram
 
     """
 
-    hpt = {
+    hist_props_defaults = {
         'bins': 100,
     }
 
     if hist_props is not None:
-        hpt.update(hist_props)
+        hist_props_defaults.update(hist_props)
 
     z, x_, y_ = np.histogram2d(
-        x, y, **hpt
+        x, y, **hist_props_defaults
         )
 
     if mids:
         x_ = 0.5 * (x_[:-1] + x_[1:])
         y_ = 0.5 * (y_[:-1] + y_[1:])
-
-        # x_ = x_[:-1] + (x_[-1] - x_[0]) / ((len(x_) - 1)*2)
-        # y_ = y_[:-1] + (y_[-1] - y_[0]) / ((len(y_) - 1)*2)
 
     if avoid_zero_count:
         z = np.maximum(z, np.min(z[z.nonzero()]))
@@ -2304,7 +2287,8 @@ def get_histogram(x, y, mids=True, mass=True, avoid_zero_count=True, hist_props=
     if mass:
         z /= float(z.sum())
 
-    return x_, y_, z.T # transpose to match x/y-directions
+    return x_, y_, z.T  # transpose to match x/y-directions
+
 
 def TypedDataFrame(columns, dtypes, content=None, index=None):
     assert len(columns) == len(dtypes)
@@ -2470,15 +2454,11 @@ class Settings(dict, metaclass=MetaSettings):
                         break
 
 
-########################################################################
 # Configuration setup
-
 settings = Settings()
 """:obj:`Settings`: Module level settings container"""
 
 settings.configure()
-
-########################################################################
 
 if __name__ == "__main__":
     pass
