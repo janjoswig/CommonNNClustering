@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-"""This is the core.cnn module - A Python module for the common-nearest-
-    neighbour (CNN) cluster algorithm.
+"""cnn.py - A Python module for the
+   common-nearest-neighbour (CNN) cluster algorithm.
 
 The functionality provided in this module is based on code implemented
 by Oliver Lemke in the script collection CNNClustering available on
@@ -15,7 +15,6 @@ git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
 from collections import defaultdict, namedtuple
 import warnings
 import random
-import json  # unused
 import yaml
 from functools import wraps
 import time
@@ -23,12 +22,8 @@ import pickle
 import tempfile
 import copy
 from pathlib import Path
-from configparser import ConfigParser
 from typing import List, Dict, Tuple, Sequence
 from typing import Union, Optional, Type
-
-# from cycler import cycler
-# from itertools import cycle, islice
 
 import numpy as np
 import pandas as pd  # TODO make this dependency optional?
@@ -41,140 +36,6 @@ from scipy.interpolate import interp1d
 from scipy.spatial import cKDTree
 import colorama
 import tqdm
-
-# import pyximport
-# pyximport.install()
-# import .c.cfit
-
-
-class MetaSettings(type):
-    """Metaclass to inherit class with classproperties
-
-    Classes constructed with this metaclass have a __defaults class
-    attribute that can be accessed as a property defaults from the
-    class.
-    """
-
-    __defaults: Dict[str, str] = {}
-
-    @property
-    def defaults(cls):
-        return cls.__dict__[f"_{cls.__name__}__defaults"]
-
-
-class Settings(dict, metaclass=MetaSettings):
-    """Class to expose and handle configuration
-
-    Inherits from MetaSettings to allow access to the class attribute
-    __defaults as a property.
-    """
-
-    # Defaults shared by all instances of this class
-    # Namemangling allows different defaults in subclasses
-    __defaults = {
-        'record_points': "points",
-        'record_radius_cutoff': "radius_cutoff",
-        'record_cnn_cutoff': "cnn_cutoff",
-        'record_member_cutoff': "member_cutoff",
-        'record_max_cluster': "max_cluster",
-        'record_n_cluster': "n_cluster",
-        'record_largest': "largest",
-        'record_noise': "noise",
-        'record_time': "time",
-        'default_cnn_cutoff': "1",
-        'default_cnn_offset': "0",
-        'default_radius_cutoff': "1",
-        'default_member_cutoff': "1",
-        'float_precision': 'sp',
-        'int_precision': 'sp',
-        }
-
-    @property
-    def defaults(self):
-        """Return class attribute from instance"""
-        return type(self).__defaults
-
-    __float_precision_map = {
-        'hp': np.float16,
-        'sp': np.float32,
-        'dp': np.float64,
-    }
-
-    __int_precision_map = {
-        'qp': np.int8,
-        'hp': np.int16,
-        'sp': np.int32,
-        'dp': np.int64,
-    }
-
-    @property
-    def int_precision_map(cls):
-        return cls.__int_precision_map
-
-    @property
-    def float_precision_map(cls):
-        return cls.__float_precision_map
-
-    @property
-    def cfgfile(self):
-        return self.__cfgfile
-
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-        self.update(type(self).__defaults)
-        self.update(*args, **kwargs)
-
-        self.__cfgfile = None
-
-    def __setitem__(self, key, val):
-        if key in type(self).__defaults:
-            super().__setitem__(key, val)
-        else:
-            print(f"Unknown option: {key}")
-
-    def update(self, *args, **kwargs):
-        for k, v in dict(*args, **kwargs).items():
-            self[k] = v
-
-    def configure(self, path=None, reset: bool = False):
-        """Configuration file parsing
-
-        Read a configuration file .corerc from one of the standard locations
-        in the following order of priority:
-
-            - current working directory
-            - user home directory
-        """
-
-        if reset:
-            self.update(type(self).__defaults)
-        else:
-            if path is None:
-                path = []
-            else:
-                path = [path]
-
-            path.extend([Path.cwd() / ".corerc",
-                         Path.home() / ".corerc"])
-
-            places = iter(path)
-
-            # find configuration file
-            while True:
-                try:
-                    cfgfile = next(places)
-                except StopIteration:
-                    self.__cfgfile = None
-                    break
-                else:
-                    if cfgfile.is_file():
-                        with open(cfgfile, 'r') as ymlfile:
-                            self.update(yaml.load(
-                                ymlfile, Loader=yaml.SafeLoader
-                                ))
-
-                        self.__cfgfile = cfgfile
-                        break
 
 
 def timed(function_):
@@ -190,8 +51,12 @@ def timed(function_):
             hours, rest = divmod(stopped, 3600)
             minutes, seconds = divmod(rest, 60)
             print(
-    f"Execution time for call of {function_.__name__}(): \
-    {int(hours)} hours, {int(minutes)} minutes, {seconds:.4f} seconds")
+                "Execution time for call of "
+                f"{function_.__name__}: "
+                f"{int(hours)} hours, "
+                f"{int(minutes)} minutes, "
+                f"{seconds:.4f} seconds"
+            )
             return wrapped, stopped
     return wrapper
 
@@ -2462,10 +2327,155 @@ def dist(data):
     cobj.dist()
     return cobj.train_dist_matrix
 
+
+class MetaSettings(type):
+    """Metaclass to inherit class with class properties
+
+    Classes constructed with this metaclass have a :attr:`__defaults`
+    class attribute that can be accessed as a property :attr:`defaults`
+    from the class.
+    """
+
+    __defaults: Dict[str, str] = {}
+
+    @property
+    def defaults(cls):
+        return cls.__dict__[f"_{cls.__name__}__defaults"]
+
+
+class Settings(dict, metaclass=MetaSettings):
+    """Class to expose and handle configuration
+
+    Inherits from :class:`MetaSettings` to allow access to the class
+    attribute :attr:`__defaults` as a property :attr:`defaults`.
+
+    Also derived from basic type :class:`dict`.
+
+    The user can sublclass this class :class:`Settings` to provide e.g.
+    a different set of default values as :attr:`__defaults`.
+    """
+
+    # Defaults shared by all instances of this class
+    # Namemangling allows different defaults in subclasses
+    __defaults = {
+        'record_points': "points",
+        'record_radius_cutoff': "radius_cutoff",
+        'record_cnn_cutoff': "cnn_cutoff",
+        'record_member_cutoff': "member_cutoff",
+        'record_max_cluster': "max_cluster",
+        'record_n_cluster': "n_cluster",
+        'record_largest': "largest",
+        'record_noise': "noise",
+        'record_time': "time",
+        'default_cnn_cutoff': "1",
+        'default_cnn_offset': "0",
+        'default_radius_cutoff': "1",
+        'default_member_cutoff': "1",
+        'float_precision': 'sp',
+        'int_precision': 'sp',
+        }
+
+    @property
+    def defaults(self):
+        """Return class attribute from instance"""
+        return type(self).__defaults
+
+    __float_precision_map = {
+        'hp': np.float16,
+        'sp': np.float32,
+        'dp': np.float64,
+    }
+
+    __int_precision_map = {
+        'qp': np.int8,
+        'hp': np.int16,
+        'sp': np.int32,
+        'dp': np.int64,
+    }
+
+    @property
+    def int_precision_map(cls):
+        return cls.__int_precision_map
+
+    @property
+    def float_precision_map(cls):
+        return cls.__float_precision_map
+
+    @property
+    def cfgfile(self):
+        return self._cfgfile
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.update(type(self).__defaults)
+        self.update(*args, **kwargs)
+
+        self._cfgfile = None
+
+    def __setitem__(self, key, val):
+        if key in type(self).__defaults:
+            super().__setitem__(key, val)
+        else:
+            print(f"Unknown option: {key}")
+
+    def update(self, *args, **kwargs):
+        for k, v in dict(*args, **kwargs).items():
+            self[k] = v
+
+    def configure(self, path: Optional[Union[Path, str]] = None,
+            reset: bool = False):
+        """Configuration file reading
+
+        Reads a yaml configuration file ``.corerc`` from a given path or
+        one of the standard locations in the following order of
+        priority:
+
+            - current working directory
+            - user home directory
+
+        Args:
+            path: Path to a configuration file.
+            reset: Reset to defaults. If True, `path` is ignored
+               and no configuration file is read.
+        """
+
+        if reset:
+            self.update(type(self).__defaults)
+        else:
+            if path is None:
+                path = []
+            else:
+                path = [path]
+
+            path.extend([Path.cwd() / ".corerc",
+                         Path.home() / ".corerc"])
+
+            places = iter(path)
+
+            # find configuration file
+            while True:
+                try:
+                    cfgfile = next(places)
+                except StopIteration:
+                    self._cfgfile = None
+                    break
+                else:
+                    if cfgfile.is_file():
+                        with open(cfgfile, 'r') as ymlfile:
+                            self.update(yaml.load(
+                                ymlfile, Loader=yaml.SafeLoader
+                                ))
+
+                        self._cfgfile = cfgfile
+                        break
+
+
 ########################################################################
 # Configuration setup
 
 settings = Settings()
+""":obj:`Settings`: Module level settings container"""
+
 settings.configure()
 
 ########################################################################

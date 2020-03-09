@@ -1,8 +1,12 @@
-__pycache__
-__pycache__/*
-*.swp
-.vscode/
-tests/.ipynb_checkpoints/
+# cache
+__pycache__/
 .mypy_cache/
+.ipynb_checkpoints/
+
+# locks
+*.swp
 Pipfile.lock
+
+# configuration
+.vscode/
 .python-version
