@@ -129,14 +129,15 @@ class CNN:
                     f"Data shape {data_shape} not allowed"
                     )
 
-    def __init__(self, train=None, test=None, alias='root',
+    def __init__(
+            self, train=None, test=None, alias='root',
             train_dist_matrix=None, test_dist_matrix=None,
             map_matrix=None) -> None:
 
         self.alias = alias
         self.__hierarchy_level = 0
 
-        # generic function feedback data container for CCN.cluster()
+        # generic function feedback data container for CNN.cluster()
         self.record = namedtuple(
             'ClusterRecord', [
                 settings.get('record_points',
