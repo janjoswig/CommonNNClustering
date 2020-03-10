@@ -413,9 +413,12 @@ children :                      {self.children_present}
             Iterator over points
         """
 
-        for i in self._data:
-            for j in i:
-                yield j
+        if self._data:
+            for i in self._data:
+                for j in i:
+                    yield j
+        else:
+            yield from ()
 
     @timed
     def dist(self, mode='train',  v=True, method='cdist', mmap=False,
