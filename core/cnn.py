@@ -23,7 +23,7 @@ import tempfile
 import copy
 from pathlib import Path
 from typing import List, Dict, Tuple, Sequence
-from typing import Union, Optional, Type, Any
+from typing import Union, Optional, Type, Any, Iterator, Iterable
 
 import numpy as np
 import pandas as pd  # TODO make this dependency optional?
@@ -130,12 +130,12 @@ class CNN:
                     )
 
     def __init__(
-            self, train=None, test=None, alias='root',
-            train_dist_matrix=None, test_dist_matrix=None,
-            map_matrix=None) -> None:
+            self, data: Optional[Any] = None, alias: str = 'root',
+            dist_matrix: Optional[Any] = None,
+            map_matrix: Optional[Any] = None) -> None:
 
-        self.alias = alias
-        self.__hierarchy_level = 0
+        self.alias = alias  # Descriptive object identifier
+        self._hierarchy_level = 0
 
         # generic function feedback data container for CNN.cluster()
         self.record = namedtuple(
@@ -194,177 +194,115 @@ class CNN:
 
     @property
     def hierarchy_level(self):
-        return self.__hierarchy_level
+        return self._hierarchy_level
 
     @hierarchy_level.setter
     def hierarchy_level(self, level):
-        self.__hierarchy_level = int(level)
+        self._hierarchy_level = int(level)
 
     @property
-    def test(self):
-        return self.__test
+    def data(self):
+        return self._data
 
-    @test.setter
-    def test(self, data):
+    @data.setter
+    def data(self, x):
         # TODO control string, array, hdf5 file object handling
-        self.__test, self.__test_shape = self.get_shape(data)
+        self._data, self._shape = self.get_shape(x)
+
 
     @property
-    def train(self):
-        return self.__train
+    def dist_matrix(self):
+        return self._dist_matrix
 
-    @train.setter
-    def train(self, data):
+    @dist_matrix.setter
+    def dist_matrix(self, x):
         # TODO control string, array, hdf5 file object handling
-        self.__train, self.__train_shape = self.get_shape(data)
+        self._dist_matrix = data
 
     @property
-    def test_dist_matrix(self):
-        return self.__test_dist_matrix
+    def shape(self):
+        return self._shape
 
-    @test_dist_matrix.setter
-    def test_dist_matrix(self, data):
-        # TODO control string, array, hdf5 file object handling
-        self.__test_dist_matrix = data
-
-    @property
-    def train_dist_matrix(self):
-        return self.__train_dist_matrix
-
-    @train_dist_matrix.setter
-    def train_dist_matrix(self, data):
-        # TODO control string, array, hdf5 file object handling
-        self.__train_dist_matrix = data
+    @shape.setter
+    def shape(self, shape):
+        self._shape = shape
 
     @property
-    def test_shape(self):
-        return self.__test_shape
+    def clusterdict(self):
+        return self._clusterdict
 
-    @test_shape.setter
-    def test_shape(self, shape):
-        self.__test_shape = shape
-
-    @property
-    def train_shape(self):
-        return self.__train_shape
-
-    @train_shape.setter
-    def train_shape(self, shape):
-        self.__train_shape = shape
+    @clusterdict.setter
+    def clusterdict(self, d):
+        self._clusterdict = d
 
     @property
-    def test_clusterdict(self):
-        return self.__test_clusterdict
+    def labels(self):
+        return self._labels
 
-    @test_clusterdict.setter
-    def test_clusterdict(self, d):
-        self.__test_clusterdict = d
-
-    @property
-    def train_clusterdict(self):
-        return self.__train_clusterdict
-
-    @train_clusterdict.setter
-    def train_clusterdict(self, d):
-        self.__train_clusterdict = d
-
-    @property
-    def test_labels(self):
-        return self.__test_labels
-
-    @test_labels.setter
-    def test_labels(self, d):
-        self.__test_labels = d
+    @labels.setter
+    def labels(self, l):
+        self._labels = l
 
     @property
     def map_matrix(self):
         return self.__map_matrix
 
     @property
-    def train_labels(self):
-        return self.__train_labels
-
-    @train_labels.setter
-    def train_labels(self, d):
-        self.__train_labels = d
+    def tree(self):
+        return self._tree
 
     @property
-    def train_tree(self):
-        return self.__train_tree
-
-    @property
-    def test_tree(self):
-        return self.__test_tree
+    def tree(self):
+        return self._tree
 
     @property
     def memory_assigned(self):
-        return self.__memory_assigned
+        return self._memory_assigned
 
     @memory_assigned.setter
     def memory_assigned(self, mem):
-        self.__memory_assigned = mem
+        self._memory_assigned = mem
 
-    # @property
-    # def summary(self):
-    #     return self.__summary
-
-    # @sumary.setter
-    # def summary(self, sum):
-    #     self.__train_labels = d
-
-    # No setter for summary. This should not be modified by the user.
-    # TODO Maybe remove the setter for other critical attributes as well.
-    # (shape, clusterdict, labels, children ...) -> may not work
 
     @property
-    def train_children(self):
-        return self.__train_children
+    def children(self):
+        return self._children
 
     @property
-    def train_refindex(self):
-        return self.__train_refindex
+    def refindex(self):
+        return self._refindex
 
     @property
-    def train_refindex_rel(self):
-        return self.__train_refindex_rel
+    def refindex_rel(self):
+        return self._refindex_rel
 
     def check(self):
-        if self.__test is not None:
-            self.test_present = True
-            self.test_shape_str = {**self.test_shape}
-            self.test_shape_str['points'] = self.test_shape_str['points'][:5]
-            if len(self.test_shape['points']) > 5:
-                self.test_shape_str['points'] += ["..."]
-        else:
-            self.test_present = False
-            self.test_shape_str = {"parts": None, "points": None, "dimensions": None}
+        """Check the state of the :class:`CNN` instance object"""
 
-        if self.train is not None:
-            self.train_present = True
-            self.train_shape_str = {**self.train_shape}
-            self.train_shape_str['points'] = self.train_shape_str['points'][:5]
-            if len(self.train_shape['points']) > 5:
-                self.train_shape_str['points'] += ["..."]
+        if self._data is not None:
+            self.data_present = True
+            self.shape_str = {**self.shape}
+            self.shape_str['points'] = (
+                sum(self._shape_str['points']),
+                self._shape_str['points'][:5]
+                )
+            if len(self._shape['points']) > 5:
+                self._shape_str['points'] += ["..."]
         else:
-            self.train_present = False
-            self.train_shape_str = {"parts": None, "points": None, "dimensions": None}
+            self.data_present = False
+            self._shape_str = {"parts": None, "points": None, "dimensions": None}
 
-        if self.train_dist_matrix is not None:
-            self.train_dist_matrix_present = True
+        if self._dist_matrix is not None:
+            self._dist_matrix_present = True
         else:
-            self.train_dist_matrix_present = False
+            self._dist_matrix_present = False
 
-        if self.test_dist_matrix is not None:
-            self.test_dist_matrix_present = True
-        else:
-            self.test_dist_matrix_present = False
-
-        if self.train_clusterdict is not None:
+        if self._clusterdict is not None:
             self.clusters_present = True
         else:
             self.clusters_present = False
 
-        if self.train_children is not None:
+        if self._children is not None:
             self.children_present = True
         else:
             self.children_present = False
@@ -373,54 +311,65 @@ class CNN:
         self.check()
 
         return f"""{colorama.Fore.BLUE}cnn.CNN cluster object{colorama.Fore.RESET}
---------------------------------------------------------------------------------
-alias :                                  {self.alias}
-hierachy level :                         {self.hierarchy_level}
+------------------------------------------------------------------------------------
+alias :                         {self.alias}
+hierachy level :                {self.hierarchy_level}
 
-test data shape :                        Parts      - {self.test_shape_str["parts"]}
-                                         Points     - {self.test_shape_str["points"]}
-                                         Dimensions - {self.test_shape_str["dimensions"]}
+train data shape :              Parts      - {self._shape_str["parts"]}
+                                Points     - {self._shape_str["points"]}
+                                Dimensions - {self._shape_str["dimensions"]}
 
-train data shape :                       Parts      - {self.train_shape_str["parts"]}
-                                         Points     - {self.train_shape_str["points"]}
-                                         Dimensions - {self.train_shape_str["dimensions"]}
-
-distance matrix calculated (train) :     {self.train_dist_matrix_present}
-distance matrix calculated (test) :      {self.test_dist_matrix_present}
-clustered :                              {self.clusters_present}
-children :                               {self.children_present}
---------------------------------------------------------------------------------
+distance matrix calculated :    {self._dist_matrix_present}
+clustered :                     {self.clusters_present}
+children :                      {self.children_present}
+------------------------------------------------------------------------------------
 """
 
-    def load(self, file_, mode='train', **kwargs):
-        """Loads file content and returns data and shape
+    def load(self, f: Union[Path, str], **kwargs) -> None:
+        """Loads file content
+
+        Depending on the filename extension, a suitable loader is
+        called:
+
+            * .p: :func:`pickle.load`
+            * .npy: :func:`numpy.load`
+            * None: :func:`numpy.loadtxt`
+            * .xvg, .dat: :func:`numpy.loadtxt`
+
+        Sets :attr:`data` and :attr:`shape`.
+
+        Args:
+            f: File
+
+        Keyword Args:
+            **kwargs: Passed to loader.
         """
         # add load option for dist_matrix, map_matrix
 
-        extension = Path(file_).suffix
+        extension = Path(f).suffix
 
         case_ = {
             '.p' : lambda: pickle.load(
-                open(file_, 'rb'),
+                open(f, 'rb'),
                 **kwargs
                 ),
             '.npy': lambda: np.load(
-                file_,
+                f,
                 # dtype=float_precision_map[float_precision],
                 **kwargs
                 ),
              '': lambda: np.loadtxt(
-                 file_,
+                 f,
                 # dtype=float_precision_map[float_precision],
                 **kwargs
                 ),
              '.xvg': lambda: np.loadtxt(
-                 file_,
+                 f,
                 # dtype=float_precision_map[float_precision],
                 **kwargs
                 ),
             '.dat': lambda: np.loadtxt(
-                file_,
+                f,
                 # dtype=float_precision_map[float_precision],
                 **kwargs
                 ),
@@ -430,24 +379,15 @@ children :                               {self.children_present}
             lambda: print(f"Unknown filename extension {extension}")
             )()
 
-        if mode == 'train':
-            self.__train, self.__train_shape = self.get_shape(data)
-        elif mode == 'test':
-            self.__test, self.__test_shape = self.get_shape(data)
-        else:
-            raise ValueError(
-                "Mode not understood. Only 'train' or 'test' allowed"
-                            )
+        self._data, self._shape = self.get_shape(data)
 
-    def delete(self, mode='train'):
-        if mode == 'train':
-            self.__train = None
-        elif mode == 'test':
-            self.__test = None
-        else:
-            raise ValueError(
-                "Mode not understood. Only 'train' or 'test' allowed"
-                            )
+    def delete(self):
+        """Clear :attr:`data` and :attr:`shape`"""
+
+        del self._data
+        del self._shape
+        self._data = None
+        self._shape = None
 
     def save(self, file_, content, **kwargs):
         """Saves content to file"""
@@ -462,35 +402,32 @@ children :                               {self.children_present}
         }.get(extension,
               f"Unknown filename extension .{extension}")()
 
-    def switch_data(self):
-        self.__train, self.__test = self.__test, self.__train
-        self.__train_shape, self.__test_shape = self.__test_shape, self.__train_shape
-        self.__train_dist_matrix, self.__test_dist_matrix = \
-            self.__test_dist_matrix, self.__train_dist_matrix
-
-    def cut(self, parts=(None, None, None), points=(None, None, None),
+    def cut(
+            self, parts=(None, None, None), points=(None, None, None),
             dimensions=(None, None, None)):
-        """Alows data set reduction.  For each data set level (parts,
-        points, dimensions) a tuple (start:stop:step) can be
-        specified."""
 
-        if (self.__test is None) and (self.__train is not None):
-            print(
-                "No test data present, but train data found. Switching data."
-                 )
-            self.switch_data()
-        elif self.__train is None and self.__test is None:
-            raise LookupError(
-                "Neither test nor train data present."
-                )
+        """Reduce the data set.
 
-        self.__train = [x[slice(*points), slice(*dimensions)]
-                        for x in self.__test[slice(*parts)]]
+        For each data set level (parts, points, dimensions),
+        a tuple (start:stop:step) can be specified. The corresponding
+        level is cut using :func:`slice`.
+        """
 
-        self.__train, self.__train_shape = self.get_shape(self.__train)
+        self._data = [
+            x[slice(*points), slice(*dimensions)]
+            for x in self.__test[slice(*parts)]
+            ]
 
-    def loop_over_points(self):
-        for i in self.__train:
+        self._data, self._shape = self.get_shape(self._data)
+
+    def loop_over_points(self) -> Iterator:
+        """Iterate over all points of all parts
+
+        Returns:
+            Iterator over points
+        """
+
+        for i in self._data:
             for j in i:
                 yield j
 
