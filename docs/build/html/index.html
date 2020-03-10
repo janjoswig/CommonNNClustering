@@ -40,14 +40,31 @@
 by Oliver Lemke in the script collection CNNClustering available on
 git-hub (<a class="reference external" href="https://github.com/BDGSoftware/CNNClustering.git">https://github.com/BDGSoftware/CNNClustering.git</a>). Please cite:</p>
 <blockquote>
-<div><p>B. Keller, X. Daura, W. F. van Gunsteren J. Chem. Phys., 2010, 132, 074110.
-O. Lemke, B.G. Keller, J. Chem. Phys., 2016, 145, 164104.
-O. Lemke, B.G. Keller, Algorithms, 2018, 11, 19.</p>
+<div><ul class="simple">
+<li><ol class="upperalpha simple" start="2">
+<li><p>Keller, X. Daura, W. F. van Gunsteren J. Chem. Phys., 2010, 132, 074110.</p></li>
+</ol>
+</li>
+<li><ol class="upperalpha simple" start="15">
+<li><p>Lemke, B.G. Keller, J. Chem. Phys., 2016, 145, 164104.</p></li>
+</ol>
+</li>
+<li><ol class="upperalpha simple" start="15">
+<li><p>Lemke, B.G. Keller, Algorithms, 2018, 11, 19.</p></li>
+</ol>
+</li>
+</ul>
 </div></blockquote>
 <dl class="class">
 <dt id="core.cnn.CNN">
-<em class="property">class </em><code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">CNN</code><span class="sig-paren">(</span><em class="sig-param">alias='root'</em>, <em class="sig-param">train=None</em>, <em class="sig-param">test=None</em>, <em class="sig-param">train_dist_matrix=None</em>, <em class="sig-param">test_dist_matrix=None</em>, <em class="sig-param">map_matrix=None</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">CNN</code><span class="sig-paren">(</span><em class="sig-param">data: Optional[Any] = None</em>, <em class="sig-param">alias: str = 'root'</em>, <em class="sig-param">dist_matrix: Optional[Any] = None</em>, <em class="sig-param">map_matrix: Optional[Any] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN" title="Permalink to this definition">¶</a></dt>
 <dd><p>CNN cluster object class</p>
+<dl class="method">
+<dt id="core.cnn.CNN.check">
+<code class="sig-name descname">check</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the state of the <a class="reference internal" href="#core.cnn.CNN" title="core.cnn.CNN"><code class="xref py py-class docutils literal notranslate"><span class="pre">CNN</span></code></a> instance object</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="core.cnn.CNN.check_similarity">
 <em class="property">static </em><code class="sig-name descname">check_similarity</code><span class="sig-paren">(</span><em class="sig-param">a: List[int], b: List[int], c: int</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#core.cnn.CNN.check_similarity" title="Permalink to this definition">¶</a></dt>
@@ -185,8 +202,26 @@ format (parts, points, dimensions).</p>
 
 <dl class="method">
 <dt id="core.cnn.CNN.load">
-<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">file_</em>, <em class="sig-param">mode='train'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.load" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads file content and returns data and shape</p>
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">f: Union[pathlib.Path, str], **kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#core.cnn.CNN.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads file content</p>
+<p>Depending on the filename extension, a suitable loader is
+called:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>.p: <code class="xref py py-func docutils literal notranslate"><span class="pre">pickle.load()</span></code></p></li>
+<li><p>.npy: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.load()</span></code></p></li>
+<li><p>None: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.loadtxt()</span></code></p></li>
+<li><p>.xvg, .dat: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.loadtxt()</span></code></p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>f</strong> – File</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>**kwargs</strong> – Passed to loader.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
