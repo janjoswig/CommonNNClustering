@@ -161,36 +161,27 @@ class CNN:
                 ]
             )
 
-        self.__record_dtypes = [
+        self._record_dtypes = [
             pd.Int64Dtype(), np.float64, pd.Int64Dtype(), pd.Int64Dtype(),
             pd.Int64Dtype(), pd.Int64Dtype(), np.float64, np.float64,
             np.float64
             ]
 
-        self.test = test
-        self.train = train
-        # self.__train_stacked
-        # self.__test_stacked
-        self.__train_dist_matrix = train_dist_matrix
-        self.__test_dist_matrix =  test_dist_matrix
-        self.__map_matrix = map_matrix
-        self.__test_clusterdict = None
-        self.__test_labels = None
-        self.__train_clusterdict = None
-        self.__train_labels = None
+        self._data = data
+        self._dist_matrix = dist_matrix
+        self._map_matrix = map_matrix
+        self._clusterdict = None
+        self._labels = None
         self.summary = TypedDataFrame(
             columns=self.record._fields,
-            dtypes=self.__record_dtypes
+            dtypes=self._record_dtypes
             )
-        self.__train_children = None
-        self.__train_refindex = None
-        self.__train_refindex_rel = None
-        self.__train_tree = None
-        self.__test_tree = None
-        self.__memory_assigned = None
-        self.__cache = None
-        # No children for test data. (Hierarchical) clustering should be
-        # done on train data
+        self._children = None
+        self._refindex = None
+        self._refindex_rel = None
+        self._tree = None
+        self._memory_assigned = None
+        self._cache = None
 
     @property
     def hierarchy_level(self):
@@ -217,15 +208,15 @@ class CNN:
     @dist_matrix.setter
     def dist_matrix(self, x):
         # TODO control string, array, hdf5 file object handling
-        self._dist_matrix = data
+        self._dist_matrix = x
 
     @property
     def shape(self):
         return self._shape
 
     @shape.setter
-    def shape(self, shape):
-        self._shape = shape
+    def shape(self, s):
+        self._shape = s
 
     @property
     def clusterdict(self):
@@ -252,17 +243,12 @@ class CNN:
         return self._tree
 
     @property
-    def tree(self):
-        return self._tree
-
-    @property
     def memory_assigned(self):
         return self._memory_assigned
 
     @memory_assigned.setter
     def memory_assigned(self, mem):
         self._memory_assigned = mem
-
 
     @property
     def children(self):
