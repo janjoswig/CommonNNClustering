@@ -13,29 +13,29 @@ git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
 """
 
 from collections import defaultdict, namedtuple
-import warnings
-import random
-import yaml
-from functools import wraps
-import time
-import pickle
-import tempfile
 import copy
+from functools import wraps
 from pathlib import Path
+import pickle
+import random
+import tempfile
+import time
 from typing import List, Dict, Tuple, Sequence
 from typing import Union, Optional, Type, Any, Iterator, Iterable
+import warnings
+import yaml
 
-import numpy as np
-import pandas as pd  # TODO make this dependency optional?
+import colorama
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from sortedcontainers import SortedList
-from scipy.spatial.distance import cdist
-from scipy.signal import argrelextrema
-from scipy.interpolate import interp1d
-from scipy.spatial import cKDTree
-import colorama
+import numpy as np
+import pandas as pd  # TODO make this dependency optional?
 import tqdm
+from scipy.interpolate import interp1d
+from scipy.signal import argrelextrema
+from scipy.spatial import cKDTree
+from scipy.spatial.distance import cdist
+from sortedcontainers import SortedList
 
 
 def timed(function_):
@@ -293,9 +293,9 @@ class CNN:
             self._shape_str = {"parts": None, "points": None, "dimensions": None}
 
         if self._dist_matrix is not None:
-            self._dist_matrix_present = True
+            self.dist_matrix_present = True
         else:
-            self._dist_matrix_present = False
+            self.dist_matrix_present = False
 
         if self._clusterdict is not None:
             self.clusters_present = True
@@ -319,7 +319,7 @@ train data shape :              Parts      - {self._shape_str["parts"]}
                                 Points     - {self._shape_str["points"]}
                                 Dimensions - {self._shape_str["dimensions"]}
 
-distance matrix calculated :    {self._dist_matrix_present}
+distance matrix calculated :    {self.dist_matrix_present}
 clustered :                     {self.clusters_present}
 children :                      {self.children_present}
 ------------------------------------------------------------------------------------
