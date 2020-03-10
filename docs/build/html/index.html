@@ -80,9 +80,16 @@ git-hub (<a class="reference external" href="https://github.com/BDGSoftware/CNNC
 <dl class="method">
 <dt id="core.cnn.CNN.cut">
 <code class="sig-name descname">cut</code><span class="sig-paren">(</span><em class="sig-param">parts=(None</em>, <em class="sig-param">None</em>, <em class="sig-param">None)</em>, <em class="sig-param">points=(None</em>, <em class="sig-param">None</em>, <em class="sig-param">None)</em>, <em class="sig-param">dimensions=(None</em>, <em class="sig-param">None</em>, <em class="sig-param">None)</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.cut" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alows data set reduction.  For each data set level (parts,
-points, dimensions) a tuple (start:stop:step) can be
-specified.</p>
+<dd><p>Reduce the data set.</p>
+<p>For each data set level (parts, points, dimensions),
+a tuple (start:stop:step) can be specified. The corresponding
+level is cut using <code class="xref py py-func docutils literal notranslate"><span class="pre">slice()</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="core.cnn.CNN.delete">
+<code class="sig-name descname">delete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear <code class="xref py py-attr docutils literal notranslate"><span class="pre">data</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">shape</span></code></p>
 </dd></dl>
 
 <dl class="method">
@@ -214,12 +221,24 @@ called:</p>
 <li><p>.xvg, .dat: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.loadtxt()</span></code></p></li>
 </ul>
 </div></blockquote>
+<p>Sets <code class="xref py py-attr docutils literal notranslate"><span class="pre">data</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">shape</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>f</strong> – File</p>
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><p><strong>**kwargs</strong> – Passed to loader.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="core.cnn.CNN.loop_over_points">
+<code class="sig-name descname">loop_over_points</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Iterator<a class="headerlink" href="#core.cnn.CNN.loop_over_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate over all points of all parts</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Iterator over points</p>
 </dd>
 </dl>
 </dd></dl>
