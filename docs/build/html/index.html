@@ -40,13 +40,24 @@
 by Oliver Lemke in the script collection CNNClustering available on
 git-hub (<a class="reference external" href="https://github.com/BDGSoftware/CNNClustering.git">https://github.com/BDGSoftware/CNNClustering.git</a>). Please cite:</p>
 <blockquote>
-<div><p>B. Keller, X. Daura, W. F. van Gunsteren J. Chem. Phys., 2010, 132, 074110.
-O. Lemke, B.G. Keller, J. Chem. Phys., 2016, 145, 164104.
-O. Lemke, B.G. Keller, Algorithms, 2018, 11, 19.</p>
+<div><ul class="simple">
+<li><ol class="upperalpha simple" start="2">
+<li><p>Keller, X. Daura, W. F. van Gunsteren J. Chem. Phys., 2010, 132, 074110.</p></li>
+</ol>
+</li>
+<li><ol class="upperalpha simple" start="15">
+<li><p>Lemke, B.G. Keller, J. Chem. Phys., 2016, 145, 164104.</p></li>
+</ol>
+</li>
+<li><ol class="upperalpha simple" start="15">
+<li><p>Lemke, B.G. Keller, Algorithms, 2018, 11, 19.</p></li>
+</ol>
+</li>
+</ul>
 </div></blockquote>
 <dl class="class">
 <dt id="core.cnn.CNN">
-<em class="property">class </em><code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">CNN</code><span class="sig-paren">(</span><em class="sig-param">alias='root'</em>, <em class="sig-param">train=None</em>, <em class="sig-param">test=None</em>, <em class="sig-param">train_dist_matrix=None</em>, <em class="sig-param">test_dist_matrix=None</em>, <em class="sig-param">map_matrix=None</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">CNN</code><span class="sig-paren">(</span><em class="sig-param">train=None</em>, <em class="sig-param">test=None</em>, <em class="sig-param">alias='root'</em>, <em class="sig-param">train_dist_matrix=None</em>, <em class="sig-param">test_dist_matrix=None</em>, <em class="sig-param">map_matrix=None</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN" title="Permalink to this definition">¶</a></dt>
 <dd><p>CNN cluster object class</p>
 <dl class="method">
 <dt id="core.cnn.CNN.check_similarity">
@@ -210,37 +221,47 @@ labels to a train set by <a class="reference internal" href="#core.cnn.CNN.fit" 
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>radius_cutoff</strong> (<em>float</em><em>, </em><em>default=1.0</em>) – Used to find nearest neighbours within distance r</p></li>
-<li><p><strong>cnn_cutoff</strong> (<em>int</em><em>, </em><em>default=1</em>) – Similarity criterion; Points of the same cluster must have
+<li><p><strong>radius_cutoff</strong> – float, default=1.0
+Used to find nearest neighbours within distance r</p></li>
+<li><p><strong>cnn_cutoff</strong> – int, default=1
+Similarity criterion; Points of the same cluster must have
 at least n common nearest neighbours</p></li>
-<li><p><strong>member_cutoff</strong> (<em>int</em><em>, </em><em>default=1</em>) – Clusters must have more than m points or are declared noise</p></li>
-<li><p><strong>include_all</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If False, keep cluster assignment for points in the test set
-that have a maximum distance of <cite>same_tol</cite> to a point
+<li><p><strong>member_cutoff</strong> – int, default=1
+Clusters must have more than m points or are declared noise</p></li>
+<li><p><strong>include_all</strong> – bool, default=True
+If False, keep cluster assignment for points in the test set
+that have a maximum distance of <a href="#id1"><span class="problematic" id="id2">:param:`same_tol`</span></a> to a point
 in the train set, i.e. they are (essentially the same point)
 (currently not implemented)</p></li>
-<li><p><strong>same_tol</strong> (<em>float</em><em>, </em><em>default=1e-8</em>) – Distance cutoff to treat points as the same, if
-<cite>include_all</cite> is False</p></li>
-<li><p><strong>clusters</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>Optional</em><em>, </em><em>default=None</em>) – Predict assignment of points only with respect to this list
+<li><p><strong>same_tol</strong> – float, default=1e-8
+Distance cutoff to treat points as the same, if
+<a href="#id3"><span class="problematic" id="id4">:param:`include_all`</span></a> is False</p></li>
+<li><p><strong>clusters</strong> – List[int], Optional, default=None
+Predict assignment of points only with respect to this list
 of clusters</p></li>
-<li><p><strong>purge</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, reinitalise predicted labels.  Override assignment
+<li><p><strong>purge</strong> – bool, default=False
+If True, reinitalise predicted labels.  Override assignment
 memory.</p></li>
-<li><p><strong>memorize</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, remember which points in the test set have been
+<li><p><strong>memorize</strong> – bool, default=True
+If True, remember which points in the test set have been
 already assigned and exclude them from future predictions</p></li>
-<li><p><strong>cnn_offset</strong> (<em>int</em><em>, </em><em>default=0</em>) – Mainly for backwards compatibility; Modifies the the
+<li><p><strong>cnn_offset</strong> – int, default=0
+Mainly for backwards compatibility; Modifies the the
 cnn_cutoff</p></li>
-<li><p><strong>behaviour</strong> (<em>str</em><em>, </em><em>default=&quot;lookup&quot;</em>) – <p>Controlls how the predictor operates:</p>
+<li><p><strong>behaviour</strong> – <p>str, default=”lookup”
+Controlls how the predictor operates:</p>
 <ul>
 <li><dl class="simple">
 <dt>”lookup”, Use distance matrices CNN.train_dist_matrix and</dt><dd><p>CNN.map_matrix to lookup distances to generate the
 neighbour lists.  If one of the matrices does not exist,
-throw an error.  Consider memory mapping <cite>mmap</cite>
+throw an error.  Consider memory mapping <a href="#id5"><span class="problematic" id="id6">:param:`mmap`</span></a>
 when computing the distances with <a class="reference internal" href="#core.cnn.CNN.dist" title="core.cnn.CNN.dist"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.dist()</span></code></a> and
 <a class="reference internal" href="#core.cnn.CNN.map" title="core.cnn.CNN.map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.map()</span></code></a> for large data sets.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>”on-the-fly”, Compute distances during the prediction</dt><dd><p>using the specified <cite>method</cite>.</p>
+<dt>”on-the-fly”, Compute distances during the prediction</dt><dd><p>using the specified <a href="#id7"><span class="problematic" id="id8">:param:`method`</span></a>.</p>
 </dd>
 </dl>
 </li>
@@ -251,8 +272,9 @@ when computing the distances with <a class="reference internal" href="#core.cnn.
 </li>
 </ul>
 </p></li>
-<li><p><strong>method</strong> (<em>str</em><em>, </em><em>default=&quot;plain&quot;</em>) – <p>Controlls which method is used to get the neighbour lists
-within a given <cite>behaviour</cite>:</p>
+<li><p><strong>method</strong> – <p>str, default=”plain”
+Controlls which method is used to get the neighbour lists
+within a given <a href="#id9"><span class="problematic" id="id10">:param:`behaviour`</span></a>:</p>
 <ul>
 <li><p>”lookup”, parameter not used</p></li>
 <li><dl class="simple">
@@ -265,7 +287,6 @@ within a given <cite>behaviour</cite>:</p>
 <li><p>”tree”, parameter not used</p></li>
 </ul>
 </p></li>
-<li><p><strong>progress</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Show a progress bar</p></li>
 <li><p><strong>**kwargs</strong> – Additional keyword arguments are passed to the method that
 is used to compute the neighbour lists</p></li>
 </ul>
@@ -365,8 +386,7 @@ In either case, this is followed by: for k in F:  D[k] = F[k]</p>
 <dl class="function">
 <dt id="core.cnn.dist">
 <code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">dist</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.dist" title="Permalink to this definition">¶</a></dt>
-<dd><p>High level wrapper function for cnn.CNN().dist(). Takes data and
-returns a distance matrix (points x points).</p>
+<dd><p>High level wrapper function for cnn.CNN().dist().</p>
 </dd></dl>
 
 <dl class="function">
@@ -411,7 +431,7 @@ this will be included in the summary.</p>
 <dd><p>Module level settings container</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#core.cnn.Settings" title="core.cnn.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
+<dd class="field-odd"><p><a class="reference internal" href="#core.cnn.Settings" title="core.cnn.Settings"><code class="xref py py-class docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>

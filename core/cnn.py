@@ -1034,7 +1034,6 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         else:
             raise ValueError()
 
-
     def kdtree(self, mode="train", **kwargs):
         """CNN.method wrapper for scipy.spatial.cKDTree
         """
@@ -1066,77 +1065,72 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         Predict labels for points in a test set on the basis of assigned
         labels to a train set by :meth:`CNN.fit`
 
-        Parameters
-        ----------
-        radius_cutoff : float, default=1.0
-            Used to find nearest neighbours within distance r
+        Args:
+            radius_cutoff : float, default=1.0
+                Used to find nearest neighbours within distance r
 
-        cnn_cutoff : int, default=1
-            Similarity criterion; Points of the same cluster must have
-            at least n common nearest neighbours
+            cnn_cutoff : int, default=1
+                Similarity criterion; Points of the same cluster must have
+                at least n common nearest neighbours
 
-        member_cutoff : int, default=1
-            Clusters must have more than m points or are declared noise
+            member_cutoff : int, default=1
+                Clusters must have more than m points or are declared noise
 
-        include_all : bool, default=True
-            If False, keep cluster assignment for points in the test set
-            that have a maximum distance of `same_tol` to a point
-            in the train set, i.e. they are (essentially the same point)
-            (currently not implemented)
+            include_all : bool, default=True
+                If False, keep cluster assignment for points in the test set
+                that have a maximum distance of :param:`same_tol` to a point
+                in the train set, i.e. they are (essentially the same point)
+                (currently not implemented)
 
-        same_tol : float, default=1e-8
-            Distance cutoff to treat points as the same, if
-            `include_all` is False
+            same_tol : float, default=1e-8
+                Distance cutoff to treat points as the same, if
+                :param:`include_all` is False
 
-        clusters : List[int], Optional, default=None
-            Predict assignment of points only with respect to this list
-            of clusters
+            clusters : List[int], Optional, default=None
+                Predict assignment of points only with respect to this list
+                of clusters
 
-        purge : bool, default=False
-            If True, reinitalise predicted labels.  Override assignment
-            memory.
+            purge : bool, default=False
+                If True, reinitalise predicted labels.  Override assignment
+                memory.
 
-        memorize : bool, default=True
-            If True, remember which points in the test set have been
-            already assigned and exclude them from future predictions
+            memorize : bool, default=True
+                If True, remember which points in the test set have been
+                already assigned and exclude them from future predictions
 
-        cnn_offset : int, default=0
-            Mainly for backwards compatibility; Modifies the the
-            cnn_cutoff
+            cnn_offset : int, default=0
+                Mainly for backwards compatibility; Modifies the the
+                cnn_cutoff
 
-        behaviour : str, default="lookup"
-            Controlls how the predictor operates:
+            behaviour : str, default="lookup"
+                Controlls how the predictor operates:
 
-            * "lookup", Use distance matrices CNN.train_dist_matrix and
-                CNN.map_matrix to lookup distances to generate the
-                neighbour lists.  If one of the matrices does not exist,
-                throw an error.  Consider memory mapping `mmap`
-                when computing the distances with :py:meth:`CNN.dist` and
-                :py:meth:`CNN.map` for large data sets.
+                * "lookup", Use distance matrices CNN.train_dist_matrix and
+                    CNN.map_matrix to lookup distances to generate the
+                    neighbour lists.  If one of the matrices does not exist,
+                    throw an error.  Consider memory mapping :param:`mmap`
+                    when computing the distances with :py:meth:`CNN.dist` and
+                    :py:meth:`CNN.map` for large data sets.
 
-            * "on-the-fly", Compute distances during the prediction
-                using the specified `method`.
+                * "on-the-fly", Compute distances during the prediction
+                    using the specified :param:`method`.
 
-            * "tree", Get the neighbour lists during the prediction from
-                a tree query
+                * "tree", Get the neighbour lists during the prediction from
+                    a tree query
 
-        method : str, default="plain"
-            Controlls which method is used to get the neighbour lists
-            within a given `behaviour`:
+            method : str, default="plain"
+                Controlls which method is used to get the neighbour lists
+                within a given :param:`behaviour`:
 
-            * "lookup", parameter not used
+                * "lookup", parameter not used
 
-            * "on-the-fly",
-                * "plain", uses :py:meth:`CNN.get_neighbours`
+                * "on-the-fly",
+                    * "plain", uses :py:meth:`CNN.get_neighbours`
 
-            * "tree", parameter not used
-
-        progress : bool, default=True
-            Show a progress bar
-
-        **kwargs :
-            Additional keyword arguments are passed to the method that
-            is used to compute the neighbour lists
+                * "tree", parameter not used
+            **kwargs :
+                Additional keyword arguments are passed to the method that
+                is used to compute the neighbour lists
         """
 
         ################################################################
@@ -2291,6 +2285,7 @@ def get_histogram(x: Sequence[float], y: Sequence[float],
     return x_, y_, z.T  # transpose to match x/y-directions
 
 
+
 def TypedDataFrame(columns, dtypes, content=None, index=None):
     assert len(columns) == len(dtypes)
 
@@ -2304,9 +2299,9 @@ def TypedDataFrame(columns, dtypes, content=None, index=None):
 
     return df
 
+
 def dist(data):
-    """High level wrapper function for cnn.CNN().dist(). Takes data and
-    returns a distance matrix (points x points).
+    """High level wrapper function for cnn.CNN().dist().
     """
     cobj = CNN(train=data)
     cobj.dist()
@@ -2331,13 +2326,13 @@ class MetaSettings(type):
 class Settings(dict, metaclass=MetaSettings):
     """Class to expose and handle configuration
 
-    Inherits from :class:`MetaSettings` to allow access to the class
-    attribute :attr:`__defaults` as a property :attr:`defaults`.
+    Inherits from :py:class:`MetaSettings` to allow access to the class
+    attribute :py:attr:`__defaults` as a property :py:attr:`defaults`.
 
-    Also derived from basic type :class:`dict`.
+    Also derived from basic type :py:class:`dict`.
 
-    The user can sublclass this class :class:`Settings` to provide e.g.
-    a different set of default values as :attr:`__defaults`.
+    The user can sublclass this class :py:class:`Settings` to provide e.g.
+    a different set of default values as :py:attr:`__defaults`.
     """
 
     # Defaults shared by all instances of this class
@@ -2457,7 +2452,7 @@ class Settings(dict, metaclass=MetaSettings):
 
 # Configuration setup
 settings = Settings()
-""":obj:`Settings`: Module level settings container"""
+""":py:class:`Settings`: Module level settings container"""
 
 settings.configure()
 
