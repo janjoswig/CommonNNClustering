@@ -14,22 +14,22 @@
     <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-   
+
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-  
+
+
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head><body>
-  
+
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
+
 
           <div class="body" role="main">
-            
+
   <div class="section" id="module-core.cnn">
 <span id="welcome-to-core-s-documentation"></span><h1>Welcome to core’s documentation!<a class="headerlink" href="#module-core.cnn" title="Permalink to this headline">¶</a></h1>
 <dl class="simple">
@@ -89,30 +89,40 @@ matrix</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ax</strong> (<em>matplotlib.axes._subplots.AxesSubplot</em><em>, </em><em>default=None</em>) – The axes to which to add the plot.  If None, a new figure
+<li><p><strong>ax</strong> – matplotlib.axes._subplots.AxesSubplot, default=None
+The axes to which to add the plot.  If None, a new figure
 with axes will be created.</p></li>
-<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>default=&quot;train&quot;</em>) – Which data (“train” or “test”) to use for this plot</p></li>
-<li><p><strong>clusters</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>default=None</em>) – Cluster numbers to include in the plot.  If None, consider
+<li><p><strong>mode</strong> – str, default=”train”
+Which data (“train” or “test”) to use for this plot</p></li>
+<li><p><strong>clusters</strong> – List[int], default=None
+Cluster numbers to include in the plot.  If None, consider
 all.</p></li>
-<li><p><strong>original</strong> (<em>bool</em><em>, </em><em>default=False</em>) – Allows to plot the original data instead of a cluster
-result.  Overrides <a href="#id1"><span class="problematic" id="id2">:param:`clusters`</span></a>.  Will be considered
+<li><p><strong>original</strong> – bool, default=False
+Allows to plot the original data instead of a cluster
+result.  Overrides <cite>clusters</cite>.  Will be considered
 True, if no cluster result is present.</p></li>
-<li><p><strong>plot</strong> (<em>str</em><em>, </em><em>default=&quot;dots&quot;</em>) – <p>The kind of plotting method to use.</p>
+<li><p><strong>plot</strong> – <p>str, default=”dots”
+The kind of plotting method to use.</p>
 <ul>
-<li><p>”dots”, Use <a href="#id3"><span class="problematic" id="id4">:function:`ax.plot()`</span></a></p></li>
+<li><p>”dots”, Use <code class="xref py py-func docutils literal notranslate"><span class="pre">ax.plot()</span></code></p></li>
 <li><p>””,</p></li>
 </ul>
 </p></li>
-<li><p><strong>parts</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>] </em><em>(</em><em>length 3</em><em>)</em><em>, </em><em>default=</em><em>(</em><em>None</em><em>, </em><em>None</em><em>, </em><em>None</em><em>)</em>) – Use a slice (start, stop, stride) on the data parts before
+<li><p><strong>parts</strong> – Tuple[int, int, int] (length 3), default=(None, None, None)
+Use a slice (start, stop, stride) on the data parts before
 plotting.</p></li>
-<li><p><strong>points</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em><em>, </em><em>default=</em><em>(</em><em>None</em><em>, </em><em>None</em><em>, </em><em>None</em><em>)</em>) – Use a slice (start, stop, stride) on the data points before
+<li><p><strong>points</strong> – Tuple[int, int, int], default=(None, None, None)
+Use a slice (start, stop, stride) on the data points before
 plotting.</p></li>
-<li><p><strong>dim</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>, </em><em>default=None</em>) – Use these two dimensions for plotting.  If None, uses
+<li><p><strong>dim</strong> – Tuple[int, int], default=None
+Use these two dimensions for plotting.  If None, uses
 (0, 1).</p></li>
-<li><p><strong>annotate</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If there is a cluster result, plot the cluster numbers.  Uses
-<a href="#id5"><span class="problematic" id="id6">:param:`annotate_pos`</span></a> to determinte the position of the
+<li><p><strong>annotate</strong> – bool, default=True
+If there is a cluster result, plot the cluster numbers.  Uses
+<cite>annotate_pos</cite> to determinte the position of the
 annotations.</p></li>
-<li><p><strong>annotate_pos</strong> (<em>str</em><em> or </em><em>List</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>]</em><em>, </em><em>default=&quot;mean&quot;</em>) – <p>Where to put the cluster number annotation.  Can be one of:</p>
+<li><p><strong>annotate_pos</strong> – <p>str or List[Tuple[int, int]], default=”mean”
+Where to put the cluster number annotation.  Can be one of:</p>
 <ul>
 <li><p>”mean”, Use the cluster mean</p></li>
 <li><p>”random”, Use a random point of the cluster</p></li>
@@ -120,16 +130,22 @@ annotations.</p></li>
 <p>Alternatively a list of x, y positions can be passed to set
 a specific point for each cluster (Not yet implemented)</p>
 </p></li>
-<li><p><strong>annotate_props</strong> (<em>Dict</em><em>, </em><em>default=None</em>) – Dictionary of keyword arguments passed to
-<a href="#id7"><span class="problematic" id="id8">:function:`ax.annotate(**kwargs)`</span></a>.</p></li>
-<li><p><strong>ax_props</strong> (<em>Dict</em><em>, </em><em>default=None</em>) – Dictionary of <a href="#id9"><span class="problematic" id="id10">:param:`ax`</span></a> properties to apply after
-plotting via <a href="#id11"><span class="problematic" id="id12">:function:`ax.set(**ax_props)`</span></a>.  If None, uses
+<li><p><strong>annotate_props</strong> – Dict, default=None
+Dictionary of keyword arguments passed to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">ax.annotate(**kwargs)()</span></code>.</p></li>
+<li><p><strong>ax_props</strong> – Dict, default=None
+Dictionary of <cite>ax</cite> properties to apply after
+plotting via <code class="xref py py-func docutils literal notranslate"><span class="pre">ax.set(**ax_props)()</span></code>.  If None, uses
 defaults that can be also defined in the configuration file.</p></li>
-<li><p><strong>contour</strong><strong>, </strong><strong>dot</strong><strong>, </strong><strong>scatter</strong><strong>, </strong><strong>dot_noise</strong><strong>, </strong><strong>scatter_noise</strong><strong>)</strong><strong>_props</strong> (<em>(</em><em>hist</em><em>,</em>) – Dictionaries of keyword arguments passed to various
+<li><p><strong>contour</strong><strong>, </strong><strong>dot</strong><strong>, </strong><strong>scatter</strong><strong>, </strong><strong>dot_noise</strong><strong>, </strong><strong>scatter_noise</strong><strong>)</strong><strong>_props</strong> (<em>(</em><em>hist</em><em>,</em>) – Dict, default=None
+Dictionaries of keyword arguments passed to various
 functions.  If None, uses
 defaults that can be also defined in the configuration file.</p></li>
-<li><p><strong>mask</strong> (<em>Sequence</em><em>[</em><em>bool</em><em>]</em>) – </p></li>
+<li><p><strong>mask</strong> – Sequence[bool]</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of plotted elements</p>
 </dd>
 </dl>
 </dd></dl>
@@ -367,31 +383,28 @@ returns a distance matrix (points x points).</p>
 
 <dl class="function">
 <dt id="core.cnn.get_histogram">
-<code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">get_histogram</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">mids=True</em>, <em class="sig-param">mass=True</em>, <em class="sig-param">avoid_zero_count=True</em>, <em class="sig-param">hist_props=None</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.get_histogram" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">get_histogram</code><span class="sig-paren">(</span><em class="sig-param">x: Sequence[float], y: Sequence[float], mids: bool = True, mass: bool = True, avoid_zero_count: bool = True, hist_props: Optional[Dict[str, Any]] = None</em><span class="sig-paren">)</span> &#x2192; Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]<a class="headerlink" href="#core.cnn.get_histogram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute a two-dimensional histogram.  Taken and modified from
 pyemma.plots.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<em>ndarray</em><em>(</em><em>T</em><em>)</em>) – Sample x-coordinates.</p></li>
-<li><p><strong>y</strong> (<em>ndarray</em><em>(</em><em>T</em><em>)</em>) – Sample y-coordinates.</p></li>
-<li><p><strong>hist_props</strong> (<em>Dict</em><em>, </em><em>optional</em>) – kwargs passed to numpy.histogram2d</p></li>
-<li><p><strong>avoid_zero_count</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default=True</em>) – Avoid zero counts by lifting all histogram elements to the
-minimum value before computing the free energy. If False,
-zero histogram counts would yield infinity in the free energy.</p></li>
-<li><p><strong>mass</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Norm the histogram by the total number of counts, so that
+<li><p><strong>x</strong> – Sample x-coordinates.</p></li>
+<li><p><strong>y</strong> – Sample y-coordinates.</p></li>
+<li><p><strong>hist_props</strong> – Kwargs passed to numpy.histogram2d</p></li>
+<li><p><strong>avoid_zero_count</strong> – Avoid zero counts by lifting all histogram
+elements to the minimum value before computing the free
+energy.  If False, zero histogram counts yield infinity in
+the free energy.</p></li>
+<li><p><strong>mass</strong> – Norm the histogram by the total number of counts, so that
 each bin holds the probability mass values where all
 probabilities sum to 1</p></li>
-<li><p><strong>mids</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Return the mids of the bin edges instead of the actual edges</p></li>
+<li><p><strong>mids</strong> – Return the mids of the bin edges instead of the actual
+edges</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>x_</strong> (<em>ndarray(nbins, nbins)</em>) – The bins’ x-coordinates in meshgrid format.</p></li>
-<li><p><strong>y_</strong> (<em>ndarray(nbins, nbins)</em>) – The bins’ y-coordinates in meshgrid format.</p></li>
-<li><p><strong>z</strong> (<em>ndarray(nbins, nbins)</em>) – Histogram counts in meshgrid format.</p></li>
-</ul>
-</p>
+<dd class="field-even"><p>The x- and y-edges and the data of the computed histogram</p>
 </dd>
 </dl>
 </dd></dl>
@@ -419,7 +432,7 @@ this will be included in the summary.</p>
 <dt id="core.cnn.timed">
 <code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">timed</code><span class="sig-paren">(</span><em class="sig-param">function_</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.timed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decorator to measure execution time.  Forwards the output of the
-wrapped function and measured excecution time.</p>
+wrapped function and measured execution time.</p>
 </dd></dl>
 
 <div class="toctree-wrapper compound">
@@ -436,7 +449,7 @@ wrapped function and measured excecution time.</p>
 
 
           </div>
-          
+
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -483,18 +496,18 @@ wrapped function and measured excecution time.</p>
     </div>
     <div class="footer">
       &copy;2020, Jan-Oliver Joswig.
-      
+
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
-      
+
       |
       <a href="_sources/index.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
-    
 
-    
+
+
   </body>
 </html>
