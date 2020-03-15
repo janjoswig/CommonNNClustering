@@ -96,11 +96,22 @@ class CNN:
     """CNN cluster object class"""
 
     @staticmethod
-    def get_shape(data):
+    def get_shape(data: Any):
         """Maintain data in universal shape
 
         Analyses the format of given data and fits it into standard
         format (parts, points, dimensions).
+
+        Args:
+            data: Either None or
+                * a 1D sequence of length x,
+                    interpreted as 1 point in x dimension
+                * a 2D sequence of length x (rows) times y (columns),
+                    interpreted as x points in y dimension
+                * a list of 2D sequences,
+                    interpreted as groups of points
+
+        Returns: a numpy.ndarray of shape (parts, points, dimension)
         """
 
         if data is None:
@@ -111,37 +122,29 @@ class CNN:
                 }
         else:
             data_shape = np.shape(data[0])
+            # raises a type error if data is not subscriptable
             if np.shape(data_shape)[0] == 0:
                 # 1D Sequence passed
                 data = np.array([[data]])
-                return data, {
-                    'parts': 1,
-                    'points': [np.shape(data)[0]],
-                    'dimensions': 1,
-                    }
 
             elif np.shape(data_shape)[0] == 1:
                 # 2D Sequence of sequences passed
                 data = np.array([data])
-                return data, {
-                    'parts': 1,
-                    'points': [np.shape(data)[1]],
-                    'dimensions': np.shape(data)[2],
-                    }
 
             elif np.shape(data_shape)[0] == 2:
                 # List of 2D sequences of sequences passed
                 data = np.array([np.asarray(x) for x in data])
-                return data, {
-                    'parts': np.shape(data)[0],
-                    'points': [np.shape(x)[0] for x in data],
-                    'dimensions': data_shape[1],
-                    }
 
             else:
                 raise ValueError(
                     f"Data shape {data_shape} not allowed"
                     )
+
+            return data, {
+                'parts': np.shape(data)[0],
+                'points': [np.shape(x)[0] for x in data],
+                'dimensions': np.unique([np.shape(x)[1] for x in data])[0],
+                }
 
     def __init__(
             self, data: Optional[Any] = None, alias: str = 'root',
