@@ -12,35 +12,40 @@ git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
     * O. Lemke, B.G. Keller, Algorithms, 2018, 11, 19.
 """
 
+
 from collections import defaultdict, namedtuple
 import copy
 from functools import wraps
-from pathlib import Path
 import pickle
+from pathlib import Path
 import random
 import tempfile
 import time
-from typing import List, Dict, Tuple, Sequence
-from typing import Union, Optional, Type, Any, Iterator, Iterable
 import warnings
-import yaml
+from typing import Dict, List, Sequence, Tuple
+from typing import Any, Iterable, Iterator, Optional, Type, Union
 
 import colorama
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd  # TODO make this dependency optional?
-import tqdm
 from scipy.interpolate import interp1d
 from scipy.signal import argrelextrema
 from scipy.spatial import cKDTree
 from scipy.spatial.distance import cdist
 from sortedcontainers import SortedList
+import tqdm
+import yaml
 
 
 def timed(function_):
-    """Decorator to measure execution time.  Forwards the output of the
-        wrapped function and measured execution time."""
+    """Decorator to measure execution time.
+
+    Forwards the output of the wrapped function and measured execution
+    time.
+    """
+
     @wraps(function_)
     def wrapper(*args, **kwargs):
         go = time.time()
@@ -62,9 +67,11 @@ def timed(function_):
 
 
 def recorded(function_):
-    """Decorator to format function feedback.  Feedback needs to be
-       pandas series in record format.  If execution time was measured,
-       this will be included in the summary."""
+    """Decorator to format function feedback.
+
+    Feedback needs to be pandas series in record format.  If execution
+    time was measured, this will be included in the summary.
+    """
 
     @wraps(function_)
     def wrapper(self, *args, **kwargs):
@@ -90,8 +97,12 @@ class CNN:
 
     @staticmethod
     def get_shape(data):
-        """Analyses the format of given data and fits it into standard
-        format (parts, points, dimensions)."""
+        """Maintain data in universal shape
+
+        Analyses the format of given data and fits it into standard
+        format (parts, points, dimensions).
+        """
+
         if data is None:
             return None, {
                 'parts': None,
@@ -101,6 +112,7 @@ class CNN:
         else:
             data_shape = np.shape(data[0])
             if np.shape(data_shape)[0] == 0:
+                # 1D Sequence passed
                 data = np.array([[data]])
                 return data, {
                     'parts': 1,
@@ -109,6 +121,7 @@ class CNN:
                     }
 
             elif np.shape(data_shape)[0] == 1:
+                # 2D Sequence of sequences passed
                 data = np.array([data])
                 return data, {
                     'parts': 1,
@@ -117,13 +130,14 @@ class CNN:
                     }
 
             elif np.shape(data_shape)[0] == 2:
-                # List of parts passed
+                # List of 2D sequences of sequences passed
                 data = np.array([np.asarray(x) for x in data])
                 return data, {
                     'parts': np.shape(data)[0],
                     'points': [np.shape(x)[0] for x in data],
                     'dimensions': data_shape[1],
                     }
+
             else:
                 raise ValueError(
                     f"Data shape {data_shape} not allowed"

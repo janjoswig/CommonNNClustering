@@ -1,8 +1,8 @@
 import pytest
 from sklearn import datasets
 
-import core.cnn
 import core.cmsm
+import core.cnn
 
 
 @pytest.fixture
