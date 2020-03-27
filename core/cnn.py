@@ -7,14 +7,14 @@ The functionality provided in this module is based on code implemented
 by Oliver Lemke in the script collection CNNClustering available on
 git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
 
-    * B. Keller, X. Daura, W. F. van Gunsteren J. Chem. Phys., 2010, 132, 074110.
+    * B. Keller, X. Daura, W. F. van Gunsteren J. Chem. Phys.,
+        2010, 132, 074110.
     * O. Lemke, B.G. Keller, J. Chem. Phys., 2016, 145, 164104.
     * O. Lemke, B.G. Keller, Algorithms, 2018, 11, 19.
 """
 
 
 from collections import defaultdict, namedtuple
-import copy
 from functools import wraps
 import pickle
 from pathlib import Path
@@ -92,59 +92,33 @@ def recorded(function_):
     return wrapper
 
 
+class Labels:
+    """Cluster label assignments"""
+
+    def __init__(self):
+        self.labels = None
+
+
+class Neighbours:
+    """Neigbourlist"""
+
+    def __init__(self, neighbours, radius):
+        self.neighbours = neighbours
+        self.radius = radius
+        self._n_neighbours = None
+
+    @property
+    def n_neighbours(self):
+        if self._n_neighbours is None:
+            self._n_neighbours = np.asarray([
+                len(x)
+                for x in self.neighbours
+                ])
+        return self._n_neighbours
+
+
 class CNN:
     """CNN cluster object class"""
-
-    @staticmethod
-    def get_shape(data: Any):
-        """Maintain data in universal shape
-
-        Analyses the format of given data and fits it into standard
-        format (parts, points, dimensions).
-
-        Args:
-            data: Either None or
-                * a 1D sequence of length x,
-                    interpreted as 1 point in x dimension
-                * a 2D sequence of length x (rows) times y (columns),
-                    interpreted as x points in y dimension
-                * a list of 2D sequences,
-                    interpreted as groups of points
-
-        Returns: a numpy.ndarray of shape (parts, points, dimension)
-        """
-
-        if data is None:
-            return None, {
-                'parts': None,
-                'points': None,
-                'dimensions': None,
-                }
-        else:
-            data_shape = np.shape(data[0])
-            # raises a type error if data is not subscriptable
-            if np.shape(data_shape)[0] == 0:
-                # 1D Sequence passed
-                data = np.array([[data]])
-
-            elif np.shape(data_shape)[0] == 1:
-                # 2D Sequence of sequences passed
-                data = np.array([data])
-
-            elif np.shape(data_shape)[0] == 2:
-                # List of 2D sequences of sequences passed
-                data = np.array([np.asarray(x) for x in data])
-
-            else:
-                raise ValueError(
-                    f"Data shape {data_shape} not allowed"
-                    )
-
-            return data, {
-                'parts': np.shape(data)[0],
-                'points': [np.shape(x)[0] for x in data],
-                'dimensions': np.unique([np.shape(x)[1] for x in data])[0],
-                }
 
     def __init__(
             self, data: Optional[Any] = None, alias: str = 'root',
@@ -184,9 +158,13 @@ class CNN:
             np.float64
             ]
 
-        self._data = data
+        self.data = data
+        # Sends data through setter; Sets self._data and self._shape
+
+        self.consider = None  # TODO: Implement consider array
         self._dist_matrix = dist_matrix
         self._map_matrix = map_matrix
+        self._neighbours = None
         self._clusterdict = None
         self._labels = None
         self.summary = TypedDataFrame(
@@ -216,7 +194,6 @@ class CNN:
     def data(self, x):
         # TODO control string, array, hdf5 file object handling
         self._data, self._shape = self.get_shape(x)
-
 
     @property
     def dist_matrix(self):
@@ -253,7 +230,7 @@ class CNN:
 
     @property
     def map_matrix(self):
-        return self.__map_matrix
+        return self._map_matrix
 
     @property
     def tree(self):
@@ -279,26 +256,84 @@ class CNN:
     def refindex_rel(self):
         return self._refindex_rel
 
+    @staticmethod
+    def get_shape(data: Any):
+        """Maintain data in universal shape
+
+        Analyses the format of given data and fits it into standard
+        format (parts, points, dimensions).
+
+        Args:
+            data: Either None or
+                * a 1D sequence of length x,
+                    interpreted as 1 point in x dimension
+                * a 2D sequence of length x (rows) times y (columns),
+                    interpreted as x points in y dimension
+                * a list of 2D sequences,
+                    interpreted as groups of points
+
+        Returns:
+            data -- A numpy.ndarray of shape
+                (parts, points, dimension)
+            shape -- Dictionary
+        """
+
+        if data is None:
+            return None, {
+                'parts': None,
+                'points': None,
+                'dimensions': None,
+                }
+        else:
+            data_shape = np.shape(data[0])
+            # raises a type error if data is not subscriptable
+            if np.shape(data_shape)[0] == 0:
+                # 1D Sequence passed
+                data = np.array([[data]])
+
+            elif np.shape(data_shape)[0] == 1:
+                # 2D Sequence of sequences passed
+                data = np.array([data])
+
+            elif np.shape(data_shape)[0] == 2:
+                # Sequence of 2D sequences of sequences passed
+                data = np.array([np.asarray(x) for x in data])
+
+            else:
+                raise ValueError(
+                    f"Data shape {data_shape} not allowed"
+                    )
+
+            return data, {
+                'parts': np.shape(data)[0],
+                'points': [np.shape(x)[0] for x in data],
+                'dimensions': np.unique([np.shape(x)[1] for x in data])[0],
+                }
+
     def check(self):
         """Check the state of the :class:`CNN` instance object"""
 
+        self.shape_str = {**self.shape}
         if self._data is not None:
             self.data_present = True
-            self.shape_str = {**self.shape}
             self.shape_str['points'] = (
-                sum(self._shape_str['points']),
-                self._shape_str['points'][:5]
+                sum(self.shape_str['points']),
+                self.shape_str['points'][:5]
                 )
             if len(self._shape['points']) > 5:
-                self._shape_str['points'] += ["..."]
+                self.shape_str['points'] += ["..."]
         else:
             self.data_present = False
-            self._shape_str = {"parts": None, "points": None, "dimensions": None}
 
         if self._dist_matrix is not None:
             self.dist_matrix_present = True
         else:
             self.dist_matrix_present = False
+
+        if self._neighbours is not None:
+            self.neighbours_present = True
+        else:
+            self.neighbours_present = False
 
         if self._clusterdict is not None:
             self.clusters_present = True
@@ -313,20 +348,27 @@ class CNN:
     def __str__(self):
         self.check()
 
-        return f"""{colorama.Fore.BLUE}cnn.CNN cluster object{colorama.Fore.RESET}
-------------------------------------------------------------------------------------
+        str_ = (
+f"""
+===============================================================================
+core.cnn.CNN cluster object
+-------------------------------------------------------------------------------
 alias :                         {self.alias}
 hierachy level :                {self.hierarchy_level}
 
-data shape :                    Parts      - {self._shape_str["parts"]}
-                                Points     - {self._shape_str["points"]}
-                                Dimensions - {self._shape_str["dimensions"]}
+data shape :                    Parts      - {self.shape_str['parts']}
+                                Points     - {self.shape_str['points']}
+                                Dimensions - {self.shape_str['dimensions']}
 
 distance matrix calculated :    {self.dist_matrix_present}
+neighbour list calculated :     {self.neighbours_present}
 clustered :                     {self.clusters_present}
 children :                      {self.children_present}
-------------------------------------------------------------------------------------
+===============================================================================
 """
+            )
+
+        return str_
 
     def load(self, f: Union[Path, str], **kwargs) -> None:
         """Loads file content
@@ -352,7 +394,7 @@ children :                      {self.children_present}
         extension = Path(f).suffix
 
         case_ = {
-            '.p' : lambda: pickle.load(
+            '.p': lambda: pickle.load(
                 open(f, 'rb'),
                 **kwargs
                 ),
@@ -361,13 +403,13 @@ children :                      {self.children_present}
                 # dtype=float_precision_map[float_precision],
                 **kwargs
                 ),
-             '': lambda: np.loadtxt(
-                 f,
+            '': lambda: np.loadtxt(
+                f,
                 # dtype=float_precision_map[float_precision],
                 **kwargs
                 ),
              '.xvg': lambda: np.loadtxt(
-                 f,
+                f,
                 # dtype=float_precision_map[float_precision],
                 **kwargs
                 ),
@@ -392,16 +434,16 @@ children :                      {self.children_present}
         self._data = None
         self._shape = None
 
-    def save(self, file_, content, **kwargs):
+    def save(self, f, content, **kwargs):
         """Saves content to file"""
 
-        extension = file_.rsplit('.', 1)[-1]
+        extension = f.rsplit('.', 1)[-1]
         if len(extension) == 1:
             extension = ''
         {
-            'p' : lambda: pickle.dump(open(file_, 'wb'), content),
-            'npy': lambda: np.save(file_, content, **kwargs),
-            '': lambda: np.savetxt(file_, content, **kwargs),
+            'p': lambda: pickle.dump(open(f, 'wb'), content),
+            'npy': lambda: np.save(f, content, **kwargs),
+            '': lambda: np.savetxt(f, content, **kwargs),
         }.get(extension,
               f"Unknown filename extension .{extension}")()
 
@@ -430,7 +472,7 @@ children :                      {self.children_present}
             Iterator over points
         """
 
-        if self._data:
+        if self._data is not None:
             for i in self._data:
                 for j in i:
                     yield j
@@ -451,7 +493,7 @@ children :                      {self.children_present}
 
         """
 
-        if not self._data:
+        if self._data is None:
             return
 
         progress = not progress
@@ -495,12 +537,32 @@ children :                      {self.children_present}
                 "    'cdist'"
                 )
 
-            self._dist_matrix = _distance_matrix
+        self._dist_matrix = _distance_matrix
+
+    def get_neighbours_from_dist(self, r):
+        """Calculate neighbour list at a given radius
+
+        Requires :attr:`self._dist_matrix`.
+        Sets :attr:`self._neighbours`.
+
+        Args:
+            r: Radius cutoff
+
+        Returns:
+            None
+        """
+
+        neighbours = np.asarray([
+            np.where((x > 0) & (x < r))[0]
+            for x in self._dist_matrix
+            ])
+
+        self._neighbours = Neighbours(neighbours, r)
 
     @timed
     def map(  # BROKEN
             self, method='cdist', mmap=False,
-            mmap_file=None, chunksize=10000, progress=True): # nearest=None):
+            mmap_file=None, chunksize=10000, progress=True):
         """Computes a map matrix that maps an arbitrary data set to a
         reduced to set"""
 
@@ -510,10 +572,10 @@ children :                      {self.children_present}
                 )
         elif self.__train_shape['dimensions'] < self.__test_shape['dimensions']:
             warnings.warn(
-                f"Mapping requires the same number of dimension in the train \
-                  and the test data set. Reducing test set dimensions to \
-                  {self.__train_shape['dimensions']}.",
-                  UserWarning
+                f"Mapping requires the same number of dimension in the train"
+                "and the test data set. Reducing test set dimensions to"
+                f"{self.__train_shape['dimensions']}.",
+                UserWarning
                 )
         elif self.__train_shape['dimensions'] > self.__test_shape['dimensions']:
             raise ValueError(
@@ -728,128 +790,68 @@ children :                      {self.children_present}
         cnn_cutoff -= cnn_offset
         assert cnn_cutoff >= 0
 
-        if self._dist_matrix is None:
-            self.dist()
+        # Check data situation
+        self.check()
 
-        # print(f"Data checked: {time.time() - go}")
-
-        n_points = len(self._dist_matrix)
-
-        # calculate neighbour list
-        neighbours = np.asarray([
-            np.where((x > 0) & (x < radius_cutoff))[0]
-            for x in self._dist_matrix
-            ])
-
-        n_neighbours = np.asarray([len(x) for x in neighbours])
-        include = np.ones(len(neighbours), dtype=bool)
-        include[np.where(n_neighbours < cnn_cutoff)[0]] = False
-        # include[np.where(n_neighbours <= cnn_cutoff+1)[0]] = False
-
-        _clusterdict = defaultdict(SortedList)
-        _clusterdict[0].update(np.where(include == False)[0])
-        _labels = np.zeros(n_points).astype(int)
-        current = 1
-
-        # print(f"Initialisation done: {time.time() - go}")
-
-        enough = False
-        while any(include) and not enough:
-            # find point with currently highest neighbour count
-            point = np.where(
-                (n_neighbours == np.max(n_neighbours[include]))
-                & (include == True)
-                )[0][0]
-            # point = np.argmax(n_neighbours[include])
-
-            _clusterdict[current].add(point)
-            new_point_added = True
-            _labels[point] = current
-            include[point] = False
-            # print(f"Opened cluster {current}: {time.time() - go}")
-            # done = 0
-            while new_point_added:
-                new_point_added = False
-                # for member in _clusterdict[current][done:]:
-                for member in [
-                    added_point for added_point in _clusterdict[current]
-                    if any(include[neighbours[added_point]])
-                    ]:
-                    # Is the SortedList dangerous here?
-                    for neighbour in neighbours[member][include[neighbours[member]]]:
-                        common_neighbours = (
-                            set(neighbours[member])
-                            & set(neighbours[neighbour])
-                            )
-
-                        if len(common_neighbours) >= cnn_cutoff:
-                        # and (point in neighbours[neighbour])
-                        # and (neighbour in neighbours[point]):
-                            _clusterdict[current].add(neighbour)
-                            new_point_added = True
-                            _labels[neighbour] = current
-                            include[neighbour] = False
-
-                # done += 1
-            current += 1
-
-            if max_clusters is not None:
-                if current == max_clusters+1:
-                    enough = True
+        # Neighbourlist calculated?
+        if self.neighbours_present:
+            # With correct radius?
+            if self._neighbours.radius == radius_cutoff:
+                # fit "lookup"
+                self.fit_lookup(cnn_cutoff, max_clusters)
 
         # print(f"Clustering done: {time.time() - go}")
-
         clusters_no_noise = {
-            y: _clusterdict[y]
-            for y in _clusterdict if y != 0
+            y: self._clusterdict[y]
+            for y in self._clusterdict if y != 0
             }
 
         # print(f"Make clusters_no_noise copy: {time.time() - go}")
 
         too_small = [
-            _clusterdict.pop(y)
+            self._clusterdict.pop(y)
             for y in [x[0]
             for x in clusters_no_noise.items() if len(x[1]) <= member_cutoff]
             ]
 
         if len(too_small) > 0:
             for entry in too_small:
-                _clusterdict[0].update(entry)
+                self._clusterdict[0].update(entry)
 
-        for x in set(_labels):
-            if x not in set(_clusterdict):
-                _labels[_labels == x] = 0
+        for x in set(self._labels):
+            if x not in set(self._clusterdict):
+                self._labels[self._labels == x] = 0
 
         # print(f"Declared small clusters as noise: {time.time() - go}")
 
         if len(clusters_no_noise) == 0:
             largest = 0
         else:
-            largest = len(_clusterdict[1 + np.argmax([
+            largest = len(self._clusterdict[1 + np.argmax([
                 len(x)
                 for x in clusters_no_noise.values()
-                    ])]) / n_points
+                    ])]) / self.shape_str["points"][0]
 
         # print(f"Found largest cluster: {time.time() - go}")
 
-        self._clusterdict = _clusterdict
-        self._labels = _labels
+        self._clusterdict = self._clusterdict
+        self._labels = self._labels
         self.clean()
         self.labels2dict()
 
         # print(f"Updated state: {time.time() - go}")
         cresult = TypedDataFrame(
             self.record._fields,
-            self.__record_dtypes,
+            self._record_dtypes,
             content=[
-                [n_points],
+                [self.shape_str["points"][0]],
                 [radius_cutoff],
                 [cnn_cutoff],
                 [member_cutoff],
                 [max_clusters],
                 [len(self._clusterdict) -1],
                 [largest],
-                [len(self._clusterdict[0]) / n_points],
+                [len(self._clusterdict[0]) / self.shape_str["points"][0]],
                 [None],
                 ],
             )
@@ -871,6 +873,74 @@ children :                      {self.children_present}
         if rec:
             return(cresult)
         return
+
+    def fit_lookup(self, cnn_cutoff, max_clusters):
+        """Fit data when neighbour list has been already calculated
+
+        Args:
+        """
+
+        # Include array keeps track of assigned points
+        include = np.ones(self.shape_str["points"][0], dtype=bool)
+
+        # Exclude all points with less than n neighbours
+        include[np.where(
+            self._neighbours.n_neighbours < cnn_cutoff
+            )[0]] = False
+        # include[np.where(n_neighbours <= cnn_cutoff+1)[0]] = False
+
+        self._clusterdict = defaultdict(SortedList)
+        self._clusterdict[0].update(np.where(~include)[0])
+        self._labels = np.zeros(self.shape_str["points"][0]).astype(int)
+        current = 1
+
+        # print(f"Initialisation done: {time.time() - go}")
+
+        enough = False
+        while any(include) and not enough:
+            # find point with currently highest neighbour count
+            point = np.where(
+                (self._neighbours.n_neighbours == np.max(self._neighbours.n_neighbours[include]))
+                & include
+                )[0][0]
+
+            self._clusterdict[current].add(point)
+            new_point_added = True
+            self._labels[point] = current
+            include[point] = False
+            # print(f"Opened cluster {current}: {time.time() - go}")
+            # done = 0
+
+            while new_point_added:
+                new_point_added = False
+
+                for member in [
+                        added_point
+                        for added_point in self._clusterdict[current]
+                        if any(include[self._neighbours.neighbours[added_point]])
+                        ]:
+
+                    # Is the SortedList dangerous here?
+                    for neighbour in self._neighbours.neighbours[member][include[self._neighbours.neighbours[member]]]:
+                        common_neighbours = (
+                            set(self._neighbours.neighbours[member])
+                            & set(self._neighbours.neighbours[neighbour])
+                            )
+
+                        if len(common_neighbours) >= cnn_cutoff:
+                            # and (point in neighbours[neighbour])
+                            # and (neighbour in neighbours[point]):
+                            self._clusterdict[current].add(neighbour)
+                            new_point_added = True
+                            self._labels[neighbour] = current
+                            include[neighbour] = False
+
+                # done += 1
+            current += 1
+
+            if max_clusters is not None:
+                if current == max_clusters+1:
+                    enough = True
 
     def merge(self, clusters, which='labels'):
         """Merge a list of clusters into one"""
@@ -1327,20 +1397,21 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
     def evaluate(  # BROKEN
         self,
         ax: Optional[Type[mpl.axes.SubplotBase]] = None,
-        clusters: Optional[List[int]]=None,
-        original: bool=False, plot: str='dots',
-        parts: Optional[Tuple[Optional[int], Optional[int], Optional[int]]]=None,
-        points: Optional[Tuple[Optional[int], Optional[int], Optional[int]]]=None,
-        dim: Optional[Tuple[int, int]]=None,
-        ax_props: Optional[Dict]=None, annotate: bool=True,
-        annotate_pos: str="mean", annotate_props: Optional[Dict]=None,
-        scatter_props: Optional[Dict]=None,
-        scatter_noise_props: Optional[Dict]=None,
-        dot_props: Optional[Dict]=None,
-        dot_noise_props: Optional[Dict]=None,
-        hist_props: Optional[Dict]=None,
-        contour_props: Optional[Dict]=None,
-        free_energy: bool=True, mask = None,
+        clusters: Optional[List[int]] = None,
+        original: bool = False, plot: str = 'dots',
+        parts: Optional[Tuple[Optional[int]]] = None,
+        points: Optional[Tuple[Optional[int]]] = None,
+        dim: Optional[Tuple[int, int]] = None,
+        ax_props: Optional[Dict] = None, annotate: bool = True,
+        annotate_pos: str = "mean",
+        annotate_props: Optional[Dict] = None,
+        scatter_props: Optional[Dict] = None,
+        scatter_noise_props: Optional[Dict] = None,
+        dot_props: Optional[Dict] = None,
+        dot_noise_props: Optional[Dict] = None,
+        hist_props: Optional[Dict] = None,
+        contour_props: Optional[Dict] = None,
+        free_energy: bool = True, mask=None,
         threshold=None,
         ):
 
@@ -2085,7 +2156,6 @@ UserWarning
 
         return samples
 
-
     def get_dtraj(self):
         """Transform cluster labels to discrete trajectories
 
@@ -2095,7 +2165,7 @@ UserWarning
 
         _dtrajs = []
 
-        _shape = self.__shape
+        _shape = self._shape
         _labels = self._labels
 
         # TODO: Better use numpy split()?
@@ -2104,7 +2174,7 @@ UserWarning
             part_endpoint = part_startpoint \
                 + _shape['points'][part]
 
-            _dtrajs.append(_labels[part_startpoint : part_endpoint])
+            _dtrajs.append(_labels[part_startpoint: part_endpoint])
 
             part_startpoint = np.copy(part_endpoint)
 
