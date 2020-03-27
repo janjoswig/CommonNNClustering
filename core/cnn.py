@@ -318,7 +318,7 @@ class CNN:
 alias :                         {self.alias}
 hierachy level :                {self.hierarchy_level}
 
-train data shape :              Parts      - {self._shape_str["parts"]}
+data shape :                    Parts      - {self._shape_str["parts"]}
                                 Points     - {self._shape_str["points"]}
                                 Dimensions - {self._shape_str["dimensions"]}
 
@@ -438,55 +438,50 @@ children :                      {self.children_present}
             yield from ()
 
     @timed
-    def dist(self, mode='train',  v=True, method='cdist', mmap=False,
-             mmap_file=None, chunksize=10000, progress=True,):
-        """Computes a distance matrix (points x points) for points in given data
-        of standard shape (parts, points, dimensions)"""
+    def dist(
+            self, v: bool = True, method: str = 'cdist',
+            mmap: bool = False, mmap_file: Optional[str] = None,
+            chunksize: int = 10000, progress: bool = True):
+        """Computes a distance matrix (points x points)
 
-        if (self.__train is None) and (self.__test is not None):
-            print(
-                "No train data present, but test data found. Switching data."
-                 )
-            self.switch_data()
-        elif (self.__test is None) and (self.__train is None):
-            raise LookupError(
-                "Neither test nor train data present."
-                )
+        Accesses data points in given data of standard shape
+        (parts, points, dimensions)
+        Args:
+            v: Be chatty
 
-        if mode == 'train':
-            data = self.__train
-        elif mode == 'test':
-            data = self.__test
-        else:
-            raise ValueError(
-f"Mode {mode} not understood. Must be one of 'train' or 'test'."
-                )
+        """
+
+        if not self._data:
+            return
 
         progress = not progress
 
         if method == 'cdist':
-            points = np.vstack(data) # Data can not be streamed right now
+            points = np.vstack(self._data)
+            # Data can not be streamed right now
+
             if mmap:
                 if mmap_file is None:
                     mmap_file = tempfile.TemporaryFile()
 
                 len_ = len(points)
                 _distance_matrix = np.memmap(
-                            mmap_file,
-                            dtype=settings.float_precision_map[settings["float_precision"]],
-                            mode='w+',
-                            shape=(len_, len_),
-                            )
+                    mmap_file,
+                    dtype=settings.float_precision_map[
+                        settings["float_precision"]
+                        ],
+                    mode='w+',
+                    shape=(len_, len_),
+                    )
                 chunks = np.ceil(len_ / chunksize).astype(int)
                 for chunk in tqdm.tqdm(
-                    range(chunks), desc="Mapping",
-                    disable=progress, unit="Chunks", unit_scale=True,
-                    bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (
-                        colorama.Style.BRIGHT,
-                        colorama.Fore.BLUE,
-                        colorama.Fore.RESET
-                        )
-                    ):
+                        range(chunks), desc="Mapping",
+                        disable=progress, unit="Chunks", unit_scale=True,
+                        bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (
+                            colorama.Style.BRIGHT,
+                            colorama.Fore.BLUE,
+                            colorama.Fore.RESET
+                            )):
                     _distance_matrix[chunk*chunksize: (chunk+1)*chunksize] = cdist(
                         points[chunk*chunksize: (chunk+1)*chunksize], points
                         )
@@ -495,17 +490,17 @@ f"Mode {mode} not understood. Must be one of 'train' or 'test'."
 
         else:
             raise ValueError(
-f"Method {method} not understood. Must be one of 'cdist' or ... ."
-        )
+                f"Method {method} not understood."
+                "Currently implemented methods:\n"
+                "    'cdist'"
+                )
 
-        if mode == 'train':
-            self.__train_dist_matrix = _distance_matrix
-        elif mode == 'test':
-            self.__test_dist_matrix = _distance_matrix
+            self._dist_matrix = _distance_matrix
 
     @timed
-    def map(self, method='cdist', mmap=False,
-             mmap_file=None, chunksize=10000, progress=True): # nearest=None):
+    def map(  # BROKEN
+            self, method='cdist', mmap=False,
+            mmap_file=None, chunksize=10000, progress=True): # nearest=None):
         """Computes a map matrix that maps an arbitrary data set to a
         reduced to set"""
 
@@ -558,37 +553,40 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 self.__map_matrix = cdist(_test, _train)
 
         else:
-            raise ValueError(
-f"Method {method} not understood. Must be one of 'cdist' or ... ."
-        )
+            raise ValueError()
 
-    def dist_hist(self, ax=None, mode="train", maxima=False, maxima_props=None, hist_props=None,
-                  ax_props=None, inter_props=None, **kwargs):
-        """Shows/saves a histogram plot for distances in a given distance
-        matrix"""
+    def dist_hist(  # BROKEN
+            self, ax: Optional[Type[mpl.axes.SubplotBase]] = None,
+            maxima: bool = False,
+            maxima_props: Optional[Dict[str, Any]] = None,
+            hist_props: Optional[Dict[str, Any]] = None,
+            ax_props: Optional[Dict[str, Any]] = None,
+            inter_props: Optional[Dict[str, Any]] = None,
+            **kwargs):
+        """Make a histogram of distances in the data set
 
-    # TODO Add option for kernel density estimation
-    # (scipy.stats.gaussian_kde, statsmodels.nonparametric.kde)
+        Args:
+            ax: Axes to plot on. If None, Figure and Axes are created.
+            maxima: Whether to mark the maxima of the distribution.
+                Uses `scipy.signal.argrelextrema`.
+            maxima_props: Keyword arguments passed to
+                `scipy.signal.argrelextrema` if `maxima` is set
+                to True.
+            maxima_props: Keyword arguments passed to `numpy.histogram`
+                to compute the histogram.
+            ax_props: Keyword arguments passed to `ax.set` for styling.
+        """
 
-        if mode == 'train':
-            if self.train_dist_matrix is None:
-                print(
-"Train distance matrix not calculated. Calculating distance matrix."
+        # TODO Add option for kernel density estimation
+        # (scipy.stats.gaussian_kde, statsmodels.nonparametric.kde)
+
+        if self._dist_matrix is None:
+            print(
+                "Distance matrix not calculated."
+                "Calculating distance matrix."
                 )
-                self.dist(mode=mode, **kwargs)
-            _dist_matrix = self.train_dist_matrix
-
-        elif mode == 'test':
-            if self.test_dist_matrix is None:
-                print(
-"Test distance matrix not calculated. Calculating distance matrix."
-                )
-                self.dist(mode=mode, **kwargs)
-            _dist_matrix = self.test_dist_matrix
-        else:
-            raise ValueError(
-                "Mode not understood. Must be either 'train' or 'test'."
-            )
+            self.dist(mode=mode, **kwargs)
+        _dist_matrix = self._dist_matrix
 
         # TODO make this a configuation option
         hist_props_defaults = {
@@ -691,11 +689,13 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
             cnn_offset: int = None,
             rec: bool = True, v=True
             ) -> Optional[pd.DataFrame]:
-        """Performs a CNN clustering of points in a given train
-        distance matrix"""
+        """Executes the CNN clustering
+
+        """
         # go = time.time()
         # print("Function called")
 
+        # TODO: Refactor DRY
         if radius_cutoff is None:
             radius_cutoff = float(
                 settings.get(
@@ -728,27 +728,19 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         cnn_cutoff -= cnn_offset
         assert cnn_cutoff >= 0
 
-        if (self.__train is None) and (self.__test is not None):
-            print(
-                "No train data present, but test data found. Switching data."
-                 )
-            self.switch_data()
-        elif (self.__test is None) and (self.__train is None):
-            raise LookupError(
-                "Neither test nor train data present."
-                )
-
-        if self.__train_dist_matrix is None:
+        if self._dist_matrix is None:
             self.dist()
 
         # print(f"Data checked: {time.time() - go}")
 
-        n_points = len(self.__train_dist_matrix)
+        n_points = len(self._dist_matrix)
+
         # calculate neighbour list
         neighbours = np.asarray([
             np.where((x > 0) & (x < radius_cutoff))[0]
-            for x in self.__train_dist_matrix
+            for x in self._dist_matrix
             ])
+
         n_neighbours = np.asarray([len(x) for x in neighbours])
         include = np.ones(len(neighbours), dtype=bool)
         include[np.where(n_neighbours < cnn_cutoff)[0]] = False
@@ -840,8 +832,8 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
 
         # print(f"Found largest cluster: {time.time() - go}")
 
-        self.train_clusterdict = _clusterdict
-        self.train_labels = _labels
+        self._clusterdict = _clusterdict
+        self._labels = _labels
         self.clean()
         self.labels2dict()
 
@@ -855,35 +847,38 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
                 [cnn_cutoff],
                 [member_cutoff],
                 [max_clusters],
-                [len(self.__train_clusterdict) -1],
+                [len(self._clusterdict) -1],
                 [largest],
-                [len(self.__train_clusterdict[0]) / n_points],
+                [len(self._clusterdict[0]) / n_points],
                 [None],
                 ],
             )
 
         if v:
+            print("\n" + "-"*72)
             print(
-"\n--------------------------------------------------------------------------------"
-            )
-            print(cresult[list(self.record._fields)[:-1]].to_string(
-                na_rep="None", index=False, line_width=80,
-                header=["  #points  ", "  R  ", "  N  ", "  M  ",
-                        "  max  ", "  #clusters  ", "  %largest  ", "  %noise  "],
-                justify="center"
-                ))
-            print(
-"--------------------------------------------------------------------------------"
-            )
+                cresult[list(self.record._fields)[:-1]].to_string(
+                    na_rep="None", index=False, line_width=80,
+                    header=[
+                        "  #points  ", "  R  ", "  N  ", "  M  ",
+                        "  max  ", "  #clusters  ", "  %largest  ",
+                        "  %noise  "
+                        ],
+                    justify="center"
+                    ))
+            print("-"*72)
 
         if rec:
             return(cresult)
         return
 
-    def merge(self, clusters, mode='train', which='labels'):
+    def merge(self, clusters, which='labels'):
         """Merge a list of clusters into one"""
+
         if len(clusters) < 2:
-            raise ValueError("List of cluster needs to habe at least 2 elements")
+            raise ValueError(
+                "List of cluster needs to habe at least 2 elements"
+                )
 
         if not isinstance(clusters, list):
             clusters = list(clusters)
@@ -892,110 +887,92 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
         base = clusters[0]
 
         if which == "labels":
-            if mode == 'train':
-                _labels = self.__train_labels
-            elif mode == 'test':
-                _labels = self.__test_labels
-            else:
-                raise ValueError(f'Mode "{mode}" not understood')
+            _labels = self._labels
 
             for add in clusters[1:]:
                 _labels[_labels == add] = base
 
-            if mode == 'train':
-                self.__train_labels = _labels
-            elif mode == 'test':
-                self.__test_labels = _labels
+            self._labels = _labels
 
-            self.clean(mode=mode)
-            self.labels2dict(mode=mode)
+            self.clean()
+            self.labels2dict()
 
         elif which == "dict":
             raise NotImplementedError()
 
-            if mode == 'train':
-                dict_ = self.__train_clusterdict
-            elif mode == 'test':
-                dict_ = self.__test_clusterdict
-                warnings.warn('Mode "test" not fully functional now' , UserWarning)
-            else:
-                raise ValueError(f'Mode "{mode}" not understood')
+            dict_ = self._clusterdict
 
             for add in clusters[1:]:
                 dict_[base].update(dict_[add])
                 del dict_[add]
 
-            self.clean(mode=mode)
-            self.dict2labels(mode=mode)
+            self.clean()
+            self.dict2labels()
 
         else:
             raise ValueError()
 
         return
 
-    def trash(self, clusters, mode='train', which='labels'):
+    def trash(self, clusters, which='labels'):
         """Merge a list of clusters into noise"""
 
         if which == "labels":
-            if mode == 'train':
-                _labels = self.__train_labels
-            elif mode == 'test':
-                _labels = self.__test_labels
-            else:
-                raise ValueError(f'Mode "{mode}" not understood')
+            _labels = self._labels
 
             for add in clusters:
                 _labels[_labels == add] = 0
 
-            if mode == 'train':
-                self.__train_labels = _labels
-            elif mode == 'test':
-                self.__test_labels = _labels
+            self._labels = _labels
 
-            self.clean(mode=mode)
-            self.labels2dict(mode=mode)
+            self.clean()
+            self.labels2dict()
 
         elif which == "dict":
             raise NotImplementedError()
 
-            if mode == 'train':
-                dict_ = self.__train_clusterdict
-            elif mode == 'test':
-                dict_ = self.__train_clusterdict
-                warnings.warn('Mode "test" not fully functional now' , UserWarning)
-            else:
-                raise ValueError(f'Mode "{mode}" not understood')
-
+            dict_ = self._clusterdict
 
             for cluster in clusters:
                 dict_[0].update(dict_[cluster])
                 del dict_[cluster]
 
-            self.clean(mode=mode)
-            self.dict2labels(mode=mode)
+            self.clean()
+            self.dict2labels()
 
         else:
             raise ValueError()
 
+    def kdtree(self, **kwargs):
+        """Wrapper for `scipy.spatial.cKDTree`
 
-    def kdtree(self, mode="train", **kwargs):
-        """CNN.method wrapper for scipy.spatial.cKDTree
+        Sets CNN._tree.
+
+        Args:
+            **kwargs: Passed to `scipy.spatial.cKDTree`
         """
-        if mode == "train":
-            self.__train_tree = cKDTree(np.vstack(self.__train), **kwargs)
-        elif mode == "test":
-            self.__test_tree = cKDTree(np.vstack(self.__test), **kwargs)
+
+        self._tree = cKDTree(np.vstack(self._data), **kwargs)
 
     @staticmethod
-    def get_neighbours(a: Type[np.ndarray], B: Type[np.ndarray],
-                       r: float) -> List[int]:
-        """Returns a list of indeces of points in B that are neighbours
-        of a within radius r."""
+    def get_neighbours(
+            a: Type[np.ndarray], B: Type[np.ndarray],
+            r: float) -> List[int]:
+        """Compute neighbours of a point by (squared) distance
+
+        Args:
+            a: Point in *n* dimensions; shape (n,)
+            B: *m* Points *n* dimensions; shape (m, n)
+            r: squared distance cut-off
+        Returns:
+            Array of indices of points in `B` that are neighbours
+            of `a` within `r`."""
+
         # r = r**2
         return np.where(np.sum((B - a)**2, axis=1) < r)[0]
 
     @timed
-    def predict(
+    def predict(  # BROKEN
             self, radius_cutoff: Optional[float] = None,
             cnn_cutoff: Optional[int] = None,
             member_cutoff: Optional[int] = None,
@@ -1004,7 +981,6 @@ f"Method {method} not understood. Must be one of 'cdist' or ... ."
             cnn_offset: Optional[int] = None, behaviour="lookup",
             method='plain', progress=True, **kwargs
             ) -> None:
-
         """
         Predict labels for points in a test set on the basis of assigned
         labels to a train set by :meth:`CNN.fit`
@@ -1303,57 +1279,55 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
             self.__memory_assigned[np.where(self.__test_labels > 0)[0]] = False
 
     @staticmethod
-    def check_similarity(a: List[int], b: List[int], c: int) -> bool:
-        """Returns True if list a and list b have at least c common elements
+    def check_similarity(a: Sequence[int], b: Sequence[int], c: int) -> bool:
+        """Check if similarity criterion is fulfilled.
+
+        Args:
+            a: Sequence of point indices
+            b: Sequence of point indices
+            c: Similarity cut-off
+
+        Returns:
+            True if list `a` and list `b` have at least `c` common
+            elements
         """
-        # Overlapping train and test sets
-        #  if len(set(a).intersection(b)) - 1 >= c:
+
         if len(set(a).intersection(b)) >= c:
             return True
+        return False
 
     @staticmethod
-    def check_similarity_array(a: Type[np.ndarray], b: Type[np.ndarray], c: int) -> bool:
-        """Returns True if list a and list b have at least c common elements
+    def check_similarity_array(
+            a: Type[np.ndarray], b: Type[np.ndarray], c: int) -> bool:
+        """Check if similarity criterion is fulfilled for NumPy arrays.
+
+        Args:
+            a: Array of point indices
+            b: Array of point indices
+            c: Similarity cut-off
+
+        Returns:
+            True if array `a` and array `b` have at least `c` common
+            elements
         """
-        # Overlapping train and test sets
-        #  if len(np.intersect1d(a, b, assume_unique=True)) - 1 >= c:
+
         if len(np.intersect1d(a, b, assume_unique=True)) >= c:
             return True
+        return False
 
-    def query_data(self, mode='train'):
-        """Helper function to evaluate user input. If data is required as
-        keyword argument and data=None is passed, the default data used is
-        either self.rdata or self.data."""
+    def query_data(self):  # BROKEN
+        """Helper function to evaluate user input.
 
-        if mode == 'train':
-            if self.train is not None:
-                _data = self.train
-                _shape = self.train_shape
-            elif self.test is None:
-                raise LookupError(
-                    "No data available"
-                    )
-            else:
-                _data = self.test
-                _shape = self.test_shape
-        elif mode == 'test':
-            if self.test is not None:
-                _data = self.test
-                _shape = self.test_shape
-            elif self.train is None:
-                raise LookupError(
-                    "No data available"
-                    )
-            else:
-                _data = self.train
-                _shape = self.train_shape
+        If data is required sort out in which form it is present and
+        return the needed shape.
+        """
 
-        return _data, _shape
+        return
 
-    def evaluate(
+    def evaluate(  # BROKEN
         self,
         ax: Optional[Type[mpl.axes.SubplotBase]] = None,
-        mode: str='train', clusters: Optional[List[int]]=None,
+        clusters: Optional[List[int]]=None,
         original: bool=False, plot: str='dots',
         parts: Optional[Tuple[Optional[int], Optional[int], Optional[int]]]=None,
         points: Optional[Tuple[Optional[int], Optional[int], Optional[int]]]=None,
@@ -1376,9 +1350,6 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
             ax: matplotlib.axes._subplots.AxesSubplot, default=None
                 The axes to which to add the plot.  If None, a new figure
                 with axes will be created.
-
-            mode: str, default="train"
-                Which data ("train" or "test") to use for this plot
 
             clusters : List[int], default=None
                 Cluster numbers to include in the plot.  If None, consider
@@ -1464,23 +1435,12 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         if mask is not None:
             _data = _data[np.asarray(mask)]
 
-        if mode == 'train':
-            try:
-                items = self.__train_clusterdict.items()
-                if clusters is None:
-                    clusters = list(range(len( items )))
-            except AttributeError:
-                original = True
-
-        elif mode == 'test':
-            try:
-                items = self.__test_clusterdict.items()
-                if clusters is None:
-                    clusters = list(range(len( items )))
-            except AttributeError:
-                original = True
-        else:
-            raise ValueError()
+        try:
+            items = self._clusterdict.items()
+            if clusters is None:
+                clusters = list(range(len( items )))
+        except AttributeError:
+            original = True
 
         # TODO make this a configuation option
         ax_props_defaults = {
@@ -1832,93 +1792,92 @@ UserWarning
 
         return fig, ax, plotted
 
-    def isolate(self, mode='train', purge=True):
+    def isolate(self, purge=True):
         """Isolates points per clusters based on a cluster result"""
 
-        if mode == 'train':
-            if purge or self.__train_children is None:
-                self.__train_children = defaultdict(lambda: CNNChild(self))
+        if purge or self._children is None:
+            self._children = defaultdict(lambda: CNNChild(self))
 
-            for key, _cluster in  self.__train_clusterdict.items():
-                # TODO: What if no noise?
-                if len(_cluster) > 0:
-                    _cluster = np.asarray(_cluster)
-                    ref_index = []
-                    ref_index_rel = []
-                    cluster_data = []
-                    part_startpoint = 0
+        for key, _cluster in  self._clusterdict.items():
+            # TODO: What if no noise?
+            if len(_cluster) > 0:
+                _cluster = np.asarray(_cluster)
+                ref_index = []
+                ref_index_rel = []
+                cluster_data = []
+                part_startpoint = 0
 
-                    if self.__train_refindex is None:
-                        ref_index.extend(_cluster)
-                        ref_index_rel = ref_index
-                    else:
-                        ref_index.extend(self.__train_refindex[_cluster])
-                        ref_index_rel.extend(_cluster)
+                if self._refindex is None:
+                    ref_index.extend(_cluster)
+                    ref_index_rel = ref_index
+                else:
+                    ref_index.extend(self._refindex[_cluster])
+                    ref_index_rel.extend(_cluster)
 
-                    for part in range(self.__train_shape['parts']):
-                        part_endpoint = part_startpoint \
-                            + self.__train_shape['points'][part] -1
+                for part in range(self._shape['parts']):
+                    part_endpoint = part_startpoint \
+                        + self._shape['points'][part] -1
 
-                        cluster_data.append(
-                            self.__train[part][_cluster[
-                                np.where(
-                                    (_cluster
-                                    >= part_startpoint)
-                                    &
-                                    (_cluster
-                                    <= part_endpoint))[0]] - part_startpoint]
-                                )
-                        part_startpoint = np.copy(part_endpoint)
-                        part_startpoint += 1
+                    cluster_data.append(
+                        self._data[part][_cluster[
+                            np.where(
+                                (_cluster
+                                >= part_startpoint)
+                                &
+                                (_cluster
+                                <= part_endpoint))[0]] - part_startpoint]
+                            )
+                    part_startpoint = np.copy(part_endpoint)
+                    part_startpoint += 1
 
-                    self.__train_children[key].alias = f'child No. {key}'
-                    self.__train_children[key].__train, \
-                    self.__train_children[key].__train_shape = \
-                    self.__train_children[key].get_shape(cluster_data)
-                    self.__train_children[key].__train_refindex = np.asarray(
-                                                                       ref_index
-                                                                       )
-                    self.__train_children[key].__train_refindex_rel = np.asarray(
-                                                                       ref_index_rel
-                                                                       )
-        else:
-            raise NotImplementedError()
+                self._children[key].alias = f'child No. {key}'
+                self._children[key]._data, \
+                self._children[key]._shape = \
+                self._children[key].get_shape(cluster_data)
+                self._children[key]._refindex = np.asarray(ref_index)
+                self._children[key]._refindex_rel = np.asarray(ref_index_rel)
+        return
 
+    def reel(self, deep: int=1):
+        """Wrap up assigments of lower hierarchy levels
 
-    def reel(self, deep=1):
-        if self.__train_children is None:
+        Args:
+            deep: How many lower levels to consider.
+        """
+
+        if self._children is None:
             raise LookupError(
                 "No child clusters isolated"
                              )
         # TODO: Implement "deep" for degree of decent into hierarchy structure
 
-        for _cluster in self.__train_children.values():
-            n_clusters = max(self.__train_clusterdict)
-            if _cluster.__train_labels is not None:
+        for _cluster in self._children.values():
+            n_clusters = max(self._clusterdict)
+            if _cluster._labels is not None:
                 if self.hierarchy_level == 0:
-                    self.__train_labels[
-                    _cluster.__train_refindex[
-                        np.where(_cluster.__train_labels == 0)[0]
+                    self._labels[
+                    _cluster._refindex[
+                        np.where(_cluster._labels == 0)[0]
                         ]
                     ] = 0
                 else:
-                    self.__train_labels[
-                    _cluster.__train_refindex_rel[
-                        np.where(_cluster.__train_labels == 0)[0]
+                    self._labels[
+                    _cluster._refindex_rel[
+                        np.where(_cluster._labels == 0)[0]
                         ]
                     ] = 0
 
-                for _label in _cluster.__train_labels[_cluster.__train_labels > 1]:
+                for _label in _cluster._labels[_cluster._labels > 1]:
                     if self.hierarchy_level == 0:
-                        self.__train_labels[
-                        _cluster.__train_refindex[
-                            np.where(_cluster.__train_labels == _label)[0]
+                        self._labels[
+                        _cluster._refindex[
+                            np.where(_cluster._labels == _label)[0]
                             ]
                         ] = _label + n_clusters
                     else:
-                        self.__train_labels[
-                        _cluster.__train_refindex_rel[
-                            np.where(_cluster.__train_labels == _label)[0]
+                        self._labels[
+                        _cluster._refindex_rel[
+                            np.where(_cluster._labels == _label)[0]
                             ]
                         ] = _label + n_clusters
 
@@ -1938,14 +1897,14 @@ UserWarning
             if not level in pieces:
                 pieces[level] = {}
 
-            if c.train_clusterdict:
-                ring = {k: len(v) for k, v in c.train_clusterdict.items()}
+            if c._clusterdict:
+                ring = {k: len(v) for k, v in c._clusterdict.items()}
                 ringsum = np.sum(list(ring.values()))
                 ring = {k: v/ringsum for k, v in ring.items()}
                 pieces[level][ref] = ring
 
-                if c.train_children:
-                    for number, child in c.train_children.items():
+                if c._children:
+                    for number, child in c._children.items():
                         getpieces(
                             child,
                             pieces=pieces,
@@ -1995,14 +1954,9 @@ UserWarning
             ax.pie(ringvalues, radius=radius + i*size, colors=None,
             wedgeprops=dict(width=size, edgecolor='w'))
 
-    def clean(self, which='labels', mode='train'):
+    def clean(self, which='labels'):
         if which == 'labels':
-            if mode == 'train':
-                _labels = self.__train_labels
-            elif mode == 'test':
-                _labels = self.__test_labels
-            else:
-                raise ValueError()
+            _labels = self._labels
 
             # fixing  missing labels
             n_clusters = len(set(_labels))
@@ -2024,77 +1978,60 @@ UserWarning
                     np.where(_labels == old_label)
                     ] = new_label
 
-            if mode == 'train':
-                self.__train_labels = proxy_labels
-            elif mode == 'test':
-                self.__test_labels = proxy_labels
+            self._labels = proxy_labels
 
         elif which == 'dict':
             raise NotImplementedError()
         else:
             raise ValueError()
 
-    def labels2dict(self, mode='train'):
-        if mode == 'train':
-            self.__train_clusterdict = defaultdict(SortedList)
-            for _cluster in range(np.max(self.__train_labels) +1):
-                self.__train_clusterdict[_cluster].update(
-                    np.where(self.__train_labels == _cluster)[0]
-                    )
+    def labels2dict(self):
+        """Convert labels to cluster dictionary
+        """
 
-                """
-                if self.train_refindex is None:
-                    self.train_clusterdict[_cluster].extend(
-                        np.where(self.train_labels == _cluster)[0]
-                        )
-                else:
-                    self.train_clusterdict[_cluster].extend(
-                        self.train_refindex[
-                        np.where(self.train_labels == _cluster)[0]
-                        ])
-                """
-        elif mode == 'test':
-            self.__test_clusterdict = defaultdict(SortedList)
-            for _cluster in range(np.max(self.__test_labels) +1):
-                self.__test_clusterdict[_cluster].update(
-                    np.where(self.__test_labels == _cluster)[0]
-                    )
-        else:
-            raise NotImplementedError()
-
-    def dict2labels(self, mode='train'):
-        if mode == 'train':
-            self.__train_labels = np.zeros(
-                np.sum(len(x) for x in self.__train_clusterdict.values())
+        self._clusterdict = defaultdict(SortedList)
+        for _cluster in range(np.max(self._labels) +1):
+            self._clusterdict[_cluster].update(
+                np.where(self._labels == _cluster)[0]
                 )
 
-            for key, value in self.__train_clusterdict.items():
-                self.__train_labels[value] = key
-                """
-                if self.train_refindex is None:
-                    self.train_labels[value] = key
-                else:
-                    self.train_labels[self.train_refindex[value]] = key
-                """
-        else:
-            raise NotImplementedError()
+    def dict2labels(self):
+        """Convert cluster dictionary to labels
+        """
+
+        self._labels = np.zeros(
+            np.sum(len(x) for x in self._clusterdict.values())
+            )
+
+        for key, value in self._clusterdict.items():
+                self._labels[value] = key
 
 
-    def get_samples(self, mode='train', kind='mean', clusters=None,
-                    n_samples=1, byparts=True, skip=1, stride=1):
-        if clusters is None:
-            clusters = list(range(1, len()))
+    def get_samples(
+            self, kind: str = 'mean', clusters: Optional[List[int]] = None,
+            n_samples: int = 1, byparts: bool = True,
+            skip: int = 0, stride: int = 1) -> Dict[int, List[int]]:
+        """Select sample points from clusters
 
-        if mode == 'train':
-            dict_ = self.__train_clusterdict
-            _data = np.vstack(self.__train)
-            _shape = self.__train_shape
-        elif mode == 'test':
-            dict_ = self.__test_clusterdict
-            _data = np.vstack(self.__test)
-            _shape = self.__test_shape
-        else:
-            raise ValueError()
+        Args:
+            kind: How to choose the samples
+                * "mean":
+                * "random":
+                * "all":
+            clusters: List of cluster numbers to consider
+            n_samples: How many samples to return
+            byparts: Return point indices as list of lists by parts
+            skip: Skip the first *n* frames
+            stride: Take only every *n*th frame
+
+        Returns:
+            Samples -- Dictionary of sample point indices as list for
+                each cluster
+        """
+
+        dict_ = self._clusterdict
+        _data = np.vstack(self._data)
+        _shape = self._shape
 
         if clusters is None:
             clusters = list(range(1, len(dict_)+1))
@@ -2149,17 +2086,17 @@ UserWarning
         return samples
 
 
-    def get_dtraj(self, mode='train'):
+    def get_dtraj(self):
+        """Transform cluster labels to discrete trajectories
+
+        Returns:
+            [type]: [description]
+        """
+
         _dtrajs = []
 
-        if mode == 'train':
-            _shape = self.__train_shape
-            _labels = self.__train_labels
-        elif mode == 'test':
-            _shape = self.__test_shape
-            _labels = self.__test_labels
-        else:
-            raise ValueError()
+        _shape = self.__shape
+        _labels = self._labels
 
         # TODO: Better use numpy split()?
         part_startpoint = 0
@@ -2173,6 +2110,7 @@ UserWarning
 
         return _dtrajs
 
+
 class CNNChild(CNN):
     """CNN cluster object subclass. Increments the hierarchy level of
     the parent object when instanciated."""
@@ -2183,7 +2121,8 @@ class CNNChild(CNN):
         self.alias = alias
 
 
-def get_histogram(x: Sequence[float], y: Sequence[float],
+def get_histogram(
+        x: Sequence[float], y: Sequence[float],
         mids: bool = True, mass: bool = True,
         avoid_zero_count: bool = True,
         hist_props: Optional[Dict['str', Any]] = None
@@ -2247,13 +2186,23 @@ def TypedDataFrame(columns, dtypes, content=None, index=None):
 
     return df
 
-def dist(data):
-    """High level wrapper function for cnn.CNN().dist(). Takes data and
-    returns a distance matrix (points x points).
+
+def dist(data: Any):
+    """High level wrapper function for :meth:`CNN.dist`.
+
+    A :class:`CNN` instance is created with the given data.
+
+    Args:
+        data: Points
+
+    Returns:
+        Distance matrix (points x points).
     """
-    cobj = CNN(train=data)
+
+    cobj = CNN(data=data)
     cobj.dist()
-    return cobj.train_dist_matrix
+
+    return cobj._dist_matrix
 
 
 class MetaSettings(type):
