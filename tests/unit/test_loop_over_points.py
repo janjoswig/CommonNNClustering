@@ -1,6 +1,6 @@
 import pytest
 
-
+@pytest.mark.skip(reason="Obsolete: data representation changed")
 class TestLoops:
     def test_loop_over_no_points(self, empty_cobj):
         point_iterator = empty_cobj.loop_over_points()

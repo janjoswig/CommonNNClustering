@@ -107,6 +107,9 @@ class Neighbours:
         self.radius = radius
         self._n_neighbours = None
 
+    def __str__(self):
+        return self.neighbours.__str__()
+
     @property
     def n_neighbours(self):
         if self._n_neighbours is None:
@@ -115,6 +118,88 @@ class Neighbours:
                 for x in self.neighbours
                 ]
         return self._n_neighbours
+
+
+class Data:
+    """Data points"""
+
+    def __init__(self, data):
+        self.data = data
+
+    def __str__(self):
+        return self.data.__str__()
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, x):
+        self._data, self._shape = self.get_shape(x)
+
+    @property
+    def shape(self):
+        return self._shape
+
+    @staticmethod
+    def get_shape(data: Any):
+        """Maintain data in universal shape
+
+        Analyses the format of given data and fits it into the standard
+        format (parts, points, dimensions).  Creates a
+        :obj:`numpy.ndarray` vstacked along the parts componenent.
+
+        Args:
+            data: Either None or
+                * a 1D sequence of length x,
+                    interpreted as 1 point in x dimension
+                * a 2D sequence of length x (rows) times y (columns),
+                    interpreted as x points in y dimension
+                * a list of 2D sequences,
+                    interpreted as groups (parts) of points
+
+        Returns:
+            data -- A numpy.ndarray of shape
+                (sum points, dimension)
+            shape -- Dictionary
+                * "parts": Number of parts
+                * "points": List of number of points per part
+                * "dimensions": Number of dimensions
+        """
+
+        if data is None:
+            return None, {
+                'parts': None,
+                'points': None,
+                'dimensions': None,
+                }
+        else:
+            data_shape = np.shape(data[0])
+            # raises a type error if data is not subscriptable
+            if np.shape(data_shape)[0] == 0:
+                # 1D Sequence passed
+                data = [np.array([data])]
+
+            elif np.shape(data_shape)[0] == 1:
+                # 2D Sequence of sequences passed
+                data = [np.asarray(data)]
+
+            elif np.shape(data_shape)[0] == 2:
+                # Sequence of 2D sequences of sequences passed
+                data = [np.asarray(x) for x in data]
+
+            else:
+                raise ValueError(
+                    f"Data shape {data_shape} not allowed"
+                    )
+
+            shape = {
+                'parts': np.shape(data)[0],
+                'points': [np.shape(x)[0] for x in data],
+                'dimensions': np.unique([np.shape(x)[1] for x in data])[0],
+                }
+
+            return np.vstack(data), shape
 
 
 class CNN:
@@ -159,7 +244,8 @@ class CNN:
             ]
 
         self.data = data
-        # Sends data through setter; Sets self._data and self._shape
+        # Sends data through setter
+        # Sets self._data as instance of Data
 
         self.consider = None  # TODO: Implement consider array
         self._dist_matrix = dist_matrix
@@ -192,8 +278,7 @@ class CNN:
 
     @data.setter
     def data(self, x):
-        # TODO control string, array, hdf5 file object handling
-        self._data, self._shape = self.get_shape(x)
+        self._data = Data(x)
 
     @property
     def dist_matrix(self):
@@ -203,14 +288,6 @@ class CNN:
     def dist_matrix(self, x):
         # TODO control string, array, hdf5 file object handling
         self._dist_matrix = x
-
-    @property
-    def shape(self):
-        return self._shape
-
-    @shape.setter
-    def shape(self, s):
-        self._shape = s
 
     @property
     def clusterdict(self):
@@ -255,60 +332,6 @@ class CNN:
     @property
     def refindex_rel(self):
         return self._refindex_rel
-
-    @staticmethod
-    def get_shape(data: Any):
-        """Maintain data in universal shape
-
-        Analyses the format of given data and fits it into standard
-        format (parts, points, dimensions).
-
-        Args:
-            data: Either None or
-                * a 1D sequence of length x,
-                    interpreted as 1 point in x dimension
-                * a 2D sequence of length x (rows) times y (columns),
-                    interpreted as x points in y dimension
-                * a list of 2D sequences,
-                    interpreted as groups of points
-
-        Returns:
-            data -- A numpy.ndarray of shape
-                (parts, points, dimension)
-            shape -- Dictionary
-        """
-
-        if data is None:
-            return None, {
-                'parts': None,
-                'points': None,
-                'dimensions': None,
-                }
-        else:
-            data_shape = np.shape(data[0])
-            # raises a type error if data is not subscriptable
-            if np.shape(data_shape)[0] == 0:
-                # 1D Sequence passed
-                data = np.array([[data]])
-
-            elif np.shape(data_shape)[0] == 1:
-                # 2D Sequence of sequences passed
-                data = np.array([data])
-
-            elif np.shape(data_shape)[0] == 2:
-                # Sequence of 2D sequences of sequences passed
-                data = np.array([np.asarray(x) for x in data])
-
-            else:
-                raise ValueError(
-                    f"Data shape {data_shape} not allowed"
-                    )
-
-            return data, {
-                'parts': np.shape(data)[0],
-                'points': [np.shape(x)[0] for x in data],
-                'dimensions': np.unique([np.shape(x)[1] for x in data])[0],
-                }
 
     def check(self):
         """Check the state of the :class:`CNN` instance object"""
