@@ -14,7 +14,7 @@ git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
 """
 
 
-from collections import defaultdict, namedtuple
+from collections import defaultdict, namedtuple, deque
 from functools import wraps
 import pickle
 from pathlib import Path
@@ -22,7 +22,7 @@ import random
 import tempfile
 import time
 import warnings
-from typing import Dict, List, Sequence, Tuple
+from typing import Dict, List, Set, Sequence, Tuple
 from typing import Any, Iterable, Iterator, Optional, Type, Union
 
 import colorama
@@ -110,10 +110,10 @@ class Neighbours:
     @property
     def n_neighbours(self):
         if self._n_neighbours is None:
-            self._n_neighbours = np.asarray([
+            self._n_neighbours = [
                 len(x)
                 for x in self.neighbours
-                ])
+                ]
         return self._n_neighbours
 
 
@@ -552,10 +552,10 @@ children :                      {self.children_present}
             None
         """
 
-        neighbours = np.asarray([
-            np.where((x > 0) & (x < r))[0]
+        neighbours = [
+            set(np.where((x > 0) & (x < r))[0])
             for x in self._dist_matrix
-            ])
+            ]
 
         self._neighbours = Neighbours(neighbours, r)
 
@@ -749,43 +749,24 @@ children :                      {self.children_present}
             member_cutoff: int = None,
             max_clusters: Optional[int] = None,
             cnn_offset: int = None,
-            rec: bool = True, v=True
+            rec: bool = True, v=True,
+            method="n",
             ) -> Optional[pd.DataFrame]:
         """Executes the CNN clustering
 
         """
-        # go = time.time()
-        # print("Function called")
 
-        # TODO: Refactor DRY
-        if radius_cutoff is None:
-            radius_cutoff = float(
-                settings.get(
-                    'default_radius_cutoff',
-                    settings.defaults.get('default_radius_cutoff')
+        # Set params
+        params = [(radius_cutoff, 'default_radius_cutoff'),
+                  (cnn_cutoff, 'default_cnn_cutoff'),
+                  (member_cutoff, 'default_member_cutoff'),
+                  (cnn_offset, 'default_cnn_offset')]
+
+        for param, option in params:
+            if param is None:
+                param = settings.get(
+                    option, settings.defaults.get(option)
                     )
-                )
-        if cnn_cutoff is None:
-            cnn_cutoff = int(
-                settings.get(
-                    'default_cnn_cutoff',
-                    settings.defaults.get('default_cnn_cutoff')
-                    )
-                )
-        if member_cutoff is None:
-            member_cutoff = int(
-                settings.get(
-                    'default_member_cutoff',
-                    settings.defaults.get('default_member_cutoff')
-                    )
-                )
-        if cnn_offset is None:
-            cnn_offset = int(
-                settings.get(
-                    'default_cnn_offset',
-                    settings.defaults.get('default_cnn_offset')
-                    )
-                )
 
         cnn_cutoff -= cnn_offset
         assert cnn_cutoff >= 0
@@ -794,11 +775,28 @@ children :                      {self.children_present}
         self.check()
 
         # Neighbourlist calculated?
-        if self.neighbours_present:
-            # With correct radius?
-            if self._neighbours.radius == radius_cutoff:
-                # fit "lookup"
-                self.fit_lookup(cnn_cutoff, max_clusters)
+        try:
+            assert self._neighbours.radius == radius_cutoff
+        except (AttributeError, AssertionError):
+            # No or not the right neighbour list present
+            pass
+        else:
+            # Neighbourlist for right radius present
+            self.fit_lookup(cnn_cutoff, max_clusters)
+
+        if self.dist_matrix_present:
+            # TODO: Progressiv/conservative?
+            pass
+        else:
+            {
+                'n': lambda: self.fit_fromscratch(
+                    radius_cutoff, cnn_cutoff, max_clusters
+                    ),
+            }.get(
+                method,
+                f"Unknown filename extension .{extension}"
+                )()
+
 
         # print(f"Clustering done: {time.time() - go}")
         clusters_no_noise = {
@@ -874,6 +872,62 @@ children :                      {self.children_present}
             return(cresult)
         return
 
+    def fit_generic(
+            self, radius_cutoff, cnn_cutoff, max_clusters,
+            get_neighbours) -> None:
+        """Worker function applying the CNN algorithm.
+
+        This function is called from within :meth:`CNN.fit` with the
+        correct signature.  Assigns cluster labels to
+        :attr:`CNN.labels`.
+
+        Args:
+            radius_cutoff: [description]
+            cnn_cutoff: [description]
+            max_clusters: [description]
+            get_neighbours: Function to retrieve neighbour lists
+
+        Returns:
+            None
+        """
+
+        # Reset labels
+        self._labels = [0 for _ in range(self.shape_str["points"][0])]
+
+        # Track assigment
+        include = [True for _ in range(self.shape_str["points"][0])]
+
+        # Start with first cluster (0 = noise)
+        current = 1
+
+        # Initialise queue of points to scan
+        queue = deque()
+
+        while any(include):
+            point = include.index(True)      # Pick starting point
+            self._labels[point] = current    # Assign cluster label
+            include[point] = False           # Mark point as included
+            queue.append(point)              # add point to queue
+
+            while queue:
+                point = queue.popleft()  # FIFO
+
+                # Loop over neighbouring points
+                neighbours = get_neighbours(point)
+                for member in neighbours:
+                    if not include[member]:
+                        # Point already assigned
+                        continue
+
+                    # conditional growth
+                    if self.check_similarity_set(
+                            neighbours, get_neighbours(member), cnn_cutoff):
+                        self._labels[member] = current
+                        include[member] = False
+                        queue.append(member)
+
+            current += 1
+
     def fit_lookup(self, cnn_cutoff, max_clusters):
         """Fit data when neighbour list has been already calculated
 
@@ -941,6 +995,23 @@ children :                      {self.children_present}
             if max_clusters is not None:
                 if current == max_clusters+1:
                     enough = True
+
+    def get_neighbours_lookup(self, point: int) -> Set[int]:
+        """Retrieve neighbour set from precalculated list of sets.
+
+        In essence this is just one indexing.  It is outsourced into
+        a function in this way to be used as optional build block in
+        :meth:`CNN.fit_generic`.  TODO: Check performance difference
+        versus inlining.
+
+        Args:
+            point: Index of point for which neighbours to get
+
+        Returns:
+            Set of point indices that are neighbours of `point`
+        """
+
+        return self._neighbours.neighbours[point]
 
     def merge(self, clusters, which='labels'):
         """Merge a list of clusters into one"""
@@ -1349,7 +1420,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
             self.__memory_assigned[np.where(self.__test_labels > 0)[0]] = False
 
     @staticmethod
-    def check_similarity(a: Sequence[int], b: Sequence[int], c: int) -> bool:
+    def check_similarity_sequence(a: Sequence[int], b: Sequence[int], c: int) -> bool:
         """Check if similarity criterion is fulfilled.
 
         Args:
@@ -1358,11 +1429,29 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
             c: Similarity cut-off
 
         Returns:
-            True if list `a` and list `b` have at least `c` common
+            True if sequence `a` and sequence `b` have at least `c` common
             elements
         """
 
         if len(set(a).intersection(b)) >= c:
+            return True
+        return False
+
+    @staticmethod
+    def check_similarity_set(a: Set[int], b: Set[int], c: int) -> bool:
+        """Check if similarity criterion is fulfilled.
+
+        Args:
+            a: Sequence of point indices
+            b: Sequence of point indices
+            c: Similarity cut-off
+
+        Returns:
+            True if set `a` and set `b` have at least `c` common
+            elements
+        """
+
+        if len(a.intersection(b)) >= c:
             return True
         return False
 
