@@ -136,6 +136,15 @@ class Data:
     @data.setter
     def data(self, x):
         self._data, self._shape = self.get_shape(x)
+        self.shape_str = {**self._shape}
+        if self._data is not None:
+            self.shape_str['points'] = (
+                sum(self.shape_str['points']),
+                self.shape_str['points'][:5]
+                )
+
+            if len(self._shape['points']) > 5:
+                self.shape_str['points'] += ["..."]
 
     @property
     def shape(self):
@@ -195,11 +204,27 @@ class Data:
 
             shape = {
                 'parts': np.shape(data)[0],
-                'points': [np.shape(x)[0] for x in data],
+                'points': tuple(np.shape(x)[0] for x in data),
                 'dimensions': np.unique([np.shape(x)[1] for x in data])[0],
                 }
 
             return np.vstack(data), shape
+
+    def by_parts(self) -> Iterator:
+        """Yield data by parts
+
+        Returns:
+            Generator of 2D :obj:`numpy.ndarray`s (parts)
+        """
+
+        if self._data is not None:
+            start = 0
+            for end in self._shape["points"]:
+                yield self._data[start:(start + end), :]
+                start += end
+
+        else:
+            yield from ()
 
 
 class CNN:
@@ -247,7 +272,7 @@ class CNN:
         # Sends data through setter
         # Sets self._data as instance of Data
 
-        self.consider = None  # TODO: Implement consider array
+        self.consider = None  # TODO: Implement consider array/list
         self._dist_matrix = dist_matrix
         self._map_matrix = map_matrix
         self._neighbours = None
@@ -333,43 +358,13 @@ class CNN:
     def refindex_rel(self):
         return self._refindex_rel
 
-    def check(self):
-        """Check the state of the :class:`CNN` instance object"""
-
-        self.shape_str = {**self.shape}
-        if self._data is not None:
-            self.data_present = True
-            self.shape_str['points'] = (
-                sum(self.shape_str['points']),
-                self.shape_str['points'][:5]
-                )
-            if len(self._shape['points']) > 5:
-                self.shape_str['points'] += ["..."]
-        else:
-            self.data_present = False
-
-        if self._dist_matrix is not None:
-            self.dist_matrix_present = True
-        else:
-            self.dist_matrix_present = False
-
-        if self._neighbours is not None:
-            self.neighbours_present = True
-        else:
-            self.neighbours_present = False
-
-        if self._clusterdict is not None:
-            self.clusters_present = True
-        else:
-            self.clusters_present = False
-
-        if self._children is not None:
-            self.children_present = True
-        else:
-            self.children_present = False
+    @staticmethod
+    def check_present(attribute):
+        if attribute is not None:
+            return True
+        return False
 
     def __str__(self):
-        self.check()
 
         str_ = (
 f"""
@@ -379,14 +374,14 @@ core.cnn.CNN cluster object
 alias :                         {self.alias}
 hierachy level :                {self.hierarchy_level}
 
-data shape :                    Parts      - {self.shape_str['parts']}
-                                Points     - {self.shape_str['points']}
-                                Dimensions - {self.shape_str['dimensions']}
+data shape :                    Parts      - {self.data.shape_str['parts']}
+                                Points     - {self.data.shape_str['points']}
+                                Dimensions - {self.data.shape_str['dimensions']}
 
-distance matrix calculated :    {self.dist_matrix_present}
-neighbour list calculated :     {self.neighbours_present}
-clustered :                     {self.clusters_present}
-children :                      {self.children_present}
+distance matrix calculated :    {self.check_present(self._dist_matrix)}
+neighbour list calculated :     {self.check_present(self._neighbours)}
+clustered :                     {self.check_present(self._labels)}
+children :                      {self.check_present(self._children)}
 ===============================================================================
 """
             )

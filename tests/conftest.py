@@ -11,6 +11,17 @@ def empty_cobj():
 
 
 @pytest.fixture
+def std_cobj():
+    return core.cnn.CNN(
+        alias="std",
+        data=[[[1, 2, 3],
+               [4, 5, 6]],
+              [[7, 8, 9],
+               [10, 11, 12]]]
+        )
+
+
+@pytest.fixture
 def random_circles_cobj():
     return core.cnn.CNN(
         alias="random_circles",
