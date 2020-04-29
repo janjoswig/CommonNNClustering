@@ -15,7 +15,7 @@ git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
 
 
 from collections import defaultdict, namedtuple, deque
-from functools import wraps
+import functools
 import pickle
 from pathlib import Path
 import random
@@ -23,7 +23,7 @@ import tempfile
 import time
 import warnings
 from typing import Dict, List, Set, Sequence, Tuple
-from typing import Any, Iterable, Iterator, Optional, Type, Union
+from typing import Any, Iterable, Iterator, Optional, Type, Union, IO
 
 import colorama
 import matplotlib as mpl
@@ -46,7 +46,7 @@ def timed(function_):
     time.
     """
 
-    @wraps(function_)
+    @functools.wraps(function_)
     def wrapper(*args, **kwargs):
         go = time.time()
         wrapped = function_(*args, **kwargs)
@@ -73,7 +73,7 @@ def recorded(function_):
     time was measured, this will be included in the summary.
     """
 
-    @wraps(function_)
+    @functools.wraps(function_)
     def wrapper(self, *args, **kwargs):
         wrapped = function_(self, *args, **kwargs)
         if wrapped is not None:
@@ -105,19 +105,13 @@ class Neighbours:
     def __init__(self, neighbours, radius):
         self.neighbours = neighbours
         self.radius = radius
-        self._n_neighbours = None
 
     def __str__(self):
         return self.neighbours.__str__()
 
-    @property
+    @functools.cached_property
     def n_neighbours(self):
-        if self._n_neighbours is None:
-            self._n_neighbours = [
-                len(x)
-                for x in self.neighbours
-                ]
-        return self._n_neighbours
+        return [len(x) for x in self.neighbours]
 
 
 class Data:
@@ -129,6 +123,8 @@ class Data:
     def __str__(self):
         return self.data.__str__()
 
+    # TODO def __repr__():
+
     @property
     def data(self):
         return self._data
@@ -137,6 +133,7 @@ class Data:
     def data(self, x):
         self._data, self._shape = self.get_shape(x)
         self.shape_str = {**self._shape}
+
         if self._data is not None:
             self.shape_str['points'] = (
                 sum(self.shape_str['points']),
@@ -210,6 +207,68 @@ class Data:
 
             return np.vstack(data), shape
 
+    def load(self, f: Union[Path, str], **kwargs) -> None:
+        """Loads file content
+
+        Depending on the filename extension, a suitable loader is
+        called:
+
+            * .p: :func:`pickle.load`
+            * .npy: :func:`numpy.load`
+            * None: :func:`numpy.loadtxt`
+            * .xvg, .dat: :func:`numpy.loadtxt`
+
+        Sets :attr:`data` and :attr:`shape`.
+
+        Args:
+            f: File
+
+        Keyword Args:
+            **kwargs: Passed to loader.
+        """
+        # add load option for dist_matrix, map_matrix
+
+        extension = Path(f).suffix
+
+        case_ = {
+            '.p': lambda: pickle.load(
+                open(f, 'rb'),
+                **kwargs
+                ),
+            '.npy': lambda: np.load(
+                f,
+                # dtype=float_precision_map[float_precision],
+                **kwargs
+                ),
+            '': lambda: np.loadtxt(
+                f,
+                # dtype=float_precision_map[float_precision],
+                **kwargs
+                ),
+            '.xvg': lambda: np.loadtxt(
+                f,
+                # dtype=float_precision_map[float_precision],
+                **kwargs
+                ),
+            '.dat': lambda: np.loadtxt(
+                f,
+                # dtype=float_precision_map[float_precision],
+                **kwargs
+                ),
+             }
+        self.data = case_.get(
+            extension,
+            lambda: print(f"Unknown filename extension {extension}")
+            )()
+
+    def delete(self):
+        """Clear :attr:`data`, :attr:`shape_str` and :attr:`shape`"""
+
+        del self._data
+        self._data = None
+        self._shape = None
+        self.shape_str = None
+
     def by_parts(self) -> Iterator:
         """Yield data by parts
 
@@ -230,6 +289,20 @@ class Data:
 class CNN:
     """CNN cluster object class"""
 
+    Record = namedtuple(
+        'CNNRecord', [
+            "points",
+            "r",
+            "n",
+            "m",
+            "max",
+            "clusters",
+            "largest",
+            "noise",
+            "time",
+            ]
+        )
+
     def __init__(
             self, data: Optional[Any] = None, alias: str = 'root',
             dist_matrix: Optional[Any] = None,
@@ -238,50 +311,17 @@ class CNN:
         self.alias = alias  # Descriptive object identifier
         self._hierarchy_level = 0
 
-        # generic function feedback data container for CNN.cluster()
-        self.record = namedtuple(
-            'ClusterRecord', [
-                settings.get('record_points',
-                             settings.defaults['record_points']),
-                settings.get('record_radius_cutoff',
-                             settings.defaults['record_radius_cutoff']),
-                settings.get('record_cnn_cutoff',
-                             settings.defaults['record_cnn_cutoff']),
-                settings.get('record_member_cutoff',
-                             settings.defaults['record_member_cutoff']),
-                settings.get('record_max_cluster',
-                             settings.defaults['record_max_cluster']),
-                settings.get('record_n_cluster',
-                             settings.defaults['record_n_cluster']),
-                settings.get('record_largest',
-                             settings.defaults['record_largest']),
-                settings.get('record_noise',
-                             settings.defaults['record_noise']),
-                settings.get('record_time',
-                             settings.defaults['record_time']),
-                ]
-            )
-
-        self._record_dtypes = [
-            pd.Int64Dtype(), np.float64, pd.Int64Dtype(), pd.Int64Dtype(),
-            pd.Int64Dtype(), pd.Int64Dtype(), np.float64, np.float64,
-            np.float64
-            ]
-
         self.data = data
         # Sends data through setter
         # Sets self._data as instance of Data
 
         self.consider = None  # TODO: Implement consider array/list
-        self._dist_matrix = dist_matrix
+        self._dist_matrix = dist_matrix  # TODO: Put in own class?
         self._map_matrix = map_matrix
         self._neighbours = None
         self._clusterdict = None
         self._labels = None
-        self.summary = TypedDataFrame(
-            columns=self.record._fields,
-            dtypes=self._record_dtypes
-            )
+        self.summary = None
         self._children = None
         self._refindex = None
         self._refindex_rel = None
@@ -304,6 +344,10 @@ class CNN:
     @data.setter
     def data(self, x):
         self._data = Data(x)
+
+    @property
+    def neighbours(self):
+        return self._neighbours
 
     @property
     def dist_matrix(self):
@@ -388,83 +432,6 @@ children :                      {self.check_present(self._children)}
 
         return str_
 
-    def load(self, f: Union[Path, str], **kwargs) -> None:
-        """Loads file content
-
-        Depending on the filename extension, a suitable loader is
-        called:
-
-            * .p: :func:`pickle.load`
-            * .npy: :func:`numpy.load`
-            * None: :func:`numpy.loadtxt`
-            * .xvg, .dat: :func:`numpy.loadtxt`
-
-        Sets :attr:`data` and :attr:`shape`.
-
-        Args:
-            f: File
-
-        Keyword Args:
-            **kwargs: Passed to loader.
-        """
-        # add load option for dist_matrix, map_matrix
-
-        extension = Path(f).suffix
-
-        case_ = {
-            '.p': lambda: pickle.load(
-                open(f, 'rb'),
-                **kwargs
-                ),
-            '.npy': lambda: np.load(
-                f,
-                # dtype=float_precision_map[float_precision],
-                **kwargs
-                ),
-            '': lambda: np.loadtxt(
-                f,
-                # dtype=float_precision_map[float_precision],
-                **kwargs
-                ),
-             '.xvg': lambda: np.loadtxt(
-                f,
-                # dtype=float_precision_map[float_precision],
-                **kwargs
-                ),
-            '.dat': lambda: np.loadtxt(
-                f,
-                # dtype=float_precision_map[float_precision],
-                **kwargs
-                ),
-             }
-        data = case_.get(
-            extension,
-            lambda: print(f"Unknown filename extension {extension}")
-            )()
-
-        self._data, self._shape = self.get_shape(data)
-
-    def delete(self):
-        """Clear :attr:`data` and :attr:`shape`"""
-
-        del self._data
-        del self._shape
-        self._data = None
-        self._shape = None
-
-    def save(self, f, content, **kwargs):
-        """Saves content to file"""
-
-        extension = f.rsplit('.', 1)[-1]
-        if len(extension) == 1:
-            extension = ''
-        {
-            'p': lambda: pickle.dump(open(f, 'wb'), content),
-            'npy': lambda: np.save(f, content, **kwargs),
-            '': lambda: np.savetxt(f, content, **kwargs),
-        }.get(extension,
-              f"Unknown filename extension .{extension}")()
-
     def cut(
             self, parts=(None, None, None), points=(None, None, None),
             dimensions=(None, None, None)):
@@ -498,34 +465,41 @@ children :                      {self.check_present(self._children)}
             yield from ()
 
     @timed
-    def dist(
+    def calc_dist(
             self, v: bool = True, method: str = 'cdist',
-            mmap: bool = False, mmap_file: Optional[str] = None,
+            mmap: bool = False,
+            mmap_file: Optional[Union[Path, str, IO[bytes]]] = None,
             chunksize: int = 10000, progress: bool = True):
         """Computes a distance matrix (points x points)
 
         Accesses data points in given data of standard shape
-        (parts, points, dimensions)
+
         Args:
             v: Be chatty
-
+            method: Method to compute distances
+                * cdist: :meth:`Use scipy.spatial.distance.cdist`
+            mmap: Wether to memory map the calculated distances on disk
+                (NumPy)
+            mmap_file: If `mmap` is set to True, where to store the
+                file.  If None, uses a temporary file.
+            chunksize: Portions of data to process at once.  Can be used
+                to keep memory consumption low.  Only useful together
+                with `mmap`.
+            progress: Wether to show a progress bar.
         """
 
-        if self._data is None:
+        if self.data.data is None:
             return
 
         progress = not progress
 
         if method == 'cdist':
-            points = np.vstack(self._data)
-            # Data can not be streamed right now
-
             if mmap:
                 if mmap_file is None:
                     mmap_file = tempfile.TemporaryFile()
 
-                len_ = len(points)
-                _distance_matrix = np.memmap(
+                len_ = self.data.shape_str["points"][0]
+                self._distance_matrix = np.memmap(
                     mmap_file,
                     dtype=settings.float_precision_map[
                         settings["float_precision"]
@@ -542,11 +516,13 @@ children :                      {self.check_present(self._children)}
                             colorama.Fore.BLUE,
                             colorama.Fore.RESET
                             )):
-                    _distance_matrix[chunk*chunksize: (chunk+1)*chunksize] = cdist(
-                        points[chunk*chunksize: (chunk+1)*chunksize], points
+                    self._distance_matrix[
+                            chunk*chunksize: (chunk+1)*chunksize] = cdist(
+                        self.data.data[chunk*chunksize: (chunk+1)*chunksize],
+                        self.data.data
                         )
             else:
-                _distance_matrix = cdist(points, points)
+                self._dist_matrix = cdist(self.data.data, self.data.data)
 
         else:
             raise ValueError(
@@ -555,9 +531,7 @@ children :                      {self.check_present(self._children)}
                 "    'cdist'"
                 )
 
-        self._dist_matrix = _distance_matrix
-
-    def get_neighbours_from_dist(self, r):
+    def calc_neighbours_from_dist(self, r):
         """Calculate neighbour list at a given radius
 
         Requires :attr:`self._dist_matrix`.
@@ -668,7 +642,7 @@ children :                      {self.check_present(self._children)}
             self.dist(mode=mode, **kwargs)
         _dist_matrix = self._dist_matrix
 
-        # TODO make this a configuation option
+        # TODO make this a configuration option
         hist_props_defaults = {
             "bins": 100,
             "density": True,
@@ -697,7 +671,7 @@ children :                      {self.check_present(self._children)}
             ifactor = inter_props_defaults.pop("ifactor")
 
             ipoints = int(
-                np.ceil(len(binmids)*ifactor)
+                np.ceil(len(binmids) * ifactor)
                 )
             ibinmids = np.linspace(binmids[0], binmids[-1], ipoints)
             histogram = interp1d(
@@ -846,7 +820,7 @@ children :                      {self.check_present(self._children)}
             largest = len(self._clusterdict[1 + np.argmax([
                 len(x)
                 for x in clusters_no_noise.values()
-                    ])]) / self.shape_str["points"][0]
+                    ])]) / self.data.shape_str["points"][0]
 
         # print(f"Found largest cluster: {time.time() - go}")
 
@@ -860,14 +834,14 @@ children :                      {self.check_present(self._children)}
             self.record._fields,
             self._record_dtypes,
             content=[
-                [self.shape_str["points"][0]],
+                [self.data.shape_str["points"][0]],
                 [radius_cutoff],
                 [cnn_cutoff],
                 [member_cutoff],
                 [max_clusters],
                 [len(self._clusterdict) -1],
                 [largest],
-                [len(self._clusterdict[0]) / self.shape_str["points"][0]],
+                [len(self._clusterdict[0]) / self.data.shape_str["points"][0]],
                 [None],
                 ],
             )
@@ -910,10 +884,10 @@ children :                      {self.check_present(self._children)}
         """
 
         # Reset labels
-        self._labels = [0 for _ in range(self.shape_str["points"][0])]
+        self._labels = [0 for _ in range(self.data.shape_str["points"][0])]
 
         # Track assigment
-        include = [True for _ in range(self.shape_str["points"][0])]
+        include = [True for _ in range(self.data.shape_str["points"][0])]
 
         # Start with first cluster (0 = noise)
         current = 1
@@ -1031,6 +1005,21 @@ children :                      {self.check_present(self._children)}
 
         return self._neighbours.neighbours[point]
 
+    def get_neighbours_brute_array(self, point: int, r: float) -> Set[int]:
+        """Compute neighbours of a point by (squared) distance
+
+        Args:
+            point: Point index
+            r: Distance cut-off
+
+        Returns:
+            Array of indices of points that are neighbours
+            of `point` within `r`.
+        """
+
+        r = r**2
+        return np.where(np.sum((self.data.data - point)**2, axis=1) < r)[0]
+
     def merge(self, clusters, which='labels'):
         """Merge a list of clusters into one"""
 
@@ -1102,7 +1091,7 @@ children :                      {self.check_present(self._children)}
         else:
             raise ValueError()
 
-    def kdtree(self, **kwargs):
+    def cKDtree(self, **kwargs):
         """Wrapper for `scipy.spatial.cKDTree`
 
         Sets CNN._tree.
@@ -1111,7 +1100,7 @@ children :                      {self.check_present(self._children)}
             **kwargs: Passed to `scipy.spatial.cKDTree`
         """
 
-        self._tree = cKDTree(np.vstack(self._data), **kwargs)
+        self._tree = cKDTree(self._data, **kwargs)
 
     @staticmethod
     def get_neighbours(
@@ -2009,14 +1998,12 @@ UserWarning
                     part_startpoint += 1
 
                 self._children[key].alias = f'child No. {key}'
-                self._children[key]._data, \
-                self._children[key]._shape = \
-                self._children[key].get_shape(cluster_data)
+                self._children[key].data = cluster_data
                 self._children[key]._refindex = np.asarray(ref_index)
                 self._children[key]._refindex_rel = np.asarray(ref_index_rel)
         return
 
-    def reel(self, deep: int=1):
+    def reel(self, deep: int = 1):
         """Wrap up assigments of lower hierarchy levels
 
         Args:
@@ -2034,13 +2021,13 @@ UserWarning
             if _cluster._labels is not None:
                 if self.hierarchy_level == 0:
                     self._labels[
-                    _cluster._refindex[
+                        _cluster._refindex[
                         np.where(_cluster._labels == 0)[0]
                         ]
                     ] = 0
                 else:
                     self._labels[
-                    _cluster._refindex_rel[
+                        _cluster._refindex_rel[
                         np.where(_cluster._labels == 0)[0]
                         ]
                     ] = 0
@@ -2048,13 +2035,13 @@ UserWarning
                 for _label in _cluster._labels[_cluster._labels > 1]:
                     if self.hierarchy_level == 0:
                         self._labels[
-                        _cluster._refindex[
+                            _cluster._refindex[
                             np.where(_cluster._labels == _label)[0]
                             ]
                         ] = _label + n_clusters
                     else:
                         self._labels[
-                        _cluster._refindex_rel[
+                            _cluster._refindex_rel[
                             np.where(_cluster._labels == _label)[0]
                             ]
                         ] = _label + n_clusters
@@ -2072,7 +2059,7 @@ UserWarning
         def getpieces(c, pieces=None, level=0, ref="0"):
             if not pieces:
                 pieces = {}
-            if not level in pieces:
+            if level not in pieces:
                 pieces[level] = {}
 
             if c._clusterdict:
@@ -2098,9 +2085,10 @@ UserWarning
             if j in p[0]['0']:
                 ringvalues.append(p[0]['0'][j])
 
-
-        ax.pie(ringvalues, radius=radius, colors=None,
-            wedgeprops=dict(width=size, edgecolor='w'))
+        ax.pie(
+            ringvalues, radius=radius, colors=None,
+            wedgeprops=dict(width=size, edgecolor='w')
+            )
 
         # iterating through child levels
         for i in range(1, np.max(list(p.keys()))+1):
@@ -2129,8 +2117,10 @@ UserWarning
                 for j in p[i][ref]:
                     ringvalues.append(p[i][ref][j])
 
-            ax.pie(ringvalues, radius=radius + i*size, colors=None,
-            wedgeprops=dict(width=size, edgecolor='w'))
+            ax.pie(
+                ringvalues, radius=radius + i*size, colors=None,
+                wedgeprops=dict(width=size, edgecolor='w')
+                )
 
     def clean(self, which='labels'):
         if which == 'labels':
@@ -2183,7 +2173,6 @@ UserWarning
 
         for key, value in self._clusterdict.items():
                 self._labels[value] = key
-
 
     def get_samples(
             self, kind: str = 'mean', clusters: Optional[List[int]] = None,
@@ -2351,6 +2340,20 @@ def get_histogram(
 
 
 def TypedDataFrame(columns, dtypes, content=None, index=None):
+    """Obsolete: eliminate pandas dependency
+
+    summary = TypedDataFrame(
+            columns=self.Record._fields,
+            dtypes=self._record_dtypes
+            )
+
+    self._record_dtypes = [
+        pd.Int64Dtype(), np.float64, pd.Int64Dtype(), pd.Int64Dtype(),
+        pd.Int64Dtype(), pd.Int64Dtype(), np.float64, np.float64,
+        np.float64
+        ]
+    """
+
     assert len(columns) == len(dtypes)
 
     if content is None:
@@ -2410,17 +2413,8 @@ class Settings(dict, metaclass=MetaSettings):
     """
 
     # Defaults shared by all instances of this class
-    # Namemangling allows different defaults in subclasses
+    # Name-mangling allows different defaults in subclasses
     __defaults = {
-        'record_points': "points",
-        'record_radius_cutoff': "radius_cutoff",
-        'record_cnn_cutoff': "cnn_cutoff",
-        'record_member_cutoff': "member_cutoff",
-        'record_max_cluster': "max_cluster",
-        'record_n_cluster': "n_cluster",
-        'record_largest': "largest",
-        'record_noise': "noise",
-        'record_time': "time",
         'default_cnn_cutoff': "1",
         'default_cnn_offset': "0",
         'default_radius_cutoff': "1",
@@ -2476,7 +2470,8 @@ class Settings(dict, metaclass=MetaSettings):
         for k, v in dict(*args, **kwargs).items():
             self[k] = v
 
-    def configure(self, path: Optional[Union[Path, str]] = None,
+    def configure(
+            self, path: Optional[Union[Path, str]] = None,
             reset: bool = False):
         """Configuration file reading
 
