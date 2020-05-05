@@ -279,6 +279,75 @@ def fit_stdlib_from_neighbours_loop(
     return labels
 
 
+def fit_numpy_mix(self, cnn_cutoff, max_clusters):
+    """Fit data when neighbour list has been already calculated
+
+    Args:
+    """
+
+    # Include array keeps track of assigned points
+    include = np.ones(self.shape_str["points"][0], dtype=bool)
+
+    # Exclude all points with less than n neighbours
+    include[np.where(
+        self._neighbours.n_neighbours < cnn_cutoff
+        )[0]] = False
+    # include[np.where(n_neighbours <= cnn_cutoff+1)[0]] = False
+
+    self._clusterdict = defaultdict(SortedList)
+    self._clusterdict[0].update(np.where(~include)[0])
+    self._labels = np.zeros(self.shape_str["points"][0]).astype(int)
+    current = 1
+
+    # print(f"Initialisation done: {time.time() - go}")
+
+    enough = False
+    while any(include) and not enough:
+        # find point with currently highest neighbour count
+        point = np.where(
+            (self._neighbours.n_neighbours == np.max(self._neighbours.n_neighbours[include]))
+            & include
+            )[0][0]
+
+        self._clusterdict[current].add(point)
+        new_point_added = True
+        self._labels[point] = current
+        include[point] = False
+        # print(f"Opened cluster {current}: {time.time() - go}")
+        # done = 0
+
+        while new_point_added:
+            new_point_added = False
+
+            for member in [
+                    added_point
+                    for added_point in self._clusterdict[current]
+                    if any(include[self._neighbours.neighbours[added_point]])
+                    ]:
+
+                # Is the SortedList dangerous here?
+                for neighbour in self._neighbours.neighbours[member][include[self._neighbours.neighbours[member]]]:
+                    common_neighbours = (
+                        set(self._neighbours.neighbours[member])
+                        & set(self._neighbours.neighbours[neighbour])
+                        )
+
+                    if len(common_neighbours) >= cnn_cutoff:
+                        # and (point in neighbours[neighbour])
+                        # and (neighbour in neighbours[point]):
+                        self._clusterdict[current].add(neighbour)
+                        new_point_added = True
+                        self._labels[neighbour] = current
+                        include[neighbour] = False
+
+            # done += 1
+        current += 1
+
+        if max_clusters is not None:
+            if current == max_clusters+1:
+                enough = True
+
+
 def fit_numpy_from_neighbours_index(
         cnn_cutoff: int,
         neighbours: np.ndarray) -> np.ndarray:

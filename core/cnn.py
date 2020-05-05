@@ -14,7 +14,7 @@ git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
 """
 
 
-from collections import defaultdict, namedtuple, deque
+from collections import defaultdict, namedtuple
 import functools
 import pickle
 from pathlib import Path
@@ -22,8 +22,9 @@ import random
 import tempfile
 import time
 import warnings
-from typing import Dict, List, Set, Sequence, Tuple
-from typing import Any, Iterable, Iterator, Optional, Type, Union, IO
+from typing import Dict, List, Set, Tuple
+from typing import Sequence, Iterable, Iterator, Collection
+from typing import Any, Optional, Type, Union, IO
 
 import colorama
 import matplotlib as mpl
@@ -34,16 +35,17 @@ from scipy.interpolate import interp1d
 from scipy.signal import argrelextrema
 from scipy.spatial import cKDTree
 from scipy.spatial.distance import cdist
-from sortedcontainers import SortedList
 import tqdm
 import yaml
+
+from . import _fits
 
 
 def timed(function_):
     """Decorator to measure execution time.
 
     Forwards the output of the wrapped function and measured execution
-    time.
+    time as a tuple.
     """
 
     @functools.wraps(function_)
@@ -62,42 +64,150 @@ def timed(function_):
                 f"{int(minutes)} minutes, "
                 f"{seconds:.4f} seconds"
             )
-            return wrapped, stopped
+            return *wrapped, stopped
+        return
     return wrapper
 
 
 def recorded(function_):
-    """Decorator to format function feedback.
+    """Decorator to format fit function feedback.
 
-    Feedback needs to be pandas series in record format.  If execution
-    time was measured, this will be included in the summary.
+    Used to decorate fit methods of `CNN` instances.  Feedback needs to
+    be sequence in record format, i.e. conforming to the `CNNRecord`
+    namedtuple.  If execution time was measured, the corresponding field
+    will be modified.
     """
 
     @functools.wraps(function_)
     def wrapper(self, *args, **kwargs):
         wrapped = function_(self, *args, **kwargs)
         if wrapped is not None:
-            print(f'recording: ...')
-            if len(wrapped) > 1:
-                wrapped[-2]['time'] = wrapped[-1]
-                # print(f'recording: ... \n{wrapped[-2]}')
-                self.summary = self.summary.append(
-                    wrapped[-2], ignore_index=True
-                    )
+            if len(wrapped) == 3:
+                record = wrapped[0]._replace(time=wrapped[-1])
             else:
-                self.summary = self.summary.append(
-                    wrapped, ignore_index=True
-                    )
+                record = wrapped[0]
+
+            if wrapped[1]:
+                # Be chatty
+                print("\n" + "-" * 80)
+                print(
+                    "#points   ",
+                    "R         ", "N         ", "M         ",
+                    "max       ", "#clusters ", "%largest  ", "%noise    ",
+                    sep="")
+                for entry in record[:-1]:
+                    if entry is None:
+                        print(f"{'None':<10}", end="")
+                    else:
+                        print(f"{entry:<10}", end="")
+                print("\n" + "-" * 80)
+
+            self.summary.append(record)
+
         return
     return wrapper
 
 
-class Labels:
+class Labels(np.ndarray):
     """Cluster label assignments"""
 
-    def __init__(self):
-        self.labels = None
+    def __new__(cls, sequence):
+        if sequence is None:
+            return None
+        labels = np.asarray(sequence).view(cls)
+        return labels
 
+    def __array_finalize__(self, labels):
+        if labels is None:
+            return
+
+    @functools.cached_property
+    def clusterdict(self):
+        return self.labels2dict(self)
+
+    @staticmethod
+    def labels2dict(labels: Collection[int]) -> Dict[int, Set[int]]:
+        """Convert labels to cluster dictionary
+
+        Args:
+           labels: Sequence of integer cluster labels to convert
+
+        Returns:
+           Dictionary of sets of point indices with cluster labels
+              as keys
+        """
+
+        dict_ = defaultdict(set)
+        for index, l in enumerate(labels):
+            dict_[l].add(index)
+
+        return dict_
+
+    @staticmethod
+    def dict2labels(
+            dictionary: Dict[int, Collection[int]]) -> Type[np.ndarray]:
+        """Convert cluster dictionary to labels
+
+        Args:
+            dictionary: Dictionary of point indices per cluster label
+                to convert
+
+        Returns:
+            Sequenc of labels for each point as NumPy ndarray
+        """
+
+        labels = np.zeros(
+            np.sum(len(x) for x in dictionary.values())
+            )
+
+        for key, value in dictionary.items():
+            labels[value] = key
+
+        return labels
+
+    def clean(self):
+        """Clean up labels
+
+        Ensures continuous label numbering and sorts labels by cluster-
+        size (0: noise, 1: largest cluster)
+        """
+
+        # fixing  missing labels
+        ulabels = set(self)
+        n_clusters = len(ulabels)
+        if 0 not in ulabels:
+            n_clusters += 1
+
+        d = 0  # Total number of missing labels
+        for c in range(1, n_clusters):
+            # Next label continuous?
+            if (c + d) in ulabels:
+                continue
+
+            # Gap of missing labels
+            next_greater = c + 1
+            while (next_greater + d) not in ulabels:
+                next_greater += 1
+
+            # Correct label numbers downwards
+            d_ = next_greater - c
+            self[self > c] -= d_
+            d += d_  # Keep track of missing labels in total
+
+        # sorting by clustersize
+        n_clusters = np.max(_labels)
+        frequency_counts = np.asarray([
+            len(np.where(_labels == x)[0])
+            for x in set(_labels[_labels > 0])
+            ])
+        old_labels = np.argsort(frequency_counts)[::-1] +1
+        proxy_labels = np.copy(_labels)
+        for new_label, old_label in enumerate(old_labels, 1):
+            proxy_labels[
+                np.where(_labels == old_label)
+                ] = new_label
+
+        self._labels = proxy_labels
 
 class Neighbours:
     """Neigbourlist"""
@@ -286,48 +396,56 @@ class Data:
             yield from ()
 
 
+class Summary(list):
+
+    def to_DataFrame(self):
+        """Convert list of records to pandas.DataFrame"""
+        pass
+
+
+CNNRecord = namedtuple(
+    'CNNRecord', [
+        "points",
+        "r",
+        "n",
+        "m",
+        "max",
+        "clusters",
+        "largest",
+        "noise",
+        "time",
+        ]
+    )
+
+
 class CNN:
     """CNN cluster object class"""
-
-    Record = namedtuple(
-        'CNNRecord', [
-            "points",
-            "r",
-            "n",
-            "m",
-            "max",
-            "clusters",
-            "largest",
-            "noise",
-            "time",
-            ]
-        )
 
     def __init__(
             self, data: Optional[Any] = None, alias: str = 'root',
             dist_matrix: Optional[Any] = None,
-            map_matrix: Optional[Any] = None) -> None:
+            map_matrix: Optional[Any] = None,
+            neighbourhoods: Optional[Any] = None,
+            labels: Collection[int] = None) -> None:
 
         self.alias = alias  # Descriptive object identifier
         self._hierarchy_level = 0
 
-        self.data = data
-        # Sends data through setter
-        # Sets self._data as instance of Data
+        self.data = data  # See data.setter
 
         self.consider = None  # TODO: Implement consider array/list
         self._dist_matrix = dist_matrix  # TODO: Put in own class?
         self._map_matrix = map_matrix
-        self._neighbours = None
-        self._clusterdict = None
-        self._labels = None
-        self.summary = None
+        self._neighbours = None  # TODO: Implement setter
+        self.labels = labels  # See labels.setter
+        self.summary = Summary()
         self._children = None
         self._refindex = None
         self._refindex_rel = None
         self._tree = None
         self._memory_assigned = None
         self._cache = None
+        self._status = None
 
     @property
     def hierarchy_level(self):
@@ -359,20 +477,12 @@ class CNN:
         self._dist_matrix = x
 
     @property
-    def clusterdict(self):
-        return self._clusterdict
-
-    @clusterdict.setter
-    def clusterdict(self, d):
-        self._clusterdict = d
-
-    @property
     def labels(self):
         return self._labels
 
     @labels.setter
-    def labels(self, l):
-        self._labels = l
+    def labels(self, sequence: Optional[Sequence]):
+        self._labels = Labels(sequence)
 
     @property
     def map_matrix(self):
@@ -402,13 +512,49 @@ class CNN:
     def refindex_rel(self):
         return self._refindex_rel
 
+    @property
+    def status(self):
+        """Current data situation"""
+
+        self.check()
+        return self._status
+
     @staticmethod
     def check_present(attribute):
         if attribute is not None:
             return True
         return False
 
+    def check(self):
+        """Check current data state
+
+        Check if data points, distances or neighbourhoods are present
+        and in which format
+        """
+
+        self._status = {}
+
+        # Check for data points
+        if self._data is not None:
+            self._status["points"] = (True,)
+        else:
+            self._status["points"] = (False,)
+
+        # Check for point distances
+        if self._dist_matrix is not None:
+            self._status["distances"] = (True,)
+        else:
+            self._status["distances"] = (False,)
+
+        # Check for neighbourhoods
+        if self._neighbours is not None:
+            self._status["neighbourhoods"] = (True,)
+        else:
+            self._status["neighbourhoods"] = (False,)
+
     def __str__(self):
+
+        self.check()
 
         str_ = (
 f"""
@@ -422,8 +568,9 @@ data shape :                    Parts      - {self.data.shape_str['parts']}
                                 Points     - {self.data.shape_str['points']}
                                 Dimensions - {self.data.shape_str['dimensions']}
 
-distance matrix calculated :    {self.check_present(self._dist_matrix)}
-neighbour list calculated :     {self.check_present(self._neighbours)}
+data points loaded :            {self._status["points"]}
+distance matrix calculated :    {self._status["distances"]}
+neighbour list calculated :     {self._status["neighbourhoods"]}
 clustered :                     {self.check_present(self._labels)}
 children :                      {self.check_present(self._children)}
 ===============================================================================
@@ -499,7 +646,7 @@ children :                      {self.check_present(self._children)}
                     mmap_file = tempfile.TemporaryFile()
 
                 len_ = self.data.shape_str["points"][0]
-                self._distance_matrix = np.memmap(
+                self._dist_matrix = np.memmap(
                     mmap_file,
                     dtype=settings.float_precision_map[
                         settings["float_precision"]
@@ -516,7 +663,7 @@ children :                      {self.check_present(self._children)}
                             colorama.Fore.BLUE,
                             colorama.Fore.RESET
                             )):
-                    self._distance_matrix[
+                    self._dist_matrix[
                             chunk*chunksize: (chunk+1)*chunksize] = cdist(
                         self.data.data[chunk*chunksize: (chunk+1)*chunksize],
                         self.data.data
@@ -743,282 +890,112 @@ children :                      {self.check_present(self._children)}
             cnn_offset: int = None,
             rec: bool = True, v=True,
             method="n",
-            ) -> Optional[pd.DataFrame]:
-        """Executes the CNN clustering
+            policy="progressive",
+            ) -> Optional[Tuple[CNNRecord, bool]]:
+        """Wraps CNN clustering execution
+
+        This function prepares the clustering and calls an appropriate
+        worker function to do a clustering.  How the clustering is done,
+        depends on the current data situation and the selected `policy`.
+        The clustering can be done either with data points, pre-computed
+        pairwise point distances, or pre-computed neighbourhoods as
+        input.  Ultimately, neighbourhoods are used during the
+        clustering.  Clustering is fast if neighbourhoods are
+        pre-computed but this has to be done for each `radius_cutoff`
+        separately. Neighbourhoods can be calculated either from data
+        points, or pre-computed pairwaise distances.  Storage of
+        distances can be costly memory-wise.  If the user chooses
+        `policy = "progressive"`, neighbourhoods will be computed from
+        either distances (if present) or points before the clustering.
+        If the user chooses `policy = "conservative"`, neighbourhoods
+        will be computed on-the-fly (online) from either distances (if
+        present) or points during the clustering.  This can save memory
+        but can be computational more expensive.  Caching can be used
+        to achieve the right balance between memory usage and computing
+        effort for your situation.
 
         """
 
+        assert policy in ["progressive", "conservative"]
+
         # Set params
-        params = [(radius_cutoff, 'default_radius_cutoff'),
-                  (cnn_cutoff, 'default_cnn_cutoff'),
-                  (member_cutoff, 'default_member_cutoff'),
-                  (cnn_offset, 'default_cnn_offset')]
+        params = {  # option name, (user option name, used as type here)
+            'radius_cutoff': (radius_cutoff, float),
+            'cnn_cutoff': (cnn_cutoff, int),
+            'member_cutoff': (member_cutoff, int),
+            'cnn_offset': (cnn_offset, int),
+            }
 
-        for param, option in params:
-            if param is None:
-                param = settings.get(
-                    option, settings.defaults.get(option)
-                    )
+        for option, (value, type_) in params.items():
+            if value is None:
+                default = f"default_{option}"
+                params[option] = type_(settings.get(
+                    default, settings.defaults.get(default)
+                    ))
+            else:
+                params[option] = params[option][1](params[option][0])
 
-        cnn_cutoff -= cnn_offset
-        assert cnn_cutoff >= 0
+        params["cnn_cutoff"] -= params["cnn_offset"]
+        assert params["cnn_cutoff"] >= 0
 
         # Check data situation
         self.check()
 
-        # Neighbourlist calculated?
-        try:
-            assert self._neighbours.radius == radius_cutoff
-        except (AttributeError, AssertionError):
-            # No or not the right neighbour list present
+        # Neighbourhoods calculated?
+        if (self._status["neighbourhoods"][0]
+                and self._neighbours.radius == params["radius_cutoff"]):
+            # Fit from pre-computed neighbourhoods,
+            # no matter what the policy is
+            fit_fxn = _fits.fit_from_neighbours
+            fit_args = (params["cnn_cutoff"], self._neighbours.neighbours)
+            # Fit from List[Set[int]]
+            # TODO: Allow different methods and data structures
+
+        # Distances calculated?
+        elif self._status["distances"][0]:
+            if policy == "progressive":
+                # Pre-compute neighbourhoods from distances
+                self.calc_neighbours_from_dist(params["radius_cutoff"])
+                fit_fxn = _fits.fit_from_neighbours
+                fit_args = (params["cnn_cutoff"], self._neighbours.neighbours)
+
+            elif policy == "conservative":
+                # Use distances as input and calculate neighbours online
+                raise NotImplementedError()
+
+        # Points loaded?
+        elif self._status["points"][0]:
+            if policy == "progressive":
+                # Pre-compute neighbourhoods from points
+                raise NotImplementedError()
+            elif policy == "conservative":
+                # Use points as input and calculate neighbours online
+                raise NotImplementedError()
+
+        # Call clustering
+        self.labels = fit_fxn(*fit_args)
+
+        # Clean-up
+        if params["member_cutoff"] > 1:
+            # remove small clusters
             pass
-        else:
-            # Neighbourlist for right radius present
-            self.fit_lookup(cnn_cutoff, max_clusters)
 
-        if self.dist_matrix_present:
-            # TODO: Progressiv/conservative?
-            pass
-        else:
-            {
-                'n': lambda: self.fit_fromscratch(
-                    radius_cutoff, cnn_cutoff, max_clusters
-                    ),
-            }.get(
-                method,
-                f"Unknown filename extension .{extension}"
-                )()
-
-
-        # print(f"Clustering done: {time.time() - go}")
-        clusters_no_noise = {
-            y: self._clusterdict[y]
-            for y in self._clusterdict if y != 0
-            }
-
-        # print(f"Make clusters_no_noise copy: {time.time() - go}")
-
-        too_small = [
-            self._clusterdict.pop(y)
-            for y in [x[0]
-            for x in clusters_no_noise.items() if len(x[1]) <= member_cutoff]
-            ]
-
-        if len(too_small) > 0:
-            for entry in too_small:
-                self._clusterdict[0].update(entry)
-
-        for x in set(self._labels):
-            if x not in set(self._clusterdict):
-                self._labels[self._labels == x] = 0
-
-        # print(f"Declared small clusters as noise: {time.time() - go}")
-
-        if len(clusters_no_noise) == 0:
-            largest = 0
-        else:
-            largest = len(self._clusterdict[1 + np.argmax([
-                len(x)
-                for x in clusters_no_noise.values()
-                    ])]) / self.data.shape_str["points"][0]
-
-        # print(f"Found largest cluster: {time.time() - go}")
-
-        self._clusterdict = self._clusterdict
-        self._labels = self._labels
-        self.clean()
-        self.labels2dict()
-
-        # print(f"Updated state: {time.time() - go}")
-        cresult = TypedDataFrame(
-            self.record._fields,
-            self._record_dtypes,
-            content=[
-                [self.data.shape_str["points"][0]],
-                [radius_cutoff],
-                [cnn_cutoff],
-                [member_cutoff],
-                [max_clusters],
-                [len(self._clusterdict) -1],
-                [largest],
-                [len(self._clusterdict[0]) / self.data.shape_str["points"][0]],
-                [None],
-                ],
-            )
-
-        if v:
-            print("\n" + "-"*72)
-            print(
-                cresult[list(self.record._fields)[:-1]].to_string(
-                    na_rep="None", index=False, line_width=80,
-                    header=[
-                        "  #points  ", "  R  ", "  N  ", "  M  ",
-                        "  max  ", "  #clusters  ", "  %largest  ",
-                        "  %noise  "
-                        ],
-                    justify="center"
-                    ))
-            print("-"*72)
+        # Sort by size
 
         if rec:
-            return(cresult)
+            return CNNRecord(
+                self.data.shape_str["points"][0],
+                params["radius_cutoff"],
+                params["cnn_cutoff"],
+                params["member_cutoff"],
+                max_clusters,
+                max(self._labels),
+                "larges",  # len(np.where(self._labels == max(self._labels))[1]) / self.data.shape_str["points"][0],
+                len(np.where(self._labels == 0)[0]) / self.data.shape_str["points"][0],
+                None,
+                ), v
+
         return
-
-    def fit_generic(
-            self, radius_cutoff, cnn_cutoff, max_clusters,
-            get_neighbours) -> None:
-        """Worker function applying the CNN algorithm.
-
-        This function is called from within :meth:`CNN.fit` with the
-        correct signature.  Assigns cluster labels to
-        :attr:`CNN.labels`.
-
-        Args:
-            radius_cutoff: [description]
-            cnn_cutoff: [description]
-            max_clusters: [description]
-            get_neighbours: Function to retrieve neighbour lists
-
-        Returns:
-            None
-        """
-
-        # Reset labels
-        self._labels = [0 for _ in range(self.data.shape_str["points"][0])]
-
-        # Track assigment
-        include = [True for _ in range(self.data.shape_str["points"][0])]
-
-        # Start with first cluster (0 = noise)
-        current = 1
-
-        # Initialise queue of points to scan
-        queue = deque()
-
-        while any(include):
-            point = include.index(True)      # Pick starting point
-            self._labels[point] = current    # Assign cluster label
-            include[point] = False           # Mark point as included
-            queue.append(point)              # add point to queue
-
-            while queue:
-                point = queue.popleft()  # FIFO
-
-                # Loop over neighbouring points
-                neighbours = get_neighbours(point)
-                for member in neighbours:
-                    if not include[member]:
-                        # Point already assigned
-                        continue
-
-                    # conditional growth
-                    if self.check_similarity_set(
-                            neighbours, get_neighbours(member), cnn_cutoff):
-                        self._labels[member] = current
-                        include[member] = False
-                        queue.append(member)
-
-            current += 1
-
-    def fit_lookup(self, cnn_cutoff, max_clusters):
-        """Fit data when neighbour list has been already calculated
-
-        Args:
-        """
-
-        # Include array keeps track of assigned points
-        include = np.ones(self.shape_str["points"][0], dtype=bool)
-
-        # Exclude all points with less than n neighbours
-        include[np.where(
-            self._neighbours.n_neighbours < cnn_cutoff
-            )[0]] = False
-        # include[np.where(n_neighbours <= cnn_cutoff+1)[0]] = False
-
-        self._clusterdict = defaultdict(SortedList)
-        self._clusterdict[0].update(np.where(~include)[0])
-        self._labels = np.zeros(self.shape_str["points"][0]).astype(int)
-        current = 1
-
-        # print(f"Initialisation done: {time.time() - go}")
-
-        enough = False
-        while any(include) and not enough:
-            # find point with currently highest neighbour count
-            point = np.where(
-                (self._neighbours.n_neighbours == np.max(self._neighbours.n_neighbours[include]))
-                & include
-                )[0][0]
-
-            self._clusterdict[current].add(point)
-            new_point_added = True
-            self._labels[point] = current
-            include[point] = False
-            # print(f"Opened cluster {current}: {time.time() - go}")
-            # done = 0
-
-            while new_point_added:
-                new_point_added = False
-
-                for member in [
-                        added_point
-                        for added_point in self._clusterdict[current]
-                        if any(include[self._neighbours.neighbours[added_point]])
-                        ]:
-
-                    # Is the SortedList dangerous here?
-                    for neighbour in self._neighbours.neighbours[member][include[self._neighbours.neighbours[member]]]:
-                        common_neighbours = (
-                            set(self._neighbours.neighbours[member])
-                            & set(self._neighbours.neighbours[neighbour])
-                            )
-
-                        if len(common_neighbours) >= cnn_cutoff:
-                            # and (point in neighbours[neighbour])
-                            # and (neighbour in neighbours[point]):
-                            self._clusterdict[current].add(neighbour)
-                            new_point_added = True
-                            self._labels[neighbour] = current
-                            include[neighbour] = False
-
-                # done += 1
-            current += 1
-
-            if max_clusters is not None:
-                if current == max_clusters+1:
-                    enough = True
-
-    def get_neighbours_lookup(self, point: int) -> Set[int]:
-        """Retrieve neighbour set from precalculated list of sets.
-
-        In essence this is just one indexing.  It is outsourced into
-        a function in this way to be used as optional build block in
-        :meth:`CNN.fit_generic`.  TODO: Check performance difference
-        versus inlining.
-
-        Args:
-            point: Index of point for which neighbours to get
-
-        Returns:
-            Set of point indices that are neighbours of `point`
-        """
-
-        return self._neighbours.neighbours[point]
-
-    def get_neighbours_brute_array(self, point: int, r: float) -> Set[int]:
-        """Compute neighbours of a point by (squared) distance
-
-        Args:
-            point: Point index
-            r: Distance cut-off
-
-        Returns:
-            Array of indices of points that are neighbours
-            of `point` within `r`.
-        """
-
-        r = r**2
-        return np.where(np.sum((self.data.data - point)**2, axis=1) < r)[0]
 
     def merge(self, clusters, which='labels'):
         """Merge a list of clusters into one"""
@@ -1481,35 +1458,26 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
             return True
         return False
 
-    def query_data(self):  # BROKEN
-        """Helper function to evaluate user input.
-
-        If data is required sort out in which form it is present and
-        return the needed shape.
-        """
-
-        return
-
-    def evaluate(  # BROKEN
-        self,
-        ax: Optional[Type[mpl.axes.SubplotBase]] = None,
-        clusters: Optional[List[int]] = None,
-        original: bool = False, plot: str = 'dots',
-        parts: Optional[Tuple[Optional[int]]] = None,
-        points: Optional[Tuple[Optional[int]]] = None,
-        dim: Optional[Tuple[int, int]] = None,
-        ax_props: Optional[Dict] = None, annotate: bool = True,
-        annotate_pos: str = "mean",
-        annotate_props: Optional[Dict] = None,
-        scatter_props: Optional[Dict] = None,
-        scatter_noise_props: Optional[Dict] = None,
-        dot_props: Optional[Dict] = None,
-        dot_noise_props: Optional[Dict] = None,
-        hist_props: Optional[Dict] = None,
-        contour_props: Optional[Dict] = None,
-        free_energy: bool = True, mask=None,
-        threshold=None,
-        ):
+    def evaluate(
+            self,
+            ax: Optional[Type[mpl.axes.SubplotBase]] = None,
+            clusters: Optional[List[int]] = None,
+            original: bool = False, plot: str = 'dots',
+            parts: Optional[Tuple[Optional[int]]] = None,
+            points: Optional[Tuple[Optional[int]]] = None,
+            dim: Optional[Tuple[int, int]] = None,
+            ax_props: Optional[Dict] = None, annotate: bool = True,
+            annotate_pos: str = "mean",
+            annotate_props: Optional[Dict] = None,
+            scatter_props: Optional[Dict] = None,
+            scatter_noise_props: Optional[Dict] = None,
+            dot_props: Optional[Dict] = None,
+            dot_noise_props: Optional[Dict] = None,
+            hist_props: Optional[Dict] = None,
+            contour_props: Optional[Dict] = None,
+            free_energy: bool = True, mask=None,
+            threshold=None,
+            ):
 
         """Returns a 2D plot of an original data set or a cluster result
 
@@ -1581,7 +1549,6 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
             List of plotted elements
         """
 
-        _data, _ = self.query_data(mode=mode)
         if dim is None:
             dim = (0, 1)
         elif dim[1] < dim[0]:
@@ -1593,12 +1560,12 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         if points is None:
             points = (None, None, None)
 
-        _data = [
-            x[slice(*points), slice(dim[0], dim[1]+1, dim[1]-dim[0])]
-            for x in _data[slice(*parts)]
-            ]
+        # TODO: Avoid copying here
+        # _data = [
+        #     x[slice(*points), slice(dim[0], dim[1]+1, dim[1]-dim[0])]
+        #     for x in _data[slice(*parts)]
+        #     ]
 
-        _data = np.vstack(_data)
         if mask is not None:
             _data = _data[np.asarray(mask)]
 
@@ -1629,7 +1596,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         else:
             fig = ax.get_figure()
 
-        # List of axes objects to return for faster access
+        # List of drawn objects to return for faster access
         plotted = []
 
         if plot == 'dots':
@@ -1821,10 +1788,10 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
                     # imshow, pcolormesh, NonUniformImage ...
                     # Not implemented, instead return the histogram
                     warnings.warn(
-"""Plotting a histogram of the data directly is currently not supported.
-Returning the edges and the histogram instead.
-""",
-UserWarning
+                        "Plotting a histogram of the data directly is "
+                        "currently not supported. Returning the edges and the "
+                        "histogram instead.",
+                        UserWarning
                     )
                     return x_, y_, H
 
@@ -1842,10 +1809,9 @@ UserWarning
 
                 else:
                     raise ValueError(
-        f"""Plot type {plot} not understood.
-        Must be one of 'dots, 'scatter' or 'contour(f)'
-        """
-                    )
+                        f"Plot type {plot} not understood. "
+                        "Must be one of 'dots, 'scatter' or 'contour(f)'"
+                        )
 
             else:
                 for cluster, cpoints in items:
@@ -2121,58 +2087,6 @@ UserWarning
                 ringvalues, radius=radius + i*size, colors=None,
                 wedgeprops=dict(width=size, edgecolor='w')
                 )
-
-    def clean(self, which='labels'):
-        if which == 'labels':
-            _labels = self._labels
-
-            # fixing  missing labels
-            n_clusters = len(set(_labels))
-            for _cluster in range(1, n_clusters):
-                if _cluster not in set(_labels):
-                    while _cluster not in set(_labels):
-                        _labels[_labels > _cluster] -= 1
-
-            # sorting by clustersize
-            n_clusters = np.max(_labels)
-            frequency_counts = np.asarray([
-                len(np.where(_labels == x)[0])
-                for x in set(_labels[_labels > 0])
-                ])
-            old_labels = np.argsort(frequency_counts)[::-1] +1
-            proxy_labels = np.copy(_labels)
-            for new_label, old_label in enumerate(old_labels, 1):
-                proxy_labels[
-                    np.where(_labels == old_label)
-                    ] = new_label
-
-            self._labels = proxy_labels
-
-        elif which == 'dict':
-            raise NotImplementedError()
-        else:
-            raise ValueError()
-
-    def labels2dict(self):
-        """Convert labels to cluster dictionary
-        """
-
-        self._clusterdict = defaultdict(SortedList)
-        for _cluster in range(np.max(self._labels) +1):
-            self._clusterdict[_cluster].update(
-                np.where(self._labels == _cluster)[0]
-                )
-
-    def dict2labels(self):
-        """Convert cluster dictionary to labels
-        """
-
-        self._labels = np.zeros(
-            np.sum(len(x) for x in self._clusterdict.values())
-            )
-
-        for key, value in self._clusterdict.items():
-                self._labels[value] = key
 
     def get_samples(
             self, kind: str = 'mean', clusters: Optional[List[int]] = None,
