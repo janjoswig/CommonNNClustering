@@ -14,8 +14,9 @@ git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
 """
 
 
-from collections import defaultdict, namedtuple
+from collections import Counter, defaultdict, namedtuple
 import functools
+from itertools import count
 import pickle
 from pathlib import Path
 import random
@@ -26,9 +27,7 @@ from typing import Dict, List, Set, Tuple
 from typing import Sequence, Iterable, Iterator, Collection
 from typing import Any, Optional, Type, Union, IO
 
-import colorama
-import matplotlib as mpl
-import matplotlib.pyplot as plt
+import colorama  # TODO Make this optional or remove completely
 import numpy as np
 import pandas as pd  # TODO make this dependency optional?
 from scipy.interpolate import interp1d
@@ -39,6 +38,7 @@ import tqdm
 import yaml
 
 from . import _fits
+from . import _plots
 
 
 def timed(function_):
@@ -89,7 +89,7 @@ def recorded(function_):
 
             if wrapped[1]:
                 # Be chatty
-                print("\n" + "-" * 80)
+                print("-" * 80)
                 print(
                     "#points   ",
                     "R         ", "N         ", "M         ",
@@ -111,15 +111,21 @@ def recorded(function_):
 class Labels(np.ndarray):
     """Cluster label assignments"""
 
-    def __new__(cls, sequence):
+    def __new__(cls, sequence: Sequence[int]):
         if sequence is None:
             return None
-        labels = np.asarray(sequence).view(cls)
-        return labels
 
-    def __array_finalize__(self, labels):
-        if labels is None:
-            return
+        obj = np.asarray(sequence, dtype=int).view(cls)
+
+        return obj
+
+    def __array_finalize__(self, obj):
+        if np.all(self >= 0):
+            warnings.warn(
+                "Passed sequence contains negative elements."
+                "Labels should be positiv integers or 0 (noise).",
+                UserWarning
+                )
 
     @functools.cached_property
     def clusterdict(self):
@@ -165,12 +171,14 @@ class Labels(np.ndarray):
 
         return labels
 
-    def clean(self):
-        """Clean up labels
+    def fix_missing(self):
+        """Fix missing cluster labels and ensure continuous numbering
 
-        Ensures continuous label numbering and sorts labels by cluster-
-        size (0: noise, 1: largest cluster)
+        If you also want the labels to be sorted by clustersize use
+        :meth:`sort_by_size` instead, which re-numbers clusters, too.
         """
+
+        assert np.all(self >= 0)
 
         # fixing  missing labels
         ulabels = set(self)
@@ -194,20 +202,92 @@ class Labels(np.ndarray):
             self[self > c] -= d_
             d += d_  # Keep track of missing labels in total
 
-        # sorting by clustersize
-        n_clusters = np.max(_labels)
-        frequency_counts = np.asarray([
-            len(np.where(_labels == x)[0])
-            for x in set(_labels[_labels > 0])
-            ])
-        old_labels = np.argsort(frequency_counts)[::-1] +1
-        proxy_labels = np.copy(_labels)
-        for new_label, old_label in enumerate(old_labels, 1):
-            proxy_labels[
-                np.where(_labels == old_label)
-                ] = new_label
+    def sort_by_size(self, member_cutoff=None, max_clusters=None):
+        """Sort labels by clustersize
 
-        self._labels = proxy_labels
+        Re-assigns cluster numbers so that the biggest cluster (that is
+        not noise) is cluster 1.  Also filters clusters out, that have
+        not at least `member_cutoff` members.  Optionally, does only
+        keep the `max_clusters` largest clusters.
+
+        Args:
+           member_cutoff: Valid clusters need to have at least this
+              many members.
+           max_clusters: Only keep this many clusters.
+
+        Returns:
+           (#member largest, #member noise)
+        """
+
+        assert np.all(self >= 0)
+
+        if member_cutoff is None:
+            member_cutoff = settings.get(
+                "default_member_cutoff",
+                settings.defaults.get("default_member_cutoff")
+                )
+
+        frequencies = Counter(self)
+        if 0 in frequencies:
+            noise = frequencies.pop(0)
+        else:
+            noise = 0
+
+        order = frequencies.most_common()
+        if order:
+            largest = order[0][1]
+
+            reassign = {}
+            reassign[0] = 0
+
+            new_labels = count(1)
+            for pair in order:
+                if pair[1] >= member_cutoff:
+                    reassign[pair[0]] = next(new_labels)
+                else:
+                    reassign[pair[0]] = 0
+
+            if max_clusters is not None:
+                for key in reassign:
+                    if key > max_clusters:
+                        reassign[key] = 0
+
+            for index, old_label in enumerate(self):
+                self[index] = reassign[old_label]
+
+        return largest, noise
+
+    def merge(self, clusters: List[int]) -> None:
+        """Merge a list of clusters into one"""
+
+        if len(clusters) < 2:
+            raise ValueError(
+                "List of clusters needs to have at least 2 elements"
+                )
+
+        if not isinstance(clusters, list):
+            clusters = list(clusters)
+        clusters.sort()
+
+        base = clusters[0]
+
+        for add in clusters[1:]:
+            self[self == add] = base
+
+        self.sort_by_size()
+
+        return
+
+    def trash(self, clusters: List[int]) -> None:
+        """Merge a list of clusters into noise"""
+
+        for add in clusters:
+            self[self == add] = 0
+
+        self.sort_by_size()
+
+        return
+
 
 class Neighbours:
     """Neigbourlist"""
@@ -225,37 +305,89 @@ class Neighbours:
 
 
 class Data:
+
+    def __init__(
+            self,
+            points=None, dist_matrix=None, map_matrix=None,
+            neighbourhoods=None):
+        self.points = points
+        self.dist_matrix = dist_matrix
+        self.map_matrix = map_matrix
+        self.neighbourhoods = neighbourhoods
+
+    @property
+    def points(self):
+        return self._points
+
+    @points.setter
+    def points(self, x):
+        self._points = Points.from_parts(x)
+        # TODO This is the right point for choosing the constructor
+
+
+class Points(np.ndarray):
     """Data points"""
 
-    def __init__(self, data):
-        self.data = data
+    def __new__(
+            cls,
+            p: Optional[np.ndarray] = None,
+            edges: Optional[Sequence] = None):
+        if p is None:
+            p = np.array([])
+        obj = p.view(cls)
+        obj._edges = edges
+        return obj
 
-    def __str__(self):
-        return self.data.__str__()
+    def __array_finalize__(self, obj):
+        if obj is None:
+            return
 
-    # TODO def __repr__():
+        self._edges = getattr(obj, "edges", None)
 
     @property
-    def data(self):
-        return self._data
+    def edges(self):
+        return self._edges
 
-    @data.setter
-    def data(self, x):
-        self._data, self._shape = self.get_shape(x)
-        self.shape_str = {**self._shape}
-
-        if self._data is not None:
-            self.shape_str['points'] = (
-                sum(self.shape_str['points']),
-                self.shape_str['points'][:5]
+    @edges.setter
+    def edges(self, x):
+        sum_edges = sum(x)
+        if (self.shape[0] != 0) and (sum_edges != self.shape[0]):
+            warnings.warn(
+                f"Part edges ({sum(x)} points) do not match data points "
+                f"({self.shape[0]} points)"
                 )
+        self._edges = x
 
-            if len(self._shape['points']) > 5:
-                self.shape_str['points'] += ["..."]
+    @classmethod
+    def from_parts(cls, p: Optional[Sequence]):
+        """Alternative constructor
 
-    @property
-    def shape(self):
-        return self._shape
+        Use if data is passed as collection of parts, as
+            >>> obj = Points.from_parts([[[0],[1]], [[2],[3]]])
+
+        In this way, part edges are taken from the input shape and do
+        not have to be specified explicitly.
+        """
+
+        return cls(*cls.get_shape(p))
+
+    @classmethod
+    def from_file(
+            cls,
+            f: Union[str, Path], *args, from_parts: bool = False,
+            **kwargs):
+        """Alternative constructor
+
+        Use if data is passed as collection of parts, as
+            >>> obj = Points.from_parts([[[0],[1]], [[2],[3]]])
+
+        In this way, part edges are taken from the input shape and do
+        not have to be specified explicitly.
+        """
+
+        if from_parts:
+            return cls(*cls.get_shape(cls.load(f, *args, **kwargs)))
+        return cls(cls.load(f, *args, **kwargs))
 
     @staticmethod
     def get_shape(data: Any):
@@ -263,7 +395,8 @@ class Data:
 
         Analyses the format of given data and fits it into the standard
         format (parts, points, dimensions).  Creates a
-        :obj:`numpy.ndarray` vstacked along the parts componenent.
+        :obj:`numpy.ndarray` vstacked along the parts componenent that
+        can be passed to the `Points` constructor along part edges.
 
         Args:
             data: Either None or
@@ -275,49 +408,55 @@ class Data:
                     interpreted as groups (parts) of points
 
         Returns:
-            data -- A numpy.ndarray of shape
-                (sum points, dimension)
-            shape -- Dictionary
-                * "parts": Number of parts
-                * "points": List of number of points per part
-                * "dimensions": Number of dimensions
+            data -- A numpy.ndarray of shape (sum points, dimension)
+            edges -- Part edges, marking the end points of the parts
         """
 
         if data is None:
-            return None, {
-                'parts': None,
-                'points': None,
-                'dimensions': None,
-                }
+            return None, None
+
+        data_shape = np.shape(data[0])
+        # raises a type error if data is not subscribable
+
+        if np.shape(data_shape)[0] == 0:
+            # 1D Sequence passed
+            data = [np.array([data])]
+
+        elif np.shape(data_shape)[0] == 1:
+            # 2D Sequence of sequences passed
+            data = [np.asarray(data)]
+
+        elif np.shape(data_shape)[0] == 2:
+            # Sequence of 2D sequences of sequences passed
+            data = [np.asarray(x) for x in data]
+
         else:
-            data_shape = np.shape(data[0])
-            # raises a type error if data is not subscriptable
-            if np.shape(data_shape)[0] == 0:
-                # 1D Sequence passed
-                data = [np.array([data])]
+            raise ValueError(
+                f"Data shape {data_shape} not allowed"
+                )
 
-            elif np.shape(data_shape)[0] == 1:
-                # 2D Sequence of sequences passed
-                data = [np.asarray(data)]
+        edges = [x.shape[0] for x in data]
 
-            elif np.shape(data_shape)[0] == 2:
-                # Sequence of 2D sequences of sequences passed
-                data = [np.asarray(x) for x in data]
+        return np.vstack(data), edges
 
-            else:
-                raise ValueError(
-                    f"Data shape {data_shape} not allowed"
-                    )
+    def by_parts(self) -> Iterator:
+        """Yield data by parts
 
-            shape = {
-                'parts': np.shape(data)[0],
-                'points': tuple(np.shape(x)[0] for x in data),
-                'dimensions': np.unique([np.shape(x)[1] for x in data])[0],
-                }
+        Returns:
+            Generator of 2D :obj:`numpy.ndarray`s (parts)
+        """
 
-            return np.vstack(data), shape
+        if self.size > 0:
+            start = 0
+            for end in self._shape["points"]:
+                yield self._data[start:(start + end), :]
+                start += end
 
-    def load(self, f: Union[Path, str], **kwargs) -> None:
+        else:
+            yield from ()
+
+    @staticmethod
+    def load(f: Union[Path, str], *args, **kwargs) -> None:
         """Loads file content
 
         Depending on the filename extension, a suitable loader is
@@ -332,68 +471,53 @@ class Data:
 
         Args:
             f: File
+            *args: Passed to loader
 
         Keyword Args:
-            **kwargs: Passed to loader.
+            **kwargs: Passed to loader
+
+        Returns:
+            Return value of the loader
         """
-        # add load option for dist_matrix, map_matrix
 
         extension = Path(f).suffix
 
         case_ = {
             '.p': lambda: pickle.load(
                 open(f, 'rb'),
+                *args,
                 **kwargs
                 ),
             '.npy': lambda: np.load(
                 f,
                 # dtype=float_precision_map[float_precision],
+                *args,
                 **kwargs
                 ),
             '': lambda: np.loadtxt(
                 f,
                 # dtype=float_precision_map[float_precision],
+                *args,
                 **kwargs
                 ),
             '.xvg': lambda: np.loadtxt(
                 f,
                 # dtype=float_precision_map[float_precision],
+                *args,
                 **kwargs
                 ),
             '.dat': lambda: np.loadtxt(
                 f,
                 # dtype=float_precision_map[float_precision],
+                *args,
                 **kwargs
                 ),
              }
-        self.data = case_.get(
+
+        return case_.get(
             extension,
             lambda: print(f"Unknown filename extension {extension}")
             )()
-
-    def delete(self):
-        """Clear :attr:`data`, :attr:`shape_str` and :attr:`shape`"""
-
-        del self._data
-        self._data = None
-        self._shape = None
-        self.shape_str = None
-
-    def by_parts(self) -> Iterator:
-        """Yield data by parts
-
-        Returns:
-            Generator of 2D :obj:`numpy.ndarray`s (parts)
-        """
-
-        if self._data is not None:
-            start = 0
-            for end in self._shape["points"]:
-                yield self._data[start:(start + end), :]
-                start += end
-
-        else:
-            yield from ()
 
 
 class Summary(list):
@@ -422,21 +546,21 @@ class CNN:
     """CNN cluster object class"""
 
     def __init__(
-            self, data: Optional[Any] = None, alias: str = 'root',
+            self,
+            points: Optional[Any] = None,
             dist_matrix: Optional[Any] = None,
             map_matrix: Optional[Any] = None,
             neighbourhoods: Optional[Any] = None,
-            labels: Collection[int] = None) -> None:
+            labels: Collection[int] = None,
+            alias: str = "root") -> None:
 
         self.alias = alias  # Descriptive object identifier
-        self._hierarchy_level = 0
+        self.hierarchy_level = 0  # See hierarchy_level.setter
 
-        self.data = data  # See data.setter
+        self.data = Data(
+            points, dist_matrix, map_matrix, neighbourhoods
+            )
 
-        self.consider = None  # TODO: Implement consider array/list
-        self._dist_matrix = dist_matrix  # TODO: Put in own class?
-        self._map_matrix = map_matrix
-        self._neighbours = None  # TODO: Implement setter
         self.labels = labels  # See labels.setter
         self.summary = Summary()
         self._children = None
@@ -456,49 +580,12 @@ class CNN:
         self._hierarchy_level = int(level)
 
     @property
-    def data(self):
-        return self._data
-
-    @data.setter
-    def data(self, x):
-        self._data = Data(x)
-
-    @property
-    def neighbours(self):
-        return self._neighbours
-
-    @property
-    def dist_matrix(self):
-        return self._dist_matrix
-
-    @dist_matrix.setter
-    def dist_matrix(self, x):
-        # TODO control string, array, hdf5 file object handling
-        self._dist_matrix = x
-
-    @property
     def labels(self):
         return self._labels
 
     @labels.setter
     def labels(self, sequence: Optional[Sequence]):
         self._labels = Labels(sequence)
-
-    @property
-    def map_matrix(self):
-        return self._map_matrix
-
-    @property
-    def tree(self):
-        return self._tree
-
-    @property
-    def memory_assigned(self):
-        return self._memory_assigned
-
-    @memory_assigned.setter
-    def memory_assigned(self, mem):
-        self._memory_assigned = mem
 
     @property
     def children(self):
@@ -535,19 +622,19 @@ class CNN:
         self._status = {}
 
         # Check for data points
-        if self._data is not None:
+        if self.data.points.size > 0:
             self._status["points"] = (True,)
         else:
             self._status["points"] = (False,)
 
         # Check for point distances
-        if self._dist_matrix is not None:
+        if self.data.dist_matrix is not None:
             self._status["distances"] = (True,)
         else:
             self._status["distances"] = (False,)
 
         # Check for neighbourhoods
-        if self._neighbours is not None:
+        if self.data.neighbourhoods is not None:
             self._status["neighbourhoods"] = (True,)
         else:
             self._status["neighbourhoods"] = (False,)
@@ -564,9 +651,9 @@ core.cnn.CNN cluster object
 alias :                         {self.alias}
 hierachy level :                {self.hierarchy_level}
 
-data shape :                    Parts      - {self.data.shape_str['parts']}
-                                Points     - {self.data.shape_str['points']}
-                                Dimensions - {self.data.shape_str['dimensions']}
+data shape :                    Parts      - {len(self.data.points.edges)}
+                                Points     - {self.data.points.shape[0], self.data.points.edges[:5]}
+                                Dimensions - {self.data.points.shape[1]}
 
 data points loaded :            {self._status["points"]}
 distance matrix calculated :    {self._status["distances"]}
@@ -578,38 +665,6 @@ children :                      {self.check_present(self._children)}
             )
 
         return str_
-
-    def cut(
-            self, parts=(None, None, None), points=(None, None, None),
-            dimensions=(None, None, None)):
-
-        """Reduce the data set.
-
-        For each data set level (parts, points, dimensions),
-        a tuple (start:stop:step) can be specified. The corresponding
-        level is cut using :func:`slice`.
-        """
-
-        self._data = [
-            x[slice(*points), slice(*dimensions)]
-            for x in self.__test[slice(*parts)]
-            ]
-
-        self._data, self._shape = self.get_shape(self._data)
-
-    def loop_over_points(self) -> Iterator:
-        """Iterate over all points of all parts
-
-        Returns:
-            Iterator over points
-        """
-
-        if self._data is not None:
-            for i in self._data:
-                for j in i:
-                    yield j
-        else:
-            yield from ()
 
     @timed
     def calc_dist(
@@ -885,12 +940,12 @@ children :                      {self.check_present(self._children)}
     def fit(
             self, radius_cutoff: Optional[float] = None,
             cnn_cutoff: Optional[int] = None,
-            member_cutoff: int = None,
+            member_cutoff: Optional[int] = None,
             max_clusters: Optional[int] = None,
-            cnn_offset: int = None,
-            rec: bool = True, v=True,
-            method="n",
-            policy="progressive",
+            cnn_offset: Optional[int] = None,
+            rec: bool = True, v: bool = True,
+            method: str = "n",
+            policy: str = "progressive",
             ) -> Optional[Tuple[CNNRecord, bool]]:
         """Wraps CNN clustering execution
 
@@ -975,12 +1030,12 @@ children :                      {self.check_present(self._children)}
         # Call clustering
         self.labels = fit_fxn(*fit_args)
 
-        # Clean-up
-        if params["member_cutoff"] > 1:
-            # remove small clusters
-            pass
-
-        # Sort by size
+        # TODO: Make this optional?
+        # Sort by size and filter
+        largest, noise = self.labels.sort_by_size(
+            member_cutoff=params["member_cutoff"],
+            max_clusters=max_clusters
+            )
 
         if rec:
             return CNNRecord(
@@ -989,84 +1044,14 @@ children :                      {self.check_present(self._children)}
                 params["cnn_cutoff"],
                 params["member_cutoff"],
                 max_clusters,
-                max(self._labels),
-                "larges",  # len(np.where(self._labels == max(self._labels))[1]) / self.data.shape_str["points"][0],
-                len(np.where(self._labels == 0)[0]) / self.data.shape_str["points"][0],
+                self.labels.max(),
+                largest / self.data.shape_str["points"][0],
+                noise / self.data.shape_str["points"][0],
                 None,
                 ), v
 
-        return
+        return None
 
-    def merge(self, clusters, which='labels'):
-        """Merge a list of clusters into one"""
-
-        if len(clusters) < 2:
-            raise ValueError(
-                "List of cluster needs to habe at least 2 elements"
-                )
-
-        if not isinstance(clusters, list):
-            clusters = list(clusters)
-        clusters.sort()
-
-        base = clusters[0]
-
-        if which == "labels":
-            _labels = self._labels
-
-            for add in clusters[1:]:
-                _labels[_labels == add] = base
-
-            self._labels = _labels
-
-            self.clean()
-            self.labels2dict()
-
-        elif which == "dict":
-            raise NotImplementedError()
-
-            dict_ = self._clusterdict
-
-            for add in clusters[1:]:
-                dict_[base].update(dict_[add])
-                del dict_[add]
-
-            self.clean()
-            self.dict2labels()
-
-        else:
-            raise ValueError()
-
-        return
-
-    def trash(self, clusters, which='labels'):
-        """Merge a list of clusters into noise"""
-
-        if which == "labels":
-            _labels = self._labels
-
-            for add in clusters:
-                _labels[_labels == add] = 0
-
-            self._labels = _labels
-
-            self.clean()
-            self.labels2dict()
-
-        elif which == "dict":
-            raise NotImplementedError()
-
-            dict_ = self._clusterdict
-
-            for cluster in clusters:
-                dict_[0].update(dict_[cluster])
-                del dict_[cluster]
-
-            self.clean()
-            self.dict2labels()
-
-        else:
-            raise ValueError()
 
     def cKDtree(self, **kwargs):
         """Wrapper for `scipy.spatial.cKDTree`
@@ -1458,473 +1443,6 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
             return True
         return False
 
-    def evaluate(
-            self,
-            ax: Optional[Type[mpl.axes.SubplotBase]] = None,
-            clusters: Optional[List[int]] = None,
-            original: bool = False, plot: str = 'dots',
-            parts: Optional[Tuple[Optional[int]]] = None,
-            points: Optional[Tuple[Optional[int]]] = None,
-            dim: Optional[Tuple[int, int]] = None,
-            ax_props: Optional[Dict] = None, annotate: bool = True,
-            annotate_pos: str = "mean",
-            annotate_props: Optional[Dict] = None,
-            scatter_props: Optional[Dict] = None,
-            scatter_noise_props: Optional[Dict] = None,
-            dot_props: Optional[Dict] = None,
-            dot_noise_props: Optional[Dict] = None,
-            hist_props: Optional[Dict] = None,
-            contour_props: Optional[Dict] = None,
-            free_energy: bool = True, mask=None,
-            threshold=None,
-            ):
-
-        """Returns a 2D plot of an original data set or a cluster result
-
-        Args:
-            ax: matplotlib.axes._subplots.AxesSubplot, default=None
-                The axes to which to add the plot.  If None, a new figure
-                with axes will be created.
-
-            clusters : List[int], default=None
-                Cluster numbers to include in the plot.  If None, consider
-                all.
-
-            original: bool, default=False
-                Allows to plot the original data instead of a cluster
-                result.  Overrides `clusters`.  Will be considered
-                True, if no cluster result is present.
-
-            plot: str, default="dots"
-                The kind of plotting method to use.
-
-                * "dots", Use :func:`ax.plot()`
-
-                * "",
-
-            parts: Tuple[int, int, int] (length 3), default=(None, None, None)
-                Use a slice (start, stop, stride) on the data parts before
-                plotting.
-
-            points: Tuple[int, int, int], default=(None, None, None)
-                Use a slice (start, stop, stride) on the data points before
-                plotting.
-
-            dim: Tuple[int, int], default=None
-                Use these two dimensions for plotting.  If None, uses
-                (0, 1).
-
-            annotate: bool, default=True
-                If there is a cluster result, plot the cluster numbers.  Uses
-                `annotate_pos` to determinte the position of the
-                annotations.
-
-            annotate_pos: str or List[Tuple[int, int]], default="mean"
-                Where to put the cluster number annotation.  Can be one of:
-
-                * "mean", Use the cluster mean
-
-                * "random", Use a random point of the cluster
-
-                Alternatively a list of x, y positions can be passed to set
-                a specific point for each cluster (Not yet implemented)
-
-            annotate_props: Dict, default=None
-                Dictionary of keyword arguments passed to
-                :func:`ax.annotate(**kwargs)`.
-
-            ax_props: Dict, default=None
-                Dictionary of `ax` properties to apply after
-                plotting via :func:`ax.set(**ax_props)`.  If None, uses
-                defaults that can be also defined in the configuration file.
-
-            (hist, contour, dot, scatter, dot_noise, scatter_noise)_props: Dict, default=None
-                Dictionaries of keyword arguments passed to various
-                functions.  If None, uses
-                defaults that can be also defined in the configuration file.
-
-            mask: Sequence[bool]
-
-        Returns:
-            List of plotted elements
-        """
-
-        if dim is None:
-            dim = (0, 1)
-        elif dim[1] < dim[0]:
-            dim = dim[::-1]
-
-        if parts is None:
-            parts = (None, None, None)
-
-        if points is None:
-            points = (None, None, None)
-
-        # TODO: Avoid copying here
-        # _data = [
-        #     x[slice(*points), slice(dim[0], dim[1]+1, dim[1]-dim[0])]
-        #     for x in _data[slice(*parts)]
-        #     ]
-
-        if mask is not None:
-            _data = _data[np.asarray(mask)]
-
-        try:
-            items = self._clusterdict.items()
-            if clusters is None:
-                clusters = list(range(len( items )))
-        except AttributeError:
-            original = True
-
-        # TODO make this a configuation option
-        ax_props_defaults = {
-            "xlabel": "$x$",
-            "ylabel": "$y$",
-        }
-
-        if ax_props is not None:
-            ax_props_defaults.update(ax_props)
-
-        annotate_props_defaults = {
-            }
-
-        if annotate_props is not None:
-            annotate_props_defaults.update(annotate_props)
-
-        if ax is None:
-            fig, ax = plt.subplots()
-        else:
-            fig = ax.get_figure()
-
-        # List of drawn objects to return for faster access
-        plotted = []
-
-        if plot == 'dots':
-            # TODO make this a configuation option
-            dot_props_defaults = {
-                'lw': 0,
-                'marker': '.',
-                'markersize': 4,
-                'markeredgecolor': 'none',
-                }
-
-            if dot_props is not None:
-                dot_props_defaults.update(dot_props)
-
-            dot_noise_props_defaults = {
-                'color': 'none',
-                'lw': 0,
-                'marker': '.',
-                'markersize': 4,
-                'markerfacecolor': 'k',
-                'markeredgecolor': 'none',
-                'alpha': 0.3
-                }
-
-            if dot_noise_props is not None:
-                dot_noise_props_defaults.update(dot_noise_props)
-
-            if original:
-                # Plot the original data
-                plotted.append(ax.plot(
-                    _data[:, 0],
-                    _data[:, 1],
-                    **dot_props_defaults
-                    ))
-
-            else:
-                # Loop through the cluster result
-                for cluster, cpoints in items:
-                    # plot if cluster is in the list of considered clusters
-                    if cluster in clusters:
-
-                        # treat noise differently
-                        if cluster == 0:
-                            plotted.append(ax.plot(
-                                _data[cpoints, 0],
-                                _data[cpoints, 1],
-                                **dot_noise_props_defaults
-                                ))
-
-                        else:
-                            plotted.append(ax.plot(
-                                _data[cpoints, 0],
-                                _data[cpoints, 1],
-                                **dot_props_defaults
-                                ))
-
-                            if annotate:
-                                if annotate_pos == "mean":
-                                    xpos = np.mean(_data[cpoints, 0])
-                                    ypos = np.mean(_data[cpoints, 1])
-
-                                elif annotate_pos == "random":
-                                    choosen = random.sample(
-                                        cpoints, 1
-                                        )
-                                    xpos = _data[choosen, 0]
-                                    ypos = _data[choosen, 1]
-
-                                else:
-                                    raise ValueError()
-
-                                plotted.append(ax.annotate(
-                                    f"{cluster}",
-                                    xy=(xpos, ypos),
-                                    **annotate_props_defaults
-                                    ))
-
-        elif plot == 'scatter':
-
-            scatter_props_defaults = {
-                's': 10,
-            }
-
-            if scatter_props is not None:
-                scatter_props_defaults.update(scatter_props)
-
-            scatter_noise_props_defaults = {
-                'color': 'k',
-                's': 10,
-                'alpha': 0.5
-            }
-
-            if scatter_noise_props is not None:
-                scatter_noise_props_defaults.update(scatter_noise_props)
-
-            if original:
-                plotted.append(ax.scatter(
-                    _data[:, 0],
-                    _data[:, 1],
-                    **scatter_props_defaults
-                    ))
-
-            else:
-                for cluster, cpoints in items:
-                    if cluster in clusters:
-
-                        # treat noise differently
-                        if cluster == 0:
-                            plotted.append(ax.scatter(
-                                _data[cpoints, 0],
-                                _data[cpoints, 1],
-                                **scatter_noise_props_defaults
-                            ))
-
-                        else:
-                            plotted.append(ax.scatter(
-                                _data[cpoints, 0],
-                                _data[cpoints, 1],
-                                **scatter_props_defaults
-                                ))
-
-                            if annotate:
-                                if annotate_pos == "mean":
-                                    xpos = np.mean(_data[cpoints, 0])
-                                    ypos = np.mean(_data[cpoints, 1])
-
-                                elif annotate_pos == "random":
-                                    choosen = random.sample(
-                                        cpoints, 1
-                                        )
-                                    xpos = _data[choosen, 0]
-                                    ypos = _data[choosen, 1]
-
-                                else:
-                                    raise ValueError()
-
-                                plotted.append(ax.annotate(
-                                    f"{cluster}",
-                                    xy=(xpos, ypos),
-                                    **annotate_props_defaults
-                                    ))
-
-        elif plot in ['contour', 'contourf', 'histogram']:
-
-            contour_props_defaults = {
-                    "cmap": mpl.cm.inferno,
-                }
-
-            if contour_props is not None:
-                contour_props_defaults.update(contour_props)
-
-            hist_props_defaults = {
-                "avoid_zero_count": False,
-                "mass": True,
-                "mids": True
-            }
-
-            if hist_props is not None:
-                hist_props_defaults.update(hist_props)
-
-            avoid_zero_count = hist_props_defaults['avoid_zero_count']
-            del hist_props_defaults['avoid_zero_count']
-
-            mass = hist_props_defaults['mass']
-            del hist_props_defaults['mass']
-
-            mids = hist_props_defaults['mids']
-            del hist_props_defaults['mids']
-
-            if original:
-                x_, y_, H = get_histogram(
-                    _data[:, 0], _data[:, 1],
-                    mids=mids,
-                    mass=mass,
-                    avoid_zero_count=avoid_zero_count,
-                    hist_props=hist_props_defaults
-                )
-
-                if free_energy:
-                    dG = np.inf * np.ones(shape=H.shape)
-
-                    nonzero = H.nonzero()
-                    dG[nonzero] = -np.log(H[nonzero])
-                    dG[nonzero] -= np.min(dG[nonzero])
-                    H = dG
-
-                if plot == "histogram":
-                    # Plotting the histogram directly
-                    # imshow, pcolormesh, NonUniformImage ...
-                    # Not implemented, instead return the histogram
-                    warnings.warn(
-                        "Plotting a histogram of the data directly is "
-                        "currently not supported. Returning the edges and the "
-                        "histogram instead.",
-                        UserWarning
-                    )
-                    return x_, y_, H
-
-                elif plot == 'contour':
-                    X, Y = np.meshgrid(x_, y_)
-                    plotted.append(
-                        ax.contour(X, Y, H, **contour_props_defaults)
-                        )
-
-                elif plot == 'contourf':
-                    X, Y = np.meshgrid(x_, y_)
-                    plotted.append(
-                        ax.contourf(X, Y, H, **contour_props_defaults)
-                        )
-
-                else:
-                    raise ValueError(
-                        f"Plot type {plot} not understood. "
-                        "Must be one of 'dots, 'scatter' or 'contour(f)'"
-                        )
-
-            else:
-                for cluster, cpoints in items:
-                    if cluster in clusters:
-                        x_, y_, H = get_histogram(
-                            _data[cpoints, 0], _data[cpoints, 1],
-                            mids=mids,
-                            mass=mass,
-                            avoid_zero_count=avoid_zero_count,
-                            hist_props=hist_props_defaults
-                        )
-
-                        if free_energy:
-                            dG = np.inf * np.ones(shape=H.shape)
-
-                            nonzero = H.nonzero()
-                            dG[nonzero] = -np.log(H[nonzero])
-                            dG[nonzero] -= np.min(dG[nonzero])
-                            H = dG
-
-                        if plot == "histogram":
-                            # Plotting the histogram directly
-                            # imshow, pcolormesh, NonUniformImage ...
-                            # Not implemented, instead return the histogram
-                            warnings.warn(
-        """Plotting a histogram of the data directly is currently not supported.
-        Returning the edges and the histogram instead.
-        """,
-        UserWarning
-                            )
-                            return x_, y_, H
-
-                        elif plot == 'contour':
-                            X, Y = np.meshgrid(x_, y_)
-                            plotted.append(
-                                ax.contour(X, Y, H, **contour_props_defaults)
-                                )
-
-                        elif plot == 'contourf':
-                            X, Y = np.meshgrid(x_, y_)
-                            plotted.append(
-                                ax.contourf(X, Y, H, **contour_props_defaults)
-                                )
-
-                        else:
-                            raise ValueError(
-                f"""Plot type {plot} not understood.
-                Must be one of 'dots, 'scatter' or 'contour(f)'
-                """
-                    )
-
-        ax.set(**ax_props_defaults)
-
-        return fig, ax, plotted
-
-
-    def summarize(self, ax=None, quant: str="time", treat_nan=None,
-                  ax_props=None, contour_props=None) -> Tuple:
-        """Generates a 2D plot of property values ("time", "noise",
-        "n_clusters", "largest") against cluster parameters
-        radius_cutoff and cnn_cutoff."""
-
-        if len(self.summary) == 0:
-            raise LookupError(
-"""No cluster result summary present"""
-                )
-
-        pivot = self.summary.groupby(
-            ["radius_cutoff", "cnn_cutoff"]
-            ).mean()[quant].reset_index().pivot(
-                "radius_cutoff", "cnn_cutoff"
-                )
-
-
-        X_, Y_ = np.meshgrid(
-            pivot.index.values, pivot.columns.levels[1].values
-            )
-
-        values_ = pivot.values.T
-
-        if treat_nan is not None:
-            values_[np.isnan(values_)] == treat_nan
-
-        if ax is None:
-            fig, ax = plt.subplots()
-        else:
-            fig = ax.get_figure()
-
-        ax_props_defaults = {
-            "xlabel": "$R$",
-            "ylabel": "$N$",
-        }
-
-        if ax_props is not None:
-            ax_props_defaults.update(ax_props)
-
-        contour_props_defaults = {
-                "cmap": mpl.cm.inferno,
-            }
-
-        if contour_props is not None:
-            contour_props_defaults.update(contour_props)
-
-        plotted = []
-
-        plotted.append(
-            ax.contourf(X_, Y_, values_, **contour_props_defaults)
-            )
-
-        ax.set(**ax_props_defaults)
-
-        return fig, ax, plotted
-
     def isolate(self, purge=True):
         """Isolates points per clusters based on a cluster result"""
 
@@ -2014,79 +1532,6 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
 
             self.clean()
             self.labels2dict()
-
-    def pie(self, ax=None, pie_props=None):
-        size = 0.2
-        radius = 0.22
-
-        if ax is None:
-            ax = plt.gca()
-
-        def getpieces(c, pieces=None, level=0, ref="0"):
-            if not pieces:
-                pieces = {}
-            if level not in pieces:
-                pieces[level] = {}
-
-            if c._clusterdict:
-                ring = {k: len(v) for k, v in c._clusterdict.items()}
-                ringsum = np.sum(list(ring.values()))
-                ring = {k: v/ringsum for k, v in ring.items()}
-                pieces[level][ref] = ring
-
-                if c._children:
-                    for number, child in c._children.items():
-                        getpieces(
-                            child,
-                            pieces=pieces,
-                            level=level+1,
-                            ref=".".join([ref, str(number)])
-                        )
-
-            return pieces
-        p = getpieces(self)
-
-        ringvalues = []
-        for j in range(np.max(list(p[0]['0'].keys())) + 1):
-            if j in p[0]['0']:
-                ringvalues.append(p[0]['0'][j])
-
-        ax.pie(
-            ringvalues, radius=radius, colors=None,
-            wedgeprops=dict(width=size, edgecolor='w')
-            )
-
-        # iterating through child levels
-        for i in range(1, np.max(list(p.keys()))+1):
-            # what has not been reclustered:
-            reclustered = np.asarray(
-                [key.rsplit('.', 1)[-1] for key in p[i].keys()]
-                ).astype(int)
-            # iterate over clusters of parent level
-            for ref, values in p[i-1].items():
-                # account for not reclustered clusters
-                for number in values:
-                    if number not in reclustered:
-                        p[i][".".join([ref, str(number)])] = {0: 1}
-
-            # iterate over clusters of child level
-            for ref in p[i]:
-                preref = ref.rsplit('.', 1)[0]
-                sufref = int(ref.rsplit('.', 1)[-1])
-                p[i][ref] = {
-                    k: v*p[i-1][preref][sufref]
-                    for k, v in p[i][ref].items()
-                }
-
-            ringvalues = []
-            for ref in sorted(list(p[i].keys())):
-                for j in p[i][ref]:
-                    ringvalues.append(p[i][ref][j])
-
-            ax.pie(
-                ringvalues, radius=radius + i*size, colors=None,
-                wedgeprops=dict(width=size, edgecolor='w')
-                )
 
     def get_samples(
             self, kind: str = 'mean', clusters: Optional[List[int]] = None,
@@ -2190,6 +1635,97 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
 
         return _dtrajs
 
+    def evaluate(
+            self,
+            ax: Optional[Type[mpl.axes.SubplotBase]] = None,
+            clusters: Optional[List[int]] = None,
+            original: bool = False, plot: str = 'dots',
+            parts: Optional[Tuple[Optional[int]]] = None,
+            points: Optional[Tuple[Optional[int]]] = None,
+            dim: Optional[Tuple[int, int]] = None,
+            ax_props: Optional[Dict] = None, annotate: bool = True,
+            annotate_pos: str = "mean",
+            annotate_props: Optional[Dict] = None,
+            scatter_props: Optional[Dict] = None,
+            scatter_noise_props: Optional[Dict] = None,
+            dot_props: Optional[Dict] = None,
+            dot_noise_props: Optional[Dict] = None,
+            hist_props: Optional[Dict] = None,
+            contour_props: Optional[Dict] = None,
+            free_energy: bool = True, mask=None,
+            threshold=None,
+            ):
+
+        """Returns a 2D plot of an original data set or a cluster result
+
+        Args:
+            ax: The `Axes` instance to which to add the plot.  If `None`,
+            a new `Figure` with `Axes` will be created.
+
+            clusters :
+                Cluster numbers to include in the plot.  If `None`,
+                consider all.
+
+            original: bool, default=False
+                Allows to plot the original data instead of a cluster
+                result.  Overrides `clusters`.  Will be considered
+                True, if no cluster result is present.
+
+            plot: str, default="dots"
+                The kind of plotting method to use.
+
+                    * "dots", Use :func:`ax.plot()`
+
+                    * "",
+
+            parts: Tuple[int, int, int] (length 3), default=(None, None, None)
+                Use a slice (start, stop, stride) on the data parts before
+                plotting.
+
+            points: Tuple[int, int, int], default=(None, None, None)
+                Use a slice (start, stop, stride) on the data points before
+                plotting.
+
+            dim: Tuple[int, int], default=None
+                Use these two dimensions for plotting.  If None, uses
+                (0, 1).
+
+            annotate: bool, default=True
+                If there is a cluster result, plot the cluster numbers.  Uses
+                `annotate_pos` to determinte the position of the
+                annotations.
+
+            annotate_pos: str or List[Tuple[int, int]], default="mean"
+                Where to put the cluster number annotation.  Can be one of:
+
+                    * "mean", Use the cluster mean
+
+                    * "random", Use a random point of the cluster
+
+                Alternatively a list of x, y positions can be passed to set
+                a specific point for each cluster (Not yet implemented)
+
+            annotate_props: Dict, default=None
+                Dictionary of keyword arguments passed to
+                :func:`ax.annotate(**kwargs)`.
+
+            ax_props: Dict, default=None
+                Dictionary of `ax` properties to apply after
+                plotting via :func:`ax.set(**ax_props)`.  If None, uses
+                defaults that can be also defined in the configuration file.
+
+            (hist, contour, dot, scatter, dot_noise, scatter_noise)_props: Dict, default=None
+                Dictionaries of keyword arguments passed to various
+                functions.  If None, uses
+                defaults that can be also defined in the configuration file.
+
+            mask: Sequence[bool]
+
+        Returns: List of plotted elements
+        """
+
+        pass
+
 
 class CNNChild(CNN):
     """CNN cluster object subclass. Increments the hierarchy level of
@@ -2199,58 +1735,6 @@ class CNNChild(CNN):
         super().__init__()
         self.hierarchy_level = parent.hierarchy_level +1
         self.alias = alias
-
-
-def get_histogram(
-        x: Sequence[float], y: Sequence[float],
-        mids: bool = True, mass: bool = True,
-        avoid_zero_count: bool = True,
-        hist_props: Optional[Dict['str', Any]] = None
-        ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Compute a two-dimensional histogram.  Taken and modified from
-    pyemma.plots.
-
-    Args:
-        x: Sample x-coordinates.
-        y: Sample y-coordinates.
-        hist_props: Kwargs passed to numpy.histogram2d
-        avoid_zero_count: Avoid zero counts by lifting all histogram
-            elements to the minimum value before computing the free
-            energy.  If False, zero histogram counts yield infinity in
-            the free energy.
-        mass: Norm the histogram by the total number of counts, so that
-            each bin holds the probability mass values where all
-            probabilities sum to 1
-        mids: Return the mids of the bin edges instead of the actual
-            edges
-
-    Returns:
-        The x- and y-edges and the data of the computed histogram
-
-    """
-
-    hist_props_defaults = {
-        'bins': 100,
-    }
-
-    if hist_props is not None:
-        hist_props_defaults.update(hist_props)
-
-    z, x_, y_ = np.histogram2d(
-        x, y, **hist_props_defaults
-        )
-
-    if mids:
-        x_ = 0.5 * (x_[:-1] + x_[1:])
-        y_ = 0.5 * (y_[:-1] + y_[1:])
-
-    if avoid_zero_count:
-        z = np.maximum(z, np.min(z[z.nonzero()]))
-
-    if mass:
-        z /= float(z.sum())
-
-    return x_, y_, z.T  # transpose to match x/y-directions
 
 
 def TypedDataFrame(columns, dtypes, content=None, index=None):
@@ -2332,7 +1816,7 @@ class Settings(dict, metaclass=MetaSettings):
         'default_cnn_cutoff': "1",
         'default_cnn_offset': "0",
         'default_radius_cutoff': "1",
-        'default_member_cutoff': "1",
+        'default_member_cutoff': "2",
         'float_precision': 'sp',
         'int_precision': 'sp',
         }

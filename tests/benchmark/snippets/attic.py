@@ -65,3 +65,108 @@ if v:
             justify="center"
             ))
     print("-"*72)
+
+    def cut(
+            self,
+            parts: Tuple[Optional[int], ...] = (None, None, None),
+            points: Tuple[Optional[int], ...] = (None, None, None),
+            dimensions: Tuple[Optional[int], ...] = (None, None, None)
+            ) -> None:
+
+        """Modify which part of the data set should be clustered.
+
+        For each data set level (parts, points, dimensions),
+        a tuple (start:stop:step) can be specified. The corresponding
+        level is cut using :meth:`slice`. The data set is not actually
+        reduced and just a fancy index mask is created instead. Note,
+        that 
+        """
+
+        self._data = [
+            x[slice(*points), slice(*dimensions)]
+            for x in self.__test[slice(*parts)]
+            ]
+
+        self._data, self._shape = self.get_shape(self._data)
+
+    def loop_over_points(self) -> Iterator:
+        """Iterate over all points of all parts
+
+        Returns:
+            Iterator over points
+        """
+
+        if self._data is not None:
+            for i in self._data:
+                for j in i:
+                    yield j
+        else:
+            yield from ()
+
+
+    @staticmethod
+    def load(f: Union[Path, str], **kwargs) -> None:
+        """Loads file content
+
+        Depending on the filename extension, a suitable loader is
+        called:
+
+            * .p: :func:`pickle.load`
+            * .npy: :func:`numpy.load`
+            * None: :func:`numpy.loadtxt`
+            * .xvg, .dat: :func:`numpy.loadtxt`
+
+        Sets :attr:`data` and :attr:`shape`.
+
+        Args:
+            f: File
+
+        Keyword Args:
+            **kwargs: Passed to loader.
+        """
+        # add load option for dist_matrix, map_matrix
+
+        extension = Path(f).suffix
+
+        case_ = {
+            '.p': lambda: pickle.load(
+                open(f, 'rb'),
+                **kwargs
+                ),
+            '.npy': lambda: np.load(
+                f,
+                # dtype=float_precision_map[float_precision],
+                **kwargs
+                ),
+            '': lambda: np.loadtxt(
+                f,
+                # dtype=float_precision_map[float_precision],
+                **kwargs
+                ),
+            '.xvg': lambda: np.loadtxt(
+                f,
+                # dtype=float_precision_map[float_precision],
+                **kwargs
+                ),
+            '.dat': lambda: np.loadtxt(
+                f,
+                # dtype=float_precision_map[float_precision],
+                **kwargs
+                ),
+             }
+
+        return case_.get(
+            extension,
+            lambda: print(f"Unknown filename extension {extension}")
+            )()
+
+
+        self.shape_str = {**self._shape}
+        if self.size > 0:
+            self.shape_str['points'] = (
+                sum(self.shape_str['points']),
+                self.shape_str['points'][:5]
+                )
+
+            if len(self._shape['points']) > 5:
+                self.shape_str['points'] += ["..."]
