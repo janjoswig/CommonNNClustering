@@ -79,7 +79,7 @@ if v:
         a tuple (start:stop:step) can be specified. The corresponding
         level is cut using :meth:`slice`. The data set is not actually
         reduced and just a fancy index mask is created instead. Note,
-        that 
+        that
         """
 
         self._data = [

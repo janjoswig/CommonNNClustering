@@ -14,12 +14,13 @@ git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
 """
 
 
-from collections import Counter, defaultdict, namedtuple
+from collections import Counter, defaultdict, namedtuple, UserList
 import functools
 from itertools import count
 import pickle
 from pathlib import Path
 import random
+import sys
 import tempfile
 import time
 import warnings
@@ -27,7 +28,9 @@ from typing import Dict, List, Set, Tuple
 from typing import Sequence, Iterable, Iterator, Collection
 from typing import Any, Optional, Type, Union, IO
 
-import colorama  # TODO Make this optional or remove completely
+import colorama  # TODO Make this optional or remove completely?
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd  # TODO make this dependency optional?
 from scipy.interpolate import interp1d
@@ -120,12 +123,21 @@ class Labels(np.ndarray):
         return obj
 
     def __array_finalize__(self, obj):
-        if np.all(self >= 0):
-            warnings.warn(
-                "Passed sequence contains negative elements."
-                "Labels should be positiv integers or 0 (noise).",
-                UserWarning
-                )
+        if obj is None:
+            return
+
+        # TODO Warning in this place does not work, e.g. makes np.all()
+        #    on labels fail ...
+        # for i in self:
+        #    if i < 0:
+        #         warnings.resetwarnings()
+        #         warnings.warn(
+        #             "Passed sequence contains negative elements. "
+        #             "Labels should be positiv integers or 0 (noise).",
+        #             UserWarning
+        #             )
+        #         sys.stderr.flush()
+        #         break
 
     @functools.cached_property
     def clusterdict(self):
@@ -203,12 +215,14 @@ class Labels(np.ndarray):
             d += d_  # Keep track of missing labels in total
 
     def sort_by_size(self, member_cutoff=None, max_clusters=None):
-        """Sort labels by clustersize
+        """Sort labels by clustersize in-place
 
         Re-assigns cluster numbers so that the biggest cluster (that is
         not noise) is cluster 1.  Also filters clusters out, that have
         not at least `member_cutoff` members.  Optionally, does only
-        keep the `max_clusters` largest clusters.
+        keep the `max_clusters` largest clusters.  Returns the member
+        count in the largest cluster and the number of points declared
+        as noise.
 
         Args:
            member_cutoff: Valid clusters need to have at least this
@@ -219,20 +233,26 @@ class Labels(np.ndarray):
            (#member largest, #member noise)
         """
 
-        assert np.all(self >= 0)
+        # Check that labels are not negative
+        for i in self:
+            if i < 0:
+                raise ValueError(
+                    "Passed sequence contains negative elements. "
+                    "Labels should be positiv integers or 0 (noise)."
+                    )
 
         if member_cutoff is None:
-            member_cutoff = settings.get(
+            member_cutoff = int(settings.get(
                 "default_member_cutoff",
                 settings.defaults.get("default_member_cutoff")
-                )
+                ))
 
+        noise = 0
         frequencies = Counter(self)
         if 0 in frequencies:
             noise = frequencies.pop(0)
-        else:
-            noise = 0
 
+        largest = 0
         order = frequencies.most_common()
         if order:
             largest = order[0][1]
@@ -289,23 +309,37 @@ class Labels(np.ndarray):
         return
 
 
-class Neighbours:
-    """Neigbourlist"""
+class Neighbourhoods(UserList):
+    """Abstraction class for a neigbourlist
 
-    def __init__(self, neighbours, radius):
-        self.neighbours = neighbours
-        self.radius = radius
+    Stores a neighbourlist in form of a list of *n* sets of *m*
+    integers, which are *m* neighbouring point indices for one of the
+    *n* points.
+    """
+
+    def __init__(self, neighbourhoods, radius):
+        super().__init__(neighbourhoods)
+        self._radius = radius  # No setter, should always match data
 
     def __str__(self):
-        return self.neighbours.__str__()
+        return f"Neighbourhoods, radius = {self.radius}"
+
+    @property
+    def radius(self):
+        return self._radius
 
     @functools.cached_property
     def n_neighbours(self):
-        return [len(x) for x in self.neighbours]
+        return [len(x) for x in self.neighbourhoods]
 
 
 class Data:
+    """Abstraction class for handling input data
 
+    Bundles points (`Points`), distances (), neighbourhoods () and
+    auxillaries like trees.
+
+    """
     def __init__(
             self,
             points=None, dist_matrix=None, map_matrix=None,
@@ -326,7 +360,10 @@ class Data:
 
 
 class Points(np.ndarray):
-    """Data points"""
+    """Abstraction class for data points
+
+
+    """
 
     def __new__(
             cls,
@@ -448,8 +485,8 @@ class Points(np.ndarray):
 
         if self.size > 0:
             start = 0
-            for end in self._shape["points"]:
-                yield self._data[start:(start + end), :]
+            for end in self.edges:
+                yield self[start:(start + end), :]
                 start += end
 
         else:
@@ -523,7 +560,7 @@ class Points(np.ndarray):
 class Summary(list):
 
     def to_DataFrame(self):
-        """Convert list of records to pandas.DataFrame"""
+        """Convert list of records to (typed) pandas.DataFrame"""
         pass
 
 
@@ -543,7 +580,11 @@ CNNRecord = namedtuple(
 
 
 class CNN:
-    """CNN cluster object class"""
+    """CNN cluster object class
+
+    A cluster object connects input data (points, distances, neighbours,
+    ...) to cluster labels via clustering methodologies (fits).
+    """
 
     def __init__(
             self,
@@ -554,7 +595,7 @@ class CNN:
             labels: Collection[int] = None,
             alias: str = "root") -> None:
 
-        self.alias = alias  # Descriptive object identifier
+        self.alias = alias        # Descriptive object identifier
         self.hierarchy_level = 0  # See hierarchy_level.setter
 
         self.data = Data(
@@ -584,7 +625,7 @@ class CNN:
         return self._labels
 
     @labels.setter
-    def labels(self, sequence: Optional[Sequence]):
+    def labels(self, sequence: Optional[Sequence[int]]):
         self._labels = Labels(sequence)
 
     @property
@@ -623,25 +664,59 @@ class CNN:
 
         # Check for data points
         if self.data.points.size > 0:
-            self._status["points"] = (True,)
+            self._status["points"] = (True, self.data.points.shape[0])
         else:
             self._status["points"] = (False,)
 
+        if self.data.points.edges is not None:
+            self._status["edges"] = (True, len(self.data.points.edges))
+        else:
+            self._status["edges"] = (False,)
+
         # Check for point distances
         if self.data.dist_matrix is not None:
-            self._status["distances"] = (True,)
+            self._status["distances"] = (True, self.data.dist_matrix.shape[0])
         else:
             self._status["distances"] = (False,)
 
         # Check for neighbourhoods
         if self.data.neighbourhoods is not None:
-            self._status["neighbourhoods"] = (True,)
+            self._status["neighbourhoods"] = (True,
+                                              len(self.data.neighbourhoods,
+                                              self.data.neighbourhoods.radius))
         else:
             self._status["neighbourhoods"] = (False,)
 
     def __str__(self):
 
         self.check()
+        if self._status["edges"][0]:
+            if self._status['edges'][1] > 1:
+                if self._status['edges'][1] < 5:
+                    edge_str = f"{self._status['edges'][1]}, {self.data.points.edges}"
+                else:
+                    edge_str = f"{self._status['edges'][1]}, {self.data.points.edges[:5]}"
+            else:
+                edge_str = f"{self._status['edges'][1]}"
+        else:
+            edge_str = "None"
+
+        if self._status["points"][0]:
+            points_str = f"{self._status['points'][1]}"
+            dim_str = f"{self.data.points.shape[1]}"
+        else:
+            points_str = "None"
+            dim_str = f"{self.data.points.shape[1]}"
+
+        if self._status["distances"][0]:
+            dist_str = f"{self._status['distances'][1]}"
+        else:
+            dist_str = "None"
+
+        if self._status["neighbourhoods"][0]:
+            neigh_str = f"{self._status['neighbourhoods'][1]}, r={self._status['neighbourhoods'][2]}"
+        else:
+            neigh_str = "None"
 
         str_ = (
 f"""
@@ -651,13 +726,12 @@ core.cnn.CNN cluster object
 alias :                         {self.alias}
 hierachy level :                {self.hierarchy_level}
 
-data shape :                    Parts      - {len(self.data.points.edges)}
-                                Points     - {self.data.points.shape[0], self.data.points.edges[:5]}
-                                Dimensions - {self.data.points.shape[1]}
+data point shape :              Parts      - {edge_str}
+                                Points     - {points_str}
+                                Dimensions - {dim_str}
 
-data points loaded :            {self._status["points"]}
-distance matrix calculated :    {self._status["distances"]}
-neighbour list calculated :     {self._status["neighbourhoods"]}
+distance matrix calculated :    {dist_str}
+neighbour list calculated :     {neigh_str}
 clustered :                     {self.check_present(self._labels)}
 children :                      {self.check_present(self._children)}
 ===============================================================================
@@ -679,7 +753,7 @@ children :                      {self.check_present(self._children)}
         Args:
             v: Be chatty
             method: Method to compute distances
-                * cdist: :meth:`Use scipy.spatial.distance.cdist`
+                * cdist: :func:`Use scipy.spatial.distance.cdist`
             mmap: Wether to memory map the calculated distances on disk
                 (NumPy)
             mmap_file: If `mmap` is set to True, where to store the
@@ -690,7 +764,7 @@ children :                      {self.check_present(self._children)}
             progress: Wether to show a progress bar.
         """
 
-        if self.data.data is None:
+        if self.data.points.size == 0:
             return
 
         progress = not progress
@@ -700,8 +774,8 @@ children :                      {self.check_present(self._children)}
                 if mmap_file is None:
                     mmap_file = tempfile.TemporaryFile()
 
-                len_ = self.data.shape_str["points"][0]
-                self._dist_matrix = np.memmap(
+                len_ = self.data.points.shape[0]
+                self.data.dist_matrix = np.memmap(
                     mmap_file,
                     dtype=settings.float_precision_map[
                         settings["float_precision"]
@@ -718,13 +792,13 @@ children :                      {self.check_present(self._children)}
                             colorama.Fore.BLUE,
                             colorama.Fore.RESET
                             )):
-                    self._dist_matrix[
+                    self.data.dist_matrix[
                             chunk*chunksize: (chunk+1)*chunksize] = cdist(
-                        self.data.data[chunk*chunksize: (chunk+1)*chunksize],
-                        self.data.data
+                        self.data.points[chunk*chunksize: (chunk+1)*chunksize],
+                        self.data.points
                         )
             else:
-                self._dist_matrix = cdist(self.data.data, self.data.data)
+                self.data.dist_matrix = cdist(self.data.points, self.data.points)
 
         else:
             raise ValueError(
@@ -748,18 +822,19 @@ children :                      {self.check_present(self._children)}
 
         neighbours = [
             set(np.where((x > 0) & (x < r))[0])
-            for x in self._dist_matrix
+            for x in self.data.dist_matrix
             ]
 
-        self._neighbours = Neighbours(neighbours, r)
+        self.data.neighbourhoods = Neighbourhoods(neighbours, r)
 
     @timed
-    def map(  # BROKEN
+    def map(
             self, method='cdist', mmap=False,
             mmap_file=None, chunksize=10000, progress=True):
         """Computes a map matrix that maps an arbitrary data set to a
         reduced to set"""
 
+        # BROKEN
         if self.__train is None or self.__test is None:
             raise LookupError(
                 "Mapping requires a train and a test data set"
@@ -998,11 +1073,11 @@ children :                      {self.check_present(self._children)}
 
         # Neighbourhoods calculated?
         if (self._status["neighbourhoods"][0]
-                and self._neighbours.radius == params["radius_cutoff"]):
+                and self.data.neighbourhoods.radius == params["radius_cutoff"]):
             # Fit from pre-computed neighbourhoods,
             # no matter what the policy is
             fit_fxn = _fits.fit_from_neighbours
-            fit_args = (params["cnn_cutoff"], self._neighbours.neighbours)
+            fit_args = (params["cnn_cutoff"], self.data.neighbourhoods)
             # Fit from List[Set[int]]
             # TODO: Allow different methods and data structures
 
@@ -1012,7 +1087,7 @@ children :                      {self.check_present(self._children)}
                 # Pre-compute neighbourhoods from distances
                 self.calc_neighbours_from_dist(params["radius_cutoff"])
                 fit_fxn = _fits.fit_from_neighbours
-                fit_args = (params["cnn_cutoff"], self._neighbours.neighbours)
+                fit_args = (params["cnn_cutoff"], self.data.neighbourhoods)
 
             elif policy == "conservative":
                 # Use distances as input and calculate neighbours online
@@ -1039,19 +1114,19 @@ children :                      {self.check_present(self._children)}
 
         if rec:
             return CNNRecord(
-                self.data.shape_str["points"][0],
+                self.data.points.shape[0],
+                # TODO Maintain rather on Data level
                 params["radius_cutoff"],
                 params["cnn_cutoff"],
                 params["member_cutoff"],
                 max_clusters,
                 self.labels.max(),
-                largest / self.data.shape_str["points"][0],
-                noise / self.data.shape_str["points"][0],
+                largest / self.data.points.shape[0],
+                noise / self.data.points.shape[0],
                 None,
                 ), v
 
         return None
-
 
     def cKDtree(self, **kwargs):
         """Wrapper for `scipy.spatial.cKDTree`
@@ -1638,93 +1713,291 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
     def evaluate(
             self,
             ax: Optional[Type[mpl.axes.SubplotBase]] = None,
-            clusters: Optional[List[int]] = None,
-            original: bool = False, plot: str = 'dots',
-            parts: Optional[Tuple[Optional[int]]] = None,
+            clusters: Optional[Collection[int]] = None,
+            original: bool = False,
+            plot: str = 'dots',
+            # TODO parts: Optional[Tuple[Optional[int]]] = None,
             points: Optional[Tuple[Optional[int]]] = None,
             dim: Optional[Tuple[int, int]] = None,
             ax_props: Optional[Dict] = None, annotate: bool = True,
             annotate_pos: str = "mean",
             annotate_props: Optional[Dict] = None,
-            scatter_props: Optional[Dict] = None,
-            scatter_noise_props: Optional[Dict] = None,
-            dot_props: Optional[Dict] = None,
-            dot_noise_props: Optional[Dict] = None,
+            plot_props: Optional[Dict] = None,
+            plot_noise_props: Optional[Dict] = None,
             hist_props: Optional[Dict] = None,
-            contour_props: Optional[Dict] = None,
-            free_energy: bool = True, mask=None,
-            threshold=None,
+            free_energy: bool = True,
+            # TODO mask: Optional[Sequence[Union[bool, int]]] = None,
             ):
 
         """Returns a 2D plot of an original data set or a cluster result
 
-        Args:
-            ax: The `Axes` instance to which to add the plot.  If `None`,
-            a new `Figure` with `Axes` will be created.
+        Args: ax: The `Axes` instance to which to add the plot.  If
+            `None`, a new `Figure` with `Axes` will be created.
 
-            clusters :
+            clusters:
                 Cluster numbers to include in the plot.  If `None`,
                 consider all.
 
-            original: bool, default=False
+            original:
                 Allows to plot the original data instead of a cluster
                 result.  Overrides `clusters`.  Will be considered
-                True, if no cluster result is present.
+                `True`, if no cluster result is present.
 
-            plot: str, default="dots"
+            plot:
                 The kind of plotting method to use.
 
-                    * "dots", Use :func:`ax.plot()`
+                    * "dots", :func:`ax.plot`
+                    * "scatter", :func:`ax.scatter`
+                    * "contour", :func:`ax.contour`
+                    * "contourf", :func:`ax.contourf`
 
-                    * "",
+            parts:
+                Use a slice (start, stop, stride) on the data parts
+                before plotting.
 
-            parts: Tuple[int, int, int] (length 3), default=(None, None, None)
-                Use a slice (start, stop, stride) on the data parts before
-                plotting.
+            points:
+                Use a slice (start, stop, stride) on the data points
+                before plotting.
 
-            points: Tuple[int, int, int], default=(None, None, None)
-                Use a slice (start, stop, stride) on the data points before
-                plotting.
-
-            dim: Tuple[int, int], default=None
-                Use these two dimensions for plotting.  If None, uses
+            dim:
+                Use these two dimensions for plotting.  If `None`, uses
                 (0, 1).
 
-            annotate: bool, default=True
-                If there is a cluster result, plot the cluster numbers.  Uses
-                `annotate_pos` to determinte the position of the
+            annotate:
+                If there is a cluster result, plot the cluster numbers.
+                Uses `annotate_pos` to determinte the position of the
                 annotations.
 
-            annotate_pos: str or List[Tuple[int, int]], default="mean"
-                Where to put the cluster number annotation.  Can be one of:
+            annotate_pos:
+                Where to put the cluster number annotation.
+                Can be one of:
 
                     * "mean", Use the cluster mean
-
                     * "random", Use a random point of the cluster
 
-                Alternatively a list of x, y positions can be passed to set
-                a specific point for each cluster (Not yet implemented)
+                Alternatively a list of x, y positions can be passed to
+                set a specific point for each cluster
+                (*Not yet implemented*)
 
-            annotate_props: Dict, default=None
+            annotate_props:
                 Dictionary of keyword arguments passed to
-                :func:`ax.annotate(**kwargs)`.
+                :func:`ax.annotate`.
 
-            ax_props: Dict, default=None
+            ax_props:
                 Dictionary of `ax` properties to apply after
-                plotting via :func:`ax.set(**ax_props)`.  If None, uses
-                defaults that can be also defined in the configuration file.
+                plotting via :func:`ax.set(**ax_props)`.  If `None`,
+                uses defaults that can be also defined in
+                the configuration file (*Note yet implemented*).
 
-            (hist, contour, dot, scatter, dot_noise, scatter_noise)_props: Dict, default=None
-                Dictionaries of keyword arguments passed to various
-                functions.  If None, uses
-                defaults that can be also defined in the configuration file.
+            plot_props:
+                Dictionary of keyword arguments passed to various
+                functions (:func:`_plots.plot_dots` etc.) with different
+                meaning to format cluster plotting.  If `None`, uses
+                defaults that can be also defined in
+                the configuration file (*Note yet implemented*).
 
-            mask: Sequence[bool]
+            plot_noise_props:
+                Like `plot_props` but for formatting noise point
+                plotting.
 
-        Returns: List of plotted elements
+            hist_props:
+               Dictionary of keyword arguments passed to functions that
+               involve the computing of a histogram via
+               `numpy.histogram2d`.
+
+            free_energy:
+                If `True`, converts computed histograms to pseudo free
+                energy surfaces.
+
+            mask:
+                Sequence of boolean or integer values used for optional
+                fancy indexing on the point data array.  Note, that this
+                is applied after regular slicing (e.g. via `points`) and
+                requires a copy of the indexed data (may be slow and
+                memory intensive for big data sets).
+
+        Returns:
+            Figure, Axes and a list of plotted elements
         """
 
-        pass
+        if self.data.points.size == 0:
+            raise ValueError(
+                "No data points found to evaluate."
+            )
+
+        if dim is None:
+            dim = (0, 1)
+        elif dim[1] < dim[0]:
+            dim = dim[::-1]
+
+        if points is None:
+            points = (None, None, None)
+
+        # Slicing without copying
+        _data = self.data.points[
+            slice(*points),
+            slice(dim[0], dim[1] + 1, dim[1] - dim[0])
+            ]
+
+        # Plot original set or points per cluster?
+        if not original:
+            if self.labels is not None:
+                if clusters is None:
+                    clusters = list(self.labels.clusterdict.keys())
+            else:
+                original = True
+
+        ax_props_defaults = {
+            "xlabel": "$x$",
+            "ylabel": "$y$",
+        }
+
+        if ax_props is not None:
+            ax_props_defaults.update(ax_props)
+
+        annotate_props_defaults = {}
+
+        if annotate_props is not None:
+            annotate_props_defaults.update(annotate_props)
+
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.get_figure()
+
+        if plot == "dots":
+            plot_props_defaults = {
+                'lw': 0,
+                'marker': '.',
+                'markersize': 4,
+                'markeredgecolor': 'none',
+                }
+
+            if plot_props is not None:
+                plot_props_defaults.update(plot_props)
+
+            plot_noise_props_defaults = {
+                'color': 'none',
+                'lw': 0,
+                'marker': '.',
+                'markersize': 4,
+                'markerfacecolor': 'k',
+                'markeredgecolor': 'none',
+                'alpha': 0.3
+                }
+
+            if plot_noise_props is not None:
+                plot_noise_props_defaults.update(plot_noise_props)
+
+            plotted = _plots.plot_dots(
+                ax=ax, data=_data, original=original,
+                clusterdict=self.labels.clusterdict,
+                clusters=clusters,
+                dot_props=plot_props_defaults,
+                dot_noise_props=plot_noise_props_defaults,
+                annotate=annotate, annotate_pos=annotate_pos,
+                annotate_props=annotate_props_defaults
+                )
+
+        elif plot == "scatter":
+            plot_props_defaults = {
+                's': 10,
+            }
+
+            if plot_props is not None:
+                plot_props_defaults.update(plot_props)
+
+            plot_noise_props_defaults = {
+                'color': 'k',
+                's': 10,
+                'alpha': 0.5
+            }
+
+            if plot_noise_props is not None:
+                plot_noise_props_defaults.update(plot_noise_props)
+
+            plotted = _plots.plot_scatter(
+                ax=ax, data=_data, original=original,
+                clusterdict=self.labels.clusterdict,
+                clusters=clusters,
+                scatter_props=plot_props_defaults,
+                scatter_noise_props=plot_noise_props_defaults,
+                annotate=annotate, annotate_pos=annotate_pos,
+                annotate_props=annotate_props_defaults
+                )
+
+        if plot in ["contour", "contourf", "histogram"]:
+
+            hist_props_defaults = {
+                "avoid_zero_count": False,
+                "mass": True,
+                "mids": True
+            }
+
+            if hist_props is not None:
+                hist_props_defaults.update(hist_props)
+
+            if plot == "contour":
+
+                plot_props_defaults = {
+                    "cmap": mpl.cm.inferno,
+                }
+
+                if plot_props is not None:
+                    plot_props_defaults.update(plot_props)
+
+                plotted = _plots.plot_contour(
+                    ax=ax, data=_data, original=original,
+                    clusterdict=self.labels.clusterdict,
+                    clusters=clusters,
+                    contour_props=plot_props_defaults,
+                    contour_noise_props=plot_noise_props_defaults,
+                    hist_props=hist_props_defaults, free_energy=free_energy,
+                    annotate=annotate, annotate_pos=annotate_pos,
+                    annotate_props=annotate_props_defaults
+                    )
+
+            elif plot == "contourf":
+                plot_props_defaults = {
+                    "cmap": mpl.cm.inferno,
+                }
+
+                if plot_props is not None:
+                    plot_props_defaults.update(plot_props)
+
+                plotted = _plots.plot_contourf(
+                    ax=ax, data=_data, original=original,
+                    clusterdict=self.labels.clusterdict,
+                    clusters=clusters,
+                    contour_props=plot_props_defaults,
+                    contour_noise_props=plot_noise_props_defaults,
+                    hist_props=hist_props_defaults, free_energy=free_energy,
+                    annotate=annotate, annotate_pos=annotate_pos,
+                    annotate_props=annotate_props_defaults
+                    )
+
+            elif plot == "histogram":
+                plot_props_defaults = {
+                    "cmap": mpl.cm.inferno,
+                }
+
+                if plot_props is not None:
+                    plot_props_defaults.update(plot_props)
+
+                plotted = _plots.plot_histogram(
+                    ax=ax, data=_data, original=original,
+                    clusterdict=self.labels.clusterdict,
+                    clusters=clusters,
+                    contour_props=plot_props_defaults,
+                    contour_noise_props=plot_noise_props_defaults,
+                    hist_props=hist_props_defaults, free_energy=free_energy,
+                    annotate=annotate, annotate_pos=annotate_pos,
+                    annotate_props=annotate_props_defaults
+                    )
+
+        ax.set(**ax_props_defaults)
+
+        return fig, ax, plotted
 
 
 class CNNChild(CNN):
