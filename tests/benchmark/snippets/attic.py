@@ -66,28 +66,48 @@ if v:
             ))
     print("-"*72)
 
-    def cut(
-            self,
-            parts: Tuple[Optional[int], ...] = (None, None, None),
-            points: Tuple[Optional[int], ...] = (None, None, None),
-            dimensions: Tuple[Optional[int], ...] = (None, None, None)
-            ) -> None:
+    def isolate(self, purge=True):
+        """Isolates points per clusters based on a cluster result"""
 
-        """Modify which part of the data set should be clustered.
+        if purge or self._children is None:
+            self._children = defaultdict(lambda: CNNChild(self))
 
-        For each data set level (parts, points, dimensions),
-        a tuple (start:stop:step) can be specified. The corresponding
-        level is cut using :meth:`slice`. The data set is not actually
-        reduced and just a fancy index mask is created instead. Note,
-        that
-        """
+        for label, cpoints in self.labels.clusterdict.items():
 
-        self._data = [
-            x[slice(*points), slice(*dimensions)]
-            for x in self.__test[slice(*parts)]
-            ]
+            cpoints = list(cpoints)
+            ref_index = []
+            ref_index_rel = []
+            cluster_data = []
+            part_startpoint = 0
 
-        self._data, self._shape = self.get_shape(self._data)
+            if self._refindex is None:
+                ref_index.extend(cpoints)
+                ref_index_rel = ref_index
+            else:
+                ref_index.extend(self._refindex[cpoints])
+                ref_index_rel.extend(cpoints)
+
+            for part in range(self._shape['parts']):
+                part_endpoint = part_startpoint \
+                    + self._shape['points'][part] - 1
+
+                cluster_data.append(
+                    self._data[part][cpoints[
+                        np.where(
+                            (cpoints
+                             >= part_startpoint)
+                            &
+                            (cpoints
+                             <= part_endpoint))[0]] - part_startpoint]
+                        )
+                part_startpoint = np.copy(part_endpoint)
+                part_startpoint += 1
+
+            self._children[label].alias = f'child No. {label}'
+            self._children[label].data.points = cluster_data
+            self._children[label]._refindex = np.asarray(ref_index)
+            self._children[label]._refindex_rel = np.asarray(ref_index_rel)
+        return
 
     def loop_over_points(self) -> Iterator:
         """Iterate over all points of all parts

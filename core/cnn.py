@@ -15,6 +15,7 @@ git-hub (https://github.com/BDGSoftware/CNNClustering.git). Please cite:
 
 
 from collections import Counter, defaultdict, namedtuple, UserList
+from collections.abc import MutableSequence
 import functools
 from itertools import count
 import pickle
@@ -32,7 +33,15 @@ import colorama  # TODO Make this optional or remove completely?
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd  # TODO make this dependency optional?
+
+try:
+    # Optional dependency
+    import pandas as pd
+    _PANDAS_FOUND = True
+except ModuleNotFoundError:
+    print("Did not load pandas")
+    _PANDAS_FOUND = False
+
 from scipy.interpolate import interp1d
 from scipy.signal import argrelextrema
 from scipy.spatial import cKDTree
@@ -101,6 +110,8 @@ def recorded(function_):
                 for entry in record[:-1]:
                     if entry is None:
                         print(f"{'None':<10}", end="")
+                    elif isinstance(entry, float):
+                        print(f"{entry:<10.3f}", end="")
                     else:
                         print(f"{entry:<10}", end="")
                 print("\n" + "-" * 80)
@@ -114,7 +125,7 @@ def recorded(function_):
 class Labels(np.ndarray):
     """Cluster label assignments"""
 
-    def __new__(cls, sequence: Sequence[int]):
+    def __new__(cls, sequence: Optional[Sequence[int]] = None):
         if sequence is None:
             return None
 
@@ -139,7 +150,7 @@ class Labels(np.ndarray):
         #         sys.stderr.flush()
         #         break
 
-    @functools.cached_property
+    @property
     def clusterdict(self):
         return self.labels2dict(self)
 
@@ -214,7 +225,8 @@ class Labels(np.ndarray):
             self[self > c] -= d_
             d += d_  # Keep track of missing labels in total
 
-    def sort_by_size(self, member_cutoff=None, max_clusters=None):
+    def sort_by_size(
+            self, member_cutoff=None, max_clusters=None):
         """Sort labels by clustersize in-place
 
         Re-assigns cluster numbers so that the biggest cluster (that is
@@ -247,16 +259,12 @@ class Labels(np.ndarray):
                 settings.defaults.get("default_member_cutoff")
                 ))
 
-        noise = 0
         frequencies = Counter(self)
         if 0 in frequencies:
-            noise = frequencies.pop(0)
+            _ = frequencies.pop(0)
 
-        largest = 0
-        order = frequencies.most_common()
-        if order:
-            largest = order[0][1]
-
+        if frequencies:
+            order = frequencies.most_common()
             reassign = {}
             reassign[0] = 0
 
@@ -275,7 +283,7 @@ class Labels(np.ndarray):
             for index, old_label in enumerate(self):
                 self[index] = reassign[old_label]
 
-        return largest, noise
+        return
 
     def merge(self, clusters: List[int]) -> None:
         """Merge a list of clusters into one"""
@@ -328,7 +336,7 @@ class Neighbourhoods(UserList):
     def radius(self):
         return self._radius
 
-    @functools.cached_property
+    @property
     def n_neighbours(self):
         return [len(x) for x in self.neighbourhoods]
 
@@ -557,11 +565,133 @@ class Points(np.ndarray):
             )()
 
 
-class Summary(list):
+class Summary(MutableSequence):
+    def __init__(self, iterable=None):
+        if iterable is None:
+            iterable = ()
+        self._list = list(iterable)
+
+    def __getitem__(self, key):
+        return self._list.__getitem__(key)
+
+    def __setitem__(self, key, item):
+        if isinstance(item, CNNRecord):
+            self._list.__setitem__(key, item)
+        else:
+            raise TypeError(
+                "Summary can only contain records of type `CNNRecord`"
+            )
+
+    def __delitem__(self, key):
+        self._list.__delitem__(key)
+        # trigger change handler
+
+    def __len__(self):
+        return self._list.__len__()
+
+    def __str__(self):
+        return self._list.__str__()
+
+    def insert(self, index, item):
+        if isinstance(item, CNNRecord):
+            self._list.insert(index, item)
+        else:
+            raise TypeError(
+                "Summary can only contain records of type `CNNRecord`"
+            )
 
     def to_DataFrame(self):
         """Convert list of records to (typed) pandas.DataFrame"""
-        pass
+
+        if not _PANDAS_FOUND:
+            raise ModuleNotFoundError("Did not load pandas")
+
+        _record_dtypes = [
+            pd.Int64Dtype(),  # points
+            np.float64,       # r
+            pd.Int64Dtype(),  # n
+            pd.Int64Dtype(),  # m
+            pd.Int64Dtype(),  # max
+            pd.Int64Dtype(),  # clusters
+            np.float64,       # largest
+            np.float64,       # noise
+            np.float64,       # time
+            ]
+
+        content = []
+        for field in CNNRecord._fields:
+            content.append([
+                record.__getattribute__(field)
+                for record in self._list
+                ])
+
+        return TypedDataFrame(
+            columns=CNNRecord._fields,
+            dtypes=_record_dtypes,
+            content=content,
+            )
+
+    def summarize(
+            self,
+            ax: Optional[Type[mpl.axes.SubplotBase]] = None,
+            quant: str = "time",
+            treat_nan: Optional[Any] = None,
+            ax_props: Optional[Dict] = None,
+            contour_props: Optional[Dict] = None):
+        """Generate a 2D plot of record values
+
+        Record values ("time", "clusters", "largest", "noise") are
+        plotted against cluster parameters (radius cutoff "r"
+        and cnn cutoff "n").
+
+        Args:
+            ax: `Axes` instance.  If `None`, a new `Figure` with `Axes`
+                will be created.
+            quant: Record value to visualise.
+                * "time"
+                * "clusters"
+                * "largest"
+                * "noise"
+            treat_nan: If not `None`, use this value to pad nan-values.
+            ax_props:
+            contour_props:
+        """
+
+        if len(self._list) == 0:
+            raise LookupError(
+                "No cluster result records in summary"
+                )
+
+        ax_props_defaults = {
+            "xlabel": "$R$",
+            "ylabel": "$N$",
+        }
+
+        if ax_props is not None:
+            ax_props_defaults.update(ax_props)
+
+        contour_props_defaults = {
+                "cmap": mpl.cm.inferno,
+            }
+
+        if contour_props is not None:
+            contour_props_defaults.update(contour_props)
+
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.get_figure()
+
+        plotted = _plots.plot_summary(
+            ax, self.to_DataFrame(),
+            quant=quant,
+            treat_nan=treat_nan,
+            contour_props=contour_props_defaults
+            )
+
+        ax.set(**ax_props_defaults)
+
+        return fig, ax, plotted
 
 
 CNNRecord = namedtuple(
@@ -682,8 +812,8 @@ class CNN:
         # Check for neighbourhoods
         if self.data.neighbourhoods is not None:
             self._status["neighbourhoods"] = (True,
-                                              len(self.data.neighbourhoods,
-                                              self.data.neighbourhoods.radius))
+                                              len(self.data.neighbourhoods),
+                                              self.data.neighbourhoods.radius)
         else:
             self._status["neighbourhoods"] = (False,)
 
@@ -739,6 +869,39 @@ children :                      {self.check_present(self._children)}
             )
 
         return str_
+
+    def cut(
+            self,
+            part: Optional[int] = None,
+            points: Tuple[Optional[int], ...] = None,
+            dimensions: Tuple[Optional[int], ...] = None):
+        """Create a new :obj:`CNN` instance from a data subset
+
+        Convenience function to create a reduced cluster object.
+        Supported are continuous slices from the original data that
+        allow making a view instead of a copy.
+
+        Args:
+            part: Cut out the points for exactly one part
+                (zero based index).
+            points: Slice points by using (start:stop:step)
+            dimensions: Slice dimensions by using (start:stop:step)
+        """
+
+        # TODO Implement part
+
+        if points is None:
+            points = (None, None, None)
+
+        if dimensions is None:
+            dimensions = (None, None, None)
+
+        if self.data.points.size > 0:
+            _points = self.data.points[slice(*points), slice(*dimensions)]
+
+        # TODO Implement cut distance matrix
+
+        return type(self)(points=_points)
 
     @timed
     def calc_dist(
@@ -870,15 +1033,16 @@ children :                      {self.check_present(self._children)}
                             shape=(len_test, len_train),
                             )
                 chunks = np.ceil(len_test / chunksize).astype(int)
-                for chunk in tqdm.tqdm(range(chunks), desc="Mapping",
+                for chunk in tqdm.tqdm(
+                        range(chunks), desc="Mapping",
                         disable=progress, unit="Chunks", unit_scale=True,
                         bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (
                             colorama.Style.BRIGHT,
                             colorama.Fore.BLUE,
                             colorama.Fore.RESET)
                             ):
-                    self.__map_matrix[chunk*chunksize : (chunk+1)*chunksize] = cdist(
-                        _test[chunk*chunksize : (chunk+1)*chunksize], _train
+                    self.__map_matrix[chunk*chunksize: (chunk+1)*chunksize] = cdist(
+                        _test[chunk*chunksize: (chunk+1)*chunksize], _train
                         )
             else:
                 self.__map_matrix = cdist(_test, _train)
@@ -886,38 +1050,41 @@ children :                      {self.check_present(self._children)}
         else:
             raise ValueError()
 
-    def dist_hist(  # BROKEN
-            self, ax: Optional[Type[mpl.axes.SubplotBase]] = None,
+    def dist_hist(
+            self,
+            ax: Optional[Type[mpl.axes.SubplotBase]] = None,
             maxima: bool = False,
             maxima_props: Optional[Dict[str, Any]] = None,
             hist_props: Optional[Dict[str, Any]] = None,
             ax_props: Optional[Dict[str, Any]] = None,
-            inter_props: Optional[Dict[str, Any]] = None,
-            **kwargs):
-        """Make a histogram of distances in the data set
+            inter_props: Optional[Dict[str, Any]] = None):
+        """Plot a histogram of distances in the data set
+
+        Requires distances to be pre-computed.
 
         Args:
-            ax: Axes to plot on. If None, Figure and Axes are created.
-            maxima: Whether to mark the maxima of the distribution.
-                Uses `scipy.signal.argrelextrema`.
+            ax: `Axes` to plot on. If `None`, `Figure` and `Axes` are
+                created.
+            maxima: Whether to mark the maxima of the
+                distribution. Uses :func:`scipy.signal.argrelextrema`.
             maxima_props: Keyword arguments passed to
-                `scipy.signal.argrelextrema` if `maxima` is set
-                to True.
-            maxima_props: Keyword arguments passed to `numpy.histogram`
-                to compute the histogram.
-            ax_props: Keyword arguments passed to `ax.set` for styling.
+               :func:`scipy.signal.argrelextrema` if `maxima` is set
+               to True.
+            maxima_props: Keyword arguments passed to
+                :func:`numpy.histogram` to compute the histogram.
+            ax_props: Keyword arguments passed
+                to :func:`ax.set` for styling.
         """
+
+        # TODO Move to dist_matrix class / _plots.py
 
         # TODO Add option for kernel density estimation
         # (scipy.stats.gaussian_kde, statsmodels.nonparametric.kde)
 
-        if self._dist_matrix is None:
-            print(
-                "Distance matrix not calculated."
-                "Calculating distance matrix."
+        if self.data.dist_matrix is None:
+            raise ValueError(
+                "No distances calculated."
                 )
-            self.dist(mode=mode, **kwargs)
-        _dist_matrix = self._dist_matrix
 
         # TODO make this a configuration option
         hist_props_defaults = {
@@ -928,21 +1095,20 @@ children :                      {self.check_present(self._children)}
         if hist_props is not None:
             hist_props_defaults.update(hist_props)
 
-        flat_ = np.tril(_dist_matrix).flatten()
-        histogram, bins =  np.histogram(
-            flat_[flat_ > 0],
+        histogram, bins = np.histogram(
+            self.data.dist_matrix.flat,
             **hist_props_defaults
             )
 
-        binmids = bins[:-1] + (bins[-1] - bins[0]) / ((len(bins) - 1)*2)
-
-        # TODO make this a configuation option
-        inter_props_defaults = {
-            "ifactor": 0.5,
-            "kind": 'linear',
-        }
+        binmids = 0.5 * (bins[:-1] + bins[1:])
 
         if inter_props is not None:
+            # TODO make this a configuation option
+            inter_props_defaults = {
+                "ifactor": 0.5,
+                "kind": 'linear',
+            }
+
             inter_props_defaults.update(inter_props)
 
             ifactor = inter_props_defaults.pop("ifactor")
@@ -959,8 +1125,7 @@ children :                      {self.check_present(self._children)}
 
             binmids = ibinmids
 
-
-        ylimit = np.max(histogram)*1.1
+        ylimit = np.max(histogram) * 1.1
 
         # TODO make this a configuration option
         ax_props_defaults = {
@@ -993,6 +1158,7 @@ children :                      {self.check_present(self._children)}
             found = argrelextrema(histogram, np.greater, **maxima_props_)[0]
             settings['default_radius_cutoff'] = \
                 f"{binmids[found[0]]:.2f}"
+
             annotations = []
             for candidate in found:
                 annotations.append(
@@ -1000,7 +1166,7 @@ children :                      {self.check_present(self._children)}
                         f"{binmids[candidate]:.2f}",
                         xy=(binmids[candidate], histogram[candidate]),
                         xytext=(binmids[candidate],
-                                histogram[candidate]+(ylimit/100))
+                                histogram[candidate] + (ylimit / 100))
                         )
                     )
         else:
@@ -1107,12 +1273,19 @@ children :                      {self.check_present(self._children)}
 
         # TODO: Make this optional?
         # Sort by size and filter
-        largest, noise = self.labels.sort_by_size(
+        self.labels.sort_by_size(
             member_cutoff=params["member_cutoff"],
-            max_clusters=max_clusters
+            max_clusters=max_clusters,
             )
 
         if rec:
+            noise = 0
+            frequencies = Counter(self.labels)
+            if 0 in frequencies:
+                noise = frequencies.pop(0)
+
+            largest = frequencies.most_common(1)[0][1] if frequencies else 0
+
             return CNNRecord(
                 self.data.points.shape[0],
                 # TODO Maintain rather on Data level
@@ -1157,7 +1330,7 @@ children :                      {self.check_present(self._children)}
         return np.where(np.sum((B - a)**2, axis=1) < r)[0]
 
     @timed
-    def predict(  # BROKEN
+    def predict(
             self, radius_cutoff: Optional[float] = None,
             cnn_cutoff: Optional[int] = None,
             member_cutoff: Optional[int] = None,
@@ -1408,7 +1581,7 @@ children :                      {self.check_present(self._children)}
         elif behaviour == "tree":
             if self.__train_tree is None:
                 raise LookupError(
-"No search tree build for train data. Use CNN.kdtree(mode='train, **kwargs) first."
+                    "No search tree build for train data. Use CNN.kdtree(mode='train, **kwargs) first."
                     )
 
             _train = np.vstack(self.__train)
@@ -1454,7 +1627,7 @@ children :                      {self.check_present(self._children)}
                                 break
         else:
             raise ValueError(
-f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "tree"'
+                f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "tree"'
             )
 
         self.__test_labels[self.__memory_assigned] = _test_labels
@@ -1524,42 +1697,62 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         if purge or self._children is None:
             self._children = defaultdict(lambda: CNNChild(self))
 
-        for key, _cluster in  self._clusterdict.items():
-            # TODO: What if no noise?
-            if len(_cluster) > 0:
-                _cluster = np.asarray(_cluster)
-                ref_index = []
-                ref_index_rel = []
-                cluster_data = []
-                part_startpoint = 0
+        for label, cpoints in self.labels.clusterdict.items():
 
-                if self._refindex is None:
-                    ref_index.extend(_cluster)
-                    ref_index_rel = ref_index
-                else:
-                    ref_index.extend(self._refindex[_cluster])
-                    ref_index_rel.extend(_cluster)
+            cpoints = list(cpoints)
+            # cpoints should be a sorted list due to the way clusterdict
+            # is constructed by :meth:`Labels.labels2dict`
 
-                for part in range(self._shape['parts']):
-                    part_endpoint = part_startpoint \
-                        + self._shape['points'][part] -1
+            ref_index = []           # point indices in root
+            ref_index_relative = []  # point indices in parent
 
-                    cluster_data.append(
-                        self._data[part][_cluster[
-                            np.where(
-                                (_cluster
-                                >= part_startpoint)
-                                &
-                                (_cluster
-                                <= part_endpoint))[0]] - part_startpoint]
-                            )
-                    part_startpoint = np.copy(part_endpoint)
-                    part_startpoint += 1
+            if self._refindex is None:
+                # Isolate from root
+                ref_index.extend(cpoints)
+                ref_index_relative = ref_index
+            else:
+                # Isolate from child
+                ref_index.extend(self._refindex[cpoints])
+                ref_index_relative.extend(cpoints)
 
-                self._children[key].alias = f'child No. {key}'
-                self._children[key].data = cluster_data
-                self._children[key]._refindex = np.asarray(ref_index)
-                self._children[key]._refindex_rel = np.asarray(ref_index_rel)
+            # TODO Extent isolate to work with distances
+            #    Work with neighbourhoods probably does not make sense
+            self._children[label].data.points = self.data.points[cpoints]
+            # copies data from parent to child
+
+            child_edges = None
+            # Should have the same length as in root in the end
+            # (or be None)
+            if self.data.points.edges is not None:
+                # Pass on part edges to child
+                child_edges = []
+                edges = iter(self.data.points.edges)
+                part_end = next(edges)
+                # End index of points in the first part
+                child_e_ = 0
+                # Number of points in the first part going to the child
+
+                for index in ref_index:
+                    if index < part_end:
+                        child_e_ += 1
+                        continue
+
+                    while index >= part_end:
+                        child_edges.append(child_e_)
+                        part_end += next(edges)
+                        # End index of points in the next part
+                        child_e_ = 0
+                        # Reset number of points in this part going to the child
+
+                    child_e_ += 1
+                child_edges.append(child_e_)
+
+            self._children[label].data.points.edges = child_edges
+            self._children[label]._refindex = np.asarray(ref_index)
+            self._children[label]._refindex_relative = np.asarray(
+                ref_index_relative)
+            self._children[label].alias = f'child No. {label}'
+
         return
 
     def reel(self, deep: int = 1):
@@ -1569,44 +1762,30 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
             deep: How many lower levels to consider.
         """
 
+        def reel_children(parent, deep):
+            deep -= 1
+            for child in parent._children.values():
+                if deep > 0:
+                    reel_children(child, deep)
+                n_clusters = max(parent.labels)
+                if child.labels is not None:
+                    # Child has been clustered
+                    for index, label in enumerate(child.labels):
+                        if label == 0:
+                            new_label = 0
+                        else:
+                            new_label = label + n_clusters
+                        parent.labels[child._refindex_relative[index]] = \
+                            new_label
+
         if self._children is None:
-            raise LookupError(
-                "No child clusters isolated"
-                             )
-        # TODO: Implement "deep" for degree of decent into hierarchy structure
+            raise LookupError("No child clusters isolated")
 
-        for _cluster in self._children.values():
-            n_clusters = max(self._clusterdict)
-            if _cluster._labels is not None:
-                if self.hierarchy_level == 0:
-                    self._labels[
-                        _cluster._refindex[
-                        np.where(_cluster._labels == 0)[0]
-                        ]
-                    ] = 0
-                else:
-                    self._labels[
-                        _cluster._refindex_rel[
-                        np.where(_cluster._labels == 0)[0]
-                        ]
-                    ] = 0
+        assert deep > 0
 
-                for _label in _cluster._labels[_cluster._labels > 1]:
-                    if self.hierarchy_level == 0:
-                        self._labels[
-                            _cluster._refindex[
-                            np.where(_cluster._labels == _label)[0]
-                            ]
-                        ] = _label + n_clusters
-                    else:
-                        self._labels[
-                            _cluster._refindex_rel[
-                            np.where(_cluster._labels == _label)[0]
-                            ]
-                        ] = _label + n_clusters
+        reel_children(self, deep)
 
-            self.clean()
-            self.labels2dict()
+        return
 
     def get_samples(
             self, kind: str = 'mean', clusters: Optional[List[int]] = None,
@@ -1842,10 +2021,12 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
         # Plot original set or points per cluster?
         if not original:
             if self.labels is not None:
+                clusterdict = self.labels.clusterdict
                 if clusters is None:
                     clusters = list(self.labels.clusterdict.keys())
             else:
                 original = True
+                clusterdict = None
 
         ax_props_defaults = {
             "xlabel": "$x$",
@@ -1891,7 +2072,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
 
             plotted = _plots.plot_dots(
                 ax=ax, data=_data, original=original,
-                clusterdict=self.labels.clusterdict,
+                clusterdict=clusterdict,
                 clusters=clusters,
                 dot_props=plot_props_defaults,
                 dot_noise_props=plot_noise_props_defaults,
@@ -1918,7 +2099,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
 
             plotted = _plots.plot_scatter(
                 ax=ax, data=_data, original=original,
-                clusterdict=self.labels.clusterdict,
+                clusterdict=clusterdict,
                 clusters=clusters,
                 scatter_props=plot_props_defaults,
                 scatter_noise_props=plot_noise_props_defaults,
@@ -1948,7 +2129,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
 
                 plotted = _plots.plot_contour(
                     ax=ax, data=_data, original=original,
-                    clusterdict=self.labels.clusterdict,
+                    clusterdict=clusterdict,
                     clusters=clusters,
                     contour_props=plot_props_defaults,
                     contour_noise_props=plot_noise_props_defaults,
@@ -1967,7 +2148,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
 
                 plotted = _plots.plot_contourf(
                     ax=ax, data=_data, original=original,
-                    clusterdict=self.labels.clusterdict,
+                    clusterdict=clusterdict,
                     clusters=clusters,
                     contour_props=plot_props_defaults,
                     contour_noise_props=plot_noise_props_defaults,
@@ -1986,7 +2167,7 @@ f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "t
 
                 plotted = _plots.plot_histogram(
                     ax=ax, data=_data, original=original,
-                    clusterdict=self.labels.clusterdict,
+                    clusterdict=clusterdict,
                     clusters=clusters,
                     contour_props=plot_props_defaults,
                     contour_noise_props=plot_noise_props_defaults,
@@ -2004,25 +2185,15 @@ class CNNChild(CNN):
     """CNN cluster object subclass. Increments the hierarchy level of
     the parent object when instanciated."""
 
-    def __init__(self, parent, alias='child'):
-        super().__init__()
-        self.hierarchy_level = parent.hierarchy_level +1
-        self.alias = alias
+    def __init__(self, parent, *args, alias='child', **kwargs):
+        super().__init__(*args, alias=alias, **kwargs)
+        self.parent = parent
+        self.hierarchy_level = parent.hierarchy_level + 1
 
 
-def TypedDataFrame(columns, dtypes, content=None, index=None):
-    """Obsolete: eliminate pandas dependency
+def TypedDataFrame(columns, dtypes, content=None):
+    """Optional constructor to convert CNNRecords to pandas.DataFrame
 
-    summary = TypedDataFrame(
-            columns=self.Record._fields,
-            dtypes=self._record_dtypes
-            )
-
-    self._record_dtypes = [
-        pd.Int64Dtype(), np.float64, pd.Int64Dtype(), pd.Int64Dtype(),
-        pd.Int64Dtype(), pd.Int64Dtype(), np.float64, np.float64,
-        np.float64
-        ]
     """
 
     assert len(columns) == len(dtypes)

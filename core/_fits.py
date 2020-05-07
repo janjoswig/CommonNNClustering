@@ -4,6 +4,19 @@ from typing import List, Set
 import numpy as np
 
 
+def check_similarity_set(a, b, c):
+    if len(a) > len(b):
+        a, b = b, a
+
+    common = 0
+    for x in a:
+        if x in b:
+            common += 1
+            if common == c:
+                return True
+    return False
+
+
 def fit_from_neighbours(
         cnn_cutoff: int,
         neighbours: List[Set[int]]) -> List[int]:

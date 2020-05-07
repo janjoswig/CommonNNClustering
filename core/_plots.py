@@ -84,23 +84,19 @@ def pie(self, ax=None, pie_props=None):
             )
 
 
-def summarize(self, ax=None, quant: str="time", treat_nan=None,
-                ax_props=None, contour_props=None) -> Tuple:
-    """Generates a 2D plot of property values ("time", "noise",
-    "n_clusters", "largest") against cluster parameters
-    radius_cutoff and cnn_cutoff."""
+def plot_summary(
+        ax, summary, quant="time", treat_nan=None,
+        contour_props=None):
+    """Generate a 2D plot of record values"""
 
-    if len(self.summary) == 0:
-        raise LookupError(
-"""No cluster result summary present"""
-            )
+    if contour_props is None:
+        contour_props = {}
 
-    pivot = self.summary.groupby(
-        ["radius_cutoff", "cnn_cutoff"]
+    pivot = summary.groupby(
+        ["r", "n"]
         ).mean()[quant].reset_index().pivot(
-            "radius_cutoff", "cnn_cutoff"
+            "r", "n"
             )
-
 
     X_, Y_ = np.meshgrid(
         pivot.index.values, pivot.columns.levels[1].values
@@ -111,35 +107,13 @@ def summarize(self, ax=None, quant: str="time", treat_nan=None,
     if treat_nan is not None:
         values_[np.isnan(values_)] == treat_nan
 
-    if ax is None:
-        fig, ax = plt.subplots()
-    else:
-        fig = ax.get_figure()
-
-    ax_props_defaults = {
-        "xlabel": "$R$",
-        "ylabel": "$N$",
-    }
-
-    if ax_props is not None:
-        ax_props_defaults.update(ax_props)
-
-    contour_props_defaults = {
-            "cmap": mpl.cm.inferno,
-        }
-
-    if contour_props is not None:
-        contour_props_defaults.update(contour_props)
-
     plotted = []
 
     plotted.append(
-        ax.contourf(X_, Y_, values_, **contour_props_defaults)
+        ax.contourf(X_, Y_, values_, **contour_props)
         )
 
-    ax.set(**ax_props_defaults)
-
-    return fig, ax, plotted
+    return plotted
 
 
 def plot_dots(
@@ -463,14 +437,9 @@ def plot_histogram(
         if free_energy:
             H = get_free_energy(H)
 
-        if cluster == 0:
-            plotted.append(
-                ax.imshow(H, extent=(x_, y_), **show_noise_props)
-                )
-        else:
-            plotted.append(
-                ax.imshow(H, extent=(x_, y_), **show_props)
-                )
+        plotted.append(
+            ax.imshow(H, extent=(x_, y_), **show_props)
+            )
     else:
         for cluster, cpoints in clusterdict.items():
             if cluster in clusters:
@@ -487,10 +456,14 @@ def plot_histogram(
                 if free_energy:
                     H = get_free_energy(H)
 
-                X, Y = np.meshgrid(x_, y_)
-                plotted.append(
-                    ax.contourf(X, Y, H, **contour_props)
-                    )
+                if cluster == 0:
+                    plotted.append(
+                        ax.imshow(H, extent=(x_, y_), **show_noise_props)
+                        )
+                else:
+                    plotted.append(
+                        ax.imshow(H, extent=(x_, y_), **show_props)
+                        )
 
                 if annotate:
                     plotted.append(
@@ -538,6 +511,7 @@ def get_free_energy(H):
     dG[nonzero] -= np.min(dG[nonzero])
 
     return dG
+
 
 def get_histogram(
         x: Sequence[float], y: Sequence[float],
