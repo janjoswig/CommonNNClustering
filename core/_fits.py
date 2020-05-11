@@ -1,5 +1,6 @@
 from collections import deque
 from typing import List, Set
+from typing import Sequence, Collection
 
 import numpy as np
 
@@ -82,6 +83,34 @@ def fit_from_neighbours(
         current += 1
 
     return labels
+
+
+def predict_from_neighbours(
+        cnn_cutoff: int,
+        neighbourhoods: List[Set[int]],
+        labels: Sequence[int],
+        consider: Sequence[int],
+        base_labels: Sequence[int],
+        clusters: Collection[int]):
+
+    """"""
+
+    for point in range(labels.shape[0]):
+        if not consider[point]:
+            continue
+
+        neighbours = neighbourhoods[point]
+        for member in neighbours:
+            if not base_labels[member] in clusters:
+                continue
+
+            if (len(neighbours.intersection(neighbourhoods[member]))
+                    >= cnn_cutoff):
+                consider[point] = 0
+                labels[point] = base_labels[member]
+                break
+
+    return
 
 
 def get_neighbours_brute_array(self, point: int, r: float) -> Set[int]:

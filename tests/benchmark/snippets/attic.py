@@ -190,3 +190,184 @@ if v:
 
             if len(self._shape['points']) > 5:
                 self.shape_str['points'] += ["..."]
+
+#### Predict
+
+        len_ = len(_test)  # self.data.points.shape[0]
+
+        # TODO: Decouple memorize?
+        if purge or (clusters is None):
+            self.__test_labels = np.zeros(len_).astype(int)
+            self.__memory_assigned = np.ones(len_).astype(bool)
+            if clusters is None:
+                clusters = list(self.data.points.clusterdict.keys())
+
+        else:
+            if self.__memory_assigned is None:
+                self.__memory_assigned = np.ones(len_).astype(bool)
+
+            if self.__test_labels is None:
+                self.__test_labels = np.zeros(len_).astype(int)
+
+            for cluster in clusters:
+                self.__memory_assigned[self.__test_labels == cluster] = True
+                self.__test_labels[self.__test_labels == cluster] = 0
+
+            _test = _test[self.__memory_assigned]
+            # _map = self.__map_matrix[self.__memory_assigned]
+
+        progress = not progress
+
+        if behaviour == "on-the-fly":
+            if method == "plain":
+                # TODO: Store a vstacked version in the first place
+                _train = np.vstack(self.__train)
+
+                r = radius_cutoff**2
+
+                _test_labels = []
+
+                for candidate in tqdm.tqdm(_test, desc="Predicting",
+                    disable=progress, unit="Points", unit_scale=True,
+                    bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
+                    _test_labels.append(0)
+                    neighbours = self.get_neighbours(
+                        candidate, _train, r
+                        )
+
+                    # TODO: Decouple this reduction if clusters is None
+                    try:
+                        neighbours = neighbours[
+                            np.isin(self.__train_labels[neighbours], clusters)
+                            ]
+                    except IndexError:
+                        pass
+                    else:
+                        for neighbour in neighbours:
+                            neighbour_neighbours = self.get_neighbours(
+                                _train[neighbour], _train, r
+                                )
+
+                            # TODO: Decouple this reduction if clusters is None
+                            try:
+                                neighbour_neighbours = neighbour_neighbours[
+                                    np.isin(
+                                        self.__train_labels[neighbour_neighbours],
+                                        clusters
+                                        )
+                                    ]
+                            except IndexError:
+                                pass
+                            else:
+                                if self.check_similarity_array(
+                                    neighbours, neighbour_neighbours, cnn_cutoff
+                                    ):
+                                    _test_labels[-1] = self.__train_labels[neighbour]
+                                    # break after first match
+                                    break
+            else:
+                raise ValueError()
+
+        elif behaviour == "lookup":
+            _map = self.__map_matrix[self.__memory_assigned]
+            _test_labels = []
+
+            for candidate in tqdm.tqdm(range(len(_test)), desc="Predicting",
+                disable=progress, unit="Points", unit_scale=True,
+                bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
+
+                _test_labels.append(0)
+                neighbours = np.where(
+                    _map[candidate] < radius_cutoff
+                    )[0]
+
+                # TODO: Decouple this reduction if clusters is None
+                try:
+                    neighbours = neighbours[
+                        np.isin(self.__train_labels[neighbours], clusters)
+                        ]
+                except IndexError:
+                    pass
+                else:
+                    for neighbour in neighbours:
+                        neighbour_neighbours = np.where(
+                        (self.__train_dist_matrix[neighbour] < radius_cutoff) &
+                        (self.__train_dist_matrix[neighbour] > 0)
+                        )[0]
+
+                        try:
+                            # TODO: Decouple this reduction if clusters is None
+                            neighbour_neighbours = neighbour_neighbours[
+                                np.isin(
+                                    self.__train_labels[neighbour_neighbours],
+                                    clusters
+                                    )
+                                ]
+                        except IndexError:
+                            pass
+                        else:
+                            if self.check_similarity_array(
+                                neighbours, neighbour_neighbours, cnn_cutoff
+                                ):
+                                _test_labels[-1] = self.__train_labels[neighbour]
+                                # break after first match
+
+                                break
+
+        elif behaviour == "tree":
+            if self.__train_tree is None:
+                raise LookupError(
+                    "No search tree build for train data. Use CNN.kdtree(mode='train, **kwargs) first."
+                    )
+
+            _train = np.vstack(self.__train)
+
+            _test_labels = []
+
+            for candidate in tqdm.tqdm(_test, desc="Predicting",
+                disable=progress, unit="Points", unit_scale=True,
+                bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
+                _test_labels.append(0)
+                neighbours = np.asarray(self.__train_tree.query_ball_point(
+                    candidate, radius_cutoff, **kwargs
+                    ))
+
+                # TODO: Decouple this reduction if clusters is None
+                try:
+                    neighbours = neighbours[
+                        np.isin(self.__train_labels[neighbours], clusters)
+                        ]
+                except IndexError:
+                    pass
+                else:
+                    for neighbour in neighbours:
+                        neighbour_neighbours = np.asarray(self.__train_tree.query_ball_point(
+                            _train[neighbour], radius_cutoff, **kwargs
+                            ))
+                        try:
+                            # TODO: Decouple this reduction if clusters is None
+                            neighbour_neighbours = neighbour_neighbours[
+                                np.isin(
+                                    self.__train_labels[neighbour_neighbours],
+                                    clusters
+                                    )
+                                ]
+                        except IndexError:
+                            pass
+                        else:
+                            if self.check_similarity_array(
+                                neighbours, neighbour_neighbours, cnn_cutoff
+                                ):
+                                _test_labels[-1] = self.__train_labels[neighbour]
+                                # break after first match
+                                break
+        else:
+            raise ValueError(
+                f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "tree"'
+            )
+
+        self.__test_labels[self.__memory_assigned] = _test_labels
+        self.labels2dict(mode="test")
+
+        if memorize:
+            self.__memory_assigned[np.where(self.__test_labels > 0)[0]] = False

@@ -125,17 +125,23 @@ def recorded(function_):
 class Labels(np.ndarray):
     """Cluster label assignments"""
 
-    def __new__(cls, sequence: Optional[Sequence[int]] = None):
+    def __new__(
+            cls, sequence: Optional[Sequence[int]] = None,
+            info=None, consider=None):
         if sequence is None:
-            return None
+            sequence = []
 
         obj = np.asarray(sequence, dtype=int).view(cls)
+        obj.info = info
+        obj._consider = np.ones_like(obj, dtype=np.uint8)
 
         return obj
 
     def __array_finalize__(self, obj):
         if obj is None:
             return
+
+        self.info = getattr(obj, 'info', None)
 
         # TODO Warning in this place does not work, e.g. makes np.all()
         #    on labels fail ...
@@ -149,6 +155,27 @@ class Labels(np.ndarray):
         #             )
         #         sys.stderr.flush()
         #         break
+
+    @property
+    def info(self):
+        return self._info
+
+    @info.setter
+    def info(self, x):
+        if x is None:
+            self._info = LabelInfo(
+                origin=None,
+                reference=None,
+                params={},
+                )
+            return
+
+        if not isinstance(x, LabelInfo):
+            raise TypeError(
+                "Label information must be of type `LabelInfo` or `None`"
+                )
+
+        self._info = x
 
     @property
     def clusterdict(self):
@@ -309,8 +336,8 @@ class Labels(np.ndarray):
     def trash(self, clusters: List[int]) -> None:
         """Merge a list of clusters into noise"""
 
-        for add in clusters:
-            self[self == add] = 0
+        for remove in clusters:
+            self[self == remove] = 0
 
         self.sort_by_size()
 
@@ -325,9 +352,10 @@ class Neighbourhoods(UserList):
     *n* points.
     """
 
-    def __init__(self, neighbourhoods, radius):
+    def __init__(self, neighbourhoods, radius=None, reference=None):
         super().__init__(neighbourhoods)
         self._radius = radius  # No setter, should always match data
+        self._reference = reference
 
     def __str__(self):
         return f"Neighbourhoods, radius = {self.radius}"
@@ -340,6 +368,23 @@ class Neighbourhoods(UserList):
     def n_neighbours(self):
         return [len(x) for x in self.neighbourhoods]
 
+    @property
+    def reference(self):
+        return self._reference
+
+    @reference.setter
+    def reference(self, x):
+        if x is None:
+            self._reference = None
+            return
+
+        if not isinstance(x, CNN):
+            raise ValueError(
+                "Reference should be of type `CNN`"
+                )
+
+        self._reference = x
+
 
 class Data:
     """Abstraction class for handling input data
@@ -348,14 +393,34 @@ class Data:
     auxillaries like trees.
 
     """
+
+    # TODO Add refindex here?
+
     def __init__(
             self,
-            points=None, dist_matrix=None, map_matrix=None,
+            points=None,
+            distances=None,
             neighbourhoods=None):
         self.points = points
-        self.dist_matrix = dist_matrix
-        self.map_matrix = map_matrix
+        self.distances = distances
         self.neighbourhoods = neighbourhoods
+
+    @property
+    def shape(self):
+        shapes = {
+            "points": self.points.shape[0],
+            "distances": self.distances.shape[0],
+            "neighbourhoods": len(self.neighbourhoods),
+            }
+        shape_set = set(shapes.values())
+        if len(shape_set) == 1:
+            return tuple(shape_set)
+
+        shape_set.discard(0)
+        if len(shape_set) == 1:
+            return tuple(shape_set)
+
+        raise RuntimeError(f"Inconsistent data shapes: {shapes}")
 
     @property
     def points(self):
@@ -363,8 +428,92 @@ class Data:
 
     @points.setter
     def points(self, x):
-        self._points = Points.from_parts(x)
+        if not isinstance(x, Points):
+            x = Points.from_parts(x)
+        self._points = x
         # TODO This is the right point for choosing the constructor
+
+    @property
+    def distances(self):
+        return self._distances
+
+    @distances.setter
+    def distances(self, x):
+        if not isinstance(x, Distances):
+            x = Distances(x)
+        self._distances = x
+
+    @property
+    def neighbourhoods(self):
+        return self._neighbourhoods
+
+    @neighbourhoods.setter
+    def neighbourhoods(self, x):
+        if x is None:
+            x = []
+
+        if not isinstance(x, Neighbourhoods):
+            x = Neighbourhoods(x)
+        self._neighbourhoods = x
+
+
+class Distances(np.ndarray):
+    """Abstraction class for data points
+
+
+    """
+
+    def __new__(
+            cls,
+            p: Optional[np.ndarray] = None,
+            edges: Optional[Sequence] = None,
+            reference=None):
+        if p is None:
+            p = np.array([])
+        obj = p.view(cls)
+        obj._edges = edges
+        obj._reference = None
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None:
+            return
+
+        self._edges = getattr(obj, "edges", None)
+        self._reference = getattr(obj, "reference", None)
+
+    @property
+    def edges(self):
+        return self._edges
+
+    @edges.setter
+    def edges(self, x):
+        sum_edges = sum(x)
+        if (self.shape[0] != 0) and (sum_edges != self.shape[0]):
+            warnings.warn(
+                f"Part edges ({sum(x)} points) do not match data points "
+                f"({self.shape[0]} points)"
+                )
+        self._edges = x
+
+    @property
+    def reference(self):
+        return self._reference
+
+    @reference.setter
+    def reference(self, x):
+        if x is None:
+            self._reference = None
+            return
+
+        if not isinstance(x, CNN):
+            print(type(x))
+            print(issubclass(type(x), CNN))
+            raise ValueError(
+                "Reference should be of type `CNN`"
+                )
+
+        self._reference = x
 
 
 class Points(np.ndarray):
@@ -410,8 +559,19 @@ class Points(np.ndarray):
         Use if data is passed as collection of parts, as
             >>> obj = Points.from_parts([[[0],[1]], [[2],[3]]])
 
+        Recognised input formats are:
+            * Sequence
+            * 2D Sequence (sequence of sequences all of same length)
+            * Sequence of 2D sequences all of same second dimension
+
         In this way, part edges are taken from the input shape and do
-        not have to be specified explicitly.
+        not have to be specified explicitly. Calls :meth:`get_shape`.
+
+        Args:
+            p: File name as string or :obj:`pathlib.Path` object
+
+        Return:
+            Instance of :obj:`Points`
         """
 
         return cls(*cls.get_shape(p))
@@ -426,8 +586,20 @@ class Points(np.ndarray):
         Use if data is passed as collection of parts, as
             >>> obj = Points.from_parts([[[0],[1]], [[2],[3]]])
 
+        Recognised input formats are:
+            * Sequence
+            * 2D Sequence (sequence of sequences all of same length)
+            * Sequence of 2D sequences all of same second dimension
+
         In this way, part edges are taken from the input shape and do
-        not have to be specified explicitly.
+        not have to be specified explicitly. Calls :meth:`get_shape`
+        and :meth:`load`.
+
+        Args:
+            f: File name as string or :obj:`pathlib.Path` object
+
+        Return:
+            Instance of :obj:`Points`
         """
 
         if from_parts:
@@ -442,6 +614,13 @@ class Points(np.ndarray):
         format (parts, points, dimensions).  Creates a
         :obj:`numpy.ndarray` vstacked along the parts componenent that
         can be passed to the `Points` constructor along part edges.
+        This may not be able to deal with all possible kinds of input
+        structures correctly, so check the outcome carefully.
+
+        Recognised input formats are:
+            * Sequence
+            * 2D Sequence (sequence of sequences all of same length)
+            * Sequence of 2D sequences all of same second dimension
 
         Args:
             data: Either None or
@@ -454,7 +633,8 @@ class Points(np.ndarray):
 
         Returns:
             data -- A numpy.ndarray of shape (sum points, dimension)
-            edges -- Part edges, marking the end points of the parts
+            edges -- Part edges (list), marking the end points of the
+                parts
         """
 
         if data is None:
@@ -468,11 +648,15 @@ class Points(np.ndarray):
             data = [np.array([data])]
 
         elif np.shape(data_shape)[0] == 1:
-            # 2D Sequence of sequences passed
+            # 2D Sequence of sequences passed"
+            assert len({len(s) for s in data}) == 1
             data = [np.asarray(data)]
 
+            # TODO Does not catch edge case in which sequence of 2D
+            #    sequences is passed, not all having the same dimension
+
         elif np.shape(data_shape)[0] == 2:
-            # Sequence of 2D sequences of sequences passed
+            assert len({len(s) for s_ in data for s in s_}) == 1
             data = [np.asarray(x) for x in data]
 
         else:
@@ -694,6 +878,14 @@ class Summary(MutableSequence):
         return fig, ax, plotted
 
 
+LabelInfo = namedtuple(
+    'LabelInfo', [
+            "origin",     # "fitted", "reeled", "predicted", None
+            "reference",  # another CNN instance, None
+            "params",     # dict of fit/predict params per label
+        ]
+    )
+
 CNNRecord = namedtuple(
     'CNNRecord', [
         "points",
@@ -719,8 +911,7 @@ class CNN:
     def __init__(
             self,
             points: Optional[Any] = None,
-            dist_matrix: Optional[Any] = None,
-            map_matrix: Optional[Any] = None,
+            distances: Optional[Any] = None,
             neighbourhoods: Optional[Any] = None,
             labels: Collection[int] = None,
             alias: str = "root") -> None:
@@ -729,7 +920,7 @@ class CNN:
         self.hierarchy_level = 0  # See hierarchy_level.setter
 
         self.data = Data(
-            points, dist_matrix, map_matrix, neighbourhoods
+            points, distances, neighbourhoods
             )
 
         self.labels = labels  # See labels.setter
@@ -738,8 +929,6 @@ class CNN:
         self._refindex = None
         self._refindex_rel = None
         self._tree = None
-        self._memory_assigned = None
-        self._cache = None
         self._status = None
 
     @property
@@ -804,8 +993,8 @@ class CNN:
             self._status["edges"] = (False,)
 
         # Check for point distances
-        if self.data.dist_matrix is not None:
-            self._status["distances"] = (True, self.data.dist_matrix.shape[0])
+        if self.data.distances is not None:
+            self._status["distances"] = (True, self.data.distances.shape[0])
         else:
             self._status["distances"] = (False,)
 
@@ -905,7 +1094,10 @@ children :                      {self.check_present(self._children)}
 
     @timed
     def calc_dist(
-            self, v: bool = True, method: str = 'cdist',
+            self,
+            other=None,
+            v: bool = True,
+            method: str = 'cdist',
             mmap: bool = False,
             mmap_file: Optional[Union[Path, str, IO[bytes]]] = None,
             chunksize: int = 10000, progress: bool = True):
@@ -914,6 +1106,9 @@ children :                      {self.check_present(self._children)}
         Accesses data points in given data of standard shape
 
         Args:
+            other: If not `None`, a second :obj:`CNN` cluster object.
+                Distances to points in this associated with this object
+                will be calculated.
             v: Be chatty
             method: Method to compute distances
                 * cdist: :func:`Use scipy.spatial.distance.cdist`
@@ -930,23 +1125,27 @@ children :                      {self.check_present(self._children)}
         if self.data.points.size == 0:
             return
 
-        progress = not progress
+        progress = not progress  # TODO Keep Progressbars?
+
+        if other is None:
+            other = self
 
         if method == 'cdist':
             if mmap:
                 if mmap_file is None:
                     mmap_file = tempfile.TemporaryFile()
 
-                len_ = self.data.points.shape[0]
-                self.data.dist_matrix = np.memmap(
+                len_self = self.data.points.shape[0]
+                len_other = other.data.points.shape[0]
+                self.data.distances = np.memmap(
                     mmap_file,
                     dtype=settings.float_precision_map[
                         settings["float_precision"]
                         ],
                     mode='w+',
-                    shape=(len_, len_),
+                    shape=(len_self, len_other),
                     )
-                chunks = np.ceil(len_ / chunksize).astype(int)
+                chunks = np.ceil(len_self / chunksize).astype(int)
                 for chunk in tqdm.tqdm(
                         range(chunks), desc="Mapping",
                         disable=progress, unit="Chunks", unit_scale=True,
@@ -955,13 +1154,16 @@ children :                      {self.check_present(self._children)}
                             colorama.Fore.BLUE,
                             colorama.Fore.RESET
                             )):
-                    self.data.dist_matrix[
+                    self.data.distances[
                             chunk*chunksize: (chunk+1)*chunksize] = cdist(
                         self.data.points[chunk*chunksize: (chunk+1)*chunksize],
                         self.data.points
                         )
             else:
-                self.data.dist_matrix = cdist(self.data.points, self.data.points)
+                self.data.distances = cdist(self.data.points,
+                                            other.data.points)
+
+            self.data.distances.reference = other
 
         else:
             raise ValueError(
@@ -973,7 +1175,7 @@ children :                      {self.check_present(self._children)}
     def calc_neighbours_from_dist(self, r):
         """Calculate neighbour list at a given radius
 
-        Requires :attr:`self._dist_matrix`.
+        Requires :attr:`self._distances`.
         Sets :attr:`self._neighbours`.
 
         Args:
@@ -985,70 +1187,11 @@ children :                      {self.check_present(self._children)}
 
         neighbours = [
             set(np.where((x > 0) & (x < r))[0])
-            for x in self.data.dist_matrix
+            for x in self.data.distances
             ]
 
         self.data.neighbourhoods = Neighbourhoods(neighbours, r)
-
-    @timed
-    def map(
-            self, method='cdist', mmap=False,
-            mmap_file=None, chunksize=10000, progress=True):
-        """Computes a map matrix that maps an arbitrary data set to a
-        reduced to set"""
-
-        # BROKEN
-        if self.__train is None or self.__test is None:
-            raise LookupError(
-                "Mapping requires a train and a test data set"
-                )
-        elif self.__train_shape['dimensions'] < self.__test_shape['dimensions']:
-            warnings.warn(
-                f"Mapping requires the same number of dimension in the train"
-                "and the test data set. Reducing test set dimensions to"
-                f"{self.__train_shape['dimensions']}.",
-                UserWarning
-                )
-        elif self.__train_shape['dimensions'] > self.__test_shape['dimensions']:
-            raise ValueError(
-                f"Mapping requires the same number of dimension in the train \
-                and the test data set."
-                )
-
-        progress = not progress
-
-        if method == 'cdist':
-            _train = np.vstack(self.__train) # Data can not be streamed right now
-            _test = np.vstack(self.__test)
-            if mmap:
-                if mmap_file is None:
-                    mmap_file = tempfile.TemporaryFile()
-
-                len_train = len(_train)
-                len_test = len(_test)
-                self.__map_matrix = np.memmap(
-                            mmap_file,
-                            dtype=settings.float_precision_map[settings["float_precision"]],
-                            mode='w+',
-                            shape=(len_test, len_train),
-                            )
-                chunks = np.ceil(len_test / chunksize).astype(int)
-                for chunk in tqdm.tqdm(
-                        range(chunks), desc="Mapping",
-                        disable=progress, unit="Chunks", unit_scale=True,
-                        bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (
-                            colorama.Style.BRIGHT,
-                            colorama.Fore.BLUE,
-                            colorama.Fore.RESET)
-                            ):
-                    self.__map_matrix[chunk*chunksize: (chunk+1)*chunksize] = cdist(
-                        _test[chunk*chunksize: (chunk+1)*chunksize], _train
-                        )
-            else:
-                self.__map_matrix = cdist(_test, _train)
-
-        else:
-            raise ValueError()
+        self.data.neighbourhoods.reference = self.data.distances.reference
 
     def dist_hist(
             self,
@@ -1076,12 +1219,12 @@ children :                      {self.check_present(self._children)}
                 to :func:`ax.set` for styling.
         """
 
-        # TODO Move to dist_matrix class / _plots.py
+        # TODO Move to distances class / _plots.py
 
         # TODO Add option for kernel density estimation
         # (scipy.stats.gaussian_kde, statsmodels.nonparametric.kde)
 
-        if self.data.dist_matrix is None:
+        if self.data.distances is None:
             raise ValueError(
                 "No distances calculated."
                 )
@@ -1096,7 +1239,7 @@ children :                      {self.check_present(self._children)}
             hist_props_defaults.update(hist_props)
 
         histogram, bins = np.histogram(
-            self.data.dist_matrix.flat,
+            self.data.distances.flat,
             **hist_props_defaults
             )
 
@@ -1179,8 +1322,10 @@ children :                      {self.check_present(self._children)}
     @recorded
     @timed
     def fit(
-            self, radius_cutoff: Optional[float] = None,
+            self,
+            radius_cutoff: Optional[float] = None,
             cnn_cutoff: Optional[int] = None,
+            sort_by_size: bool = True,
             member_cutoff: Optional[int] = None,
             max_clusters: Optional[int] = None,
             cnn_offset: Optional[int] = None,
@@ -1215,21 +1360,24 @@ children :                      {self.check_present(self._children)}
         assert policy in ["progressive", "conservative"]
 
         # Set params
-        params = {  # option name, (user option name, used as type here)
+        param_template = {
+            # option name, (user option name, used as type here)
             'radius_cutoff': (radius_cutoff, float),
             'cnn_cutoff': (cnn_cutoff, int),
             'member_cutoff': (member_cutoff, int),
             'cnn_offset': (cnn_offset, int),
             }
 
-        for option, (value, type_) in params.items():
+        params = {}
+
+        for option, (value, type_) in param_template.items():
             if value is None:
                 default = f"default_{option}"
                 params[option] = type_(settings.get(
                     default, settings.defaults.get(default)
                     ))
             else:
-                params[option] = params[option][1](params[option][0])
+                params[option] = param_template[option][1](param_template[option][0])
 
         params["cnn_cutoff"] -= params["cnn_offset"]
         assert params["cnn_cutoff"] >= 0
@@ -1267,16 +1415,29 @@ children :                      {self.check_present(self._children)}
             elif policy == "conservative":
                 # Use points as input and calculate neighbours online
                 raise NotImplementedError()
+        else:
+            raise LookupError(
+                "No input data (neighbours, distances, or points) found"
+                )
 
         # Call clustering
         self.labels = fit_fxn(*fit_args)
 
-        # TODO: Make this optional?
-        # Sort by size and filter
-        self.labels.sort_by_size(
-            member_cutoff=params["member_cutoff"],
-            max_clusters=max_clusters,
+        # Attach info
+        self.labels.info = LabelInfo(
+            origin="fitted",
+            reference=None,
+            params={
+                "all": (params["radius_cutoff"], params["cnn_cutoff"])
+                },
             )
+
+        if sort_by_size:
+            # Sort by size and filter
+            self.labels.sort_by_size(
+                member_cutoff=params["member_cutoff"],
+                max_clusters=max_clusters,
+                )
 
         if rec:
             noise = 0
@@ -1310,7 +1471,7 @@ children :                      {self.check_present(self._children)}
             **kwargs: Passed to `scipy.spatial.cKDTree`
         """
 
-        self._tree = cKDTree(self._data, **kwargs)
+        self.data.points.tree = cKDTree(self.data.points, **kwargs)
 
     @staticmethod
     def get_neighbours(
@@ -1331,89 +1492,97 @@ children :                      {self.check_present(self._children)}
 
     @timed
     def predict(
-            self, radius_cutoff: Optional[float] = None,
+            self,
+            other,
+            radius_cutoff: Optional[float] = None,
             cnn_cutoff: Optional[int] = None,
-            member_cutoff: Optional[int] = None,
-            include_all: bool = True, same_tol=1e-8, memorize: bool = True,
-            clusters: Optional[List[int]] = None, purge: bool = False,
-            cnn_offset: Optional[int] = None, behaviour="lookup",
-            method='plain', progress=True, **kwargs
+            # member_cutoff: Optional[int] = None,
+            include_all: bool = True,
+            same_tol: float = 1e-8,
+            memorize: bool = True,
+            clusters: Optional[List[int]] = None,
+            purge: bool = False,
+            cnn_offset: Optional[int] = None,
+            behaviour: str = "lookup",
+            method: str = 'plain',
+            progress: bool = True,
+            policy="progressive",
+            **kwargs
             ) -> None:
         """
-        Predict labels for points in a test set on the basis of assigned
-        labels to a train set by :meth:`CNN.fit`
+        Predict labels for points in a data set (`other`) on the basis
+        of assigned labels to a "train" set (`self`).
 
-        Parameters
-        ----------
-        radius_cutoff : float, default=1.0
-            Used to find nearest neighbours within distance r
+        Args:
+            other: `CNN` cluster object for whose points cluster labels
+                should be predicted
 
-        cnn_cutoff : int, default=1
-            Similarity criterion; Points of the same cluster must have
-            at least n common nearest neighbours
+            radius_cutoff: Find nearest neighbours within
+                distance *r*
 
-        member_cutoff : int, default=1
-            Clusters must have more than m points or are declared noise
+            cnn_cutoff: Points of the same cluster must have
+                at least *n* common nearest neighbours
+                (Similarity criterion)
 
-        include_all : bool, default=True
-            If False, keep cluster assignment for points in the test set
-            that have a maximum distance of `same_tol` to a point
-            in the train set, i.e. they are (essentially the same point)
-            (currently not implemented)
+            member_cutoff: Clusters must have more than *m* members or
+                are declared noise
 
-        same_tol : float, default=1e-8
-            Distance cutoff to treat points as the same, if
-            `include_all` is False
+            include_all:
+                If `False`, keep cluster assignment for points in the test set
+                that have a maximum distance of `same_tol` to a point
+                in the train set, i.e. they are (essentially the same point)
+                (currently not implemented)
 
-        clusters : List[int], Optional, default=None
-            Predict assignment of points only with respect to this list
-            of clusters
+            same_tol: Distance cutoff to treat points as the same, if
+                `include_all` is `False`
 
-        purge : bool, default=False
-            If True, reinitalise predicted labels.  Override assignment
-            memory.
+            clusters: Predict assignment of points only with respect to
+                this list of clusters
 
-        memorize : bool, default=True
-            If True, remember which points in the test set have been
-            already assigned and exclude them from future predictions
+            purge: If `True`, reinitalise predicted labels.
+                Override assignment memory.
 
-        cnn_offset : int, default=0
-            Mainly for backwards compatibility; Modifies the the
-            cnn_cutoff
+            memorize:  # TODO obsolet? Always true if purge false?
+                If `True`, remember which points in the test set have
+                been already assigned and exclude them from future
+                predictions
 
-        behaviour : str, default="lookup"
-            Controlls how the predictor operates:
+            cnn_offset: Mainly for backwards compatibility.
+                Modifies the the cnn_cutoff.
 
-            * "lookup", Use distance matrices CNN.train_dist_matrix and
-                CNN.map_matrix to lookup distances to generate the
-                neighbour lists.  If one of the matrices does not exist,
-                throw an error.  Consider memory mapping `mmap`
-                when computing the distances with :py:meth:`CNN.dist` and
-                :py:meth:`CNN.map` for large data sets.
+            behaviour : str, default="lookup"
+                Controlls how the predictor operates:
 
-            * "on-the-fly", Compute distances during the prediction
-                using the specified `method`.
+                * "lookup", Use distance matrices CNN.train_distances and
+                    CNN.map_matrix to lookup distances to generate the
+                    neighbour lists.  If one of the matrices does not exist,
+                    throw an error.  Consider memory mapping `mmap`
+                    when computing the distances with :py:meth:`CNN.dist` and
+                    :py:meth:`CNN.map` for large data sets.
 
-            * "tree", Get the neighbour lists during the prediction from
-                a tree query
+                * "on-the-fly", Compute distances during the prediction
+                    using the specified `method`.
 
-        method : str, default="plain"
-            Controlls which method is used to get the neighbour lists
-            within a given `behaviour`:
+                * "tree", Get the neighbour lists during the prediction from
+                    a tree query
 
-            * "lookup", parameter not used
+            method : str, default="plain"
+                Controlls which method is used to get the neighbour lists
+                within a given `behaviour`:
 
-            * "on-the-fly",
-                * "plain", uses :py:meth:`CNN.get_neighbours`
+                * "lookup", parameter not used
 
-            * "tree", parameter not used
+                * "on-the-fly",
+                    * "plain", uses :py:meth:`CNN.get_neighbours`
 
-        progress : bool, default=True
-            Show a progress bar
+                * "tree", parameter not used
 
-        **kwargs :
-            Additional keyword arguments are passed to the method that
-            is used to compute the neighbour lists
+            progress : bool, default=True
+                Show a progress bar
+
+            **kwargs :
+                Additional keyword arguments are passed to the method that
+                is used to compute the neighbour lists
         """
 
         ################################################################
@@ -1421,220 +1590,103 @@ children :                      {self.check_present(self._children)}
         #     acts like include_all = True.
         ################################################################
 
-        if radius_cutoff is None:
-            radius_cutoff = float(
-                settings.get(
-                    'default_radius_cutoff',
-                    settings.defaults.get('default_radius_cutoff')
-                    )
-                )
-        if cnn_cutoff is None:
-            cnn_cutoff = int(
-                settings.get(
-                    'default_cnn_cutoff',
-                    settings.defaults.get('default_cnn_cutoff')
-                    )
-                )
-        if member_cutoff is None:
-            member_cutoff = int(
-                settings.get(
-                    'default_member_cutoff',
-                    settings.defaults.get('default_member_cutoff')
-                    )
-                )
-        if cnn_offset is None:
-            cnn_offset = int(
-                settings.get(
-                    'default_cnn_offset',
-                    settings.defaults.get('default_cnn_offset')
-                    )
-                )
+        # Set params
+        param_template = {
+            # option name, (user option name, used as type here)
+            'radius_cutoff': (radius_cutoff, float),
+            'cnn_cutoff': (cnn_cutoff, int),
+            # 'member_cutoff': (member_cutoff, int),
+            'cnn_offset': (cnn_offset, int),
+            }
 
-        cnn_cutoff -= cnn_offset
+        params = {}
 
-        # TODO: Store a vstacked version in the first place
-        _test = np.vstack(self.__test)
-        # _map = self.__map_matrix
+        for option, (value, type_) in param_template.items():
+            if value is None:
+                default = f"default_{option}"
+                params[option] = type_(settings.get(
+                    default, settings.defaults.get(default)
+                    ))
+            else:
+                params[option] = param_template[option][1](param_template[option][0])
 
-        len_ = len(_test)
+        params["cnn_cutoff"] -= params["cnn_offset"]
+        assert params["cnn_cutoff"] >= 0
+
+        # Check data situation
+        self.check()
+        other.check()
 
         # TODO: Decouple memorize?
         if purge or (clusters is None):
-            self.__test_labels = np.zeros(len_).astype(int)
-            self.__memory_assigned = np.ones(len_).astype(bool)
+            other.labels = np.zeros(other.data.shape[0]).astype(int)
             if clusters is None:
-                clusters = list(range(1, len(self.__train_clusterdict)+1))
+                clusters = list(self.labels.clusterdict.keys())
 
         else:
+            if other.labels.size == 0:
+                other.labels = np.zeros(other.data.shape[0]).astype(int)
 
-            if self.__memory_assigned is None:
-                self.__memory_assigned = np.ones(len_).astype(bool)
+            for cluster_ in clusters:
+                other.labels[other.labels == cluster_] = 0
 
-            if self.__test_labels is None:
-                self.__test_labels = np.zeros(len_).astype(int)
+        # Neighbourhoods calculated?
+        if (other._status["neighbourhoods"][0]
+                and other.data.neighbourhoods.radius == params["radius_cutoff"]):
+            # Fit from pre-computed neighbourhoods,
+            # no matter what the policy is
+            predict_fxn = _fits.predict_from_neighbours
+            predict_args = (params["cnn_cutoff"],
+                            other.data.neighbourhoods,
+                            other.labels,
+                            other.labels._consider,
+                            self.labels,
+                            set(clusters))
 
-            for cluster in clusters:
-                self.__memory_assigned[self.__test_labels == cluster] = True
-                self.__test_labels[self.__test_labels == cluster] = 0
+            # Predict from List[Set[int]]
+            # TODO: Allow different methods and data structures
 
-            _test = _test[self.__memory_assigned]
-            # _map = self.__map_matrix[self.__memory_assigned]
+        # Distances calculated?
+        elif other._status["distances"][0]:
+            if policy == "progressive":
+                # Pre-compute neighbourhoods from distances
+                other.calc_neighbours_from_dist(r=params["radius_cutoff"])
+                predict_fxn = _fits.predict_from_neighbours
+                predict_args = (params["cnn_cutoff"],
+                                other.data.neighbourhoods,
+                                other.labels,
+                                other.labels._consider,
+                                self.labels,
+                                set(clusters))
 
-        progress = not progress
+            elif policy == "conservative":
+                # Use distances as input and calculate neighbours online
+                raise NotImplementedError()
 
-        if behaviour == "on-the-fly":
-            if method == "plain":
-                # TODO: Store a vstacked version in the first place
-                _train = np.vstack(self.__train)
-
-                r = radius_cutoff**2
-
-                _test_labels = []
-
-                for candidate in tqdm.tqdm(_test, desc="Predicting",
-                    disable=progress, unit="Points", unit_scale=True,
-                    bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
-                    _test_labels.append(0)
-                    neighbours = self.get_neighbours(
-                        candidate, _train, r
-                        )
-
-                    # TODO: Decouple this reduction if clusters is None
-                    try:
-                        neighbours = neighbours[
-                            np.isin(self.__train_labels[neighbours], clusters)
-                            ]
-                    except IndexError:
-                        pass
-                    else:
-                        for neighbour in neighbours:
-                            neighbour_neighbours = self.get_neighbours(
-                                _train[neighbour], _train, r
-                                )
-
-                            # TODO: Decouple this reduction if clusters is None
-                            try:
-                                neighbour_neighbours = neighbour_neighbours[
-                                    np.isin(
-                                        self.__train_labels[neighbour_neighbours],
-                                        clusters
-                                        )
-                                    ]
-                            except IndexError:
-                                pass
-                            else:
-                                if self.check_similarity_array(
-                                    neighbours, neighbour_neighbours, cnn_cutoff
-                                    ):
-                                    _test_labels[-1] = self.__train_labels[neighbour]
-                                    # break after first match
-                                    break
-            else:
-                raise ValueError()
-
-        elif behaviour == "lookup":
-            _map = self.__map_matrix[self.__memory_assigned]
-            _test_labels = []
-
-            for candidate in tqdm.tqdm(range(len(_test)), desc="Predicting",
-                disable=progress, unit="Points", unit_scale=True,
-                bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
-
-                _test_labels.append(0)
-                neighbours = np.where(
-                    _map[candidate] < radius_cutoff
-                    )[0]
-
-                # TODO: Decouple this reduction if clusters is None
-                try:
-                    neighbours = neighbours[
-                        np.isin(self.__train_labels[neighbours], clusters)
-                        ]
-                except IndexError:
-                    pass
-                else:
-                    for neighbour in neighbours:
-                        neighbour_neighbours = np.where(
-                        (self.__train_dist_matrix[neighbour] < radius_cutoff) &
-                        (self.__train_dist_matrix[neighbour] > 0)
-                        )[0]
-
-                        try:
-                            # TODO: Decouple this reduction if clusters is None
-                            neighbour_neighbours = neighbour_neighbours[
-                                np.isin(
-                                    self.__train_labels[neighbour_neighbours],
-                                    clusters
-                                    )
-                                ]
-                        except IndexError:
-                            pass
-                        else:
-                            if self.check_similarity_array(
-                                neighbours, neighbour_neighbours, cnn_cutoff
-                                ):
-                                _test_labels[-1] = self.__train_labels[neighbour]
-                                # break after first match
-
-                                break
-
-        elif behaviour == "tree":
-            if self.__train_tree is None:
-                raise LookupError(
-                    "No search tree build for train data. Use CNN.kdtree(mode='train, **kwargs) first."
-                    )
-
-            _train = np.vstack(self.__train)
-
-            _test_labels = []
-
-            for candidate in tqdm.tqdm(_test, desc="Predicting",
-                disable=progress, unit="Points", unit_scale=True,
-                bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
-                _test_labels.append(0)
-                neighbours = np.asarray(self.__train_tree.query_ball_point(
-                    candidate, radius_cutoff, **kwargs
-                    ))
-
-                # TODO: Decouple this reduction if clusters is None
-                try:
-                    neighbours = neighbours[
-                        np.isin(self.__train_labels[neighbours], clusters)
-                        ]
-                except IndexError:
-                    pass
-                else:
-                    for neighbour in neighbours:
-                        neighbour_neighbours = np.asarray(self.__train_tree.query_ball_point(
-                            _train[neighbour], radius_cutoff, **kwargs
-                            ))
-                        try:
-                            # TODO: Decouple this reduction if clusters is None
-                            neighbour_neighbours = neighbour_neighbours[
-                                np.isin(
-                                    self.__train_labels[neighbour_neighbours],
-                                    clusters
-                                    )
-                                ]
-                        except IndexError:
-                            pass
-                        else:
-                            if self.check_similarity_array(
-                                neighbours, neighbour_neighbours, cnn_cutoff
-                                ):
-                                _test_labels[-1] = self.__train_labels[neighbour]
-                                # break after first match
-                                break
+        # Points loaded?
+        elif other._status["points"][0]:
+            if policy == "progressive":
+                # Pre-compute neighbourhoods from points
+                raise NotImplementedError()
+            elif policy == "conservative":
+                # Use points as input and calculate neighbours online
+                raise NotImplementedError()
         else:
-            raise ValueError(
-                f'Behaviour "{behaviour}" not known. Must be one of "on-the-fly", "lookup" or "tree"'
+            raise LookupError(
+                "No input data (neighbours, distances, or points) found"
+                )
+
+        # Call prediction
+        predict_fxn(*predict_args)
+
+        # Attach info
+        other.labels.info = other.labels.info._replace(
+            origin="predicted",
+            reference=other
             )
-
-        self.__test_labels[self.__memory_assigned] = _test_labels
-        self.labels2dict(mode="test")
-
-        if memorize:
-            self.__memory_assigned[np.where(self.__test_labels > 0)[0]] = False
+        for cluster_ in clusters:
+            other.labels.info.params[cluster_] = (params["radius_cutoff"],
+                                                  params["cnn_cutoff"])
 
     @staticmethod
     def check_similarity_sequence(a: Sequence[int], b: Sequence[int], c: int) -> bool:
@@ -1691,7 +1743,7 @@ children :                      {self.check_present(self._children)}
             return True
         return False
 
-    def isolate(self, purge=True):
+    def isolate(self, purge: bool = True) -> None:
         """Isolates points per clusters based on a cluster result"""
 
         if purge or self._children is None:
@@ -1755,20 +1807,27 @@ children :                      {self.check_present(self._children)}
 
         return
 
-    def reel(self, deep: int = 1):
+    def reel(self, deep: Optional[int] = 1) -> None:
         """Wrap up assigments of lower hierarchy levels
 
         Args:
-            deep: How many lower levels to consider.
+            deep: How many lower levels to consider.  If `None`,
+                consider all.
         """
 
         def reel_children(parent, deep):
-            deep -= 1
+            if parent._children is None:
+                return
+
+            if deep is not None:
+                deep -= 1
+
             for child in parent._children.values():
-                if deep > 0:
-                    reel_children(child, deep)
+                if (deep is None) or (deep > 0):
+                    reel_children(child, deep)  # Dive deeper
+
                 n_clusters = max(parent.labels)
-                if child.labels is not None:
+                if child.labels.size > 0:
                     # Child has been clustered
                     for index, label in enumerate(child.labels):
                         if label == 0:
@@ -1778,10 +1837,8 @@ children :                      {self.check_present(self._children)}
                         parent.labels[child._refindex_relative[index]] = \
                             new_label
 
-        if self._children is None:
-            raise LookupError("No child clusters isolated")
-
-        assert deep > 0
+        if deep is not None:
+            assert deep > 0
 
         reel_children(self, deep)
 
@@ -2020,7 +2077,7 @@ children :                      {self.check_present(self._children)}
 
         # Plot original set or points per cluster?
         if not original:
-            if self.labels is not None:
+            if self.labels.size > 0:
                 clusterdict = self.labels.clusterdict
                 if clusters is None:
                     clusters = list(self.labels.clusterdict.keys())
@@ -2180,6 +2237,15 @@ children :                      {self.check_present(self._children)}
 
         return fig, ax, plotted
 
+    def pie(self, ax=None):
+
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.get_figure()
+
+        _plots.pie(self, ax=ax)
+
 
 class CNNChild(CNN):
     """CNN cluster object subclass. Increments the hierarchy level of
@@ -2221,10 +2287,10 @@ def dist(data: Any):
         Distance matrix (points x points).
     """
 
-    cobj = CNN(data=data)
-    cobj.dist()
+    cobj = CNN(data)
+    cobj.calc_dist()
 
-    return cobj._dist_matrix
+    return cobj.data.distances
 
 
 class MetaSettings(type):

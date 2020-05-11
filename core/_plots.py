@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def pie(self, ax=None, pie_props=None):
+def pie(root, ax, pie_props=None):
     size = 0.2
     radius = 0.22
 
@@ -23,8 +23,8 @@ def pie(self, ax=None, pie_props=None):
         if level not in pieces:
             pieces[level] = {}
 
-        if c._clusterdict:
-            ring = {k: len(v) for k, v in c._clusterdict.items()}
+        if c.labels.clusterdict:
+            ring = {k: len(v) for k, v in c.labels.clusterdict.items()}
             ringsum = np.sum(list(ring.values()))
             ring = {k: v/ringsum for k, v in ring.items()}
             pieces[level][ref] = ring
@@ -34,17 +34,23 @@ def pie(self, ax=None, pie_props=None):
                     getpieces(
                         child,
                         pieces=pieces,
-                        level=level+1,
+                        level=level + 1,
                         ref=".".join([ref, str(number)])
                     )
 
         return pieces
-    p = getpieces(self)
+
+    p = getpieces(root)
 
     ringvalues = []
+    colors = []
     for j in range(np.max(list(p[0]['0'].keys())) + 1):
         if j in p[0]['0']:
             ringvalues.append(p[0]['0'][j])
+            if j == 0:
+                colors.append("#262626")
+            else:
+                colors.append(next(ax._get_lines.prop_cycler)["color"])
 
     ax.pie(
         ringvalues, radius=radius, colors=None,
@@ -52,7 +58,7 @@ def pie(self, ax=None, pie_props=None):
         )
 
     # iterating through child levels
-    for i in range(1, np.max(list(p.keys()))+1):
+    for i in range(1, np.max(list(p.keys())) + 1):
         # what has not been reclustered:
         reclustered = np.asarray(
             [key.rsplit('.', 1)[-1] for key in p[i].keys()]
@@ -74,9 +80,14 @@ def pie(self, ax=None, pie_props=None):
             }
 
         ringvalues = []
+        colors = []
         for ref in sorted(list(p[i].keys())):
             for j in p[i][ref]:
                 ringvalues.append(p[i][ref][j])
+                if j == 0:
+                    colors.append("#262626")
+                else:
+                    colors.append(next(ax._get_lines.prop_cycler)["color"])
 
         ax.pie(
             ringvalues, radius=radius + i*size, colors=None,

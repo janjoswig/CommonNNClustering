@@ -8,12 +8,12 @@ class TestGetPoints:
     """Tests for data retrieval"""
 
     def by_parts_no_data(self, empty_cobj):
-        part_iterator = empty_cobj.data.by_parts()
+        part_iterator = empty_cobj.data.points.by_parts()
         with pytest.raises(StopIteration):
             next(part_iterator)
 
     def test_by_parts_std(self, std_cobj):
-        part_iterator = std_cobj.data.by_parts()
+        part_iterator = std_cobj.data.points.by_parts()
         with pytest.raises(StopIteration):
             for _ in iter(int, 1):
                 next(part_iterator)
@@ -23,43 +23,58 @@ class TestGetShape:
     """Tests for staticmethod :meth:core.cnn.Data.get_shape"""
 
     def test_None(self):
-        d, s = cnn.Data.get_shape(None)
+        d, e = cnn.Points.get_shape(None)
         assert d is None
-        assert s == {"parts": None, "points": None, "dimensions": None}
+        assert e == None
 
     def test_no_sequence(self):
         with pytest.raises(TypeError):
-            d, s = cnn.Data.get_shape(1)
+            d, e = cnn.Points.get_shape(1)
 
     def test_1point_1d(self):
-        d, s = cnn.Data.get_shape([1])
+        d, e = cnn.Points.get_shape([1])
         np.testing.assert_array_equal(d, np.array([[1]]))
-        assert s == {"parts": 1, "points": (1, ), "dimensions": 1, }
+        assert e == [1]
 
     def test_1point_2d(self):
-        d, s = cnn.Data.get_shape([1, 2])
+        d, e = cnn.Points.get_shape([1, 2])
         np.testing.assert_array_equal(d, np.array([[1, 2]]))
-        assert s == {"parts": 1, "points": (1, ), "dimensions": 2, }
+        assert e == [1]
 
     def test_2points_3d(self):
-        d, s = cnn.Data.get_shape([[1, 2, 3], [3, 2, 1]])
+        d, e = cnn.Points.get_shape([[1, 2, 3], [3, 2, 1]])
         np.testing.assert_array_equal(d, np.array([[1, 2, 3], [3, 2, 1]]))
-        assert s == {"parts": 1, "points": (2, ), "dimensions": 3, }
+        assert e == [2]
 
-    def test_2_parts_2_3points_4d(self):
-        d, s = cnn.Data.get_shape(
+    def test_2parts_2_3points_4d(self):
+        d, e = cnn.Points.get_shape(
             [[[1, 2, 3, 4], [4, 3, 2, 1]],
              [[1, 2, 3, 4], [4, 3, 2, 1], [0, 0, 0, 0]]]
             )
-        e = np.array([
+        x = np.array([
                 [1, 2, 3, 4], [4, 3, 2, 1],
                 [1, 2, 3, 4], [4, 3, 2, 1], [0, 0, 0, 0]
                 ])
         for c, i in enumerate(d):
-            np.testing.assert_array_equal(i, e[c])
+            np.testing.assert_array_equal(i, x[c])
 
-        assert s == {"parts": 2, "points": (2, 3), "dimensions": 4, }
+        assert e == [2, 3]
 
     def test_2points_2_3d(self):
-        with pytest.raises(IndexError):
-            d, s = cnn.Data.get_shape([[1, 2], [3, 2, 1]])
+        with pytest.raises(AssertionError):
+            d, e = cnn.Points.get_shape([[1, 2], [3, 2, 1]])
+
+    def test_2parts_2_2points_2_2_3_3d(self):
+        with pytest.raises(AssertionError):
+            d, e = cnn.Points.get_shape([
+                [[1, 2], [3, 4]],
+                [[1, 2, 3], [2, 3, 4]]
+                ])
+
+    @pytest.mark.skip(reason="This edge case is not caught yet")
+    def test_2parts_2_2points_2_3_3_3d(self):
+        with pytest.raises(AssertionError):
+            d, e = cnn.Points.get_shape([
+                [[1, 2], [3, 2, 1]],
+                [[1, 2, 3], [2, 3, 4]]
+                ])
