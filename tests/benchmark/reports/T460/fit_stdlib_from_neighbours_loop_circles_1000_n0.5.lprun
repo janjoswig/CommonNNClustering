@@ -1,0 +1,73 @@
+Timer unit: 1e-06 s
+
+Total time: 0.174311 s
+File: /home/janjoswig/CNN/tests/benchmark/snippets/fits.py
+Function: fit_stdlib_from_neighbours_loop at line 215
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   215                                           def fit_stdlib_from_neighbours_loop(
+   216                                                   cnn_cutoff: int,
+   217                                                   neighbours: List[Set[int]]) -> List:
+   218                                               """Worker function variant applying the CNN algorithm.
+   219                                           
+   220                                               Assigns labels to points starting from pre-computed neighbour list.
+   221                                               Uses Python standard library only.  Minor design difference to
+   222                                               `fit_stdlib_from_neighbours_index` in looping over all points
+   223                                               instead of checking for `consider.index(True)`. Expected to be faster
+   224                                               when many cluster initialisations are done. Also, checking queue
+   225                                               at the end of the inner loop instead of in the begenning (no
+   226                                               performance difference expected, but unnecessary adding of initial
+   227                                               points to queue is avoided).
+   228                                           
+   229                                               Args:
+   230                                                   cnn_cutoff: Similarity criterion
+   231                                                   neighbours: List of length #points containing sets of
+   232                                                       neighbouring point indices
+   233                                           
+   234                                               Returns:
+   235                                                   Labels
+   236                                               """
+   237                                           
+   238         1          4.0      4.0      0.0      len_ = len(neighbours)
+   239                                           
+   240                                               # Initialise labels
+   241         1        192.0    192.0      0.1      labels = [0 for _ in range(len_)]
+   242                                           
+   243                                               # Track assigment
+   244         1        199.0    199.0      0.1      consider = [True for _ in range(len_)]
+   245                                           
+   246                                               # Start with first cluster (0 = noise)
+   247         1          1.0      1.0      0.0      current = 1
+   248                                           
+   249                                               # Initialise queue of points to scan
+   250         1          2.0      2.0      0.0      queue = deque()
+   251                                           
+   252      1001        663.0      0.7      0.4      for point in range(len_):
+   253      1000        667.0      0.7      0.4          if not consider[point]:
+   254                                                       # Point already assigned
+   255       999        651.0      0.7      0.4              continue
+   256         1          2.0      2.0      0.0          labels[point] = current          # Assign cluster label
+   257         1          2.0      2.0      0.0          consider[point] = False           # Mark point as included
+   258                                           
+   259                                                   while True:
+   260                                                       # Loop over neighbouring points
+   261      1000       1229.0      1.2      0.7              neigh = neighbours[point]
+   262     65130      54397.0      0.8     31.2              for member in neigh:
+   263     64130      55237.0      0.9     31.7                  if not consider[member]:
+   264                                                               # Point already assigned
+   265     63131      48208.0      0.8     27.7                      continue
+   266                                           
+   267                                                           # conditional growth
+   268       999       7583.0      7.6      4.4                  if len(neigh.intersection(neighbours[member])) >= cnn_cutoff:
+   269       999       1188.0      1.2      0.7                      labels[member] = current
+   270       999        964.0      1.0      0.6                      consider[member] = False
+   271       999       1087.0      1.1      0.6                      queue.append(member)
+   272                                           
+   273      1000        860.0      0.9      0.5              if not queue:
+   274         1          1.0      1.0      0.0                  break
+   275       999       1172.0      1.2      0.7              point = queue.popleft()  # FIFO
+   276                                           
+   277         1          1.0      1.0      0.0          current += 1
+   278                                           
+   279         1          1.0      1.0      0.0      return labels

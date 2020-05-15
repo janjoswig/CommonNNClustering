@@ -5,49 +5,32 @@ from typing import Sequence, Collection
 import numpy as np
 
 
-def check_similarity_set(a, b, c):
-    if len(a) > len(b):
-        a, b = b, a
-
-    common = 0
-    for x in a:
-        if x in b:
-            common += 1
-            if common == c:
-                return True
-    return False
-
-
 def fit_from_neighbours(
         cnn_cutoff: int,
-        neighbours: List[Set[int]]) -> List[int]:
+        neighbourhoods: List[Set[int]]) -> List[int]:
     """Worker function variant applying the CNN algorithm.
 
-    Assigns labels to points starting from pre-computed neighbour list.
-    Uses Python standard library only.  Minor design difference to
-    `fit_stdlib_from_neighbours_index` in looping over all points
-    instead of checking for `include.index(True)`. Expected to be faster
-    when many cluster initialisations are done. Also, checking queue
-    at the end of the inner loop instead of in the begenning (no
-    performance difference expected, but unnecessary adding of initial
-    points to queue is avoided).
+    Assigns labels to points starting from pre-computed neighbourhoods.
+    Uses Python standard library only.
 
     Args:
-        cnn_cutoff: Similarity criterion
-        neighbours: List of length #points containing sets of
+        cnn_cutoff: Points need to share at least this many neighbours
+            to be assigned to the same cluster (similarity criterion).
+        neighbourhoods: List of length #points containing sets of
             neighbouring point indices
 
     Returns:
         Labels
     """
 
-    len_ = len(neighbours)
+    # Number of points
+    len_ = len(neighbourhoods)
 
     # Initialise labels
     labels = [0 for _ in range(len_)]
 
-    # Track assigment
-    include = [True for _ in range(len_)]
+    # Track assignment
+    consider = [True for _ in range(len_)]
 
     # Start with first cluster (0 = noise)
     current = 1
@@ -55,30 +38,54 @@ def fit_from_neighbours(
     # Initialise queue of points to scan
     queue = deque()
 
-    for point in range(len_):
-        if not include[point]:
+    for init_point in range(len_):
+        if not consider[init_point]:
             # Point already assigned
             continue
-        labels[point] = current          # Assign cluster label
-        include[point] = False           # Mark point as included
 
+        neighbours = neighbourhoods[init_point]
+        if len(neighbours) <= cnn_cutoff:
+            # Point can not fulfill cnn condition
+            labels[init_point] = 0             # Assign cluster label
+            consider[init_point] = False       # Mark point as included
+            continue
+
+        labels[init_point] = current           # Assign cluster label
+        consider[init_point] = False           # Mark point as included
+
+        point = init_point
         while True:
             # Loop over neighbouring points
-            neigh = neighbours[point]
-            for member in neigh:
-                if not include[member]:
+            for member in neighbours:
+                if not consider[member]:
                     # Point already assigned
                     continue
 
+                neighbour_neighbours = neighbourhoods[member]
+                if len(neighbour_neighbours) <= cnn_cutoff:
+                    labels[member] = 0
+                    consider[member] = False
+                    continue
+
                 # conditional growth
-                if len(neigh.intersection(neighbours[member])) >= cnn_cutoff:
+                if (len(neighbours.intersection(neighbour_neighbours))
+                        >= cnn_cutoff):
                     labels[member] = current
-                    include[member] = False
+                    consider[member] = False
                     queue.append(member)
 
-            if not queue:
+            try:
+                while True:
+                    point = queue.popleft()  # FIFO
+                    neighbours = neighbourhoods[point]
+                    if len(neighbourhoods[point]) <= cnn_cutoff:
+                        labels[point] = 0
+                        consider[point] = False
+                        continue
+                    break
+            except IndexError:
+                # Queue empty
                 break
-            point = queue.popleft()  # FIFO
 
         current += 1
 
@@ -92,10 +99,27 @@ def predict_from_neighbours(
         consider: Sequence[int],
         base_labels: Sequence[int],
         clusters: Collection[int]):
+    """Predict cluster labels on the basis of previously assigned labels
 
-    """"""
+    Args:
+        cnn_cutoff: Points need to share at least this many neighbours
+            to be assigned to the same cluster (similarity criterion).
+        neighbourhoods: List of length #points (in the data set for
+            which labels should be predicted) containing sets of
+            neighbouring point indices (in the data set for which
+            labels have been previously assigned).
+        labels: Sequence of length #points for the predicted
+            assignments.
+        consider: Sequence of length #points indicating for which points
+            a prediction should be attempted.
+        base_labels: Sequence of length #points\' for which labels have
+            been.
+        clusters: Collection (ideally a set) of cluster labels for
+            which an assignment should be attempted.
+    """
 
-    for point in range(labels.shape[0]):
+    # for point in range(len(labels))
+    for point in range(labels.size):
         if not consider[point]:
             continue
 
@@ -126,4 +150,4 @@ def get_neighbours_brute_array(self, point: int, r: float) -> Set[int]:
     """
 
     r = r**2
-    return np.where(np.sum((self.data.data - point)**2, axis=1) < r)[0]
+    return set(np.where(np.sum((self.data.data - point)**2, axis=1) < r)[0])

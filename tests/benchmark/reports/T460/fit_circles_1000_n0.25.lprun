@@ -1,0 +1,37 @@
+Timer unit: 1e-06 s
+
+Total time: 0.086703 s
+File: /home/janjoswig/CNN/core/cnn.py
+Function: wrapper at line 94
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    94                                               @functools.wraps(function_)
+    95                                               def wrapper(self, *args, **kwargs):
+    96         1      86700.0  86700.0    100.0          wrapped = function_(self, *args, **kwargs)
+    97         1          2.0      2.0      0.0          if wrapped is not None:
+    98                                                       if len(wrapped) == 3:
+    99                                                           record = wrapped[0]._replace(time=wrapped[-1])
+   100                                                       else:
+   101                                                           record = wrapped[0]
+   102                                           
+   103                                                       if wrapped[1]:
+   104                                                           # Be chatty
+   105                                                           print("-" * 80)
+   106                                                           print(
+   107                                                               "#points   ",
+   108                                                               "R         ", "N         ", "M         ",
+   109                                                               "max       ", "#clusters ", "%largest  ", "%noise    ",
+   110                                                               sep="")
+   111                                                           for entry in record[:-1]:
+   112                                                               if entry is None:
+   113                                                                   print(f"{'None':<10}", end="")
+   114                                                               elif isinstance(entry, float):
+   115                                                                   print(f"{entry:<10.3f}", end="")
+   116                                                               else:
+   117                                                                   print(f"{entry:<10}", end="")
+   118                                                           print("\n" + "-" * 80)
+   119                                           
+   120                                                       self.summary.append(record)
+   121                                           
+   122         1          1.0      1.0      0.0          return

@@ -1,0 +1,67 @@
+Timer unit: 1e-06 s
+
+Total time: 0.17105 s
+File: /home/janjoswig/CNN/tests/benchmark/snippets/fits.py
+Function: fit_numpy_mix at line 369
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   369                                           def fit_numpy_mix(cnn_cutoff, neighbourhoods):
+   370                                               """Fit data when neighbour list has been already calculated
+   371                                           
+   372                                               Args:
+   373                                               """
+   374                                           
+   375         1          4.0      4.0      0.0      len_ = neighbourhoods.shape[0]
+   376                                           
+   377                                               # Include array keeps track of assigned points
+   378         1         28.0     28.0      0.0      consider = np.ones(len_, dtype=bool)
+   379                                           
+   380                                               # Exclude all points with less than n neighbours
+   381         1        452.0    452.0      0.3      n_neighbours = np.asarray([x.size for x in neighbourhoods])
+   382         1         78.0     78.0      0.0      consider[np.where(n_neighbours < cnn_cutoff)[0]] = False
+   383                                           
+   384         1          2.0      2.0      0.0      _clusterdict = defaultdict(set)
+   385         1         16.0     16.0      0.0      _clusterdict[0].update(np.where(~consider)[0])
+   386         1          7.0      7.0      0.0      _labels = np.zeros(len_, dtype=int)
+   387         1          1.0      1.0      0.0      current = 1
+   388                                           
+   389         1          0.0      0.0      0.0      enough = False
+   390         3         31.0     10.3      0.0      while any(consider) and not enough:
+   391                                                   # find point with currently highest neighbour count
+   392         8         48.0      6.0      0.0          point = np.where(
+   393         4        170.0     42.5      0.1              (n_neighbours == np.max(n_neighbours[consider]))
+   394         2          2.0      1.0      0.0              & consider
+   395         4          3.0      0.8      0.0              )[0][0]
+   396                                           
+   397         2          5.0      2.5      0.0          _clusterdict[current].add(point)
+   398         2          2.0      1.0      0.0          new_point_added = True
+   399         2          3.0      1.5      0.0          _labels[point] = current
+   400         2          3.0      1.5      0.0          consider[point] = False
+   401                                           
+   402        22         19.0      0.9      0.0          while new_point_added:
+   403        20         11.0      0.6      0.0              new_point_added = False
+   404                                           
+   405      1957      32525.0     16.6     19.0              for member in [
+   406                                                               added_point
+   407        20         19.0      0.9      0.0                      for added_point in _clusterdict[current]
+   408                                                               if any(consider[neighbourhoods[added_point]])
+   409                                                               ]:
+   410                                           
+   411      4044       7520.0      1.9      4.4                  for neighbour in neighbourhoods[member][consider[neighbourhoods[member]]]:
+   412      2127      15785.0      7.4      9.2                      common_neighbours = (
+   413      4254      78005.0     18.3     45.6                          set(neighbourhoods[member])
+   414      2127      25986.0     12.2     15.2                          & set(neighbourhoods[neighbour])
+   415                                                                   )
+   416                                           
+   417      2127       2326.0      1.1      1.4                      if len(common_neighbours) >= cnn_cutoff:
+   418                                                                   # and (point in neighbours[neighbour])
+   419                                                                   # and (neighbour in neighbours[point]):
+   420      1998       2193.0      1.1      1.3                          _clusterdict[current].add(neighbour)
+   421      1998       1728.0      0.9      1.0                          new_point_added = True
+   422      1998       2027.0      1.0      1.2                          _labels[neighbour] = current
+   423      1998       2048.0      1.0      1.2                          consider[neighbour] = False
+   424                                           
+   425         2          3.0      1.5      0.0          current += 1
+   426                                           
+   427         1          0.0      0.0      0.0      return _labels

@@ -1,16 +1,33 @@
 """Extension module containing utilities for plotting"""
 
 import random
-from typing import Dict, List, Set, Tuple
-from typing import Sequence, Iterable, Iterator, Collection
-from typing import Any, Optional, Type, Union, IO
+from typing import Dict, Tuple  # List, Set
+from typing import Sequence  # Iterable, Iterator, Collection
+from typing import Any, Optional  # Type, Union, IO
 
-import matplotlib as mpl
+# import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
 
 def pie(root, ax, pie_props=None):
+    """Illustrate (hierarchichal) cluster result as pie diagram
+
+    Args:
+        root: :obj:`CNN` being the origin of the pie diagram.
+        ax: `Axes` instance to plot on.
+        pie_props: Dictionary passed to :func:`matplotlib.pyplot.pie`.
+
+    Returns:
+        Tuple of plotted elements (pie rings)
+    """
+
+    # TODO Sort cluster labels, so that noise always comes first
+    # TODO Keep colors (transparent) for clusters that are not
+    #     reclustered
+    # TODO Make noise color configurable
+    # TODO Adapt the scheme for tree view
+
     size = 0.2
     radius = 0.22
 
@@ -52,9 +69,13 @@ def pie(root, ax, pie_props=None):
             else:
                 colors.append(next(ax._get_lines.prop_cycler)["color"])
 
-    ax.pie(
-        ringvalues, radius=radius, colors=None,
-        wedgeprops=dict(width=size, edgecolor='w')
+    plotted = []
+
+    plotted.append(
+        ax.pie(
+            ringvalues, radius=radius, colors=colors,
+            wedgeprops=dict(width=size, edgecolor='w')
+            )
         )
 
     # iterating through child levels
@@ -89,10 +110,14 @@ def pie(root, ax, pie_props=None):
                 else:
                     colors.append(next(ax._get_lines.prop_cycler)["color"])
 
-        ax.pie(
-            ringvalues, radius=radius + i*size, colors=None,
-            wedgeprops=dict(width=size, edgecolor='w')
+        plotted.append(
+            ax.pie(
+                ringvalues, radius=radius + i*size, colors=colors,
+                wedgeprops=dict(width=size, edgecolor='w')
+                )
             )
+
+    return plotted
 
 
 def plot_summary(
@@ -152,7 +177,7 @@ def plot_dots(
 
     else:
         # Loop through the cluster result
-        for cluster, cpoints in clusterdict.items():
+        for cluster, cpoints in sorted(clusterdict.items()):
             # plot if cluster is in the list of considered clusters
             if cluster in clusters:
                 cpoints = list(cpoints)
@@ -205,7 +230,7 @@ def plot_scatter(
             )
 
     else:
-        for cluster, cpoints in clusterdict.items():
+        for cluster, cpoints in sorted(clusterdict.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 
@@ -284,7 +309,7 @@ def plot_contour(
             ax.contour(X, Y, H, **contour_props)
             )
     else:
-        for cluster, cpoints in clusterdict.items():
+        for cluster, cpoints in sorted(clusterdict.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 
@@ -367,7 +392,7 @@ def plot_contourf(
             ax.contourf(X, Y, H, **contour_props)
             )
     else:
-        for cluster, cpoints in clusterdict.items():
+        for cluster, cpoints in sorted(clusterdict.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 
@@ -452,7 +477,7 @@ def plot_histogram(
             ax.imshow(H, extent=(x_, y_), **show_props)
             )
     else:
-        for cluster, cpoints in clusterdict.items():
+        for cluster, cpoints in sorted(clusterdict.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 

@@ -21,12 +21,12 @@ from itertools import count
 import pickle
 from pathlib import Path
 import random
-import sys
+# import sys
 import tempfile
 import time
 import warnings
 from typing import Dict, List, Set, Tuple
-from typing import Sequence, Iterable, Iterator, Collection
+from typing import Collection, Iterator, Sequence  # Iterable, ,
 from typing import Any, Optional, Type, Union, IO
 
 import colorama  # TODO Make this optional or remove completely?
@@ -49,6 +49,7 @@ from scipy.spatial.distance import cdist
 import tqdm
 import yaml
 
+from . import _cfits
 from . import _fits
 from . import _plots
 
@@ -310,6 +311,14 @@ class Labels(np.ndarray):
             for index, old_label in enumerate(self):
                 self[index] = reassign[old_label]
 
+            if self.info.params:
+                new_params = {
+                    reassign[k]: v
+                    for k, v in self.info.params.items()
+                    if reassign[k] != 0
+                    }
+                self.info = self.info._replace(params=new_params)
+
         return
 
     def merge(self, clusters: List[int]) -> None:
@@ -525,11 +534,13 @@ class Points(np.ndarray):
     def __new__(
             cls,
             p: Optional[np.ndarray] = None,
-            edges: Optional[Sequence] = None):
+            edges: Optional[Sequence] = None,
+            tree: Optional[Any] = None):
         if p is None:
             p = np.array([])
         obj = p.view(cls)
         obj._edges = edges
+        obj._tree = tree
         return obj
 
     def __array_finalize__(self, obj):
@@ -537,6 +548,7 @@ class Points(np.ndarray):
             return
 
         self._edges = getattr(obj, "edges", None)
+        self._tree = getattr(obj, "tree", None)
 
     @property
     def edges(self):
@@ -551,6 +563,10 @@ class Points(np.ndarray):
                 f"({self.shape[0]} points)"
                 )
         self._edges = x
+
+    @property
+    def tree(self):
+        return self._tree
 
     @classmethod
     def from_parts(cls, p: Optional[Sequence]):
@@ -748,6 +764,17 @@ class Points(np.ndarray):
             lambda: print(f"Unknown filename extension {extension}")
             )()
 
+    def cKDtree(self, **kwargs):
+        """Wrapper for `scipy.spatial.cKDTree`
+
+        Sets `Points.tree`.
+
+        Args:
+            **kwargs: Passed to `scipy.spatial.cKDTree`
+        """
+
+        self._tree = cKDTree(self, **kwargs)
+
 
 class Summary(MutableSequence):
     def __init__(self, iterable=None):
@@ -906,6 +933,16 @@ class CNN:
 
     A cluster object connects input data (points, distances, neighbours,
     ...) to cluster labels via clustering methodologies (fits).
+
+    Parameters:
+        points:
+        distances:
+        neighbourhoods:
+        labels:
+        alias:
+
+    Attributes:
+        labels
     """
 
     def __init__(
@@ -993,13 +1030,13 @@ class CNN:
             self._status["edges"] = (False,)
 
         # Check for point distances
-        if self.data.distances is not None:
+        if self.data.distances.size > 0:
             self._status["distances"] = (True, self.data.distances.shape[0])
         else:
             self._status["distances"] = (False,)
 
         # Check for neighbourhoods
-        if self.data.neighbourhoods is not None:
+        if len(self.data.neighbourhoods) > 0:
             self._status["neighbourhoods"] = (True,
                                               len(self.data.neighbourhoods),
                                               self.data.neighbourhoods.radius)
@@ -1008,13 +1045,17 @@ class CNN:
 
     def __str__(self):
 
+        # Check data situation
         self.check()
+
         if self._status["edges"][0]:
             if self._status['edges'][1] > 1:
                 if self._status['edges'][1] < 5:
-                    edge_str = f"{self._status['edges'][1]}, {self.data.points.edges}"
+                    edge_str = (f"{self._status['edges'][1]}, "
+                                f"{self.data.points.edges}")
                 else:
-                    edge_str = f"{self._status['edges'][1]}, {self.data.points.edges[:5]}"
+                    edge_str = (f"{self._status['edges'][1]}, "
+                                f"{self.data.points.edges[:5]}")
             else:
                 edge_str = f"{self._status['edges'][1]}"
         else:
@@ -1025,7 +1066,7 @@ class CNN:
             dim_str = f"{self.data.points.shape[1]}"
         else:
             points_str = "None"
-            dim_str = f"{self.data.points.shape[1]}"
+            dim_str = "None"
 
         if self._status["distances"][0]:
             dist_str = f"{self._status['distances'][1]}"
@@ -1033,28 +1074,27 @@ class CNN:
             dist_str = "None"
 
         if self._status["neighbourhoods"][0]:
-            neigh_str = f"{self._status['neighbourhoods'][1]}, r={self._status['neighbourhoods'][2]}"
+            neigh_str = (f"{self._status['neighbourhoods'][1]}, "
+                         f"r = {self._status['neighbourhoods'][2]}")
         else:
             neigh_str = "None"
 
         str_ = (
-f"""
-===============================================================================
-core.cnn.CNN cluster object
--------------------------------------------------------------------------------
-alias :                         {self.alias}
-hierachy level :                {self.hierarchy_level}
-
-data point shape :              Parts      - {edge_str}
-                                Points     - {points_str}
-                                Dimensions - {dim_str}
-
-distance matrix calculated :    {dist_str}
-neighbour list calculated :     {neigh_str}
-clustered :                     {self.check_present(self._labels)}
-children :                      {self.check_present(self._children)}
-===============================================================================
-"""
+            f'{"=" * 80}\n'
+            "CNN cluster object\n"
+            f'{"-" * 80}\n'
+            f"alias :{' ' * 25}{self.alias}\n"
+            f"hierachy level :{' ' * 16}{self.hierarchy_level}\n"
+            "\n"
+            f"data point shape :{' ' * 14}Parts      - {edge_str}\n"
+            f"{' ' * 32}Points     - {points_str}\n"
+            f"{' ' * 32}Dimensions - {dim_str}\n"
+            "\n"
+            f"distance matrix calculated :{' ' * 4}{dist_str}\n"
+            f"neighbour list calculated :{' ' * 5}{neigh_str}\n"
+            f"clustered :{' ' * 21}{self.labels.size > 0}\n"
+            f"children :{' ' * 22}{self.check_present(self._children)}\n"
+            f'{"=" * 80}\n'
             )
 
         return str_
@@ -1172,11 +1212,11 @@ children :                      {self.check_present(self._children)}
                 "    'cdist'"
                 )
 
-    def calc_neighbours_from_dist(self, r):
+    def calc_neighbours_from_dist(self, r: float):
         """Calculate neighbour list at a given radius
 
-        Requires :attr:`self._distances`.
-        Sets :attr:`self._neighbours`.
+        Requires :attr:`self.data.distances`.
+        Sets :attr:`self.data.neighbourhoods`.
 
         Args:
             r: Radius cutoff
@@ -1185,13 +1225,44 @@ children :                      {self.check_present(self._children)}
             None
         """
 
-        neighbours = [
+        neighbourhoods = [
             set(np.where((x > 0) & (x < r))[0])
             for x in self.data.distances
             ]
 
-        self.data.neighbourhoods = Neighbourhoods(neighbours, r)
+        self.data.neighbourhoods = Neighbourhoods(neighbourhoods, r)
         self.data.neighbourhoods.reference = self.data.distances.reference
+
+    def calc_neighbours_from_cKDTree(
+            self, r: float, other=None, **kwargs):
+        """Wrapper for :meth:`scipy.spatial.cKDTree.query_ball_tree`
+
+        Requires :attr:`self.data.points.tree`
+        Sets :attr:`self.data.neighbourhoods`
+
+        Args:
+            r: Search radius
+            other: If not `None`, another :obj:`CNN` instance whose data
+               points should be used for relative neighbour search.
+               Also requires  :attr:`other.data.points.tree`.
+            **kwargs: Keyword args passed on to
+               :meth:`scipy.spatial.cKDTree.query_ball_tree`
+        """
+        assert self.data.points.tree is not None
+
+        if other is None:
+            other = self
+
+        neighbourhoods = [
+            set(x)
+            for x in self.data.points.tree.query_ball_tree(
+                other.data.points.tree,
+                r, **kwargs
+                )
+            ]
+
+        self.data.neighbourhoods = Neighbourhoods(neighbourhoods, r)
+        self.data.neighbourhoods.reference = other
 
     def dist_hist(
             self,
@@ -1325,23 +1396,23 @@ children :                      {self.check_present(self._children)}
             self,
             radius_cutoff: Optional[float] = None,
             cnn_cutoff: Optional[int] = None,
-            sort_by_size: bool = True,
             member_cutoff: Optional[int] = None,
             max_clusters: Optional[int] = None,
             cnn_offset: Optional[int] = None,
+            info: bool = True,
+            sort_by_size: bool = True,
             rec: bool = True, v: bool = True,
-            method: str = "n",
             policy: str = "progressive",
             ) -> Optional[Tuple[CNNRecord, bool]]:
         """Wraps CNN clustering execution
 
         This function prepares the clustering and calls an appropriate
-        worker function to do a clustering.  How the clustering is done,
-        depends on the current data situation and the selected `policy`.
-        The clustering can be done either with data points, pre-computed
-        pairwise point distances, or pre-computed neighbourhoods as
-        input.  Ultimately, neighbourhoods are used during the
-        clustering.  Clustering is fast if neighbourhoods are
+        worker function to do the actual clustering.  How the clustering
+        is done, depends on the current data situation and the selected
+        `policy`. The clustering can be done either with data points,
+        pre-computed pairwise point distances, or pre-computed
+        neighbourhoods as input.  Ultimately, neighbourhoods are used
+        during the clustering.  Clustering is fast if neighbourhoods are
         pre-computed but this has to be done for each `radius_cutoff`
         separately. Neighbourhoods can be calculated either from data
         points, or pre-computed pairwaise distances.  Storage of
@@ -1351,8 +1422,8 @@ children :                      {self.check_present(self._children)}
         If the user chooses `policy = "conservative"`, neighbourhoods
         will be computed on-the-fly (online) from either distances (if
         present) or points during the clustering.  This can save memory
-        but can be computational more expensive.  Caching can be used
-        to achieve the right balance between memory usage and computing
+        but can be computational more expensive.  Caching can be used to
+        achieve the right balance between memory usage and computing
         effort for your situation.
 
         """
@@ -1377,7 +1448,9 @@ children :                      {self.check_present(self._children)}
                     default, settings.defaults.get(default)
                     ))
             else:
-                params[option] = param_template[option][1](param_template[option][0])
+                params[option] = param_template[option][1](
+                    param_template[option][0]
+                    )
 
         params["cnn_cutoff"] -= params["cnn_offset"]
         assert params["cnn_cutoff"] >= 0
@@ -1386,12 +1459,13 @@ children :                      {self.check_present(self._children)}
         self.check()
 
         # Neighbourhoods calculated?
-        if (self._status["neighbourhoods"][0]
-                and self.data.neighbourhoods.radius == params["radius_cutoff"]):
+        if (self._status["neighbourhoods"][0] and
+                self.data.neighbourhoods.radius == params["radius_cutoff"]):
             # Fit from pre-computed neighbourhoods,
             # no matter what the policy is
-            fit_fxn = _fits.fit_from_neighbours
-            fit_args = (params["cnn_cutoff"], self.data.neighbourhoods)
+            fit_fxn = _cfits.fit_from_neighbours
+            # fit_fxn = _fits.fit_from_neighbours
+            fit_args = (params["cnn_cutoff"], self.data.neighbourhoods.data)
             # Fit from List[Set[int]]
             # TODO: Allow different methods and data structures
 
@@ -1400,8 +1474,9 @@ children :                      {self.check_present(self._children)}
             if policy == "progressive":
                 # Pre-compute neighbourhoods from distances
                 self.calc_neighbours_from_dist(params["radius_cutoff"])
-                fit_fxn = _fits.fit_from_neighbours
-                fit_args = (params["cnn_cutoff"], self.data.neighbourhoods)
+                fit_fxn = _cfits.fit_from_neighbours
+                # fit_fxn = _fits.fit_from_neighbours
+                fit_args = (params["cnn_cutoff"], self.data.neighbourhoods.data)
 
             elif policy == "conservative":
                 # Use distances as input and calculate neighbours online
@@ -1423,20 +1498,23 @@ children :                      {self.check_present(self._children)}
         # Call clustering
         self.labels = fit_fxn(*fit_args)
 
-        # Attach info
-        self.labels.info = LabelInfo(
-            origin="fitted",
-            reference=None,
-            params={
-                "all": (params["radius_cutoff"], params["cnn_cutoff"])
-                },
-            )
-
         if sort_by_size:
             # Sort by size and filter
             self.labels.sort_by_size(
                 member_cutoff=params["member_cutoff"],
                 max_clusters=max_clusters,
+                )
+
+        if info:
+            # Attach info
+            self.labels.info = LabelInfo(
+                origin="fitted",
+                reference=self,
+                params={
+                    k: (params["radius_cutoff"], params["cnn_cutoff"])
+                    for k in self.labels.clusterdict
+                    if k != 0
+                    },
                 )
 
         if rec:
@@ -1461,34 +1539,6 @@ children :                      {self.check_present(self._children)}
                 ), v
 
         return None
-
-    def cKDtree(self, **kwargs):
-        """Wrapper for `scipy.spatial.cKDTree`
-
-        Sets CNN._tree.
-
-        Args:
-            **kwargs: Passed to `scipy.spatial.cKDTree`
-        """
-
-        self.data.points.tree = cKDTree(self.data.points, **kwargs)
-
-    @staticmethod
-    def get_neighbours(
-            a: Type[np.ndarray], B: Type[np.ndarray],
-            r: float) -> List[int]:
-        """Compute neighbours of a point by (squared) distance
-
-        Args:
-            a: Point in *n* dimensions; shape (n,)
-            B: *m* Points *n* dimensions; shape (m, n)
-            r: squared distance cut-off
-        Returns:
-            Array of indices of points in `B` that are neighbours
-            of `a` within `r`."""
-
-        # r = r**2
-        return np.where(np.sum((B - a)**2, axis=1) < r)[0]
 
     @timed
     def predict(
@@ -1608,7 +1658,9 @@ children :                      {self.check_present(self._children)}
                     default, settings.defaults.get(default)
                     ))
             else:
-                params[option] = param_template[option][1](param_template[option][0])
+                params[option] = param_template[option][1](
+                    param_template[option][0]
+                    )
 
         params["cnn_cutoff"] -= params["cnn_offset"]
         assert params["cnn_cutoff"] >= 0
@@ -1631,8 +1683,8 @@ children :                      {self.check_present(self._children)}
                 other.labels[other.labels == cluster_] = 0
 
         # Neighbourhoods calculated?
-        if (other._status["neighbourhoods"][0]
-                and other.data.neighbourhoods.radius == params["radius_cutoff"]):
+        if (other._status["neighbourhoods"][0] and
+                other.data.neighbourhoods.radius == params["radius_cutoff"]):
             # Fit from pre-computed neighbourhoods,
             # no matter what the policy is
             predict_fxn = _fits.predict_from_neighbours
@@ -1689,7 +1741,8 @@ children :                      {self.check_present(self._children)}
                                                   params["cnn_cutoff"])
 
     @staticmethod
-    def check_similarity_sequence(a: Sequence[int], b: Sequence[int], c: int) -> bool:
+    def check_similarity_sequence(
+            a: Sequence[int], b: Sequence[int], c: int) -> bool:
         """Check if similarity criterion is fulfilled.
 
         Args:
@@ -1794,7 +1847,8 @@ children :                      {self.check_present(self._children)}
                         part_end += next(edges)
                         # End index of points in the next part
                         child_e_ = 0
-                        # Reset number of points in this part going to the child
+                        # Reset number of points in this part
+                        # going to the child
 
                     child_e_ += 1
                 child_edges.append(child_e_)
@@ -1822,11 +1876,14 @@ children :                      {self.check_present(self._children)}
             if deep is not None:
                 deep -= 1
 
-            for child in parent._children.values():
+            parent.labels.info = parent.labels.info._replace(origin="reeled")
+
+            for c, child in parent._children.items():
                 if (deep is None) or (deep > 0):
                     reel_children(child, deep)  # Dive deeper
 
                 n_clusters = max(parent.labels)
+
                 if child.labels.size > 0:
                     # Child has been clustered
                     for index, label in enumerate(child.labels):
@@ -1836,6 +1893,14 @@ children :                      {self.check_present(self._children)}
                             new_label = label + n_clusters
                         parent.labels[child._refindex_relative[index]] = \
                             new_label
+
+                    if c in parent.labels.info.params:
+                        del parent.labels.info.params[c]
+
+                    if child.labels.info:
+                        for label, p in child.labels.info.params.items():
+                            parent.labels.info.params[label + n_clusters] = \
+                                p
 
         if deep is not None:
             assert deep > 0
@@ -2184,6 +2249,13 @@ children :                      {self.check_present(self._children)}
                 if plot_props is not None:
                     plot_props_defaults.update(plot_props)
 
+                plot_noise_props_defaults = {
+                    "cmap": mpl.cm.Greys,
+                }
+
+                if plot_noise_props is not None:
+                    plot_noise_props_defaults.update(plot_noise_props)
+
                 plotted = _plots.plot_contour(
                     ax=ax, data=_data, original=original,
                     clusterdict=clusterdict,
@@ -2203,6 +2275,13 @@ children :                      {self.check_present(self._children)}
                 if plot_props is not None:
                     plot_props_defaults.update(plot_props)
 
+                plot_noise_props_defaults = {
+                    "cmap": mpl.cm.Greys,
+                }
+
+                if plot_noise_props is not None:
+                    plot_noise_props_defaults.update(plot_noise_props)
+
                 plotted = _plots.plot_contourf(
                     ax=ax, data=_data, original=original,
                     clusterdict=clusterdict,
@@ -2221,6 +2300,13 @@ children :                      {self.check_present(self._children)}
 
                 if plot_props is not None:
                     plot_props_defaults.update(plot_props)
+
+                plot_noise_props_defaults = {
+                    "cmap": mpl.cm.Greys,
+                }
+
+                if plot_noise_props is not None:
+                    plot_noise_props_defaults.update(plot_noise_props)
 
                 plotted = _plots.plot_histogram(
                     ax=ax, data=_data, original=original,
@@ -2244,12 +2330,20 @@ children :                      {self.check_present(self._children)}
         else:
             fig = ax.get_figure()
 
-        _plots.pie(self, ax=ax)
+        plotted = _plots.pie(self, ax=ax)
+
+        return fig, ax, plotted
 
 
 class CNNChild(CNN):
-    """CNN cluster object subclass. Increments the hierarchy level of
-    the parent object when instanciated."""
+    """CNN cluster object subclass.
+
+    Increments the hierarchy level of
+    the parent object when instanciated.
+
+    Attributes:
+        parent: Reference to parent
+    """
 
     def __init__(self, parent, *args, alias='child', **kwargs):
         super().__init__(*args, alias=alias, **kwargs)

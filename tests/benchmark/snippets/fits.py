@@ -1,7 +1,34 @@
-from collections import deque
+from collections import deque, defaultdict
 from typing import List, Set
 
 import numpy as np
+
+
+def check_similarity_set(a: Set, b: Set, c: int) -> bool:
+    """Constrained intersection between to sets
+
+    Test if two sets `a` and `b` share a number of at least `c` common
+    elements.
+
+    In pure Python this is actually slower than using built-in set
+    intersections (`a & b`) which is an optimised Python/C API
+    operation, especially when this function is not used inline.
+    This function only serves as a blue-print for the
+    cythonised equivalent in `_cfits`.
+    """
+
+    # Sets to compare need to have at least c members
+    if (len(a) < c) or (len(b) < c):
+        return False
+
+    common = 0  # Common element counter
+    for x in a:
+        # iterate over elements in set a
+        if x in b:
+            common += 1
+        if common == c:
+            return True
+    return False
 
 
 def fit_from_neighbours_baseline(
@@ -11,14 +38,14 @@ def fit_from_neighbours_baseline(
     Published in [...] For illustration purposes variables have been
     sometimes renamed, PEP8 conformance was loosely ensured and
     docstrings and more comments where included.  To make new comments
-    distinguishable from the original ones a double number sign (##) was
-    used.
+    distinguishable from the original ones a double number sign (# #)
+    was used.
 
     Assign cluster labels to points starting from pre-computed neighbour
     list.
 
     Args:
-        neighbours: Neighbourlist as list of numpy.ndarrays
+        neighbours: Neighbourlist as collection of collections
         cnn_cutoff: Similarity criterion
     """
 
@@ -37,7 +64,7 @@ def fit_from_neighbours_baseline(
         """
 
         bi = {}
-        ## Container for unique elements in b {element: index_in_b}
+        # # Container for unique elements in b {element: index_in_b}
         for i, el in enumerate(b):
             if el not in bi:
                 bi[el] = i
@@ -45,7 +72,7 @@ def fit_from_neighbours_baseline(
 
     n = len(neighbours)
 
-    n_neighbours = np.zeros(n)  ## Neighbour count for each point
+    n_neighbours = np.zeros(n)  # # Neighbour count for each point
     for i in range(n):
         n_neighbours[i] = len(neighbours[i])
 
@@ -53,24 +80,24 @@ def fit_from_neighbours_baseline(
 
     cn = 0                # Cluster Number
     w = 0                 # Control value I
-    ## Indicates clustering done, 0: False, >0: True
+    # # Indicates clustering done, 0: False, >0: True
 
     clusters = [0] * n    # Preset cluster list
-    ## Used instead of labels
+    # # Used instead of labels
 
     # Filter noise points
-    n_neighbours[n_neighbours <= cnn_cutoff] = 0  ## No (0) neighbours
-    ## Remove for comparability.
-    ## Filtering should be done before the actual fit
+    n_neighbours[n_neighbours <= cnn_cutoff] = 0  # # No (0) neighbours
+    # # Remove for comparability.
+    # # Filtering should be done before the actual fit
 
-    while w < 1:  ## While not finished
+    while w < 1:  # # While not finished
         # Find maximal number of nearest neighbors
         nmax = np.nonzero(n_neighbours == max(n_neighbours))[0]
-        ## Remove for comparability.
-        ## Initial cluster points can be choosen arbitrarily.
-        ## Only interesting when clusters should be found approximately
-        ## in the order of size, which is usefull when something like
-        ## max_clusters is set.
+        # # Remove for comparability.
+        # # Initial cluster points can be choosen arbitrarily.
+        # # Only interesting when clusters should be found approximately
+        # # in the order of size, which is usefull when something like
+        # # max_clusters is set.
 
         # Reset cluster
         C = np.zeros(n, dtype=int)
@@ -83,7 +110,7 @@ def fit_from_neighbours_baseline(
 
         # Control value II
         cc = 1
-        ## New point added? 0: False, >0: True
+        # # New point added? 0: False, >0: True
 
         # Cluster index for new added points
         lv = 0
@@ -97,13 +124,13 @@ def fit_from_neighbours_baseline(
             cc = 0
             ci[lv] = cl
 
-            ## Loop over points added to the cluster
+            # # Loop over points added to the cluster
             for a in C[ci[lv - 1]: ci[lv]]:
 
                 # Extract Neighborlist of a within radius_cutoff
                 Na = neighbours[a]
 
-                # Compare Neighborlists of a and all reachable datapoints
+                # Compare Neighborlist of a and all reachable datapoints
                 for b in Na:
                     # Check if point is already clustered
                     if n_neighbours[b] > 0:
@@ -140,7 +167,7 @@ def fit_from_neighbours_baseline(
         # Write cluster to the cluster list
         Cc = np.int_(C[:cl])
         clusters[cn] = Cc
-        cn = cn + 1  ## Cluster count increased
+        cn = cn + 1  # # Cluster count increased
 
         # Truncation criteria
         if sum(n_neighbours) == 0:  # All particles are clustered
@@ -174,7 +201,7 @@ def fit_stdlib_from_neighbours_index(
     labels = [0 for _ in range(len(neighbours))]
 
     # Track assigment
-    include = [True for _ in range(len(neighbours))]
+    consider = [True for _ in range(len(neighbours))]
 
     # Start with first cluster (0 = noise)
     current = 1
@@ -184,11 +211,11 @@ def fit_stdlib_from_neighbours_index(
 
     while True:
         try:
-            point = include.index(True)  # Pick starting point
+            point = consider.index(True)  # Pick starting point
         except ValueError:               # All points assigned
             break
         labels[point] = current          # Assign cluster label
-        include[point] = False           # Mark point as included
+        consider[point] = False           # Mark point as included
         queue.append(point)              # Add point to queue
 
         while queue:
@@ -197,14 +224,14 @@ def fit_stdlib_from_neighbours_index(
             # Loop over neighbouring points
             neigh = neighbours[point]
             for member in neigh:
-                if not include[member]:
+                if not consider[member]:
                     # Point already assigned
                     continue
 
                 # conditional growth
                 if len(neigh.intersection(neighbours[member])) >= cnn_cutoff:
                     labels[member] = current
-                    include[member] = False
+                    consider[member] = False
                     queue.append(member)
 
         current += 1
@@ -220,7 +247,7 @@ def fit_stdlib_from_neighbours_loop(
     Assigns labels to points starting from pre-computed neighbour list.
     Uses Python standard library only.  Minor design difference to
     `fit_stdlib_from_neighbours_index` in looping over all points
-    instead of checking for `include.index(True)`. Expected to be faster
+    instead of checking for `consider.index(True)`. Expected to be faster
     when many cluster initialisations are done. Also, checking queue
     at the end of the inner loop instead of in the begenning (no
     performance difference expected, but unnecessary adding of initial
@@ -241,7 +268,7 @@ def fit_stdlib_from_neighbours_loop(
     labels = [0 for _ in range(len_)]
 
     # Track assigment
-    include = [True for _ in range(len_)]
+    consider = [True for _ in range(len_)]
 
     # Start with first cluster (0 = noise)
     current = 1
@@ -250,24 +277,24 @@ def fit_stdlib_from_neighbours_loop(
     queue = deque()
 
     for point in range(len_):
-        if not include[point]:
+        if not consider[point]:
             # Point already assigned
             continue
         labels[point] = current          # Assign cluster label
-        include[point] = False           # Mark point as included
+        consider[point] = False           # Mark point as included
 
         while True:
             # Loop over neighbouring points
             neigh = neighbours[point]
             for member in neigh:
-                if not include[member]:
+                if not consider[member]:
                     # Point already assigned
                     continue
 
                 # conditional growth
                 if len(neigh.intersection(neighbours[member])) >= cnn_cutoff:
                     labels[member] = current
-                    include[member] = False
+                    consider[member] = False
                     queue.append(member)
 
             if not queue:
@@ -279,73 +306,152 @@ def fit_stdlib_from_neighbours_loop(
     return labels
 
 
-def fit_numpy_mix(self, cnn_cutoff, max_clusters):
+def fit_stdlib_from_neighbours_loop_membercheck(
+        cnn_cutoff: int,
+        neighbourhoods: List[Set[int]]) -> List[int]:
+    """Worker function variant applying the CNN algorithm.
+
+    Assigns labels to points starting from pre-computed neighbourhoods.
+    Uses Python standard library only.
+
+    Args:
+        cnn_cutoff: Points need to share at least this many neighbours
+            to be assigned to the same cluster (similarity criterion).
+        neighbourhoods: List of length #points containing sets of
+            neighbouring point indices
+
+    Returns:
+        Labels
+    """
+
+    # Number of points
+    len_ = len(neighbourhoods)
+
+    # Initialise labels
+    labels = [0 for _ in range(len_)]
+
+    # Track assignment
+    consider = [True for _ in range(len_)]
+
+    # Start with first cluster (0 = noise)
+    current = 1
+
+    # Initialise queue of points to scan
+    queue = deque()
+
+    for init_point in range(len_):
+        if not consider[init_point]:
+            # Point already assigned
+            continue
+
+        neighbours = neighbourhoods[init_point]
+        if len(neighbours) < cnn_cutoff:
+            # Point can not fulfill cnn condition
+            labels[init_point] = 0             # Assign cluster label
+            consider[init_point] = False       # Mark point as included
+            continue
+
+        labels[init_point] = current           # Assign cluster label
+        consider[init_point] = False           # Mark point as included
+
+        point = init_point
+        while True:
+            # Loop over neighbouring points
+            for member in neighbours:
+                if not consider[member]:
+                    # Point already assigned
+                    continue
+
+                neighbour_neighbours = neighbourhoods[member]
+                if len(neighbour_neighbours) < cnn_cutoff:
+                    labels[member] = 0
+                    consider[member] = False
+                    continue
+
+                # conditional growth
+                if (len(neighbours.intersection(neighbour_neighbours))
+                        >= cnn_cutoff):
+                    labels[member] = current
+                    consider[member] = False
+                    queue.append(member)
+
+            try:
+                while True:
+                    point = queue.popleft()  # FIFO
+                    neighbours = neighbourhoods[point]
+                    if len(neighbourhoods[point]) < cnn_cutoff:
+                        labels[point] = 0
+                        consider[point] = False
+                        continue
+                    break
+            except IndexError:
+                # Queue empty
+                break
+
+        current += 1
+
+    return labels
+
+
+def fit_numpy_mix(cnn_cutoff, neighbourhoods):
     """Fit data when neighbour list has been already calculated
 
     Args:
     """
 
+    len_ = neighbourhoods.shape[0]
+
     # Include array keeps track of assigned points
-    include = np.ones(self.shape_str["points"][0], dtype=bool)
+    consider = np.ones(len_, dtype=bool)
 
     # Exclude all points with less than n neighbours
-    include[np.where(
-        self._neighbours.n_neighbours < cnn_cutoff
-        )[0]] = False
-    # include[np.where(n_neighbours <= cnn_cutoff+1)[0]] = False
+    n_neighbours = np.asarray([x.size for x in neighbourhoods])
+    consider[np.where(n_neighbours < cnn_cutoff)[0]] = False
 
-    self._clusterdict = defaultdict(SortedList)
-    self._clusterdict[0].update(np.where(~include)[0])
-    self._labels = np.zeros(self.shape_str["points"][0]).astype(int)
+    _clusterdict = defaultdict(set)
+    _clusterdict[0].update(np.where(~consider)[0])
+    _labels = np.zeros(len_, dtype=int)
     current = 1
 
-    # print(f"Initialisation done: {time.time() - go}")
-
     enough = False
-    while any(include) and not enough:
+    while any(consider) and not enough:
         # find point with currently highest neighbour count
         point = np.where(
-            (self._neighbours.n_neighbours == np.max(self._neighbours.n_neighbours[include]))
-            & include
+            (n_neighbours == np.max(n_neighbours[consider]))
+            & consider
             )[0][0]
 
-        self._clusterdict[current].add(point)
+        _clusterdict[current].add(point)
         new_point_added = True
-        self._labels[point] = current
-        include[point] = False
-        # print(f"Opened cluster {current}: {time.time() - go}")
-        # done = 0
+        _labels[point] = current
+        consider[point] = False
 
         while new_point_added:
             new_point_added = False
 
             for member in [
                     added_point
-                    for added_point in self._clusterdict[current]
-                    if any(include[self._neighbours.neighbours[added_point]])
+                    for added_point in _clusterdict[current]
+                    if any(consider[neighbourhoods[added_point]])
                     ]:
 
-                # Is the SortedList dangerous here?
-                for neighbour in self._neighbours.neighbours[member][include[self._neighbours.neighbours[member]]]:
+                for neighbour in neighbourhoods[member][consider[neighbourhoods[member]]]:
                     common_neighbours = (
-                        set(self._neighbours.neighbours[member])
-                        & set(self._neighbours.neighbours[neighbour])
+                        set(neighbourhoods[member])
+                        & set(neighbourhoods[neighbour])
                         )
 
                     if len(common_neighbours) >= cnn_cutoff:
                         # and (point in neighbours[neighbour])
                         # and (neighbour in neighbours[point]):
-                        self._clusterdict[current].add(neighbour)
+                        _clusterdict[current].add(neighbour)
                         new_point_added = True
-                        self._labels[neighbour] = current
-                        include[neighbour] = False
+                        _labels[neighbour] = current
+                        consider[neighbour] = False
 
-            # done += 1
         current += 1
 
-        if max_clusters is not None:
-            if current == max_clusters+1:
-                enough = True
+    return _labels
 
 
 def fit_numpy_from_neighbours_index(
@@ -374,7 +480,7 @@ def fit_numpy_from_neighbours_index(
     labels = np.zeros(len_)
 
     # Track assigment
-    include = np.ones(len_, dtype=bool)
+    consider = np.ones(len_, dtype=bool)
 
     # Start with first cluster (0 = noise)
     current = 1
@@ -384,17 +490,17 @@ def fit_numpy_from_neighbours_index(
 
     while True:
         try:
-            point = np.nonzero(include)[0][0]  # Pick starting point
+            point = np.nonzero(consider)[0][0]  # Pick starting point
         except IndexError:
             break
         labels[point] = current            # Assign cluster label
-        include[point] = False             # Mark point as included
+        consider[point] = False             # Mark point as included
 
         while True:
             # Loop over neighbouring points
             neigh = neighbours[point]
             for member in neigh:
-                if not include[member]:
+                if not consider[member]:
                     # Point already assigned
                     continue
 
@@ -403,7 +509,7 @@ def fit_numpy_from_neighbours_index(
                         neigh, neighbours[member], assume_unique=True
                         )) >= cnn_cutoff:
                     labels[member] = current
-                    include[member] = False
+                    consider[member] = False
                     queue.append(member)
 
             if not queue:
@@ -439,7 +545,7 @@ def fit_numpy_from_neighbours_loop(
     labels = np.zeros(len_)
 
     # Track assigment
-    include = np.ones(len_, dtype=bool)
+    consider = np.ones(len_, dtype=bool)
 
     # Start with first cluster (0 = noise)
     current = 1
@@ -449,17 +555,17 @@ def fit_numpy_from_neighbours_loop(
 
     while True:
         try:
-            point = np.nonzero(include)[0][0]  # Pick starting point
+            point = np.nonzero(consider)[0][0]  # Pick starting point
         except IndexError:
             break
         labels[point] = current            # Assign cluster label
-        include[point] = False             # Mark point as included
+        consider[point] = False             # Mark point as included
 
         while True:
             # Loop over neighbouring points
             neigh = neighbours[point]
             for member in neigh:
-                if not include[member]:
+                if not consider[member]:
                     # Point already assigned
                     continue
 
@@ -468,7 +574,7 @@ def fit_numpy_from_neighbours_loop(
                         neigh, neighbours[member], assume_unique=True
                         )) >= cnn_cutoff:
                     labels[member] = current
-                    include[member] = False
+                    consider[member] = False
                     queue.append(member)
 
             if not queue:
@@ -505,7 +611,7 @@ def fit_numpy_from_neighbours_filtermembers(
     labels = np.zeros(len_)
 
     # Track assigment
-    include = np.ones(len_, dtype=bool)
+    consider = np.ones(len_, dtype=bool)
 
     # Start with first cluster (0 = noise)
     current = 1
@@ -514,23 +620,94 @@ def fit_numpy_from_neighbours_filtermembers(
     queue = deque()
 
     for point in range(len_):
-        if not include[point]:
+        if not consider[point]:
             # Point already assigned
             continue
         labels[point] = current            # Assign cluster label
-        include[point] = False             # Mark point as included
+        consider[point] = False             # Mark point as included
 
         while True:
             # Loop over neighbouring points
             neigh = neighbours[point]
             # Loop only over members not included
-            for member in neigh[include[neigh]]:
+            for member in neigh[consider[neigh]]:
                 # conditional growth
                 if len(np.intersect1d(
                         neigh, neighbours[member], assume_unique=True
                         )) >= cnn_cutoff:
                     labels[member] = current
-                    include[member] = False
+                    consider[member] = False
+                    queue.append(member)
+
+            if not queue:
+                break
+            point = queue.popleft()  # FIFO
+
+        current += 1
+
+    return labels
+
+
+def fit_numpy_from_neighbours_membercheck(
+        cnn_cutoff: int,
+        neighbours: np.ndarray) -> np.ndarray:
+    """Worker function variant applying the CNN algorithm.
+
+    Assigns labels to points starting from pre-computed neighbour list.
+    Uses Python standard library and NumPy where appropriate.  Modifies
+    the loop over neighbour neighbours with a bulk check for inclusion.
+    Additionally bulk checks neighbour list lengths to filter out points
+    with less then `cnn_cutoff` members.
+    Also analouge to `fit_std_from_neighbours_loop`.
+
+    Args:
+        cnn_cutoff: Similarity criterion
+        neighbours: NumPy array of length #points containing arrays of
+            neighbouring point indices
+
+    Returns:
+        Labels
+    """
+
+    len_ = neighbours.shape[0]
+
+    # Initialise labels
+    labels = np.zeros(len_)
+
+    # Track assigment
+    consider = np.ones(len_, dtype=bool)
+
+    # Filter out points with not enough members
+    consider[np.where(
+        np.asarray([x.size for x in neighbours])
+        < cnn_cutoff
+        )[0]] = False
+
+    # Start with first cluster (0 = noise)
+    current = 1
+
+    # Initialise queue of points to scan
+    queue = deque()
+
+    for init_point in range(len_):
+        if not consider[init_point]:
+            # Point already assigned
+            continue
+        labels[init_point] = current            # Assign cluster label
+        consider[init_point] = False             # Mark point as included
+
+        point = init_point
+        while True:
+            # Loop over neighbouring points
+            neigh = neighbours[point]
+            # Loop only over members not included
+            for member in neigh[consider[neigh]]:
+                # conditional growth
+                if len(np.intersect1d(
+                        neigh, neighbours[member], assume_unique=True
+                        )) >= cnn_cutoff:
+                    labels[member] = current
+                    consider[member] = False
                     queue.append(member)
 
             if not queue:
