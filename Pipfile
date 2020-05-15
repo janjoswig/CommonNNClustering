@@ -7,7 +7,7 @@ verify_ssl = true
 ipython = "*"
 jupyter = "*"
 jupyter_contrib_nbextensions = "*"
-scikit-learn = "*"
+rise = "*"
 pyqt5 = "*"
 cython = "*"
 flake8 = "*"
@@ -15,6 +15,9 @@ mypy = "*"
 black = "*"
 pytest = "*"
 sphinx = "*"
+memory-profiler = "*"
+line-profiler = "*"
+ipympl = "*"
 
 [packages]
 numpy = "*"
@@ -24,6 +27,7 @@ sortedcontainers = "*"
 scipy = "*"
 colorama = "*"
 tqdm = "*"
+rise = "*"
 
 [requires]
 python_version = "3.8"

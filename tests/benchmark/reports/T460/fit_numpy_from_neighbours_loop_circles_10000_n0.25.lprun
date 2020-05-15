@@ -1,0 +1,71 @@
+Timer unit: 1e-06 s
+
+Total time: 6.8837 s
+File: /home/janjoswig/CNN/tests/benchmark/snippets/fits.py
+Function: fit_numpy_from_neighbours_loop at line 349
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   349                                           def fit_numpy_from_neighbours_loop(
+   350                                                   cnn_cutoff: int,
+   351                                                   neighbours: np.ndarray) -> np.ndarray:
+   352                                               """Worker function variant applying the CNN algorithm.
+   353                                           
+   354                                               Assigns labels to points starting from pre-computed neighbour list.
+   355                                               Uses Python standard library and NumPy where appropriate.  Analouge
+   356                                               to `fit_std_from_neighbours_loop`.
+   357                                           
+   358                                               Args:
+   359                                                   cnn_cutoff: Similarity criterion
+   360                                                   neighbours: NumPy array of length #points containing arrays of
+   361                                                       neighbouring point indices
+   362                                           
+   363                                               Returns:
+   364                                                   Labels
+   365                                               """
+   366                                           
+   367         1         10.0     10.0      0.0      len_ = neighbours.shape[0]
+   368                                           
+   369                                               # Initialise labels
+   370         1        362.0    362.0      0.0      labels = np.zeros(len_)
+   371                                           
+   372                                               # Track assigment
+   373         1        102.0    102.0      0.0      include = np.ones(len_, dtype=bool)
+   374                                           
+   375                                               # Start with first cluster (0 = noise)
+   376         1          4.0      4.0      0.0      current = 1
+   377                                           
+   378                                               # Initialise queue of points to scan
+   379         1          3.0      3.0      0.0      queue = deque()
+   380                                           
+   381                                               while True:
+   382         3          4.0      1.3      0.0          try:
+   383         3        294.0     98.0      0.0              point = np.nonzero(include)[0][0]  # Pick starting point
+   384         1          2.0      2.0      0.0          except IndexError:
+   385         1          2.0      2.0      0.0              break
+   386         2         12.0      6.0      0.0          labels[point] = current            # Assign cluster label
+   387         2          4.0      2.0      0.0          include[point] = False             # Mark point as included
+   388                                           
+   389                                                   while True:
+   390                                                       # Loop over neighbouring points
+   391     10000      14414.0      1.4      0.2              neigh = neighbours[point]
+   392   2831100    2230570.0      0.8     32.4              for member in neigh:
+   393   2821100    2272049.0      0.8     33.0                  if not include[member]:
+   394                                                               # Point already assigned
+   395   2811102    1730846.0      0.6     25.1                      continue
+   396                                           
+   397                                                           # conditional growth
+   398     29994     555235.0     18.5      8.1                  if len(np.intersect1d(
+   399      9998      12292.0      1.2      0.2                          neigh, neighbours[member], assume_unique=True
+   400      9998       9472.0      0.9      0.1                          )) >= cnn_cutoff:
+   401      9998      13585.0      1.4      0.2                      labels[member] = current
+   402      9998       9438.0      0.9      0.1                      include[member] = False
+   403      9998      10425.0      1.0      0.2                      queue.append(member)
+   404                                           
+   405     10000       9032.0      0.9      0.1              if not queue:
+   406         2          1.0      0.5      0.0                  break
+   407      9998      15540.0      1.6      0.2              point = queue.popleft()  # FIFO
+   408                                           
+   409         2          4.0      2.0      0.0          current += 1
+   410                                           
+   411         1          1.0      1.0      0.0      return labels

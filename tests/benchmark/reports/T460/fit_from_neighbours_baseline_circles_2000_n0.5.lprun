@@ -1,0 +1,153 @@
+Timer unit: 1e-06 s
+
+Total time: 1.3661 s
+File: /home/janjoswig/CNN/tests/benchmark/snippets/fits.py
+Function: fit_from_neighbours_baseline at line 7
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+     7                                           def fit_from_neighbours_baseline(
+     8                                                   cnn_cutoff, neighbours):
+     9                                               """Original implementation of CNN clustering
+    10                                           
+    11                                               Published in [...] For illustration purposes variables have been
+    12                                               sometimes renamed, PEP8 conformance was loosely ensured and
+    13                                               docstrings and more comments where included.  To make new comments
+    14                                               distinguishable from the original ones a double number sign (# #)
+    15                                               was used.
+    16                                           
+    17                                               Assign cluster labels to points starting from pre-computed neighbour
+    18                                               list.
+    19                                           
+    20                                               Args:
+    21                                                   neighbours: Neighbourlist as collection of collections
+    22                                                   cnn_cutoff: Similarity criterion
+    23                                               """
+    24                                           
+    25         1          3.0      3.0      0.0      def ismember(a, b):
+    26                                                   """Test if two iterables have common elements
+    27                                           
+    28                                                   Args:
+    29                                                      a, b (iterable): Iterables to compare
+    30                                                   Returns:
+    31                                                      List of same length as `a` in which the elements
+    32                                                      indicate if an element of `a` is in `b`, where
+    33                                                         - the list element is -1 if the element of `a` is not
+    34                                                            in `b`
+    35                                                         - the list element is the index of the element in ` b`
+    36                                                            if the element of `a` is in `b`
+    37                                                   """
+    38                                           
+    39                                                   bi = {}
+    40                                                   # # Container for unique elements in b {element: index_in_b}
+    41                                                   for i, el in enumerate(b):
+    42                                                       if el not in bi:
+    43                                                           bi[el] = i
+    44                                                   return [bi.get(itm, -1) for itm in a]
+    45                                           
+    46         1         11.0     11.0      0.0      n = len(neighbours)
+    47                                           
+    48         1         13.0     13.0      0.0      n_neighbours = np.zeros(n)  # # Neighbour count for each point
+    49      2001       1907.0      1.0      0.1      for i in range(n):
+    50      2000       2356.0      1.2      0.2          n_neighbours[i] = len(neighbours[i])
+    51                                           
+    52                                               # Preset parameters for the clustering
+    53                                           
+    54         1          1.0      1.0      0.0      cn = 0                # Cluster Number
+    55         1          1.0      1.0      0.0      w = 0                 # Control value I
+    56                                               # # Indicates clustering done, 0: False, >0: True
+    57                                           
+    58         1          3.0      3.0      0.0      clusters = [0] * n    # Preset cluster list
+    59                                               # # Used instead of labels
+    60                                           
+    61                                               # Filter noise points
+    62         1         16.0     16.0      0.0      n_neighbours[n_neighbours <= cnn_cutoff] = 0  # # No (0) neighbours
+    63                                               # # Remove for comparability.
+    64                                               # # Filtering should be done before the actual fit
+    65                                           
+    66         3          3.0      1.0      0.0      while w < 1:  # # While not finished
+    67                                                   # Find maximal number of nearest neighbors
+    68         2        498.0    249.0      0.0          nmax = np.nonzero(n_neighbours == max(n_neighbours))[0]
+    69                                                   # # Remove for comparability.
+    70                                                   # # Initial cluster points can be choosen arbitrarily.
+    71                                                   # # Only interesting when clusters should be found approximately
+    72                                                   # # in the order of size, which is usefull when something like
+    73                                                   # # max_clusters is set.
+    74                                           
+    75                                                   # Reset cluster
+    76         2         13.0      6.5      0.0          C = np.zeros(n, dtype=int)
+    77                                           
+    78                                                   # Write point with the highest density into the cluster
+    79         2          4.0      2.0      0.0          C[0] = nmax[0]
+    80                                           
+    81                                                   # Cluster index
+    82         2          3.0      1.5      0.0          cl = int(1)  ## How many points are in the current cluster
+    83                                           
+    84                                                   # Control value II
+    85         2          2.0      1.0      0.0          cc = 1
+    86                                                   # # New point added? 0: False, >0: True
+    87                                           
+    88                                                   # Cluster index for new added points
+    89         2          2.0      1.0      0.0          lv = 0
+    90         2          7.0      3.5      0.0          ci = np.zeros(n, dtype=int)
+    91                                           
+    92                                                   # Mask point with the highest density
+    93         2          4.0      2.0      0.0          n_neighbours[nmax[0]] = 0
+    94                                           
+    95        22         30.0      1.4      0.0          while cc > 0:
+    96                                                       # Reset control value II and define new limits
+    97        20         21.0      1.1      0.0              cc = 0
+    98        20         33.0      1.6      0.0              ci[lv] = cl
+    99                                           
+   100                                                       # # Loop over points added to the cluster
+   101      2020       3333.0      1.6      0.2              for a in C[ci[lv - 1]: ci[lv]]:
+   102                                           
+   103                                                           # Extract Neighborlist of a within radius_cutoff
+   104      2000       3556.0      1.8      0.3                  Na = neighbours[a]
+   105                                           
+   106                                                           # Compare Neighborlist of a and all reachable datapoints
+   107    262204     358524.0      1.4     26.2                  for b in Na:
+   108                                                               # Check if point is already clustered
+   109    260204     482589.0      1.9     35.3                      if n_neighbours[b] > 0:
+   110      2034       3350.0      1.6      0.2                          Nb = neighbours[b]
+   111                                           
+   112      2034     421164.0    207.1     30.8                          tcc = np.asarray(ismember(Na, Nb))
+   113      2034      22467.0     11.0      1.6                          tc = len(tcc[tcc >= 0])
+   114                                           
+   115                                                                   # Check if b in the Nearest Neighbors of a
+   116      2034      28909.0     14.2      2.1                          if b in Na:
+   117      2034       2750.0      1.4      0.2                              tb = 1
+   118                                                                   else:
+   119                                                                       tb = 0
+   120                                           
+   121                                                                   # Check if a in the Nearest Neighbors of b
+   122      2034      15342.0      7.5      1.1                          if a in Nb:
+   123      2034       2538.0      1.2      0.2                              ta = 1
+   124                                                                   else:
+   125                                                                       ta = 0
+   126                                           
+   127                                                                   # Check truncation criterion
+   128      2034       2936.0      1.4      0.2                          if tc >= cnn_cutoff and ta > 0 and tb > 0:
+   129                                                                       # Add point to the cluster
+   130      1998       3362.0      1.7      0.2                              C[cl] = b
+   131      1998       2939.0      1.5      0.2                              cl = cl + 1
+   132      1998       2366.0      1.2      0.2                              cc = cc + 1
+   133                                           
+   134                                                                       # Mask clustered point
+   135      1998       4232.0      2.1      0.3                              n_neighbours[b] = 0
+   136                                           
+   137                                                       # Update lv
+   138        20         27.0      1.4      0.0              lv = lv + 1
+   139                                           
+   140                                                   # Write cluster to the cluster list
+   141         2          7.0      3.5      0.0          Cc = np.int_(C[:cl])
+   142         2          3.0      1.5      0.0          clusters[cn] = Cc
+   143         2          2.0      1.0      0.0          cn = cn + 1  # # Cluster count increased
+   144                                           
+   145                                                   # Truncation criteria
+   146         2        767.0    383.5      0.1          if sum(n_neighbours) == 0:  # All particles are clustered
+   147         1          1.0      1.0      0.0              w = 1
+   148         2          3.0      1.5      0.0          if cn == n:  # The maximal number of clusters is reached
+   149                                                       w = 2
+   150                                           
+   151         1          1.0      1.0      0.0      return clusters
