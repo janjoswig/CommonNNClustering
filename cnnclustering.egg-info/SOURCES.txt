@@ -1,0 +1,15 @@
+README.md
+setup.cfg
+setup.py
+cnnclustering/__init__.py
+cnnclustering/_cfits.cpp
+cnnclustering/_fits.py
+cnnclustering/_plots.py
+cnnclustering/cmsm.py
+cnnclustering/cnn.py
+cnnclustering.egg-info/PKG-INFO
+cnnclustering.egg-info/SOURCES.txt
+cnnclustering.egg-info/dependency_links.txt
+cnnclustering.egg-info/top_level.txt
+tests/__init__.py
+tests/conftest.py

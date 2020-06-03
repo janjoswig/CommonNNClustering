@@ -1,4 +1,4 @@
-import core.cnn as cnn
+import cnnclustering.cnn as cnn
 
 
 class TestPandas:

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import core.cnn as cnn
+import cnnclustering.cnn as cnn
 
 
 class TestGetPoints:

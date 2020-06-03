@@ -1,62 +1,76 @@
+"""Testing functions checking the CNN density criterion
+
+Do two collections of point indices have a minimum number of common
+elements?
+"""
+
 import numpy as np
 
-import core.cnn as cnn
+import cnnclustering.cnn as cnn
+import cnnclustering._cfits as cfits
 
 
-class TestLoops:
+CASES = [  # collection a, collection b, common elements c, result
+        ([0, 1, 2, 4], [1, 2, 5, 6], 2, True),
+        ([0, 1, 2, 4], [1, 2, 5, 6], 3, False),
+        ([], [], 0, True),
+        ([], [], 1, False),
+        ([0, 1, 2], [2, 3], 0, True),
+        ([0, 1, 2], [3, 4], 0, True)
+        ]
+
+
+class TestPython:
     def test_check_similarity_array(self):
-        assert cnn.CNN.check_similarity_array(
-            np.array([0, 1, 2, 4]),
-            np.array([1, 2, 5, 6]),
-            2
-            )
-
-        assert cnn.CNN.check_similarity_array(
-            np.array([]),
-            np.array([]),
-            0
-            )
-
-        assert not cnn.CNN.check_similarity_array(
-            np.array([0, 1, 2, 4]),
-            np.array([1, 2, 5, 6]),
-            3
-            )
+        for a, b, c, result in CASES:
+            a = np.asarray(a)
+            b = np.asarray(b)
+            if result is True:
+                assert cnn.CNN.check_similarity_array(a, b, c)
+            else:
+                assert not cnn.CNN.check_similarity_array(a, b, c)
 
     def test_check_similarity_set(self):
-        assert cnn.CNN.check_similarity_set(
-            {0, 1, 2, 4},
-            {1, 2, 5, 6},
-            2
-            )
-
-        assert cnn.CNN.check_similarity_set(
-            set(),
-            set(),
-            0
-            )
-
-        assert not cnn.CNN.check_similarity_set(
-            {0, 1, 2, 4},
-            {1, 2, 5, 6},
-            3
-            )
+        for a, b, c, result in CASES:
+            a = set(a)
+            b = set(b)
+            if result is True:
+                assert cnn.CNN.check_similarity_set(a, b, c)
+            else:
+                assert not cnn.CNN.check_similarity_set(a, b, c)
 
     def test_check_similarity_sequence(self):
-        assert cnn.CNN.check_similarity_sequence(
-            [0, 1, 2, 4],
-            [1, 2, 5, 6],
-            2
-            )
+        for a, b, c, result in CASES:
+            if result is True:
+                assert cnn.CNN.check_similarity_sequence(a, b, c)
+            else:
+                assert not cnn.CNN.check_similarity_sequence(a, b, c)
 
-        assert cnn.CNN.check_similarity_sequence(
-            [],
-            [],
-            0
-            )
 
-        assert not cnn.CNN.check_similarity_sequence(
-            [0, 1, 2, 4],
-            [1, 2, 5, 6],
-            3
-            )
+class TestCython:
+    def test_check_similarity_set(self):
+        for a, b, c, result in CASES:
+            a = set(a)
+            b = set(b)
+            if result is True:
+                assert cfits._check_similarity_set(a, b, c)
+            else:
+                assert not cfits._check_similarity_set(a, b, c)
+
+    def test_check_similarity_cppset(self):
+        for a, b, c, result in CASES:
+            a = set(a)
+            b = set(b)
+            if result is True:
+                assert cfits._check_similarity_cppset(a, b, c)
+            else:
+                assert not cfits._check_similarity_cppset(a, b, c)
+
+    def test_check_similarity_array(self):
+        for a, b, c, result in CASES:
+            a = np.asarray(a, dtype=np.intp)
+            b = np.asarray(b, dtype=np.intp)
+            if result is True:
+                assert cfits._check_similarity_array(a, b, c)
+            else:
+                assert not cfits._check_similarity_array(a, b, c)

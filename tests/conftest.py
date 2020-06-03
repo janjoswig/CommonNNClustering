@@ -1,8 +1,68 @@
 import pytest
 from sklearn import datasets
 
-import core.cmsm as cmsm
-import core.cnn as cnn
+# import cnnclustering.cmsm as cmsm
+import cnnclustering.cnn as cnn
+
+
+BASE_POINTS = [
+    [0, 0],       # 0
+    [1, 1],       # 1
+    [1, 0],       # 2
+    [0, -1],      # 3
+    [0.5, -0.5],  # 4
+    [2,  1.5],    # 5
+    [2.5, -0.5],  # 6
+    [4, 2],       # 7
+    [4.5, 2.5],   # 8
+    [5, -1],      # 9
+    [5.5, -0.5],  # 10
+    [5.5, -1.5],  # 11
+    ]
+
+BASE_NEIGHBOURHOODS_e15 = [
+    [1, 2, 3, 4],  # 0
+    [0, 2, 5],     # 1
+    [0, 1, 3, 4],  # 2
+    [0, 2, 4],     # 3
+    [0, 2, 3],     # 4
+    [1],           # 5
+    [],            # 6
+    [8],           # 7
+    [7],           # 8
+    [10, 11],      # 9
+    [9, 11],       # 10
+    [9, 10],       # 11
+    ]
+
+BASE_LABELS_e15_0 = [1, 1, 1, 1, 1, 1, 0, 2, 2, 3, 3, 3]
+BASE_LABELS_e15_1 = [1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2]
+BASE_LABELS_e15_2 = [1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0]
+
+
+@pytest.fixture
+def base_points():
+    return BASE_POINTS
+
+
+@pytest.fixture
+def base_neighbourhoods_e15():
+    return BASE_NEIGHBOURHOODS_e15
+
+
+@pytest.fixture
+def base_labels_e15_0():
+    return BASE_LABELS_e15_0
+
+
+@pytest.fixture
+def base_labels_e15_1():
+    return BASE_LABELS_e15_1
+
+
+@pytest.fixture
+def base_labels_e15_2():
+    return BASE_LABELS_e15_2
 
 
 @pytest.fixture

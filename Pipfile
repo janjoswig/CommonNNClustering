@@ -18,16 +18,18 @@ sphinx = "*"
 memory-profiler = "*"
 line-profiler = "*"
 ipympl = "*"
+setuptools = "*"
+wheel = "*"
+twine = "*"
+pytest-repeat = "*"
 
 [packages]
 numpy = "*"
 matplotlib = "*"
 pandas = "*"
-sortedcontainers = "*"
 scipy = "*"
 colorama = "*"
 tqdm = "*"
-rise = "*"
 
 [requires]
 python_version = "3.8"

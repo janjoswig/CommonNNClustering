@@ -1,6 +1,7 @@
 import pytest
 from sklearn import datasets
-import core.cnn as cnn
+import cnnclustering.cnn as cnn
+
 
 @pytest.fixture
 def circles():
@@ -11,7 +12,8 @@ def circles():
         )
     return noisy_circles
 
+@pytest.mark.skip(reason="Deprecated API")
 def test_fit_circles(circles):
-    C = cnn.CNN(train=circles)
+    C = cnn.CNN(circles)
     C.fit(0.25, 20)
     assert C.summary.iloc[-1]["n_cluster"] == 2
