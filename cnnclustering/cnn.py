@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-"""cnn.py - A Python module for the
-   common-nearest-neighbour (CNN) cluster algorithm.
+"""cnn - A Python module for common-nearest-neighbour (CNN) clustering
 
 The functionality provided in this module is based on code implemented
 by Oliver Lemke in the script collection CNNClustering available on
@@ -26,7 +25,7 @@ import tempfile
 import time
 import warnings
 from typing import Dict, List, Set, Tuple
-from typing import Collection, Iterator, Sequence  # Iterable, ,
+from typing import Collection, Iterator, Sequence  # Iterable
 from typing import Any, Optional, Type, Union, IO
 
 import colorama  # TODO Make this optional or remove completely?
@@ -125,9 +124,7 @@ def recorded(function_):
 
 
 class SparsegraphArray(np.ndarray):
-    """Cluster label assignments
-
-    Attributes:
+    """Sparse graph representation of density connectivity
     """
 
     def __new__(
@@ -526,7 +523,7 @@ class NeighbourhoodsList(UserList, Neighbourhoods):
 
 
 class NeighbourhoodsLinear(np.ndarray, Neighbourhoods):
-    """Linear realisation of neighbourhoods class
+    """Sparse graph representation of neighbourhoods
 
     Elements are neighbour counts of a specific point followed by
     elements that are indices of neighbouring points.
@@ -592,7 +589,6 @@ class Data:
 
     Bundles points, distances, neighbourhoods and
     auxillaries like trees.
-
     """
 
     # TODO Add refindex here?
@@ -1687,9 +1683,11 @@ class CNN:
                 fit_fxn = _cfits.fit_from_PointsArray
                 self.labels = np.zeros(self.data.points.shape[0],
                                        dtype=np.int_)
+                self.labels.consider = np.ones_like(self.labels,
+                                                    dtype=np.uint8)
                 fit_args = (self.data.points,
                             self.labels,
-                            # TODO consider
+                            self.labels,
                             params["radius_cutoff"],
                             params["cnn_cutoff"],
                             )

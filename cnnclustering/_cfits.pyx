@@ -142,7 +142,7 @@ cpdef tuple NeighbourhoodsList2SparsegraphArray(
     return edges_list, indices_list
 
 
-cdef inline bint check_similarity_set(set a, set b, c_t c):
+cdef inline bint check_similarity_set(set a, set b, index_t c):
     """Check if similarity criterion is fulfilled.
 
     Args:
@@ -156,7 +156,7 @@ cdef inline bint check_similarity_set(set a, set b, c_t c):
     """
 
     cdef Py_ssize_t x  # Checked element
-    cdef c_t common    # Sum of common elements
+    cdef index_t common    # Sum of common elements
 
     if c == 0:  # Trivial case
         return 1
@@ -170,7 +170,7 @@ cdef inline bint check_similarity_set(set a, set b, c_t c):
     return 0
 
 
-def _check_similarity_set(set a, set b, c_t c):
+def _check_similarity_set(set a, set b, Py_ssize_t c):
     """Python wrapper for `check_similarity_set`
 
     Made for testing purposes and not normally called in production.
@@ -179,8 +179,8 @@ def _check_similarity_set(set a, set b, c_t c):
 
 
 cdef inline bint check_similarity_cppset(
-        cppset[ARRAYINDEX_DTYPE_t] a, cppset[ARRAYINDEX_DTYPE_t] b,
-        c_t c) nogil:
+        cppset[index_t] a, cppset[index_t] b,
+        index_t c) nogil:
     """Check if similarity criterion is fulfilled.
 
     Args:
@@ -195,9 +195,9 @@ cdef inline bint check_similarity_cppset(
 
     # TODO Except fused type `index_t`
 
-    cdef cppset[ARRAYINDEX_DTYPE_t].iterator it = a.begin()
-    cdef cppset[ARRAYINDEX_DTYPE_t].iterator search
-    cdef c_t common
+    cdef cppset[index_t].iterator it = a.begin()
+    cdef cppset[index_t].iterator search
+    cdef index_t common
 
     if c == 0:
         return 1
@@ -214,19 +214,21 @@ cdef inline bint check_similarity_cppset(
     return 0
 
 
-def _check_similarity_cppset(set a, set b, c_t c):
+def _check_similarity_cppset(set a, set b, Py_ssize_t c):
     """Python wrapper for `check_similarity_cppset`
 
     Made for testing purposes and not normally called in production.
     """
-    return check_similarity_cppset(a, b, c)
+    cdef cppset[Py_ssize_t] a_ = a
+    cdef cppset[Py_ssize_t] b_ = b
+    return check_similarity_cppset(a_, b_, c)
 
 
 cdef inline bint check_similarity_array(
         ARRAYINDEX_DTYPE_t[::1] a,
         ARRAYINDEX_DTYPE_t sa,
         ARRAYINDEX_DTYPE_t[::1] b,
-        c_t c) nogil:
+        index_t c) nogil:
     """Check if the CNN criterion is fullfilled
 
     Check if `a` and `b` have at least `c` common elements.  Faster than
@@ -234,7 +236,7 @@ cdef inline bint check_similarity_array(
     comparing its length to `c`.
 
     Args:
-        a, b: 1D Array of integers (neighbor point indices) that
+        a, b: 1D Array of integers (neighbour point indices) that
             supports the buffer protocol.
         sa: Length of `a`. Received here because already computed.
         c: Check if `a` and `b` share this many elements.
@@ -245,7 +247,7 @@ cdef inline bint check_similarity_array(
 
     cdef ARRAYINDEX_DTYPE_t i, j, sb = b.shape[0]  # Control variables
     cdef ARRAYINDEX_DTYPE_t ai, bj                 # Checked elements
-    cdef c_t common = 0                        # Common neighbours count
+    cdef index_t common = 0                        # Common neighbours count
 
     if c == 0:
         return 1
@@ -266,7 +268,7 @@ cdef inline bint check_similarity_array(
 def _check_similarity_array(
         ARRAYINDEX_DTYPE_t[::1] a,
         ARRAYINDEX_DTYPE_t[::1] b,
-        c_t c):
+        ARRAYINDEX_DTYPE_t c):
     """Python wrapper for `check_similarity_array`
 
     Made for testing purposes and not normally called in production.
@@ -276,62 +278,46 @@ def _check_similarity_array(
     return check_similarity_array(a, sa, b, c)
 
 
-def fit_from_NeighbourhoodsList(
-        neighbourhoods: list,
-        cnn_cutoff: int,
-        ):
+cpdef fit_from_NeighbourhoodsList(
+        list neighbourhoods,
+        npinteger[::1] labels,
+        np.uint8_t[::1] consider,
+        Py_ssize_t cnn_cutoff):
     """Worker function variant applying the CNN algorithm.
 
     Assigns labels to points starting from pre-computed neighbourhoods.
-    Uses Python standard library only.
 
     Args:
-        cnn_cutoff: Points need to share at least this many neighbours
-            to be assigned to the same cluster (similarity criterion).
         neighbourhoods: List of length #points containing sets of
             neighbouring point indices
+        cnn_cutoff: Points need to share at least this many neighbours
+            to be assigned to the same cluster (similarity criterion).
 
     Returns:
         Labels
     """
 
-    cdef int n, m, k
-    cdef vector[int] labels
-    cdef vector[int] consider
-    cdef vector[int] stack
-    cdef int current
+    cdef Py_ssize_t init_point, point, member
+    cdef Py_ssize_t m, n = len(neighbourhoods)  # Number of points
     cdef set neighbours, neighbour_neighbours
-    cdef int init_point, point, member
-
-   # Number of points
-    n = len(neighbourhoods)
-
-    # Initialise labels
-    labels = [0 for _ in range(n)]
-
-    # Track assigment
-    consider = [1 for _ in range(n)]
-
-    # Start with first cluster (0 = noise)
-    current = 1
+    cdef npinteger current = 1           # Cluster number
+    cdef unsigned long membercount  = 1           # Optional for min. clustersize
+    cdef cppqueue[Py_ssize_t] q  # Queue
 
     for init_point in range(n):
-        # Loop over points
         if consider[init_point] == 0:
             # Point already assigned
             continue
+        consider[init_point] = 0      # Mark point as included
 
         neighbours = neighbourhoods[init_point]
         m = len(neighbours)
         if m <= cnn_cutoff:
-            # Point can not fulfill cnn condition
-            consider[init_point] = 0           # Mark point as included
             continue
 
-        labels[init_point] = current          # Assign cluster label
-        consider[init_point] = 0              # Mark point as included
+        labels[init_point] = current  # Assign cluster label
+        membercount = 1
 
-        point = init_point
         while True:
             # Loop over neighbouring points
             for member in neighbours:
@@ -340,34 +326,30 @@ def fit_from_NeighbourhoodsList(
                     continue
 
                 neighbour_neighbours = neighbourhoods[member]
-                k = len(neighbour_neighbours)
-                if k <= cnn_cutoff:
+                if len(neighbour_neighbours) <= cnn_cutoff:
                     consider[member] = 0
                     continue
 
-                # conditional growth
-                # if (len(neighbours.intersection(neighbourhoods[member]))
-                #        >= cnn_cutoff):
                 if check_similarity_set(
-                        neighbours, neighbour_neighbours, cnn_cutoff):
-                    labels[member] = current
+                        neighbours, neighbour_neighbours, cnn_cutoff) == 1:
                     consider[member] = 0
-                    stack.push_back(member)
+                    labels[member] = current
+                    membercount += 1
+                    q.push(member)
 
-            if stack.size() == 0:
-                # No points left to check
+            if q.empty():
+                if membercount == 1:
+                    # Revert cluster assignment
+                    labels[init_point] = 0
+                    current -= 1
                 break
 
-            while stack.size() > 0:
-                point = stack.back()  # Get the next point from the queue
-                stack.pop_back()
-                neighbours = neighbourhoods[point]
-                m = len(neighbours)
-                if m <= cnn_cutoff:
-                    # Point can not fulfill cnn condition
-                    consider[init_point] = 0           # Mark point as included
-                    continue
-                break
+            point = q.front()  # Get the next point from the queue
+            q.pop()
+
+            # neighbours = cached_get_neighbours_PointsArray.evaluate(
+            neighbours = neighbourhoods[point]
+            m = len(neighbours)
 
         current += 1
 
@@ -375,67 +357,62 @@ def fit_from_NeighbourhoodsList(
 
 
 def fit_from_NeighbourhoodsArray(
-        object[::1] neighborhoods,
+        object[::1] neighbourhoods,
         npinteger[::1] labels,
-        c_t cnn_cutoff):
+        np.uint8_t[::1] consider,
+        ARRAYINDEX_DTYPE_t cnn_cutoff):
 
-    cdef ARRAYINDEX_DTYPE_t init_point, point, member  # Points
-    cdef ARRAYINDEX_DTYPE_t i, n, m, member_i  # Number of points, neighbours
-    cdef ARRAYINDEX_DTYPE_t[::1] neighbors, neighbor_neighbors
-    cdef npinteger membercount, current
-    cdef vector[ARRAYINDEX_DTYPE_t] stack  # LIFO queue / stack
-
-    current = 0
-    # Cluster number (start at 0; noise = -1)
-
-    n = neighborhoods.shape[0]
-
-    # cdef npinteger[::1] labels = np.zeros(n, dtype=np.intp)
-    cdef np.uint8_t[::1] consider = np.ones(n, dtype=np.uint8)
-
-    for i in range(n):
-        if neighborhoods[i].shape[0] <= cnn_cutoff:
-            consider[i] = 0
+    cdef ARRAYINDEX_DTYPE_t init_point, point, member, member_i
+    cdef ARRAYINDEX_DTYPE_t m, n = neighbourhoods.shape[0]
+    cdef ARRAYINDEX_DTYPE_t[::1] neighbours, neighbour_neighbours
+    cdef npinteger current = 1
+    cdef unsigned long membercount = 1
+    cdef cppqueue[ARRAYINDEX_DTYPE_t] q  # Queue  # FIFO queue
 
     for init_point in range(n):
-        # loop over points
         if consider[init_point] == 0:
-            # Not enough neighbours
+            # Point already assigned
             continue
+        consider[init_point] = 0  # Mark point as assigned
+
+        neighbours = neighbourhoods[init_point]
+        m = neighbours.shape[0]
+        if m <= cnn_cutoff:
+            consider[init_point] = 0
 
         labels[init_point] = current     # Assign cluster label
-        consider[init_point] = 0  # Mark point as included
-
-        point = init_point
         membercount = 1                  # Current cluster size
+
         while True:
             # Loop over neighbouring points
-            neighbors = neighborhoods[point]
-            m = neighbors.shape[0]
             for member_i in range(m):
-                member = neighbors[member_i]
+                member = neighbours[member_i]
                 if consider[member] == 0:
                     # Point already assigned or not enough neighbours
                     continue
 
-                neighbor_neighbors = neighborhoods[member]
+                neighbour_neighbours = neighbourhoods[member]
+                if neighbour_neighbours.shape[0] <= cnn_cutoff:
+                    consider[member] = 0
                 if check_similarity_array(  # Conditional growth
-                        neighbors, m, neighbor_neighbors, cnn_cutoff):
+                        neighbours, m, neighbour_neighbours, cnn_cutoff) == 1:
+                    consider[member] = 0         # Point included
                     labels[member] = current     # Assign cluster label
-                    consider[member] = 0  # Point included
                     membercount += 1             # Cluster grows
-                    stack.push_back(member)      # Add point to queue
+                    q.push(member)               # Add point to queue
 
-            if stack.size() == 0:
-                # No points left to check
-                if membercount < 2:
-                    # Cluster to small -> effectively noise
-                    labels[init_point] = -1  # Revert assignment
-                    current -= 1             # Revert cluster number
+            if q.empty():
+                if membercount == 1:
+                    # Revert cluster assignment
+                    labels[init_point] = 0
+                    current -= 1
                 break
 
-            point = stack.back()  # Get the next point from the queue
-            stack.pop_back()
+            point = q.front()  # Get the next point from the queue
+            q.pop()
+
+            neighbours = neighbourhoods[point]
+            m = neighbours.shape[0]
 
         current += 1  # Increase cluster number
 
@@ -453,7 +430,7 @@ cpdef fit_from_NeighbourhoodsSparsegraphArray():
 
 
 def predict_from_NeighbourhoodsList(
-        c_t cnn_cutoff,
+        Py_ssize_t cnn_cutoff,
         list neighbourhoods,
         int[::1] labels,
         int[::1] consider,
@@ -608,8 +585,9 @@ cpdef fit_from_DistancesArray():
 cpdef fit_from_PointsArray(
         npfloating[:, ::1] points,
         npinteger[::1] labels,
+        np.uint8_t[::1] consider,
         r_t radius_cutoff,
-        c_t cnn_cutoff):
+        size_t cnn_cutoff):
     """Apply CNN clustering from array of points
 
     """
@@ -620,23 +598,21 @@ cpdef fit_from_PointsArray(
     cdef ARRAYINDEX_DTYPE_t init_point, point,
     cdef ARRAYINDEX_DTYPE_t n = points.shape[0], d = points.shape[1]
     cdef cppset[ARRAYINDEX_DTYPE_t] neighbours, neighbour_neighbours
-    cdef CachedNeighbourhoodsPointsArray cached_get_neighbours_PointsArray = CachedNeighbourhoodsPointsArray(100)
-    cdef cppset[ARRAYINDEX_DTYPE_t].iterator member
-
     # TODO Alternative neighbour container: Python Set, Numpy Array
 
-    cdef npinteger current = 1
-    cdef npinteger membercount = 1  # Optional for min. clustersize
+    # TODO Fix caching
+    # cdef CachedNeighbourhoodsPointsArray cached_get_neighbours_PointsArray = CachedNeighbourhoodsPointsArray(100)
+    cdef cppset[ARRAYINDEX_DTYPE_t].iterator member
+    cdef npinteger current = 1           # Cluster number
+    cdef unsigned long membercount = 1   # Optional for min. clustersize
     cdef cppqueue[ARRAYINDEX_DTYPE_t] q  # Queue
-
-    # visited  # TODO Move out of this function
-    cdef np.uint8_t[::1] consider = np.ones(n, dtype=np.uint8)
 
     radius_cutoff = radius_cutoff**2
     # for distance squared
 
     for init_point in range(n):
         if consider[init_point] == 0:
+            # Point already assigned
             continue
         consider[init_point] = 0
 
@@ -654,7 +630,6 @@ cpdef fit_from_PointsArray(
 
         labels[init_point] = current
         membercount = 1
-        # point = init_point
 
         while True:
             member = neighbours.begin()
