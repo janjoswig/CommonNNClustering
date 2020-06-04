@@ -170,7 +170,7 @@ class Labels(np.ndarray):
         if sequence is None:
             sequence = []
 
-        obj = np.asarray(sequence, dtype=int).view(cls)
+        obj = np.asarray(sequence, dtype=np.int_).view(cls)
         obj.info = info
 
         if consider is None:
@@ -199,6 +199,10 @@ class Labels(np.ndarray):
         #             )
         #         sys.stderr.flush()
         #         break
+
+    @property
+    def consider(self):
+        return self._consider
 
     @property
     def info(self):
@@ -520,6 +524,39 @@ class NeighbourhoodsList(UserList, Neighbourhoods):
     @property
     def n_neighbours(self):
         [len(x) for x in self]
+
+
+class NeighbourhoodsArray(np.ndarray, Neighbourhoods):
+
+    def __init__(
+            self, sequence: Optional[Sequence[int]] = None,
+            radius=None, reference=None):
+        pass
+
+    def __new__(
+            cls, sequence: Optional[Sequence[int]] = None,
+            radius=None, reference=None):
+        if sequence is None:
+            sequence = []
+
+        obj = np.asarray(sequence, dtype=object).view(cls)
+        obj.radius = radius
+        obj.reference = reference
+
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None:
+            return
+
+        super().init_finalise(
+            radius=getattr(obj, 'radius', None),
+            reference=getattr(obj, 'reference', None)
+            )
+
+    @property
+    def n_neighbours(self):
+        [x.shape[0] for x in self]
 
 
 class NeighbourhoodsLinear(np.ndarray, Neighbourhoods):
@@ -1406,7 +1443,7 @@ class CNN:
                 "    'cdist'"
                 )
 
-    def calc_neighbours_from_dist(self, r: float):
+    def calc_neighbours_from_dist(self, r: float, format="array_arrays"):
         """Calculate neighbour list at a given radius
 
         Requires :attr:`self.data.distances`.
@@ -1419,12 +1456,21 @@ class CNN:
             None
         """
 
-        neighbourhoods = [
-            set(np.where((x > 0) & (x < r))[0])
-            for x in self.data.distances
-            ]
+        if format == "list_sets":
+            neighbourhoods = [
+                set(np.where((x > 0) & (x < r))[0])
+                for x in self.data.distances
+                ]
 
-        self.data.neighbourhoods = NeighbourhoodsList(neighbourhoods, r)
+            self.data.neighbourhoods = NeighbourhoodsList(neighbourhoods, r)
+        elif format == "array_arrays":
+            neighbourhoods = np.array([
+                np.where((x > 0) & (x < r))[0].astype(np.intp)
+                for x in self.data.distances
+                ])
+
+            self.data.neighbourhoods = NeighbourhoodsArray(neighbourhoods, r)
+
         self.data.neighbourhoods.reference = self.data.distances.reference
 
     def calc_neighbours_from_cKDTree(
@@ -1656,8 +1702,13 @@ class CNN:
                 self.data.neighbourhoods.radius == params["radius_cutoff"]):
             # Fit from pre-computed neighbourhoods,
             #     no matter what the policy is
-            fit_fxn = _cfits.fit_from_NeighbourhoodsList
-            fit_args = (params["cnn_cutoff"], self.data.neighbourhoods)
+            self.labels = Labels(np.zeros(len(self.data.neighbourhoods),
+                                          dtype=np.int_))
+            fit_fxn = _cfits.fit_from_NeighbourhoodsArray
+            fit_args = (self.data.neighbourhoods,
+                        self.labels,
+                        self.labels.consider,
+                        params["cnn_cutoff"])
             # TODO: Allow different methods and data structures
 
         # Distances calculated?
@@ -1665,9 +1716,13 @@ class CNN:
             if policy == "progressive":
                 # Pre-compute neighbourhoods from distances
                 self.calc_neighbours_from_dist(params["radius_cutoff"])
-                fit_fxn = _cfits.fit_from_NeighbourhoodsList
-                fit_args = (params["cnn_cutoff"],
-                            self.data.neighbourhoods)
+                self.labels = Labels(np.zeros(self.data.distances.shape[0],
+                                              dtype=np.int_))
+                fit_fxn = _cfits.fit_from_NeighbourhoodsArray
+                fit_args = (self.data.neighbourhoods,
+                            self.labels,
+                            self.labels.consider,
+                            params["cnn_cutoff"])
 
             elif policy == "conservative":
                 # Use distances as input and calculate neighbours online
@@ -1681,13 +1736,11 @@ class CNN:
             elif policy == "conservative":
                 # Use points as input and calculate neighbours online
                 fit_fxn = _cfits.fit_from_PointsArray
-                self.labels = np.zeros(self.data.points.shape[0],
-                                       dtype=np.int_)
-                self.labels.consider = np.ones_like(self.labels,
-                                                    dtype=np.uint8)
+                self.labels = Labels(np.zeros(self.data.points.shape[0],
+                                              dtype=np.int_))
                 fit_args = (self.data.points,
                             self.labels,
-                            self.labels,
+                            self.labels.consider,
                             params["radius_cutoff"],
                             params["cnn_cutoff"],
                             )
