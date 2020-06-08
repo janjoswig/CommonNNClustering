@@ -1,18 +1,17 @@
-.. core documentation master file, created by
-   sphinx-quickstart on Mon Mar  9 08:58:14 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. cnnclustering documentation master file, created by
+   sphinx-quickstart on Mon Mar  9 08:58:14 2020. You can adapt this
+   file completely to your liking, but it should at least contain the
+   root `toctree` directive.
 
-Welcome to core's documentation!
-================================
-
-.. automodule:: core.cnn
-   :members:
+CNN clustering
+==============
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :titlesonly:
 
+   install
+   api_reference
 
 
 Indices and tables

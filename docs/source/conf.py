@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'core'
+project = 'cnnclustering'
 copyright = '2020, Jan-Oliver Joswig'
 author = 'Jan-Oliver Joswig'
 

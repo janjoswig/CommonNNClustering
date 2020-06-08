@@ -69,6 +69,26 @@ class TestCython:
                 labels
                 )
 
+    def test_fit_from_DistancesArray_base_points_e15(
+            self,
+            base_distances,
+            base_labels_e15_0,
+            base_labels_e15_1,
+            base_labels_e15_2):
+        distances = np.array(base_distances, dtype=np.float_)
+        cases = [(0, base_labels_e15_0),
+                 (1, base_labels_e15_1),
+                 (2, base_labels_e15_2)]
+        for c, reflabels in cases:
+            labels = np.zeros(distances.shape[0], dtype=np.int_)
+            consider = np.ones_like(labels, dtype=np.uint8)
+            cfits.fit_from_DistancesArray(distances, labels, consider, 1.5, c)
+
+            np.testing.assert_array_equal(
+                np.array(reflabels),
+                labels
+                )
+
     def test_fit_from_NeighbourhoodsList_base_neighbourhoods_e15(
             self,
             base_neighbourhoods_e15,

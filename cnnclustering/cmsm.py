@@ -1,4 +1,8 @@
 """
+
+cmsm - A Python module for coreset Markov-state model estimation
+================================================================
+
 """
 
 from collections import OrderedDict

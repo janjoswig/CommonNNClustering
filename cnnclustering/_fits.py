@@ -1,4 +1,10 @@
+"""CNN clustering functionality
+
+Replaced by Cython extension module `_cfits` and deprecated.
+"""
+
 from collections import deque
+from typing import Type
 from typing import List, Set
 from typing import Sequence, Collection
 
@@ -127,12 +133,12 @@ def get_distance_squared_euclidean_PointsArray(
     return total
 
 
-def check_similarity_set(a: Set[int], b: Set[int], c: int) -> bool:
+def check_similarity_set(a: Set[int], b: Collection[int], c: int) -> bool:
     """Check if similarity criterion is fulfilled.
 
     Args:
-        a: Sequence of point indices
-        b: Sequence of point indices
+        a: Set of point indices
+        b: Collection of point indices
         c: Similarity cut-off
 
     Returns:
@@ -141,6 +147,44 @@ def check_similarity_set(a: Set[int], b: Set[int], c: int) -> bool:
     """
 
     if len(a.intersection(b)) >= c:
+        return True
+    return False
+
+
+def check_similarity_collection(
+        a: Collection[int], b: Collection[int], c: int) -> bool:
+    """Check if similarity criterion is fulfilled.
+
+    Args:
+        a: Collection of point indices
+        b: Collection of point indices
+        c: Similarity cut-off
+
+    Returns:
+        True if set `a` and set `b` have at least `c` common
+        elements
+    """
+
+    if len(set(a).intersection(b)) >= c:
+        return True
+    return False
+
+
+def check_similarity_array(
+        a: Type[np.ndarray], b: Type[np.ndarray], c: int) -> bool:
+    """Check if similarity criterion is fulfilled.
+
+    Args:
+        a: NumPy array of point indices
+        b: NumPy array of point indices
+        c: Similarity cut-off
+
+    Returns:
+        True if set `a` and set `b` have at least `c` common
+        elements
+    """
+
+    if np.intersect1d(a, b, assume_unique=True).shape[0] >= c:
         return True
     return False
 

@@ -8,7 +8,7 @@ import numpy as np
 
 import cnnclustering.cnn as cnn
 import cnnclustering._cfits as cfits
-
+import cnnclustering._fits as fits
 
 CASES = [  # collection a, collection b, common elements c, result
         ([0, 1, 2, 4], [1, 2, 5, 6], 2, True),
@@ -26,25 +26,25 @@ class TestPython:
             a = np.asarray(a)
             b = np.asarray(b)
             if result is True:
-                assert cnn.CNN.check_similarity_array(a, b, c)
+                assert fits.check_similarity_array(a, b, c)
             else:
-                assert not cnn.CNN.check_similarity_array(a, b, c)
+                assert not fits.check_similarity_array(a, b, c)
 
     def test_check_similarity_set(self):
         for a, b, c, result in CASES:
             a = set(a)
             b = set(b)
             if result is True:
-                assert cnn.CNN.check_similarity_set(a, b, c)
+                assert fits.check_similarity_set(a, b, c)
             else:
-                assert not cnn.CNN.check_similarity_set(a, b, c)
+                assert not fits.check_similarity_set(a, b, c)
 
-    def test_check_similarity_sequence(self):
+    def test_check_similarity_list(self):
         for a, b, c, result in CASES:
             if result is True:
-                assert cnn.CNN.check_similarity_sequence(a, b, c)
+                assert fits.check_similarity_collection(a, b, c)
             else:
-                assert not cnn.CNN.check_similarity_sequence(a, b, c)
+                assert not fits.check_similarity_collection(a, b, c)
 
 
 class TestCython:

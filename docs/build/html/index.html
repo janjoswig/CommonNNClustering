@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Welcome to core’s documentation! &#8212; core  documentation</title>
+    <title>CNN clustering &#8212; cnnclustering  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -12,8 +12,10 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation instructions" href="install.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -30,463 +32,17 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="module-core.cnn">
-<span id="welcome-to-core-s-documentation"></span><h1>Welcome to core’s documentation!<a class="headerlink" href="#module-core.cnn" title="Permalink to this headline">¶</a></h1>
-<dl class="simple">
-<dt>cnn.py - A Python module for the</dt><dd><p>common-nearest-neighbour (CNN) cluster algorithm.</p>
-</dd>
-</dl>
-<p>The functionality provided in this module is based on code implemented
-by Oliver Lemke in the script collection CNNClustering available on
-git-hub (<a class="reference external" href="https://github.com/BDGSoftware/CNNClustering.git">https://github.com/BDGSoftware/CNNClustering.git</a>). Please cite:</p>
-<blockquote>
-<div><ul class="simple">
-<li><ol class="upperalpha simple" start="2">
-<li><p>Keller, X. Daura, W. F. van Gunsteren J. Chem. Phys., 2010, 132, 074110.</p></li>
-</ol>
-</li>
-<li><ol class="upperalpha simple" start="15">
-<li><p>Lemke, B.G. Keller, J. Chem. Phys., 2016, 145, 164104.</p></li>
-</ol>
-</li>
-<li><ol class="upperalpha simple" start="15">
-<li><p>Lemke, B.G. Keller, Algorithms, 2018, 11, 19.</p></li>
-</ol>
-</li>
-</ul>
-</div></blockquote>
-<dl class="class">
-<dt id="core.cnn.CNN">
-<em class="property">class </em><code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">CNN</code><span class="sig-paren">(</span><em class="sig-param">data: Optional[Any] = None</em>, <em class="sig-param">alias: str = 'root'</em>, <em class="sig-param">dist_matrix: Optional[Any] = None</em>, <em class="sig-param">map_matrix: Optional[Any] = None</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN" title="Permalink to this definition">¶</a></dt>
-<dd><p>CNN cluster object class</p>
-<dl class="method">
-<dt id="core.cnn.CNN.check">
-<code class="sig-name descname">check</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.check" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check the state of the <a class="reference internal" href="#core.cnn.CNN" title="core.cnn.CNN"><code class="xref py py-class docutils literal notranslate"><span class="pre">CNN</span></code></a> instance object</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.check_similarity">
-<em class="property">static </em><code class="sig-name descname">check_similarity</code><span class="sig-paren">(</span><em class="sig-param">a: List[int], b: List[int], c: int</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#core.cnn.CNN.check_similarity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns True if list a and list b have at least c common elements</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.check_similarity_array">
-<em class="property">static </em><code class="sig-name descname">check_similarity_array</code><span class="sig-paren">(</span><em class="sig-param">a: Type[numpy.ndarray], b: Type[numpy.ndarray], c: int</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#core.cnn.CNN.check_similarity_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns True if list a and list b have at least c common elements</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.cut">
-<code class="sig-name descname">cut</code><span class="sig-paren">(</span><em class="sig-param">parts=(None</em>, <em class="sig-param">None</em>, <em class="sig-param">None)</em>, <em class="sig-param">points=(None</em>, <em class="sig-param">None</em>, <em class="sig-param">None)</em>, <em class="sig-param">dimensions=(None</em>, <em class="sig-param">None</em>, <em class="sig-param">None)</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.cut" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reduce the data set.</p>
-<p>For each data set level (parts, points, dimensions),
-a tuple (start:stop:step) can be specified. The corresponding
-level is cut using <code class="xref py py-func docutils literal notranslate"><span class="pre">slice()</span></code>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.delete">
-<code class="sig-name descname">delete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.delete" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clear <code class="xref py py-attr docutils literal notranslate"><span class="pre">data</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">shape</span></code></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.dist">
-<code class="sig-name descname">dist</code><span class="sig-paren">(</span><em class="sig-param">mode='train'</em>, <em class="sig-param">v=True</em>, <em class="sig-param">method='cdist'</em>, <em class="sig-param">mmap=False</em>, <em class="sig-param">mmap_file=None</em>, <em class="sig-param">chunksize=10000</em>, <em class="sig-param">progress=True</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.dist" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes a distance matrix (points x points) for points in given data
-of standard shape (parts, points, dimensions)</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.dist_hist">
-<code class="sig-name descname">dist_hist</code><span class="sig-paren">(</span><em class="sig-param">ax=None</em>, <em class="sig-param">mode='train'</em>, <em class="sig-param">maxima=False</em>, <em class="sig-param">maxima_props=None</em>, <em class="sig-param">hist_props=None</em>, <em class="sig-param">ax_props=None</em>, <em class="sig-param">inter_props=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.dist_hist" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shows/saves a histogram plot for distances in a given distance
-matrix</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.evaluate">
-<code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param">ax: Optional[Type[matplotlib.axes._subplots.SubplotBase]] = None, mode: str = 'train', clusters: Optional[List[int]] = None, original: bool = False, plot: str = 'dots', parts: Optional[Tuple[Optional[int], Optional[int], Optional[int]]] = None, points: Optional[Tuple[Optional[int], Optional[int], Optional[int]]] = None, dim: Optional[Tuple[int, int]] = None, ax_props: Optional[Dict] = None, annotate: bool = True, annotate_pos: str = 'mean', annotate_props: Optional[Dict] = None, scatter_props: Optional[Dict] = None, scatter_noise_props: Optional[Dict] = None, dot_props: Optional[Dict] = None, dot_noise_props: Optional[Dict] = None, hist_props: Optional[Dict] = None, contour_props: Optional[Dict] = None, free_energy: bool = True, mask=None, threshold=None</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.evaluate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a 2D plot of an original data set or a cluster result</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ax</strong> – matplotlib.axes._subplots.AxesSubplot, default=None
-The axes to which to add the plot.  If None, a new figure
-with axes will be created.</p></li>
-<li><p><strong>mode</strong> – str, default=”train”
-Which data (“train” or “test”) to use for this plot</p></li>
-<li><p><strong>clusters</strong> – List[int], default=None
-Cluster numbers to include in the plot.  If None, consider
-all.</p></li>
-<li><p><strong>original</strong> – bool, default=False
-Allows to plot the original data instead of a cluster
-result.  Overrides <cite>clusters</cite>.  Will be considered
-True, if no cluster result is present.</p></li>
-<li><p><strong>plot</strong> – <p>str, default=”dots”
-The kind of plotting method to use.</p>
-<ul>
-<li><p>”dots”, Use <code class="xref py py-func docutils literal notranslate"><span class="pre">ax.plot()</span></code></p></li>
-<li><p>””,</p></li>
-</ul>
-</p></li>
-<li><p><strong>parts</strong> – Tuple[int, int, int] (length 3), default=(None, None, None)
-Use a slice (start, stop, stride) on the data parts before
-plotting.</p></li>
-<li><p><strong>points</strong> – Tuple[int, int, int], default=(None, None, None)
-Use a slice (start, stop, stride) on the data points before
-plotting.</p></li>
-<li><p><strong>dim</strong> – Tuple[int, int], default=None
-Use these two dimensions for plotting.  If None, uses
-(0, 1).</p></li>
-<li><p><strong>annotate</strong> – bool, default=True
-If there is a cluster result, plot the cluster numbers.  Uses
-<cite>annotate_pos</cite> to determinte the position of the
-annotations.</p></li>
-<li><p><strong>annotate_pos</strong> – <p>str or List[Tuple[int, int]], default=”mean”
-Where to put the cluster number annotation.  Can be one of:</p>
-<ul>
-<li><p>”mean”, Use the cluster mean</p></li>
-<li><p>”random”, Use a random point of the cluster</p></li>
-</ul>
-<p>Alternatively a list of x, y positions can be passed to set
-a specific point for each cluster (Not yet implemented)</p>
-</p></li>
-<li><p><strong>annotate_props</strong> – Dict, default=None
-Dictionary of keyword arguments passed to
-<code class="xref py py-func docutils literal notranslate"><span class="pre">ax.annotate(**kwargs)()</span></code>.</p></li>
-<li><p><strong>ax_props</strong> – Dict, default=None
-Dictionary of <cite>ax</cite> properties to apply after
-plotting via <code class="xref py py-func docutils literal notranslate"><span class="pre">ax.set(**ax_props)()</span></code>.  If None, uses
-defaults that can be also defined in the configuration file.</p></li>
-<li><p><strong>contour</strong><strong>, </strong><strong>dot</strong><strong>, </strong><strong>scatter</strong><strong>, </strong><strong>dot_noise</strong><strong>, </strong><strong>scatter_noise</strong><strong>)</strong><strong>_props</strong> (<em>(</em><em>hist</em><em>,</em>) – Dict, default=None
-Dictionaries of keyword arguments passed to various
-functions.  If None, uses
-defaults that can be also defined in the configuration file.</p></li>
-<li><p><strong>mask</strong> – Sequence[bool]</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>List of plotted elements</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.fit">
-<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">radius_cutoff: Optional[float] = None</em>, <em class="sig-param">cnn_cutoff: Optional[int] = None</em>, <em class="sig-param">member_cutoff: int = None</em>, <em class="sig-param">max_clusters: Optional[int] = None</em>, <em class="sig-param">cnn_offset: int = None</em>, <em class="sig-param">rec: bool = True</em>, <em class="sig-param">v=True</em><span class="sig-paren">)</span> &#x2192; Optional[pandas.core.frame.DataFrame]<a class="headerlink" href="#core.cnn.CNN.fit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Performs a CNN clustering of points in a given train
-distance matrix</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.get_neighbours">
-<em class="property">static </em><code class="sig-name descname">get_neighbours</code><span class="sig-paren">(</span><em class="sig-param">a: Type[numpy.ndarray], B: Type[numpy.ndarray], r: float</em><span class="sig-paren">)</span> &#x2192; List[int]<a class="headerlink" href="#core.cnn.CNN.get_neighbours" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a list of indeces of points in B that are neighbours
-of a within radius r.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.get_shape">
-<em class="property">static </em><code class="sig-name descname">get_shape</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.get_shape" title="Permalink to this definition">¶</a></dt>
-<dd><p>Analyses the format of given data and fits it into standard
-format (parts, points, dimensions).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.isolate">
-<code class="sig-name descname">isolate</code><span class="sig-paren">(</span><em class="sig-param">mode='train'</em>, <em class="sig-param">purge=True</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.isolate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Isolates points per clusters based on a cluster result</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.kdtree">
-<code class="sig-name descname">kdtree</code><span class="sig-paren">(</span><em class="sig-param">mode='train'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.kdtree" title="Permalink to this definition">¶</a></dt>
-<dd><p>CNN.method wrapper for scipy.spatial.cKDTree</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.load">
-<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">f: Union[pathlib.Path, str], **kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#core.cnn.CNN.load" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads file content</p>
-<p>Depending on the filename extension, a suitable loader is
-called:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>.p: <code class="xref py py-func docutils literal notranslate"><span class="pre">pickle.load()</span></code></p></li>
-<li><p>.npy: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.load()</span></code></p></li>
-<li><p>None: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.loadtxt()</span></code></p></li>
-<li><p>.xvg, .dat: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.loadtxt()</span></code></p></li>
-</ul>
-</div></blockquote>
-<p>Sets <code class="xref py py-attr docutils literal notranslate"><span class="pre">data</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">shape</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>f</strong> – File</p>
-</dd>
-<dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><p><strong>**kwargs</strong> – Passed to loader.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.loop_over_points">
-<code class="sig-name descname">loop_over_points</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Iterator<a class="headerlink" href="#core.cnn.CNN.loop_over_points" title="Permalink to this definition">¶</a></dt>
-<dd><p>Iterate over all points of all parts</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Iterator over points</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.map">
-<code class="sig-name descname">map</code><span class="sig-paren">(</span><em class="sig-param">method='cdist'</em>, <em class="sig-param">mmap=False</em>, <em class="sig-param">mmap_file=None</em>, <em class="sig-param">chunksize=10000</em>, <em class="sig-param">progress=True</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.map" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes a map matrix that maps an arbitrary data set to a
-reduced to set</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.merge">
-<code class="sig-name descname">merge</code><span class="sig-paren">(</span><em class="sig-param">clusters</em>, <em class="sig-param">mode='train'</em>, <em class="sig-param">which='labels'</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.merge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Merge a list of clusters into one</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.predict">
-<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">radius_cutoff: Optional[float] = None</em>, <em class="sig-param">cnn_cutoff: Optional[int] = None</em>, <em class="sig-param">member_cutoff: Optional[int] = None</em>, <em class="sig-param">include_all: bool = True</em>, <em class="sig-param">same_tol=1e-08</em>, <em class="sig-param">memorize: bool = True</em>, <em class="sig-param">clusters: Optional[List[int]] = None</em>, <em class="sig-param">purge: bool = False</em>, <em class="sig-param">cnn_offset: Optional[int] = None</em>, <em class="sig-param">behaviour='lookup'</em>, <em class="sig-param">method='plain'</em>, <em class="sig-param">progress=True</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#core.cnn.CNN.predict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Predict labels for points in a test set on the basis of assigned
-labels to a train set by <a class="reference internal" href="#core.cnn.CNN.fit" title="core.cnn.CNN.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.fit()</span></code></a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>radius_cutoff</strong> – float, default=1.0
-Used to find nearest neighbours within distance r</p></li>
-<li><p><strong>cnn_cutoff</strong> – int, default=1
-Similarity criterion; Points of the same cluster must have
-at least n common nearest neighbours</p></li>
-<li><p><strong>member_cutoff</strong> – int, default=1
-Clusters must have more than m points or are declared noise</p></li>
-<li><p><strong>include_all</strong> – bool, default=True
-If False, keep cluster assignment for points in the test set
-that have a maximum distance of <a href="#id1"><span class="problematic" id="id2">:param:`same_tol`</span></a> to a point
-in the train set, i.e. they are (essentially the same point)
-(currently not implemented)</p></li>
-<li><p><strong>same_tol</strong> – float, default=1e-8
-Distance cutoff to treat points as the same, if
-<a href="#id3"><span class="problematic" id="id4">:param:`include_all`</span></a> is False</p></li>
-<li><p><strong>clusters</strong> – List[int], Optional, default=None
-Predict assignment of points only with respect to this list
-of clusters</p></li>
-<li><p><strong>purge</strong> – bool, default=False
-If True, reinitalise predicted labels.  Override assignment
-memory.</p></li>
-<li><p><strong>memorize</strong> – bool, default=True
-If True, remember which points in the test set have been
-already assigned and exclude them from future predictions</p></li>
-<li><p><strong>cnn_offset</strong> – int, default=0
-Mainly for backwards compatibility; Modifies the the
-cnn_cutoff</p></li>
-<li><p><strong>behaviour</strong> – <p>str, default=”lookup”
-Controlls how the predictor operates:</p>
-<ul>
-<li><dl class="simple">
-<dt>”lookup”, Use distance matrices CNN.train_dist_matrix and</dt><dd><p>CNN.map_matrix to lookup distances to generate the
-neighbour lists.  If one of the matrices does not exist,
-throw an error.  Consider memory mapping <a href="#id5"><span class="problematic" id="id6">:param:`mmap`</span></a>
-when computing the distances with <a class="reference internal" href="#core.cnn.CNN.dist" title="core.cnn.CNN.dist"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.dist()</span></code></a> and
-<a class="reference internal" href="#core.cnn.CNN.map" title="core.cnn.CNN.map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.map()</span></code></a> for large data sets.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>”on-the-fly”, Compute distances during the prediction</dt><dd><p>using the specified <a href="#id7"><span class="problematic" id="id8">:param:`method`</span></a>.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>”tree”, Get the neighbour lists during the prediction from</dt><dd><p>a tree query</p>
-</dd>
-</dl>
-</li>
-</ul>
-</p></li>
-<li><p><strong>method</strong> – <p>str, default=”plain”
-Controlls which method is used to get the neighbour lists
-within a given <a href="#id9"><span class="problematic" id="id10">:param:`behaviour`</span></a>:</p>
-<ul>
-<li><p>”lookup”, parameter not used</p></li>
-<li><dl class="simple">
-<dt>”on-the-fly”,</dt><dd><ul>
-<li><p>”plain”, uses <a class="reference internal" href="#core.cnn.CNN.get_neighbours" title="core.cnn.CNN.get_neighbours"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.get_neighbours()</span></code></a></p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><p>”tree”, parameter not used</p></li>
-</ul>
-</p></li>
-<li><p><strong>**kwargs</strong> – Additional keyword arguments are passed to the method that
-is used to compute the neighbour lists</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.query_data">
-<code class="sig-name descname">query_data</code><span class="sig-paren">(</span><em class="sig-param">mode='train'</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.query_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function to evaluate user input. If data is required as
-keyword argument and data=None is passed, the default data used is
-either self.rdata or self.data.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.save">
-<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">file_</em>, <em class="sig-param">content</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.save" title="Permalink to this definition">¶</a></dt>
-<dd><p>Saves content to file</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.summarize">
-<code class="sig-name descname">summarize</code><span class="sig-paren">(</span><em class="sig-param">ax=None</em>, <em class="sig-param">quant: str = 'time'</em>, <em class="sig-param">treat_nan=None</em>, <em class="sig-param">ax_props=None</em>, <em class="sig-param">contour_props=None</em><span class="sig-paren">)</span> &#x2192; Tuple<a class="headerlink" href="#core.cnn.CNN.summarize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates a 2D plot of property values (“time”, “noise”,
-“n_clusters”, “largest”) against cluster parameters
-radius_cutoff and cnn_cutoff.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.CNN.trash">
-<code class="sig-name descname">trash</code><span class="sig-paren">(</span><em class="sig-param">clusters</em>, <em class="sig-param">mode='train'</em>, <em class="sig-param">which='labels'</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNN.trash" title="Permalink to this definition">¶</a></dt>
-<dd><p>Merge a list of clusters into noise</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="core.cnn.CNNChild">
-<em class="property">class </em><code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">CNNChild</code><span class="sig-paren">(</span><em class="sig-param">parent</em>, <em class="sig-param">alias='child'</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.CNNChild" title="Permalink to this definition">¶</a></dt>
-<dd><p>CNN cluster object subclass. Increments the hierarchy level of
-the parent object when instanciated.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="core.cnn.MetaSettings">
-<em class="property">class </em><code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">MetaSettings</code><a class="headerlink" href="#core.cnn.MetaSettings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Metaclass to inherit class with class properties</p>
-<p>Classes constructed with this metaclass have a <code class="xref py py-attr docutils literal notranslate"><span class="pre">__defaults</span></code>
-class attribute that can be accessed as a property <code class="xref py py-attr docutils literal notranslate"><span class="pre">defaults</span></code>
-from the class.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="core.cnn.Settings">
-<em class="property">class </em><code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">Settings</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.Settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Class to expose and handle configuration</p>
-<p>Inherits from <a class="reference internal" href="#core.cnn.MetaSettings" title="core.cnn.MetaSettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaSettings</span></code></a> to allow access to the class
-attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">__defaults</span></code> as a property <code class="xref py py-attr docutils literal notranslate"><span class="pre">defaults</span></code>.</p>
-<p>Also derived from basic type <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>.</p>
-<p>The user can sublclass this class <a class="reference internal" href="#core.cnn.Settings" title="core.cnn.Settings"><code class="xref py py-class docutils literal notranslate"><span class="pre">Settings</span></code></a> to provide e.g.
-a different set of default values as <code class="xref py py-attr docutils literal notranslate"><span class="pre">__defaults</span></code>.</p>
-<dl class="method">
-<dt id="core.cnn.Settings.configure">
-<code class="sig-name descname">configure</code><span class="sig-paren">(</span><em class="sig-param">path: Union[pathlib.Path</em>, <em class="sig-param">str</em>, <em class="sig-param">None] = None</em>, <em class="sig-param">reset: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.Settings.configure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Configuration file reading</p>
-<p>Reads a yaml configuration file <code class="docutils literal notranslate"><span class="pre">.corerc</span></code> from a given path or
-one of the standard locations in the following order of
-priority:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>current working directory</p></li>
-<li><p>user home directory</p></li>
-</ul>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> – Path to a configuration file.</p></li>
-<li><p><strong>reset</strong> – Reset to defaults. If True, <cite>path</cite> is ignored
-and no configuration file is read.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="core.cnn.Settings.update">
-<code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param">E</em>, <span class="optional">]</span><em class="sig-param">**F</em><span class="sig-paren">)</span> &#x2192; None.  Update D from dict/iterable E and F.<a class="headerlink" href="#core.cnn.Settings.update" title="Permalink to this definition">¶</a></dt>
-<dd><p>If E is present and has a .keys() method, then does:  for k in E: D[k] = E[k]
-If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
-In either case, this is followed by: for k in F:  D[k] = F[k]</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="core.cnn.dist">
-<code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">dist</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.dist" title="Permalink to this definition">¶</a></dt>
-<dd><p>High level wrapper function for cnn.CNN().dist().</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="core.cnn.get_histogram">
-<code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">get_histogram</code><span class="sig-paren">(</span><em class="sig-param">x: Sequence[float], y: Sequence[float], mids: bool = True, mass: bool = True, avoid_zero_count: bool = True, hist_props: Optional[Dict[str, Any]] = None</em><span class="sig-paren">)</span> &#x2192; Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]<a class="headerlink" href="#core.cnn.get_histogram" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute a two-dimensional histogram.  Taken and modified from
-pyemma.plots.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> – Sample x-coordinates.</p></li>
-<li><p><strong>y</strong> – Sample y-coordinates.</p></li>
-<li><p><strong>hist_props</strong> – Kwargs passed to numpy.histogram2d</p></li>
-<li><p><strong>avoid_zero_count</strong> – Avoid zero counts by lifting all histogram
-elements to the minimum value before computing the free
-energy.  If False, zero histogram counts yield infinity in
-the free energy.</p></li>
-<li><p><strong>mass</strong> – Norm the histogram by the total number of counts, so that
-each bin holds the probability mass values where all
-probabilities sum to 1</p></li>
-<li><p><strong>mids</strong> – Return the mids of the bin edges instead of the actual
-edges</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The x- and y-edges and the data of the computed histogram</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="core.cnn.recorded">
-<code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">recorded</code><span class="sig-paren">(</span><em class="sig-param">function_</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.recorded" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decorator to format function feedback.  Feedback needs to be
-pandas series in record format.  If execution time was measured,
-this will be included in the summary.</p>
-</dd></dl>
-
-<dl class="data">
-<dt id="core.cnn.settings">
-<code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">settings</code><em class="property"> = {'default_cnn_cutoff': '1', 'default_cnn_offset': '0', 'default_member_cutoff': '1', 'default_radius_cutoff': '1', 'float_precision': 'sp', 'int_precision': 'sp', 'record_cnn_cutoff': 'cnn_cutoff', 'record_largest': 'largest', 'record_max_cluster': 'max_cluster', 'record_member_cutoff': 'member_cutoff', 'record_n_cluster': 'n_cluster', 'record_noise': 'noise', 'record_points': 'points', 'record_radius_cutoff': 'radius_cutoff', 'record_time': 'time'}</em><a class="headerlink" href="#core.cnn.settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Module level settings container</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#core.cnn.Settings" title="core.cnn.Settings"><code class="xref py py-class docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="core.cnn.timed">
-<code class="sig-prename descclassname">core.cnn.</code><code class="sig-name descname">timed</code><span class="sig-paren">(</span><em class="sig-param">function_</em><span class="sig-paren">)</span><a class="headerlink" href="#core.cnn.timed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decorator to measure execution time.  Forwards the output of the
-wrapped function and measured execution time.</p>
-</dd></dl>
-
+  <div class="section" id="cnn-clustering">
+<h1>CNN clustering<a class="headerlink" href="#cnn-clustering" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api_cnn.html">cnn - A Python module for common-nearest-neighbour (CNN) clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_cmsm.html">cmsm - A Python module for coreset Markov-state model estimation</a></li>
+</ul>
+</li>
+</ul>
 </div>
 </div>
 <div class="section" id="indices-and-tables">
@@ -505,7 +61,7 @@ wrapped function and measured execution time.</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="#">core</a></h1>
+<h1 class="logo"><a href="#">cnnclustering</a></h1>
 
 
 
@@ -515,11 +71,16 @@ wrapped function and measured execution time.</p>
 
 
 <h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+</ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="install.html" title="next chapter">Installation instructions</a></li>
   </ul></li>
 </ul>
 </div>
@@ -549,7 +110,7 @@ wrapped function and measured execution time.</p>
       &copy;2020, Jan-Oliver Joswig.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

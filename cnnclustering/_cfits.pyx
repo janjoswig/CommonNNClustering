@@ -1,7 +1,7 @@
 # distutils: language = c++
 # distutils: extra_compile_args = -fopenmp
 # distutils: extra_link_args = -fopenmp
-# cython: language_level=3
+# cython: language_level = 3
 # cython: boundscheck = False
 # cython: wraparound = False
 # cython: cdivision = True
@@ -298,7 +298,7 @@ cpdef fit_from_NeighbourhoodsList(
     """
 
     cdef Py_ssize_t init_point, point, member
-    cdef Py_ssize_t m, n = len(neighbourhoods)  # Number of points
+    cdef Py_ssize_t m, n = labels.shape[0]  # Number of points
     cdef set neighbours, neighbour_neighbours
     cdef npinteger current = 1           # Cluster number
     cdef unsigned long membercount  = 1           # Optional for min. clustersize
@@ -429,18 +429,19 @@ cpdef fit_from_NeighbourhoodsSparsegraphArray():
     pass
 
 
-def predict_from_NeighbourhoodsList(
-        Py_ssize_t cnn_cutoff,
+cpdef predict_from_NeighbourhoodsList(
         list neighbourhoods,
-        int[::1] labels,
-        int[::1] consider,
-        int[::1] base_labels,
-        set clusters):
+        npinteger[::1] labels,
+        np.uint8_t[::1] consider,
+        npinteger[::1] base_labels,
+        cppset[npinteger] clusters,
+        Py_ssize_t cnn_cutoff):
     """"""
 
     cdef Py_ssize_t point, member
     cdef Py_ssize_t n = labels.shape[0]
-    cdef set neighbours
+    cdef set neighbours, neighbour_neighbours
+    cdef cppset[npinteger].iterator search
 
     for point in range(n):
         if consider[point] == 0:
@@ -448,14 +449,63 @@ def predict_from_NeighbourhoodsList(
 
         neighbours = neighbourhoods[point]
         for member in neighbours:
-            if not base_labels[member] in clusters:
+            search = clusters.find(base_labels[member])
+            if search == clusters.end():
                 continue
 
+            neighbour_neighbours = neighbourhoods[member]
             if check_similarity_set(
-                neighbours, neighbourhoods[member], cnn_cutoff):
+                neighbours, neighbour_neighbours, cnn_cutoff) == 1:
                 consider[point] = 0
                 labels[point] = base_labels[member]
                 break
+
+    return
+
+
+cpdef predict_from_NeighbourhoodsArray(
+        object[::1] neighbourhoods,
+        npinteger[::1] labels,
+        np.uint8_t[::1] consider,
+        npinteger[::1] base_labels,
+        cppset[npinteger] clusters,
+        ARRAYINDEX_DTYPE_t cnn_cutoff):
+    """"""
+
+    cdef ARRAYINDEX_DTYPE_t point, member
+    cdef ARRAYINDEX_DTYPE_t n = labels.shape[0]
+    cdef ARRAYINDEX_DTYPE_t[::1] neighbours, neighbour_neighbours
+    cdef cppset[npinteger].iterator search
+
+    for point in range(n):
+        if consider[point] == 0:
+            continue
+
+        neighbours = neighbourhoods[point]
+        for member in neighbours:
+            search = clusters.find(base_labels[member])
+            if search == clusters.end():
+                continue
+
+            neighbour_neighbours = neighbourhoods[member]
+            if check_similarity_array(
+                    neighbours, neighbours.shape[0],
+                    neighbour_neighbours, cnn_cutoff) == 1:
+                consider[point] = 0
+                labels[point] = base_labels[member]
+                break
+
+    return
+
+
+cpdef predict_from_PointsArray(
+        npfloating[::1] points,
+        npinteger[::1] labels,
+        np.uint8_t[::1] consider,
+        npinteger[::1] base_labels,
+        cppset[npinteger] clusters,
+        ARRAYINDEX_DTYPE_t cnn_cutoff):
+    """NOT IMPLEMENTED"""
 
     return
 
@@ -576,10 +626,88 @@ cpdef np.uint64_t[::1] fit_from_SparsegraphArray(
     return labels
 
 
-cpdef fit_from_DistancesArray():
-    """Fit"""
+cpdef fit_from_DistancesArray(
+        npfloating[:, ::1] distances,
+        npinteger[::1] labels,
+        np.uint8_t[::1] consider,
+        r_t radius_cutoff,
+        size_t cnn_cutoff,
+        ):
+    """Apply CNN clustering from array of distances"""
 
-    pass
+    cdef ARRAYINDEX_DTYPE_t init_point, point,
+    cdef ARRAYINDEX_DTYPE_t n = distances.shape[0]
+    cdef cppset[ARRAYINDEX_DTYPE_t] neighbours, neighbour_neighbours
+    cdef cppset[ARRAYINDEX_DTYPE_t].iterator member
+    cdef npinteger current = 1           # Cluster number
+    cdef unsigned long membercount = 1   # Optional for min. clustersize
+    cdef cppqueue[ARRAYINDEX_DTYPE_t] q  # Queue
+
+    for init_point in range(n):
+        if consider[init_point] == 0:
+            # Point already assigned
+            continue
+        consider[init_point] = 0
+
+        neighbours = get_neighbours_DistancesArray(
+            init_point, distances,
+            n,
+            radius_cutoff
+            )
+
+        # TODO Pass pointer to points
+
+        if neighbours.size() <= cnn_cutoff:
+            continue
+
+        labels[init_point] = current
+        membercount = 1
+
+        while True:
+            member = neighbours.begin()
+            while member != neighbours.end():
+                if consider[deref(member)] == 0:
+                    princ(member)
+                    continue
+
+                neighbour_neighbours = get_neighbours_DistancesArray(
+                    deref(member), distances,
+                    n,
+                    radius_cutoff
+                    )
+
+                if neighbour_neighbours.size() <= cnn_cutoff:
+                    consider[deref(member)] = 0
+                    princ(member)
+                    continue
+
+                if check_similarity_cppset(
+                        neighbours, neighbour_neighbours, cnn_cutoff) == 1:
+                    consider[deref(member)] = 0
+                    labels[deref(member)] = current
+                    membercount += 1
+                    q.push(deref(member))
+
+                princ(member)
+
+            if q.empty():
+                if membercount == 1:
+                    # Revert cluster assignment
+                    labels[init_point] = 0
+                    current -= 1
+                break
+
+            point = q.front()  # Get the next point from the queue
+            q.pop()
+
+            # neighbours = cached_get_neighbours_PointsArray.evaluate(
+            neighbours = get_neighbours_DistancesArray(
+                point, distances,
+                n,
+                radius_cutoff
+                )
+
+        current += 1
 
 
 cpdef fit_from_PointsArray(
@@ -679,11 +807,53 @@ cpdef fit_from_PointsArray(
         current += 1
 
 
+cdef inline cppset[ARRAYINDEX_DTYPE_t] get_neighbours_DistancesArray(
+        ARRAYINDEX_DTYPE_t point,
+        npfloating[:, ::1] distances,
+        ARRAYINDEX_DTYPE_t n,
+        r_t radius_cutoff) nogil:
+    """Caculate neighbours of a point"""
+
+    cdef cppset[ARRAYINDEX_DTYPE_t] neighbours
+    cdef ARRAYINDEX_DTYPE_t i
+    cdef r_t r
+
+    for i in range(n):
+        if i == point:
+            # No self counting
+            continue
+
+        # TODO Test with self counting
+
+        if distances[point, i] <= radius_cutoff:
+            neighbours.insert(i)
+
+    return neighbours
+
+
+def _get_neighbours_DistancesArray(
+        ARRAYINDEX_DTYPE_t point,
+        npfloating[:, ::1] distances,
+        r_t radius_cutoff):
+    """Python wrapper for `get_neighbours_PointsArray`
+
+    Made for testing purposes and not normally called in production.
+    """
+
+    cdef ARRAYINDEX_DTYPE_t n = distances.shape[0]
+
+    return get_neighbours_DistancesArray(
+        point, distances,
+        n,
+        radius_cutoff
+        )
+
+
 cdef inline cppset[ARRAYINDEX_DTYPE_t] get_neighbours_PointsArray(
         ARRAYINDEX_DTYPE_t point,
         npfloating[:, ::1] points,
         ARRAYINDEX_DTYPE_t n, ARRAYINDEX_DTYPE_t dim,
-        r_t radius_cutoff):
+        r_t radius_cutoff) nogil:
     """Caculate neighbours of a point"""
 
     # TODO Currently uses brute force approach to calculate neighbours.
