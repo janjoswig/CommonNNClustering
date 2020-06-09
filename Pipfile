@@ -24,6 +24,8 @@ twine = "*"
 pytest-repeat = "*"
 pytest-cov = "*"
 rstcheck = "*"
+nbsphinx = "*"
+pygments = "*"
 
 [packages]
 numpy = "*"

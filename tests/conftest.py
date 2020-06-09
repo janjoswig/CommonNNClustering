@@ -74,6 +74,41 @@ BASE_NEIGHBOURHOODS_e15 = [
     [9, 10],       # 11
     ]
 
+BASE_DENSITYGRAPH_e15_0 = (
+    [1, 2, 3, 4,  # 0
+     0, 2, 5,     # 1
+     0, 1, 3, 4,  # 2
+     0, 2, 4,     # 3
+     0, 2, 3,     # 4
+     1,           # 5
+     8,           # 7
+     7,           # 8
+     10, 11,      # 9
+     9, 11,       # 10
+     9, 10],     # 11
+    [0, 4, 7, 11, 14, 17, 18, 18, 19, 20, 22, 24, 26]
+)
+
+BASE_DENSITYGRAPH_e15_1 = (
+    [1, 2, 3, 4,  # 0
+     0, 2,        # 1
+     0, 1, 3, 4,  # 2
+     0, 2, 4,     # 3
+     0, 2, 3,     # 4
+     10, 11,      # 9
+     9, 11,       # 10
+     9, 10],      # 11
+    [0, 4, 6, 10, 13, 16, 16, 16, 16, 16, 18, 20, 22]
+)
+
+BASE_DENSITYGRAPH_e15_2 = (
+    [2, 3, 4,  # 0
+     0, 3, 4,  # 2
+     0, 2, 4,  # 3
+     0, 2, 3],  # 4
+    [0, 3, 3, 6, 9, 12, 12, 12, 12, 12, 12, 12, 12]
+)
+
 BASE_LABELS_e15_0 = [1, 1, 1, 1, 1, 1, 0, 2, 2, 3, 3, 3]
 BASE_LABELS_e15_1 = [1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2]
 BASE_LABELS_e15_2 = [1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0]
@@ -83,13 +118,30 @@ BASE_LABELS_e15_2 = [1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0]
 def base_points():
     return BASE_POINTS
 
+
 @pytest.fixture
 def base_distances():
     return BASE_DISTANCES
 
+
 @pytest.fixture
 def base_neighbourhoods_e15():
     return BASE_NEIGHBOURHOODS_e15
+
+
+@pytest.fixture
+def base_densitygraph_e15_0():
+    return BASE_DENSITYGRAPH_e15_0
+
+
+@pytest.fixture
+def base_densitygraph_e15_1():
+    return BASE_DENSITYGRAPH_e15_1
+
+
+@pytest.fixture
+def base_densitygraph_e15_2():
+    return BASE_DENSITYGRAPH_e15_2
 
 
 @pytest.fixture

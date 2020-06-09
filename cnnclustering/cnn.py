@@ -106,7 +106,7 @@ def recorded(function_):
                 print("-" * 80)
                 print(
                     "#points   ",
-                    "R         ", "N         ", "M         ",
+                    "R         ", "C         ", "min       ",
                     "max       ", "#clusters ", "%largest  ", "%noise    ",
                     sep="")
                 for entry in record[:-1]:
@@ -164,11 +164,21 @@ class SparsegraphArray(np.ndarray):
 class Labels(np.ndarray):
     """Cluster label assignments
 
+    Inherits from :obj:`numpy.ndarray`.
+
+    Args:
+        sequence: Any 1D sequence that can be converted to a NumPy
+            array of integers representing cluster label assignments.
+            If `None`, will create an empty instance.
+        info: Instance of :obj:`LabelInfo` metadata.
+        consider: Any 1D sequence matching the length of `sequence` of
+            0 and 1 used to set :attr:`consider`.
+
     Attributes:
-        info: Instance of `LabelInfo` metadata.
-        consider: Boolean array of same length as labels, indicating
+        info: Instance of :obj:`LabelInfo` metadata.
+        consider: Array of 0 and 1 of same length as labels, indicating
             which labels should be still considered (e.g. for
-            predictions)
+            predictions).
     """
 
     def __new__(
@@ -177,7 +187,7 @@ class Labels(np.ndarray):
         if sequence is None:
             sequence = []
 
-        obj = np.asarray(sequence, dtype=np.int_).view(cls)
+        obj = np.atleast_1d(np.asarray(sequence, dtype=np.int_)).view(cls)
         obj.info = info
 
         if consider is None:
@@ -210,6 +220,15 @@ class Labels(np.ndarray):
     @property
     def consider(self):
         return self._consider
+
+    @consider.setter
+    def consider(self, x):
+        x = np.asarray(x)
+        if x.shape[0] != self.shape[0]:
+            raise ValueError(
+                "Shape of consider array must match shape of labels"
+                )
+        self._consider = x
 
     @property
     def info(self):
@@ -245,7 +264,7 @@ class Labels(np.ndarray):
 
         Returns:
            Dictionary of sets of point indices with cluster labels
-              as keys
+           as keys
         """
 
         dict_ = defaultdict(set)
@@ -447,6 +466,8 @@ class NeighbourhoodsABC(ABC):
             points in different data sets.
         n_neighbours: Return the neighbourcount for each point in
             the container.
+        self_counting: Boolean indicator, True if neighbourhoods include
+            self-counting (point is its own neighbour).
         __str__: A useful str-representation revealing the type and
             the radius.
     """
@@ -454,6 +475,11 @@ class NeighbourhoodsABC(ABC):
     @abstractmethod
     def __str__(self):
         """Reveal type of neighbourhoods and radius"""
+
+    @property
+    @abstractmethod
+    def self_counting(self):
+        """Self-counting of points as their own neighbours?"""
 
     @property
     @abstractmethod
@@ -495,16 +521,34 @@ class Neighbourhoods(NeighbourhoodsABC):
     `init_finalise` is offered to set the required attributes.
     """
 
-    def __init__(self, neighbourhoods=None, radius=None, reference=None):
+    def __init__(
+            self,
+            neighbourhoods=None,
+            radius=None,
+            reference=None,
+            self_counting=False):
         self.neighbourhoods = neighbourhoods
         self.init_finalise(radius=radius, reference=reference)
 
-    def init_finalise(self, radius=None, reference=None):
+    def init_finalise(self, radius=None, reference=None, self_counting=False):
         self.radius = radius
         self.reference = reference
+        self.self_counting = self_counting
 
     def __str__(self):
         return f"Neighbourhoods, radius = {self.radius}"
+
+    @property
+    def self_counting(self):
+        return self._self_counting
+
+    @self_counting.setter
+    def self_counting(self, b):
+        if not isinstance(b, bool):
+            raise ValueError(
+                "Attribute 'self_counting' must be True or False."
+                )
+        self._self_counting = b
 
     @property
     def radius(self):
@@ -565,18 +609,19 @@ class NeighbourhoodsArray(np.ndarray, Neighbourhoods):
 
     def __init__(
             self, sequence: Optional[Sequence[int]] = None,
-            radius=None, reference=None):
+            radius=None, reference=None, self_counting=False):
         pass
 
     def __new__(
             cls, sequence: Optional[Sequence[int]] = None,
-            radius=None, reference=None):
+            radius=None, reference=None, self_counting=False):
         if sequence is None:
             sequence = []
 
         obj = np.asarray(sequence, dtype=object).view(cls)
         obj.radius = radius
         obj.reference = reference
+        obj.self_counting = self_counting
 
         return obj
 
@@ -586,7 +631,8 @@ class NeighbourhoodsArray(np.ndarray, Neighbourhoods):
 
         super().init_finalise(
             radius=getattr(obj, 'radius', None),
-            reference=getattr(obj, 'reference', None)
+            reference=getattr(obj, 'reference', None),
+            self_counting=getattr(obj, 'self_counting', False)
             )
 
     @property
@@ -596,12 +642,12 @@ class NeighbourhoodsArray(np.ndarray, Neighbourhoods):
 
 
 class NeighbourhoodsLinear(np.ndarray, Neighbourhoods):
-    """Sparse graph representation of neighbourhoods
+    """Linear representation of neighbourhoods
+
+    Inherits from :obj:`numpy.ndarray` and :obj:`Neighbourhoods`.
 
     Elements are neighbour counts of a specific point followed by
     elements that are indices of neighbouring points.
-
-    DEPRECATED: Sould be replaced by SparsegraphArray
     """
 
     def __init__(
@@ -670,13 +716,13 @@ class Distances(np.ndarray):
 
     def __new__(
             cls,
-            p: Optional[np.ndarray] = None,
-            edges: Optional[Sequence] = None,
+            d: Optional[np.ndarray] = None,
             reference=None):
-        if p is None:
-            p = np.array([])
-        obj = p.view(cls)
-        obj._edges = edges
+
+        if d is None:
+            d = []
+
+        obj = np.atleast_2d(np.asarray(d, dtype=np.float_)).view(cls)
         obj._reference = None
         return obj
 
@@ -684,22 +730,7 @@ class Distances(np.ndarray):
         if obj is None:
             return
 
-        self._edges = getattr(obj, "edges", None)
         self._reference = getattr(obj, "reference", None)
-
-    @property
-    def edges(self):
-        return self._edges
-
-    @edges.setter
-    def edges(self, x):
-        sum_edges = sum(x)
-        if (self.shape[0] != 0) and (sum_edges != self.shape[0]):
-            warnings.warn(
-                f"Part edges ({sum(x)} points) do not match data points "
-                f"({self.shape[0]} points)"
-                )
-        self._edges = x
 
     @property
     def reference(self):
@@ -732,9 +763,13 @@ class Points(np.ndarray):
             edges: Optional[Sequence] = None,
             tree: Optional[Any] = None):
         if p is None:
-            p = np.array([])
-        obj = p.view(cls)
-        obj._edges = edges
+            p = []
+        obj = np.atleast_2d(np.asarray(p, dtype=np.float_)).view(cls)
+
+        if edges is None:
+            edges = []
+        obj._edges = np.atleast_1d(np.asarray(edges,
+                                              dtype=_cfits.ARRAYINDEX_DTYPE))
         obj._tree = tree
         return obj
 
@@ -752,12 +787,15 @@ class Points(np.ndarray):
     @edges.setter
     def edges(self, x):
         sum_edges = sum(x)
-        if (self.shape[0] != 0) and (sum_edges != self.shape[0]):
-            warnings.warn(
-                f"Part edges ({sum(x)} points) do not match data points "
-                f"({self.shape[0]} points)"
+        n, d = self.shape
+
+        if (d != 0) and (sum_edges != n):
+            raise ValueError(
+                f"Part edges ({sum_edges} points) do not match data points "
+                f"({n} points)"
                 )
-        self._edges = x
+
+        self._edges = np.asarray(x, dtype=_cfits.ARRAYINDEX_DTYPE)
 
     @property
     def tree(self):
@@ -965,12 +1003,12 @@ class Points(np.ndarray):
             )()
 
     def cKDTree(self, **kwargs):
-        """Wrapper for `scipy.spatial.cKDTree`
+        """Wrapper for :meth:`scipy.spatial.cKDTree`
 
-        Sets `Points.tree`.
+        Sets :attr:`Points.tree`.
 
         Args:
-            **kwargs: Passed to `scipy.spatial.cKDTree`
+            **kwargs: Passed to :meth:`scipy.spatial.cKDTree`
         """
 
         self._tree = cKDTree(self, **kwargs)
@@ -979,8 +1017,8 @@ class Points(np.ndarray):
 class Data:
     """Abstraction class for handling input data
 
-    A data object bundles points, distances, neighbourhoods, graphs and
-    auxillaries like trees.
+    A data object bundles points, distances, neighbourhoods and
+    density graphs.
 
     Args:
         points: Used to set :attr:`points`.  If `None`, creates an
@@ -1038,8 +1076,8 @@ class Data:
     @property
     def shape(self):
         shapes = {
-            "points": len(self.points),
-            "distances": len(self.distances),
+            "points": self.points.shape[0] if self.points.shape[1] > 0 else 0,
+            "distances": self.distances.shape[0] if self.distances.shape[1] > 0 else 0,
             "neighbourhoods": len(self.neighbourhoods),
             "graph": len(self.graph),
             }
@@ -1105,6 +1143,10 @@ class Data:
 
 
 class Summary(MutableSequence):
+    """List like container for cluster results
+
+    Stores instances of :obj:`CNNRecord`.
+    """
     def __init__(self, iterable=None):
         if iterable is None:
             iterable = ()
@@ -1140,7 +1182,11 @@ class Summary(MutableSequence):
             )
 
     def to_DataFrame(self):
-        """Convert list of records to (typed) pandas.DataFrame"""
+        """Convert list of records to (typed) pandas DataFrame
+
+        Returns:
+            :obj:`TypedDataFrame`
+        """
 
         if not _PANDAS_FOUND:
             raise ModuleNotFoundError("Did not load pandas")
@@ -1149,7 +1195,7 @@ class Summary(MutableSequence):
             pd.Int64Dtype(),  # points
             np.float64,       # r
             pd.Int64Dtype(),  # n
-            pd.Int64Dtype(),  # m
+            pd.Int64Dtype(),  # min
             pd.Int64Dtype(),  # max
             pd.Int64Dtype(),  # clusters
             np.float64,       # largest
@@ -1180,20 +1226,23 @@ class Summary(MutableSequence):
         """Generate a 2D plot of record values
 
         Record values ("time", "clusters", "largest", "noise") are
-        plotted against cluster parameters (radius cutoff "r"
-        and cnn cutoff "n").
+        plotted against cluster parameters (radius cutoff *r*
+        and cnn cutoff *c*).
 
         Args:
-            ax: `Axes` instance.  If `None`, a new `Figure` with `Axes`
-                will be created.
-            quant: Record value to visualise.
-                * "time"
-                * "clusters"
-                * "largest"
-                * "noise"
+            ax: Matplotlib Axes to plot on.  If `None`, a new Figure
+                with Axes will be created.
+            quant: Record value to
+                visualise:
+
+                    * "time"
+                    * "clusters"
+                    * "largest"
+                    * "noise"
+
             treat_nan: If not `None`, use this value to pad nan-values.
-            ax_props:
-            contour_props:
+            ax_props: Used to style `ax`.
+            contour_props: Passed on to contour.
         """
 
         if len(self._list) == 0:
@@ -1245,8 +1294,8 @@ CNNRecord = namedtuple(
     'CNNRecord', [
         "points",
         "r",
-        "n",
-        "m",
+        "c",
+        "min",
         "max",
         "clusters",
         "largest",
@@ -1372,10 +1421,10 @@ class CNN:
 
         # Check for data points
         #     - 2D Array
-        len_ = len(self.data.points)
-        if len_ > 0:
-            self._status["points"] = (True, {"n": len_,
-                                             "d": self.data.points.shape[1]})
+        shape_ = self.data.points.shape
+        if shape_[1] > 0:
+            self._status["points"] = (True, {"n": shape_[0],
+                                             "d": shape_[1]})
         else:
             self._status["points"] = (False, {})
 
@@ -1388,14 +1437,15 @@ class CNN:
 
         # Check for point distances
         #     - 2D Array
-        len_ = len(self.data.distances)
-        if len_ > 0:
-            self._status["distances"] = (True, {"n": len_})
+        shape_ = self.data.distances.shape
+        if shape_[1] > 0:
+            self._status["distances"] = (True, {"n": shape_[0],
+                                                "m": shape_[1]})
         else:
             self._status["distances"] = (False, {})
 
         # Check for neighbourhoods
-        len(self.data.neighbourhoods)
+        len_ = len(self.data.neighbourhoods)
         if len_ > 0:
             self._status["neighbourhoods"] = (
                 True, {"n": len_,
@@ -1461,19 +1511,19 @@ class CNN:
             f'{"=" * 80}\n'
             "CNN cluster object\n"
             f'{"-" * 80}\n'
-            f"alias :{' ' * 25}{self.alias}\n"
-            f"hierachy level :{' ' * 16}{self.hierarchy_level}\n"
+            f"Alias :{' ' * 25}{self.alias}\n"
+            f"Hierachy level :{' ' * 16}{self.hierarchy_level}\n"
             "\n"
-            f"data point shape :{' ' * 14}Parts      - {edge_str}\n"
+            f"Data point shape :{' ' * 14}Parts      - {edge_str}\n"
             f"{' ' * 32}Points     - {points_str}\n"
             f"{' ' * 32}Dimensions - {dim_str}\n"
             "\n"
-            f"distance matrix calculated :{' ' * 4}{dist_str}\n"
-            f"neighbourhoods calculated :{' ' * 5}{neigh_str}\n"
-            f"density grahp calculated :{' ' * 6}{graph_str}\n"
+            f"Distance matrix calculated :{' ' * 4}{dist_str}\n"
+            f"Neighbourhoods calculated :{' ' * 5}{neigh_str}\n"
+            f"Density graph calculated :{' ' * 6}{graph_str}\n"
             "\n"
-            f"clustered :{' ' * 21}{self.labels.shape[0] > 0}\n"
-            f"children :{' ' * 22}{self.check_present(self._children)}\n"
+            f"Clustered :{' ' * 21}{self.labels.shape[0] > 0}\n"
+            f"Children :{' ' * 22}{self.check_present(self._children)}\n"
             f'{"=" * 80}\n'
             )
 
@@ -1698,6 +1748,10 @@ class CNN:
 
         if other is None:
             other = self
+            _self_counting = True
+        else:
+            assert other.data.points.tree is not None
+            _self_counting = False
 
         if format == "list_sets":
             neighbourhoods = [
@@ -1727,6 +1781,7 @@ class CNN:
                 )
 
         self.data.neighbourhoods.reference = other
+        self.data.neighbourhoods.self_counting = _self_counting
 
     def dist_hist(
             self,
@@ -1870,7 +1925,7 @@ class CNN:
             info: bool = True,
             sort_by_size: bool = True,
             rec: bool = True, v: bool = True,
-            policy: str = "progressive",
+            policy: Optional[str] = None,
             ) -> Optional[Tuple[CNNRecord, bool]]:
         """Wraps CNN clustering execution
 
@@ -1962,8 +2017,6 @@ class CNN:
            Fix caching of neighbourhood information.
         """
 
-        assert policy in ["progressive", "conservative"]
-
         # Set params
         param_template = {
             # option name, (user option name, used as type here)
@@ -1971,6 +2024,7 @@ class CNN:
             'cnn_cutoff': (cnn_cutoff, int),
             'member_cutoff': (member_cutoff, int),
             'cnn_offset': (cnn_offset, int),
+            'fit_policy': (policy, str),
             }
 
         params = {}
@@ -1985,6 +2039,8 @@ class CNN:
                 params[option] = param_template[option][1](
                     param_template[option][0]
                     )
+
+        assert params["fit_policy"] in ["progressive", "conservative"]
 
         params["cnn_cutoff"] -= params["cnn_offset"]
         assert params["cnn_cutoff"] >= 0
@@ -2007,44 +2063,60 @@ class CNN:
             self.labels = Labels(np.zeros(len(self.data.neighbourhoods),
                                           dtype=np.int_))
             fit_fxn = _cfits.fit_from_NeighbourhoodsArray
+            # Account for self-counting
+            if self.data.neighbourhoods.self_counting:
+                _cnn_cutoff = params["cnn_cutoff"] + 1
             fit_args = (self.data.neighbourhoods,
                         self.labels,
                         self.labels.consider,
-                        params["cnn_cutoff"])
+                        _cnn_cutoff)
             # TODO: Allow different methods and data structures
 
         # Distances calculated?
         elif self._status["distances"][0]:
-            if policy == "progressive":
+            if params["fit_policy"] == "progressive":
                 # Pre-compute neighbourhoods from distances
                 self.calc_neighbours_from_dist(params["radius_cutoff"])
                 self.labels = Labels(np.zeros(self.data.distances.shape[0],
                                               dtype=np.int_))
                 fit_fxn = _cfits.fit_from_NeighbourhoodsArray
+                # Account for self-counting
+                if self.data.neighbourhoods.self_counting:
+                    _cnn_cutoff = params["cnn_cutoff"] + 1
                 fit_args = (self.data.neighbourhoods,
                             self.labels,
                             self.labels.consider,
-                            params["cnn_cutoff"])
+                            _cnn_cutoff)
 
-            elif policy == "conservative":
+            elif params["fit_policy"] == "conservative":
                 # Use distances as input and calculate neighbours online
-                raise NotImplementedError()
+                self.labels = Labels(np.zeros(self.data.distances.shape[0],
+                                              dtype=np.int_))
+                fit_fxn = _cfits.fit_from_DistancesArray
+                fit_args = (self.data.distances,
+                            self.labels,
+                            self.labels.consider,
+                            params["radius_cutoff"],
+                            params["cnn_cutoff"])
 
         # Points loaded?
         elif self._status["points"][0]:
-            if policy == "progressive":
+            if params["fit_policy"] == "progressive":
                 # Pre-compute neighbourhoods from points
                 self.data.points.cKDTree()
                 self.calc_neighbours_from_cKDTree(params["radius_cutoff"])
                 self.labels = Labels(np.zeros(self.data.points.shape[0],
                                      dtype=np.int_))
                 fit_fxn = _cfits.fit_from_NeighbourhoodsArray
+                # Account for self-counting
+                if self.data.neighbourhoods.self_counting:
+                    _cnn_cutoff = params["cnn_cutoff"] + 1
                 fit_args = (self.data.neighbourhoods,
                             self.labels,
                             self.labels.consider,
-                            params["cnn_cutoff"])
+                            _cnn_cutoff)
 
-            elif policy == "conservative":
+            elif params["fit_policy"] == "conservative":
                 # Use points as input and calculate neighbours online
                 fit_fxn = _cfits.fit_from_PointsArray
                 self.labels = Labels(np.zeros(self.data.points.shape[0],
@@ -2091,8 +2163,7 @@ class CNN:
             largest = frequencies.most_common(1)[0][1] if frequencies else 0
 
             return CNNRecord(
-                self.data.points.shape[0],
-                # TODO Maintain rather on Data level
+                self.data.shape[0],
                 params["radius_cutoff"],
                 params["cnn_cutoff"],
                 params["member_cutoff"],
@@ -2656,6 +2727,7 @@ class CNN:
             ]
 
         # Plot original set or points per cluster?
+        clusterdict = None
         if not original:
             if self.labels.size > 0:
                 clusterdict = self.labels.clusterdict
@@ -2663,7 +2735,6 @@ class CNN:
                     clusters = list(self.labels.clusterdict.keys())
             else:
                 original = True
-                clusterdict = None
 
         ax_props_defaults = {
             "xlabel": "$x$",
@@ -2884,22 +2955,104 @@ def TypedDataFrame(columns, dtypes, content=None):
     return df
 
 
-def dist(data: Any):
-    """High level wrapper function for :meth:`CNN.dist`.
+def calc_dist(
+        data: Any,
+        other: Optional[Any] = None,
+        v: bool = True,
+        method: str = 'cdist',
+        mmap: bool = False,
+        mmap_file: Optional[Union[Path, str, IO[bytes]]] = None,
+        chunksize: int = 10000,
+        progress: bool = True,
+        **kwargs) -> Type[Distances]:
+    """High level wrapper function for :meth:`CNN.calc_dist`.
 
-    A :class:`CNN` instance is created with the given data.
+    A :class:`CNN` instance is created with the given data as data
+    points.
 
     Args:
-        data: Points
+        data: Data suitable to be interpreted as :obj:`Points`.
+        other: Second data suitable to be interpreted as :obj:`Points`
+            used for relative distance computation.
 
     Returns:
-        Distance matrix (points x points).
+        Distance matrix as instance of :obj:`Distances` of shape
+        (*n*, *m*) with *n* points in `data` and *m* points in `other`.
+        If `other` is `None`, *m* = *n*.
     """
 
-    cobj = CNN(data)
-    cobj.calc_dist()
+    cobj = CNN(points=data)
+    if other is not None:
+        other = CNN(points=other)
+    cobj.calc_dist(
+        other=other,
+        v=v,
+        method=method,
+        mmap=mmap,
+        mmap_file=mmap_file,
+        chunksize=chunksize,
+        progress=progress,
+        **kwargs
+        )
 
     return cobj.data.distances
+
+
+def fit(
+        data: Any,
+        radius_cutoff: Optional[float] = None,
+        cnn_cutoff: Optional[int] = None,
+        member_cutoff: Optional[int] = None,
+        max_clusters: Optional[int] = None,
+        cnn_offset: Optional[int] = None,
+        info: bool = True,
+        sort_by_size: bool = True,
+        rec: bool = True, v: bool = True,
+        policy: Optional[str] = None,
+        ) -> Type[Labels]:
+    """High level wrapper function for :meth:`CNN.fit`.
+
+    A :class:`CNN` instance is created with the given data as data
+    points, distances, neighbourhoods or density graph.
+
+    Args:
+        data: Data as instance of :obj:`Points`, :obj:`Distances`,
+            :obj:`Neighbourhoods`, :obj:`Densitygraph` or any subclass.
+
+    Returns:
+        Cluster label assignments as instance of :obj:`Labels`.
+
+    Raises:
+        ValueError: If data is not of suitable type.
+    """
+
+    if isinstance(data, Points):
+        cobj = CNN(points=data)
+    elif isinstance(data, Distances):
+        cobj = CNN(distances=data)
+    elif isinstance(data, NeighbourhoodsABC):
+        cobj = CNN(neighbourhoods=data)
+    elif isinstance(data, DensitygraphABC):
+        cobj = CNN(graph=data)
+    else:
+        raise ValueError(
+            "Data must be subclass of Points, Distances, "
+            "Neighbourhoods, or Densitygraph"
+            )
+
+    cobj.fit(
+        radius_cutoff=radius_cutoff,
+        cnn_cutoff=cnn_cutoff,
+        member_cutoff=member_cutoff,
+        max_clusters=max_clusters,
+        cnn_offset=cnn_offset,
+        info=info,
+        sort_by_size=sort_by_size,
+        rec=rec,
+        policy=policy
+        )
+
+    return cobj.labels
 
 
 class MetaSettings(type):
@@ -2936,6 +3089,7 @@ class Settings(dict, metaclass=MetaSettings):
         'default_cnn_offset': "0",
         'default_radius_cutoff': "1",
         'default_member_cutoff': "2",
+        'default_fit_policy': "conservative",
         'float_precision': 'sp',
         'int_precision': 'sp',
         }

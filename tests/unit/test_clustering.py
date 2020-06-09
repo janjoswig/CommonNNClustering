@@ -22,31 +22,6 @@ class TestReel:
             )
 
 
-class TestBFS:
-    """Test BFS connected component search"""
-
-    def test_array(self):
-        edges = np.array([1, 2, 3,  # 0
-                          0, 2, 4,  # 1
-                          0, 1, 3,  # 2
-                          0, 2,     # 3
-                          1,        # 4
-                          6,        # 5
-                          5,        # 6
-                          9, 10,    # 8
-                          8, 10,    # 9
-                          8, 9], dtype=np.uintp)
-        indices = np.array(
-            [0, 3, 6, 9, 11, 12, 13, 14, 14, 16, 18, 20], dtype=np.uintp
-            )
-
-        labels = np.asarray(cfits.fit_from_SparsegraphArray(edges, indices))
-        np.testing.assert_array_equal(
-            labels,
-            np.array([1, 1, 1, 1, 1, 2, 2, 0, 3, 3, 3])
-            )
-
-
 class TestCython:
 
     def test_fit_from_PointsArray_base_points_e15(
@@ -127,6 +102,33 @@ class TestCython:
             consider = np.ones_like(labels, dtype=np.uint8)
             cfits.fit_from_NeighbourhoodsArray(
                 neighbourhoods, labels, consider, c
+                )
+
+            np.testing.assert_array_equal(
+                np.array(reflabels),
+                labels
+                )
+
+    def test_fit_from_SparsegraphArray_base_densitygraphs_e15(
+            self,
+            base_densitygraph_e15_0,
+            base_densitygraph_e15_1,
+            base_densitygraph_e15_2,
+            base_labels_e15_0,
+            base_labels_e15_1,
+            base_labels_e15_2):
+
+        cases = [(base_densitygraph_e15_0, base_labels_e15_0),
+                 (base_densitygraph_e15_1, base_labels_e15_1),
+                 (base_densitygraph_e15_2, base_labels_e15_2)]
+
+        for graph, reflabels in cases:
+            vertices = np.asarray(graph[0], dtype=cfits.ARRAYINDEX_DTYPE)
+            indices = np.asarray(graph[1], dtype=cfits.ARRAYINDEX_DTYPE)
+            labels = np.zeros(indices.shape[0] - 1, dtype=np.int_)
+            consider = np.ones_like(labels, dtype=np.uint8)
+            cfits.fit_from_SparsegraphArray(
+                vertices, indices, labels, consider
                 )
 
             np.testing.assert_array_equal(

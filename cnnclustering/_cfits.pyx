@@ -394,6 +394,8 @@ def fit_from_NeighbourhoodsArray(
                 neighbour_neighbours = neighbourhoods[member]
                 if neighbour_neighbours.shape[0] <= cnn_cutoff:
                     consider[member] = 0
+                    continue
+
                 if check_similarity_array(  # Conditional growth
                         neighbours, m, neighbour_neighbours, cnn_cutoff) == 1:
                     consider[member] = 0         # Point included
@@ -568,58 +570,66 @@ cpdef vector[unsigned long] fit_from_SparsegraphVector(
     return labels
 
 
-cpdef np.uint64_t[::1] fit_from_SparsegraphArray(
-        np.npy_uintp[::1] edges,
-        np.npy_uintp[::1] indices):
+cpdef fit_from_SparsegraphArray(
+        ARRAYINDEX_DTYPE_t[::1] vertices,
+        ARRAYINDEX_DTYPE_t[::1] indices,
+        npinteger[::1] labels,
+        np.uint8_t[::1] consider):
     """Find connected components in sparse graph
 
     """
-    # TODO: Fused type for labels (unsigned int/long)?
 
-    cdef np.npy_uintp i, j, n, point, neighbour  # For indexing
+    cdef ARRAYINDEX_DTYPE_t init_point, point, member, member_i, k
+    cdef ARRAYINDEX_DTYPE_t n = indices.shape[0] - 1
+    cdef ARRAYINDEX_DTYPE_t[::1] connected
+    cdef npinteger current = 1           # Cluster number
+    cdef unsigned long membercount = 1   # Optional for min. clustersize
+    cdef cppqueue[ARRAYINDEX_DTYPE_t] q  # Queue
 
-    # Initialise visited
-    n = indices.shape[0] - 1
-    cdef np.uint8_t[::1] visited = np.zeros(n, dtype=np.uint8)
-
-    # Initialise labels
-    cdef np.uint64_t current
-    cdef np.uint64_t[::1] labels = np.zeros(n, dtype=np.uint64)
-
-    # Queue
-    cdef cppqueue[ARRAYINDEX_DTYPE_t] q
-
-    current = 1
-    for i in range(n):
-        # Source node
-        if visited[i] == 1:
+    for init_point in range(n):
+        if consider[init_point] == 0:
+            # Point already assigned
             continue
+        consider[init_point] = 0
 
-        visited[i] = 1
-
-        if indices[i + 1] - indices[i] == 0:
+        connected = vertices[indices[init_point]:indices[init_point + 1]]
+        k = connected.shape[0]
+        if k == 0:
             # Isolated
             continue
 
-        labels[i] = current
-        q.push(i)
+        labels[init_point] = current
+        membercount = 1
 
-        while q.size() > 0:
-            point = q.front()
-            q.pop()
+        while True:
 
-            for j in range(indices[point], indices[point + 1]):
-                neighbour = edges[j]
-                if visited[neighbour] == 1:
+            for member_i in range(k):
+                member = connected[member_i]
+                if consider[member] == 0:
                     continue
+                consider[member] = 0
 
-                visited[neighbour] = 1
-                labels[neighbour] = current
-                if indices[i + 1] - indices[i] == 1:
+                labels[member] = current
+                membercount += 1
+                if indices[member + 1] - indices[member] == 1:
                     # Dead end
                     continue
 
-                q.push(neighbour)
+                q.push(member)
+
+            if q.empty():
+                if membercount == 1:
+                    # Revert cluster assignment
+                    labels[init_point] = 0
+                    current -= 1
+                break
+
+            point = q.front()  # Get the next point from the queue
+            q.pop()
+
+            # neighbours = cached_get_neighbours_PointsArray.evaluate(
+            connected = vertices[indices[point]:indices[point + 1]]
+            k = connected.shape[0]
 
         current += 1
 

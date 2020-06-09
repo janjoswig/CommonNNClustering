@@ -1,2 +1,0 @@
-.. automodule:: cnnclustering.cmsm
-   :members:
