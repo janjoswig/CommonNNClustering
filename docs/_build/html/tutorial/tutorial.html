@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tutorial – Clustering using the CNN algorithm &#8212; cnnclustering  documentation</title>
+    <title>Molecular dynamics application example &#8212; cnnclustering  documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -267,33 +267,22 @@ div.rendered_html tbody tr:hover {
   background: rgba(66, 165, 245, 0.2);
 }
 </style>
-<div class="section" id="Tutorial-–-Clustering-using-the-CNN-algorithm">
-<h1>Tutorial – Clustering using the CNN algorithm<a class="headerlink" href="#Tutorial-–-Clustering-using-the-CNN-algorithm" title="Permalink to this headline">¶</a></h1>
-<p>Density based common-nearest-neighbour (CNN) clustering can be applied to arbitrarily high-dimensional data sets. Here we demonstrate how to use the <code class="docutils literal notranslate"><span class="pre">cnnclustering</span></code> Python package to assign cluster labels to data points in different contexts (<code class="docutils literal notranslate"><span class="pre">cnn</span></code> module) and how to build a core-set Markov-state model (csMSM) on top of a cluster result (<code class="docutils literal notranslate"><span class="pre">cmsm</span></code> module).</p>
+<div class="section" id="Molecular-dynamics-application-example">
+<h1>Molecular dynamics application example<a class="headerlink" href="#Molecular-dynamics-application-example" title="Permalink to this headline">¶</a></h1>
 <h1><p>Contents</p>
 </h1><div class="toc"><ul class="toc-item"><li><p>1  Pre-requirements</p>
 <ul class="toc-item"><li><p>1.1  Import dependencies</p>
 </li><li><p>1.2  Notebook configuration</p>
 </li><li><p>1.3  Package configuration</p>
-</li></ul></li><li><p>2  Basic usage</p>
-<ul class="toc-item"><li><p>2.1  Data input formats</p>
-</li></ul></li><li><p>3  Scikit-learn toy data sets</p>
-<ul class="toc-item"><li><p>3.1  CNN clustering with data points as input</p>
-</li><li><p>3.2  CNN clustering with pre-computed distances</p>
-</li><li><p>3.3  CNN clustering with pre-computed neighbourhoods</p>
-</li></ul></li><li><p>4  Dissimilar blobs showcase</p>
-<ul class="toc-item"><li><p>4.1  Getting started</p>
-</li><li><p>4.2  Parameter scan</p>
-</li><li><p>4.3  Hierarchical clustering</p>
-</li></ul></li><li><p>5  MD showcase - Langerin</p>
-</li><li><p>6  Space A</p>
-<ul class="toc-item"><li><p>6.1  Clustering</p>
-</li><li><p>6.2  Coreset MSM estimation</p>
-<ul class="toc-item"><li><p>6.2.1  (MSM on train data dt = 10 ns)</p>
-</li></ul></li></ul></li><li><p>7  Space B</p>
-<ul class="toc-item"><li><p>7.1  Clustering</p>
-</li><li><p>7.2  Coreset MSM estimation</p>
-<ul class="toc-item"><li><p>7.2.1  (MSM on test data dt = 0.1 ns)</p>
+</li></ul></li><li><p>2  MD showcase - Langerin</p>
+</li><li><p>3  Space A</p>
+<ul class="toc-item"><li><p>3.1  Clustering</p>
+</li><li><p>3.2  Coreset MSM estimation</p>
+<ul class="toc-item"><li><p>3.2.1  (MSM on train data dt = 10 ns)</p>
+</li></ul></li></ul></li><li><p>4  Space B</p>
+<ul class="toc-item"><li><p>4.1  Clustering</p>
+</li><li><p>4.2  Coreset MSM estimation</p>
+<ul class="toc-item"><li><p>4.2.1  (MSM on test data dt = 0.1 ns)</p>
 </li></ul></li></ul></li></ul></div><div class="section" id="Pre-requirements">
 <h2>Pre-requirements<a class="headerlink" href="#Pre-requirements" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="Import-dependencies">
@@ -346,24 +335,6 @@ div.rendered_html tbody tr:hover {
 [GCC 8.3.0]
 </pre></div></div>
 </div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">importlib</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">cnn</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-&lt;module &#39;cnnclustering.cnn&#39; from &#39;/home/janjoswig/CNN/cnnclustering/cnn.py&#39;&gt;
-</pre></div></div>
-</div>
 </div>
 <div class="section" id="Notebook-configuration">
 <h3>Notebook configuration<a class="headerlink" href="#Notebook-configuration" title="Permalink to this headline">¶</a></h3>
@@ -405,21 +376,9 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-<p>Optionally, clustering results can be nicely collected in a <code class="docutils literal notranslate"><span class="pre">pandas</span></code> data frame.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Pandas DataFrame print options</span>
-<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&#39;display.max_rows&#39;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
 </div>
 <div class="section" id="Package-configuration">
 <h3>Package configuration<a class="headerlink" href="#Package-configuration" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">cnnclustering</span></code> Python package offers basic options to be configured by the user. On import, a configuration file (<code class="docutils literal notranslate"><span class="pre">&quot;.cnnclusteringrc&quot;</span></code>), located either in the current working directory or the users home, is loaded. If no such file is provided, the package uses a set of reasonable defaults. An example configuration file can be found under <code class="docutils literal notranslate"><span class="pre">${CNNCLUSTERING_DIR}/</span></code>.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
@@ -452,1736 +411,6 @@ div.rendered_html tbody tr:hover {
  &#39;default_member_cutoff&#39;: &#39;2&#39;,
  &#39;float_precision&#39;: &#39;sp&#39;,
  &#39;int_precision&#39;: &#39;sp&#39;}
-</pre></div></div>
-</div>
-</div>
-</div>
-<div class="section" id="Basic-usage">
-<h2>Basic usage<a class="headerlink" href="#Basic-usage" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">cnnclustering.cnn</span></code> module provides a user API through the <code class="docutils literal notranslate"><span class="pre">cnn.CNN</span></code> clustering class. An instance of this class can be used to bundle input data (e.g. data points) with cluster results (labels, summary) alongside the clustering methods and convenience functions for further analysis (not only in an MD context). As a guiding principle, a <code class="docutils literal notranslate"><span class="pre">cnn.CNN</span></code> cluster object is always associated with one particular data set and allows varying cluster parameters. This is a fundamental design
-difference to the approach used for clusterings by <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code> module <code class="docutils literal notranslate"><span class="pre">sklearn.cluster</span></code> (see this <code class="docutils literal notranslate"><span class="pre">scikit-learn</span></code> <a class="reference external" href="https://github.com/janjoswig/scikit-learn">fork</a> for an alternative API following a parameter centered approach as <code class="docutils literal notranslate"><span class="pre">sklearn.cluster.cnn</span></code>). A clustering using the class API from the <code class="docutils literal notranslate"><span class="pre">cnnclustering.cnn</span></code> module starts with the initialisation of a clustering object:</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cnnobj</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<p>Data can be passed to the clustering object on initialisation as such (see <a class="reference external" href="#Data-input-formats">Data input formats</a> below for an overview on how to pass data of differing nature):</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># 2D data points</span>
-<span class="n">data_points</span> <span class="o">=</span> <span class="p">[</span>   <span class="c1"># point index</span>
-    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>       <span class="c1"># 0</span>
-    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>       <span class="c1"># 1</span>
-    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>       <span class="c1"># 2</span>
-    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>      <span class="c1"># 3</span>
-    <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span>  <span class="c1"># 4</span>
-    <span class="p">[</span><span class="mi">2</span><span class="p">,</span>  <span class="mf">1.5</span><span class="p">],</span>    <span class="c1"># 5</span>
-    <span class="p">[</span><span class="mf">2.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span>  <span class="c1"># 6</span>
-    <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>       <span class="c1"># 7</span>
-    <span class="p">[</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">],</span>   <span class="c1"># 8</span>
-    <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>      <span class="c1"># 9</span>
-    <span class="p">[</span><span class="mf">5.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span>  <span class="c1"># 10</span>
-    <span class="p">[</span><span class="mf">5.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">],</span>  <span class="c1"># 11</span>
-    <span class="p">]</span>
-
-<span class="c1"># Print an overview on the cluster object</span>
-<span class="n">cnnobj</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">data_points</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">cnnobj</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-================================================================================
-CNN cluster object
---------------------------------------------------------------------------------
-alias :                         root
-hierachy level :                0
-
-data point shape :              Parts      - 1
-                                Points     - 12
-                                Dimensions - 2
-
-distance matrix calculated :    None
-neighbour list calculated :     None
-clustered :                     False
-children :                      False
-================================================================================
-
-</pre></div></div>
-</div>
-<p>The data points are stored on the clustering object under <code class="docutils literal notranslate"><span class="pre">cnnobj.data</span></code>.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cnnobj</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">points</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Points([[ 0. ,  0. ],
-        [ 1. ,  1. ],
-        [ 1. ,  0. ],
-        [ 0. , -1. ],
-        [ 0.5, -0.5],
-        [ 2. ,  1.5],
-        [ 2.5, -0.5],
-        [ 4. ,  2. ],
-        [ 4.5,  2.5],
-        [ 5. , -1. ],
-        [ 5.5, -0.5],
-        [ 5.5, -1.5]])
-</pre></div></div>
-</div>
-<p>To cluster these points we can use the <code class="docutils literal notranslate"><span class="pre">cnnobj.fit</span></code> method. The clustering depends on two parameters:</p>
-<ul class="simple">
-<li><p>radius_cutoff: Points are considered neighbours if the distance between them is smaller than this cutoff</p></li>
-<li><p>cnn_cutoff: Points are assigned to the same cluster if they share at least this number of common neighbours</p></li>
-</ul>
-<p>The <code class="docutils literal notranslate"><span class="pre">cnnobj.fit</span></code> method will figure out which kind of input data is provided. For the clustering procedure, we ultimately need to compute the neighbouring points with respect to the <code class="docutils literal notranslate"><span class="pre">radius_cutoff</span></code> for each point in the data set. Based on the <code class="docutils literal notranslate"><span class="pre">policy</span></code> keyword argument, these neighbours are either pre-computed in bulk (<code class="docutils literal notranslate"><span class="pre">policy</span> <span class="pre">=</span> <span class="pre">&quot;progressive&quot;</span></code>, <em>default</em>) or on-the-fly during the clustering (<code class="docutils literal notranslate"><span class="pre">policy</span> <span class="pre">=</span> <span class="pre">&quot;conservative&quot;</span></code>).</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cnnobj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;progressive&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Execution time for call of fit: 0 hours, 0 minutes, 0.0007 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-12        1.500     1         2         None      3         0.500     0.083
---------------------------------------------------------------------------------
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cnnobj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;conservative&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Execution time for call of fit: 0 hours, 0 minutes, 0.0005 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-12        1.500     1         2         None      3         0.500     0.083
---------------------------------------------------------------------------------
-</pre></div></div>
-</div>
-<div class="admonition note">
-<p><strong>Info:</strong> Bulk computation can be computationally more efficient as we can easily make use of efficient external neighbour-search methods. It also allows us to recycle once computed neighbourhood information for cluster approaches with varying <code class="docutils literal notranslate"><span class="pre">cnn_cutoffs</span></code>. On the other hand it can be quite memory-intensive for large data sets to store the neighbourhood information alongside the data in the original format. Computing the neighbourhoods on-the-fly as we go through the data set is memory
-friendly but can be computationally more expensive as we fall back to brute-force neighbour-search and once computed information can not be re-used (although this is partly countered by caching). Instead of relying on the specific methods used with the <em>progressive</em> policy, the user is also encouraged to pre-compute input with any external method of choice as needed. The possibilities of calculating neighbourhood or distance information are vast and it is wise to choose the appropriate technique
-for the particular data at hand.</p>
-</div>
-<p>The outcome of the clustering are cluster label assignments for each point. Points classified as <em>noise</em> (not part of any cluster) are labeled 0. Integer labels larger than 0 indicate the membership to one of the identified cluster of each point.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cnnobj</span><span class="o">.</span><span class="n">labels</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Labels([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])
-</pre></div></div>
-</div>
-<p>As an alternative to the classed based API, the <code class="docutils literal notranslate"><span class="pre">cnnclustering.cnn</span></code> module provides a functional API for quick results.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">labels</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
-    <span class="n">points</span><span class="o">=</span><span class="n">data_points</span><span class="p">,</span>
-    <span class="n">radius_cutoff</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
-    <span class="n">cnn_cutoff</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;conservative&quot;</span>
-<span class="p">)</span>
-<span class="n">labels</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="Data-input-formats">
-<h3>Data input formats<a class="headerlink" href="#Data-input-formats" title="Permalink to this headline">¶</a></h3>
-<p>A data set of points can primarily be represented through point coordinates in a <em>d</em>-dimensional space, or in terms of a pairwise distance matrix (of arbitrary metric). Secondarily, the data set can be described by neighbourhoods (in a graph structure) with respect to a specific radius cutoff. Furthermore it is possible to trim the neighbourhoods into a density graph containing density connected points rather then neighbours for each point. The memory demand of the input forms and the speed at
-which they can be clustered varies. Currently the <code class="docutils literal notranslate"><span class="pre">cnnclustering.cnn</span></code> module can deal with the following data structures (<em>n</em>: number of points, <em>d</em>: number of dimensions).</p>
-<p><strong>Points</strong></p>
-<ul class="simple">
-<li><p>2D NumPy array of shape (<em>n</em>, <em>d</em>), holding point coordinates</p></li>
-</ul>
-<p><strong>Distances</strong></p>
-<ul class="simple">
-<li><p>2D NumPy array of shape (<em>n</em>, <em>n</em>), holding pairwise distances</p></li>
-</ul>
-<p><strong>Neighbourhoods</strong></p>
-<ul class="simple">
-<li><p>1D Numpy array of shape (<em>n</em>,) of 1D Numpy arrays of shape (&lt;= <em>n</em>,), holding point indices</p></li>
-<li><p>Python list of length (<em>n</em>) of Python sets of length (&lt;= <em>n</em>), holding point indices</p></li>
-<li><p>Sparse graph with 1D NumPy array of shape (&lt;= <em>n²</em>), holding point indices, and 1D NumPy array of shape (<em>n</em>), holding neighbourhood start indices</p></li>
-</ul>
-<p><strong>Density graph</strong></p>
-<ul class="simple">
-<li><p>1D Numpy array of shape (<em>n</em>,) of 1D Numpy arrays of shape (&lt;= <em>n</em>,), holding point indices</p></li>
-<li><p>Python list of length (<em>n</em>) of Python sets of length (&lt;= <em>n</em>), holding point indices</p></li>
-<li><p>Sparse graph with 1D NumPy array of shape (&lt;= <em>n²</em>), holding point indices, and 1D NumPy array of shape (<em>n</em>), holding neighbourhood start indices</p></li>
-</ul>
-<p>The different input structures are wrapped by corresponding classes to be handeled as attributes of a <code class="docutils literal notranslate"><span class="pre">cnn.CNN</span></code> cluster object.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="o">.</span><span class="n">from_parts</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-                       <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]])</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Points([[1, 2, 3],
-        [4, 5, 6]])
-</pre></div></div>
-</div>
-</div>
-</div>
-<div class="section" id="Scikit-learn-toy-data-sets">
-<h2>Scikit-learn toy data sets<a class="headerlink" href="#Scikit-learn-toy-data-sets" title="Permalink to this headline">¶</a></h2>
-<p>To see the CNN clustering in action, let’s have a look at a handful of basic 2D data sets from scikit-learn (like from <a class="reference external" href="https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html">https://scikit-learn.org/stable/auto_examples/cluster/plot_cluster_comparison.html</a>).</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Data set generation parameters</span>
-<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">n_samples</span> <span class="o">=</span> <span class="mi">2000</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Data set generation</span>
-<span class="c1"># circles</span>
-<span class="n">noisy_circles</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">make_circles</span><span class="p">(</span>
-    <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
-    <span class="n">factor</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span>
-    <span class="n">noise</span><span class="o">=.</span><span class="mi">05</span>
-    <span class="p">)</span>
-
-<span class="c1"># moons</span>
-<span class="n">noisy_moons</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">make_moons</span><span class="p">(</span>
-    <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
-    <span class="n">noise</span><span class="o">=.</span><span class="mi">05</span>
-    <span class="p">)</span>
-
-<span class="c1"># blobs</span>
-<span class="n">blobs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">make_blobs</span><span class="p">(</span>
-    <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
-    <span class="n">random_state</span><span class="o">=</span><span class="mi">8</span>
-    <span class="p">)</span>
-
-<span class="c1"># None</span>
-<span class="n">no_structure</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span>
-    <span class="n">n_samples</span><span class="p">,</span> <span class="mi">2</span>
-    <span class="p">)</span>
-
-<span class="c1"># aniso</span>
-<span class="n">random_state</span> <span class="o">=</span> <span class="mi">170</span>
-<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">make_blobs</span><span class="p">(</span>
-    <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
-    <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span>
-    <span class="p">)</span>
-
-<span class="n">transformation</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">]]</span>
-<span class="n">aniso</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">transformation</span><span class="p">)</span>
-
-<span class="c1"># varied</span>
-<span class="n">varied</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">make_blobs</span><span class="p">(</span>
-    <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
-    <span class="n">cluster_std</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
-    <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span>
-    <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Define cluster parameters</span>
-<span class="n">dsets</span> <span class="o">=</span> <span class="p">[</span> <span class="c1"># &quot;name&quot;, set, **parameters</span>
-    <span class="p">(</span><span class="s1">&#39;circles&#39;</span><span class="p">,</span> <span class="n">noisy_circles</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s1">&#39;radius_cutoff&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-        <span class="s1">&#39;cnn_cutoff&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="s1">&#39;member_cutoff&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
-        <span class="s1">&#39;max_clusters&#39;</span><span class="p">:</span> <span class="kc">None</span>
-        <span class="p">}),</span>
-    <span class="p">(</span><span class="s1">&#39;moons&#39;</span><span class="p">,</span> <span class="n">noisy_moons</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s1">&#39;radius_cutoff&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-        <span class="s1">&#39;cnn_cutoff&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="s1">&#39;member_cutoff&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-        <span class="s1">&#39;max_clusters&#39;</span><span class="p">:</span> <span class="kc">None</span>
-        <span class="p">}),</span>
-    <span class="p">(</span><span class="s1">&#39;varied&#39;</span><span class="p">,</span> <span class="n">varied</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s1">&#39;radius_cutoff&#39;</span><span class="p">:</span> <span class="mf">0.28</span><span class="p">,</span>
-        <span class="s1">&#39;cnn_cutoff&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="s1">&#39;member_cutoff&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="s1">&#39;max_clusters&#39;</span><span class="p">:</span> <span class="kc">None</span>
-        <span class="p">}),</span>
-    <span class="p">(</span><span class="s1">&#39;aniso&#39;</span><span class="p">,</span> <span class="n">aniso</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s1">&#39;radius_cutoff&#39;</span><span class="p">:</span> <span class="mf">0.29</span><span class="p">,</span>
-        <span class="s1">&#39;cnn_cutoff&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
-        <span class="s1">&#39;member_cutoff&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-        <span class="s1">&#39;max_clusters&#39;</span><span class="p">:</span> <span class="kc">None</span>
-         <span class="p">}),</span>
-    <span class="p">(</span><span class="s1">&#39;blobs&#39;</span><span class="p">,</span> <span class="n">blobs</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s1">&#39;radius_cutoff&#39;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
-        <span class="s1">&#39;cnn_cutoff&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="s1">&#39;member_cutoff&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-        <span class="s1">&#39;max_clusters&#39;</span><span class="p">:</span> <span class="kc">None</span>
-        <span class="p">}),</span>
-    <span class="p">(</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">no_structure</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s1">&#39;radius_cutoff&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-        <span class="s1">&#39;cnn_cutoff&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="s1">&#39;member_cutoff&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s1">&#39;max_clusters&#39;</span><span class="p">:</span> <span class="kc">None</span>
-        <span class="p">}),</span>
-    <span class="p">]</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Plot the original data sets</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="n">Ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-
-<span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dsets</span><span class="p">):</span>
-    <span class="c1"># Fit all datasets to the same value range</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-    <span class="c1"># Plot</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="o">**</span><span class="n">line_props</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="n">ax_props</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-
-<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span>
-    <span class="p">)</span>
-
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_44_0.png" src="../_images/tutorial_tutorial_44_0.png" />
-</div>
-</div>
-<div class="section" id="CNN-clustering-with-data-points-as-input">
-<h3>CNN clustering with data points as input<a class="headerlink" href="#CNN-clustering-with-data-points-as-input" title="Permalink to this headline">¶</a></h3>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Cluster the sets and plot the result</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="n">Ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-
-<span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dsets</span><span class="p">):</span>
-    <span class="c1"># Fit all datasets to the same value range</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-
-    <span class="n">clustering</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;conservative&quot;</span><span class="p">)</span>
-    <span class="c1"># Calculate neighbours on-the-fly</span>
-    <span class="nb">print</span><span class="p">()</span>
-
-    <span class="c1"># Plot</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">],</span> <span class="n">annotate_pos</span><span class="o">=</span><span class="s2">&quot;random&quot;</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="n">ax_props</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-
-<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span>
-    <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Execution time for call of fit: 0 hours, 0 minutes, 0.2949 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.500     20        100       None      2         0.500     0.000
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.3399 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.500     20        2         None      2         0.500     0.000
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.4952 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.280     20        20        None      3         0.338     0.114
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.3438 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.290     30        5         None      3         0.319     0.050
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.6677 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.400     20        2         None      3         0.334     0.001
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.2956 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.500     20        1         None      1         1.000     0.000
---------------------------------------------------------------------------------
-
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_47_1.png" src="../_images/tutorial_tutorial_47_1.png" />
-</div>
-</div>
-</div>
-<div class="section" id="CNN-clustering-with-pre-computed-distances">
-<h3>CNN clustering with pre-computed distances<a class="headerlink" href="#CNN-clustering-with-pre-computed-distances" title="Permalink to this headline">¶</a></h3>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Cluster the sets and plot the result</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="n">Ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-
-<span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dsets</span><span class="p">):</span>
-    <span class="c1"># Fit all datasets to the same value range</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-
-    <span class="n">clustering</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">calc_dist</span><span class="p">()</span>  <span class="c1"># Pre-calculate distances from points</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;progressive&quot;</span><span class="p">)</span>
-    <span class="c1"># Bulk compute neighbourhoods from distances</span>
-    <span class="nb">print</span><span class="p">()</span>
-
-    <span class="c1"># Plot</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">],</span> <span class="n">annotate_pos</span><span class="o">=</span><span class="s2">&quot;random&quot;</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="n">ax_props</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-
-<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span>
-    <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Execution time for call of fit: 0 hours, 0 minutes, 0.0991 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.500     20        100       None      2         0.500     0.000
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.0628 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.500     20        2         None      2         0.500     0.000
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.0668 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.280     20        20        None      3         0.338     0.114
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.1151 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.290     30        5         None      3         0.319     0.050
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.0674 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.400     20        2         None      3         0.334     0.001
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.0575 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.500     20        1         None      1         1.000     0.000
---------------------------------------------------------------------------------
-
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_49_1.png" src="../_images/tutorial_tutorial_49_1.png" />
-</div>
-</div>
-</div>
-<div class="section" id="CNN-clustering-with-pre-computed-neighbourhoods">
-<h3>CNN clustering with pre-computed neighbourhoods<a class="headerlink" href="#CNN-clustering-with-pre-computed-neighbourhoods" title="Permalink to this headline">¶</a></h3>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Cluster the sets and plot the result</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="n">Ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-
-<span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dsets</span><span class="p">):</span>
-    <span class="c1"># Fit all datasets to the same value range</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-
-    <span class="n">clustering</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">cKDTree</span><span class="p">()</span>  <span class="c1"># Build search tree on points</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">calc_neighbours_from_cKDTree</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;radius_cutoff&quot;</span><span class="p">])</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
-    <span class="c1"># Fit from precomputed neighbourhoods</span>
-    <span class="nb">print</span><span class="p">()</span>
-
-    <span class="c1"># Plot</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">],</span> <span class="n">annotate_pos</span><span class="o">=</span><span class="s2">&quot;random&quot;</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="n">ax_props</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-
-<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span>
-    <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Execution time for call of fit: 0 hours, 0 minutes, 0.0139 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.500     20        100       None      2         0.500     0.000
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.0138 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.500     20        2         None      2         0.500     0.000
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.0151 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.280     20        20        None      3         0.338     0.090
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.0158 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.290     30        5         None      3         0.321     0.044
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.0118 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.400     20        2         None      3         0.334     0.000
---------------------------------------------------------------------------------
-
-Execution time for call of fit: 0 hours, 0 minutes, 0.0135 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-2000      0.500     20        1         None      1         1.000     0.000
---------------------------------------------------------------------------------
-
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_51_1.png" src="../_images/tutorial_tutorial_51_1.png" />
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="Dissimilar-blobs-showcase">
-<h2>Dissimilar blobs showcase<a class="headerlink" href="#Dissimilar-blobs-showcase" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="Getting-started">
-<h3>Getting started<a class="headerlink" href="#Getting-started" title="Permalink to this headline">¶</a></h3>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Generate blobs with quite different point densities</span>
-<span class="n">dblobs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">make_blobs</span><span class="p">(</span>
-    <span class="n">n_samples</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e5</span><span class="p">),</span>
-    <span class="n">cluster_std</span><span class="o">=</span><span class="p">[</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.32</span><span class="p">,</span> <span class="mf">1.8</span><span class="p">],</span>
-    <span class="n">random_state</span><span class="o">=</span><span class="mi">1</span>
-    <span class="p">)</span>
-
-<span class="n">dblobs</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">dblobs</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Initialise clustering</span>
-<span class="n">cobj</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">dblobs</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Get basic information about the cnn.CNN instance via cobj.__str__()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">cobj</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-================================================================================
-CNN cluster object
---------------------------------------------------------------------------------
-alias :                         root
-hierachy level :                0
-
-data point shape :              Parts      - 1
-                                Points     - 100000
-                                Dimensions - 2
-
-distance matrix calculated :    None
-neighbourhoods calculated :     None
-density grahp calculated :      None
-
-clustered :                     False
-children :                      False
-================================================================================
-
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Plot the original data</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">cobj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_57_0.png" src="../_images/tutorial_tutorial_57_0.png" />
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># To make the clustering easier, reduce the number of points</span>
-<span class="c1"># (start, stop, stride)</span>
-<span class="n">robj</span> <span class="o">=</span> <span class="n">cobj</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
-<span class="c1"># Equivalent to:</span>
-<span class="c1">#     &gt;&gt;&gt; robj = cnn.CNN(points=cobj.data.points[slice(None, None, 100), :])</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="n">robj</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-================================================================================
-CNN cluster object
---------------------------------------------------------------------------------
-alias :                         root
-hierachy level :                0
-
-data point shape :              Parts      - 1
-                                Points     - 1000
-                                Dimensions - 2
-
-distance matrix calculated :    None
-neighbourhoods calculated :     None
-density grahp calculated :      None
-
-clustered :                     False
-children :                      False
-================================================================================
-
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Plot the reduced data</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">cobj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
-<span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cobj</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> points&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">robj</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> points&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Text(0.5, 1.0, &#39;1000 points&#39;)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_60_1.png" src="../_images/tutorial_tutorial_60_1.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Looking at the distance distribution between points, can help to find an</span>
-<span class="c1"># initial value for the radius cutoff</span>
-<span class="n">robj</span><span class="o">.</span><span class="n">calc_dist</span><span class="p">()</span>  <span class="c1"># Pre-calculate distances</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">dist_hist</span><span class="p">(</span><span class="n">maxima</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">maxima_props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_61_0.png" src="../_images/tutorial_tutorial_61_0.png" />
-</div>
-</div>
-</div>
-<div class="section" id="Parameter-scan">
-<h3>Parameter scan<a class="headerlink" href="#Parameter-scan" title="Permalink to this headline">¶</a></h3>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># A scan of a few parameters shows that it is difficult to extract the</span>
-<span class="c1"># three clusters at once with one parameter set</span>
-<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,]:</span>  <span class="c1"># [0.01, 0.03, 0.06, 0.08, 0.1, 0.12, 0.15, 0.2, 0.3, 0.4, 0.5, 1., 2., 3., 4.]:</span>
-    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">]:</span>  <span class="c1"># [0, 1, 2, 3, 4, 5, 10, 15, 20]:</span>
-        <span class="n">robj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Execution time for call of fit: 0 hours, 0 minutes, 0.0599 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      0.100     0         2         None      75        0.334     0.128
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0097 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      0.100     1         2         None      32        0.334     0.308
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0087 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      0.100     3         2         None      20        0.333     0.450
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0096 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      0.100     5         2         None      11        0.331     0.538
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0297 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      0.500     0         2         None      1         0.996     0.004
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0058 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      0.500     1         2         None      1         0.994     0.006
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0053 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      0.500     3         2         None      1         0.985     0.015
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0058 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      0.500     5         2         None      1         0.980     0.020
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0302 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      1.000     0         2         None      1         0.999     0.001
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0121 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      1.000     1         2         None      1         0.998     0.002
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0083 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      1.000     3         2         None      1         0.996     0.004
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0083 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      1.000     5         2         None      1         0.995     0.005
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0312 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      2.000     0         2         None      1         1.000     0.000
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0059 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      2.000     1         2         None      1         1.000     0.000
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0055 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      2.000     3         2         None      1         1.000     0.000
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0081 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-1000      2.000     5         2         None      1         1.000     0.000
---------------------------------------------------------------------------------
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-CNNRecord(points=1000, r=0.1, n=0, m=2, max=None, clusters=Labels(75), largest=0.334, noise=0.128, time=0.059889793395996094)
-CNNRecord(points=1000, r=0.1, n=1, m=2, max=None, clusters=Labels(32), largest=0.334, noise=0.308, time=0.009677410125732422)
-CNNRecord(points=1000, r=0.1, n=3, m=2, max=None, clusters=Labels(20), largest=0.333, noise=0.45, time=0.008684635162353516)
-CNNRecord(points=1000, r=0.1, n=5, m=2, max=None, clusters=Labels(11), largest=0.331, noise=0.538, time=0.009559154510498047)
-CNNRecord(points=1000, r=0.5, n=0, m=2, max=None, clusters=Labels(1), largest=0.996, noise=0.004, time=0.029717445373535156)
-CNNRecord(points=1000, r=0.5, n=1, m=2, max=None, clusters=Labels(1), largest=0.994, noise=0.006, time=0.0058078765869140625)
-CNNRecord(points=1000, r=0.5, n=3, m=2, max=None, clusters=Labels(1), largest=0.985, noise=0.015, time=0.005321025848388672)
-CNNRecord(points=1000, r=0.5, n=5, m=2, max=None, clusters=Labels(1), largest=0.98, noise=0.02, time=0.005756378173828125)
-CNNRecord(points=1000, r=1.0, n=0, m=2, max=None, clusters=Labels(1), largest=0.999, noise=0.001, time=0.030184030532836914)
-CNNRecord(points=1000, r=1.0, n=1, m=2, max=None, clusters=Labels(1), largest=0.998, noise=0.002, time=0.01208949089050293)
-CNNRecord(points=1000, r=1.0, n=3, m=2, max=None, clusters=Labels(1), largest=0.996, noise=0.004, time=0.008324861526489258)
-CNNRecord(points=1000, r=1.0, n=5, m=2, max=None, clusters=Labels(1), largest=0.995, noise=0.005, time=0.008349895477294922)
-CNNRecord(points=1000, r=2.0, n=0, m=2, max=None, clusters=Labels(1), largest=1.0, noise=0.0, time=0.03124380111694336)
-CNNRecord(points=1000, r=2.0, n=1, m=2, max=None, clusters=Labels(1), largest=1.0, noise=0.0, time=0.005917787551879883)
-CNNRecord(points=1000, r=2.0, n=3, m=2, max=None, clusters=Labels(1), largest=1.0, noise=0.0, time=0.005475282669067383)
-CNNRecord(points=1000, r=2.0, n=5, m=2, max=None, clusters=Labels(1), largest=1.0, noise=0.0, time=0.008089303970336914)
-</pre></div></div>
-</div>
-<p>If you have <code class="docutils literal notranslate"><span class="pre">pandas</span></code> installed, you can convert the summary to a nice table as a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">to_DataFrame</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;clusters&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
-</pre></div>
-</div>
-<div class="output_area rendered_html docutils container">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>points</th>
-      <th>r</th>
-      <th>n</th>
-      <th>m</th>
-      <th>max</th>
-      <th>clusters</th>
-      <th>largest</th>
-      <th>noise</th>
-      <th>time</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>4</th>
-      <td>1000</td>
-      <td>0.5</td>
-      <td>0</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>1</td>
-      <td>0.996</td>
-      <td>0.004</td>
-      <td>0.029717</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>1000</td>
-      <td>0.5</td>
-      <td>1</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>1</td>
-      <td>0.994</td>
-      <td>0.006</td>
-      <td>0.005808</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>1000</td>
-      <td>0.5</td>
-      <td>3</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>1</td>
-      <td>0.985</td>
-      <td>0.015</td>
-      <td>0.005321</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>1000</td>
-      <td>0.5</td>
-      <td>5</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>1</td>
-      <td>0.980</td>
-      <td>0.020</td>
-      <td>0.005756</td>
-    </tr>
-    <tr>
-      <th>8</th>
-      <td>1000</td>
-      <td>1.0</td>
-      <td>0</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>1</td>
-      <td>0.999</td>
-      <td>0.001</td>
-      <td>0.030184</td>
-    </tr>
-    <tr>
-      <th>9</th>
-      <td>1000</td>
-      <td>1.0</td>
-      <td>1</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>1</td>
-      <td>0.998</td>
-      <td>0.002</td>
-      <td>0.012089</td>
-    </tr>
-    <tr>
-      <th>10</th>
-      <td>1000</td>
-      <td>1.0</td>
-      <td>3</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>1</td>
-      <td>0.996</td>
-      <td>0.004</td>
-      <td>0.008325</td>
-    </tr>
-    <tr>
-      <th>11</th>
-      <td>1000</td>
-      <td>1.0</td>
-      <td>5</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>1</td>
-      <td>0.995</td>
-      <td>0.005</td>
-      <td>0.008350</td>
-    </tr>
-    <tr>
-      <th>12</th>
-      <td>1000</td>
-      <td>2.0</td>
-      <td>0</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>1</td>
-      <td>1.000</td>
-      <td>0.000</td>
-      <td>0.031244</td>
-    </tr>
-    <tr>
-      <th>13</th>
-      <td>1000</td>
-      <td>2.0</td>
-      <td>1</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>1</td>
-      <td>1.000</td>
-      <td>0.000</td>
-      <td>0.005918</td>
-    </tr>
-    <tr>
-      <th>14</th>
-      <td>1000</td>
-      <td>2.0</td>
-      <td>3</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>1</td>
-      <td>1.000</td>
-      <td>0.000</td>
-      <td>0.005475</td>
-    </tr>
-    <tr>
-      <th>15</th>
-      <td>1000</td>
-      <td>2.0</td>
-      <td>5</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>1</td>
-      <td>1.000</td>
-      <td>0.000</td>
-      <td>0.008089</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>1000</td>
-      <td>0.1</td>
-      <td>5</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>11</td>
-      <td>0.331</td>
-      <td>0.538</td>
-      <td>0.009559</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>1000</td>
-      <td>0.1</td>
-      <td>3</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>20</td>
-      <td>0.333</td>
-      <td>0.450</td>
-      <td>0.008685</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>1000</td>
-      <td>0.1</td>
-      <td>1</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>32</td>
-      <td>0.334</td>
-      <td>0.308</td>
-      <td>0.009677</td>
-    </tr>
-    <tr>
-      <th>0</th>
-      <td>1000</td>
-      <td>0.1</td>
-      <td>0</td>
-      <td>2</td>
-      <td>&lt;NA&gt;</td>
-      <td>75</td>
-      <td>0.334</td>
-      <td>0.128</td>
-      <td>0.059890</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># cluster results where we have 2, 3 or 4 clusters</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">to_DataFrame</span><span class="p">()</span>
-<span class="n">df</span><span class="p">[(</span><span class="n">df</span><span class="o">.</span><span class="n">clusters</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">clusters</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">)]</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
-</pre></div>
-</div>
-<div class="output_area rendered_html docutils container">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>points</th>
-      <th>r</th>
-      <th>n</th>
-      <th>m</th>
-      <th>max</th>
-      <th>clusters</th>
-      <th>largest</th>
-      <th>noise</th>
-      <th>time</th>
-    </tr>
-  </thead>
-  <tbody>
-  </tbody>
-</table>
-</div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Summarize the summary table as 2D contour plot</span>
-<span class="c1"># time</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">contour</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">colorbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">contour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">))</span>
-<span class="n">colorbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;time / s&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_68_0.png" src="../_images/tutorial_tutorial_68_0.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Summarize the summary table as 2D contour plot</span>
-<span class="c1"># noise</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">contour</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">quant</span><span class="o">=</span><span class="s2">&quot;noise&quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">colorbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">contour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">colorbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;noise / %&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_69_0.png" src="../_images/tutorial_tutorial_69_0.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Summarize the summary table as 2D contour plot</span>
-<span class="c1"># largest cluster</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">contour</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">quant</span><span class="o">=</span><span class="s2">&quot;largest&quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">colorbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">contour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">colorbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;largest / %&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_70_0.png" src="../_images/tutorial_tutorial_70_0.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Summarize the summary table as 2D contour plot</span>
-<span class="c1"># cluster number</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">contour</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">quant</span><span class="o">=</span><span class="s2">&quot;clusters&quot;</span><span class="p">,</span>
-                         <span class="n">contour_props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">})[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">colorbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">contour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
-<span class="n">colorbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;# clusters&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_71_0.png" src="../_images/tutorial_tutorial_71_0.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Summarize the summary table as 2D contour plot</span>
-<span class="c1"># cluster number with adjusted coloring</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">contour</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span>
-    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">quant</span><span class="o">=</span><span class="s2">&quot;clusters&quot;</span><span class="p">,</span>
-    <span class="n">contour_props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">],</span>
-                   <span class="s2">&quot;vmax&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
-    <span class="p">)[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">colorbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">contour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
-<span class="n">colorbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;# clusters&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_72_0.png" src="../_images/tutorial_tutorial_72_0.png" />
-</div>
-</div>
-</div>
-<div class="section" id="Hierarchical-clustering">
-<h3>Hierarchical clustering<a class="headerlink" href="#Hierarchical-clustering" title="Permalink to this headline">¶</a></h3>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Cluster attempts in comparison</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">Ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pair</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="mi">18</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">30</span><span class="p">)]):</span>
-    <span class="n">robj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">*</span><span class="n">pair</span><span class="p">,</span> <span class="n">rec</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">_</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-
-<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span>
-    <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_74_0.png" src="../_images/tutorial_tutorial_74_0.png" />
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># After the first step, we need to isolate the cluster result and recluster</span>
-<span class="c1"># the child clusters</span>
-<span class="n">robj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="n">rec</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">robj</span><span class="o">.</span><span class="n">isolate</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Information on used cluster parameters are attached for each cluster</span>
-<span class="n">robj</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">info</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-LabelInfo(origin=&#39;fitted&#39;, reference=&lt;cnnclustering.cnn.CNN object at 0x7f4131f0ab50&gt;, params={1: (0.6, 17), 2: (0.6, 17)})
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># The children dictionary of the data after isolation holds a cluster object</span>
-<span class="c1"># for each cluster found in the last step</span>
-<span class="n">robj</span><span class="o">.</span><span class="n">children</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-defaultdict(&lt;function cnnclustering.cnn.CNN.isolate.&lt;locals&gt;.&lt;lambda&gt;()&gt;,
-            {1: &lt;cnnclustering.cnn.CNNChild at 0x7f4131ee41c0&gt;,
-             2: &lt;cnnclustering.cnn.CNNChild at 0x7f4131e87ca0&gt;,
-             0: &lt;cnnclustering.cnn.CNNChild at 0x7f4131e87f10&gt;})
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">robj1</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">robj1</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-================================================================================
-CNN cluster object
---------------------------------------------------------------------------------
-alias :                         child No. 1
-hierachy level :                1
-
-data point shape :              Parts      - 1
-                                Points     - 678
-                                Dimensions - 2
-
-distance matrix calculated :    None
-neighbourhoods calculated :     None
-density grahp calculated :      None
-
-clustered :                     False
-children :                      False
-================================================================================
-
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Distance distribution for this cluster</span>
-<span class="n">robj1</span><span class="o">.</span><span class="n">calc_dist</span><span class="p">()</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">robj1</span><span class="o">.</span><span class="n">dist_hist</span><span class="p">(</span><span class="n">maxima</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">maxima_props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_79_0.png" src="../_images/tutorial_tutorial_79_0.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Now cluster the child cluster</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">robj1</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="mf">0.18</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">robj1</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
-<span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;member cutoff 1&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-
-<span class="c1"># When the result is satisfying, but also a few very small clusters are found,</span>
-<span class="c1"># this can be surpressed</span>
-<span class="n">robj1</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="mf">0.18</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">member_cutoff</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">robj1</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
-<span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;member cutoff 5&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Execution time for call of fit: 0 hours, 0 minutes, 0.0384 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-678       0.180     6         2         None      4         0.494     0.117
---------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0028 seconds
---------------------------------------------------------------------------------
-#points   R         N         M         max       #clusters %largest  %noise
-678       0.180     6         5         None      2         0.494     0.124
---------------------------------------------------------------------------------
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Text(0.5, 1.0, &#39;member cutoff 5&#39;)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_80_2.png" src="../_images/tutorial_tutorial_80_2.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># The cluster hierarchy can be visualised as pie diagram (not fully functional)</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">pie</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_81_0.png" src="../_images/tutorial_tutorial_81_0.png" />
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Wrap up the hierarchical clustering and integrate the child clusters into</span>
-<span class="c1"># the parent cluster</span>
-<span class="n">robj</span><span class="o">.</span><span class="n">reel</span><span class="p">()</span>
-<span class="n">robj</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">sort_by_size</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">robj</span><span class="o">.</span><span class="n">_children</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">pie</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_83_0.png" src="../_images/tutorial_tutorial_83_0.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_84_0.png" src="../_images/tutorial_tutorial_84_0.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Now the paramater information becomes useful as they differ</span>
-<span class="n">robj</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">info</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-LabelInfo(origin=&#39;reeled&#39;, reference=&lt;cnnclustering.cnn.CNN object at 0x7f4131f0ab50&gt;, params={2: (0.6, 17), 3: (0.18, 6), 1: (0.18, 6)})
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Label&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">20</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">robj</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">v</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Label   r       n
---------------------
-1       0.18    6
-2       0.6     17
-3       0.18    6
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># In the end the cluster assignment for the reduced (train) set can</span>
-<span class="c1"># be mapped onto another test set.</span>
-<span class="c1"># The assignment prediction can (and should) be done</span>
-<span class="c1"># for each cluster individually.</span>
-<span class="n">go</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-<span class="n">cobj</span><span class="o">.</span><span class="n">calc_dist</span><span class="p">(</span><span class="n">robj</span><span class="p">)</span>  <span class="c1"># Distance map calculation</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Distance matrix calculated in </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">go</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-
-<span class="n">go</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-<span class="n">r</span> <span class="o">=</span> <span class="mf">0.15</span><span class="p">;</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">robj</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">cobj</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">clusters</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">purge</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;From neighbours prediction in </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">go</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">cobj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
-<span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;1 </span><span class="si">{</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-
-<span class="n">go</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-<span class="n">r</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">;</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">17</span>
-<span class="n">robj</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">cobj</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">clusters</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;From neighbours prediction in </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">go</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">cobj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
-<span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;2 </span><span class="si">{</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-
-<span class="n">go</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-<span class="n">r</span> <span class="o">=</span> <span class="mf">0.18</span><span class="p">;</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="n">robj</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">cobj</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">clusters</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;From neighbours prediction in </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">go</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">cobj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
-<span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;3 </span><span class="si">{</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-
-
-<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span>
-    <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Distance matrix calculated in 0.31 seconds
-
-From neighbours prediction in 2.87 seconds
-
-From neighbours prediction in 5.22 seconds
-
-From neighbours prediction in 2.97 seconds
-
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_87_1.png" src="../_images/tutorial_tutorial_87_1.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Label&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">20</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cobj</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">v</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Label   r       n
---------------------
-1       0.15    10
-2       0.5     17
-3       0.18    5
 </pre></div></div>
 </div>
 </div>
@@ -2221,7 +450,7 @@ Label   r       n
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_91_0.png" src="../_images/tutorial_tutorial_91_0.png" />
+<img alt="../_images/tutorial_tutorial_16_0.png" src="../_images/tutorial_tutorial_16_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -2250,7 +479,7 @@ Label   r       n
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_92_1.png" src="../_images/tutorial_tutorial_92_1.png" />
+<img alt="../_images/tutorial_tutorial_17_1.png" src="../_images/tutorial_tutorial_17_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -2298,7 +527,7 @@ Execution time for call of fit: 0 hours, 0 minutes, 21.9658 seconds
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_94_0.png" src="../_images/tutorial_tutorial_94_0.png" />
+<img alt="../_images/tutorial_tutorial_19_0.png" src="../_images/tutorial_tutorial_19_0.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -2357,7 +586,7 @@ Execution time for call of fit: 0 hours, 0 minutes, 0.9313 seconds
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_97_0.png" src="../_images/tutorial_tutorial_97_0.png" />
+<img alt="../_images/tutorial_tutorial_22_0.png" src="../_images/tutorial_tutorial_22_0.png" />
 </div>
 </div>
 </div>
@@ -2491,7 +720,7 @@ Train distance matrix not calculated. Calculating distance matrix.
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_103_2.png" src="../_images/tutorial_tutorial_103_2.png" />
+<img alt="../_images/tutorial_tutorial_28_2.png" src="../_images/tutorial_tutorial_28_2.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -2528,7 +757,7 @@ Train distance matrix not calculated. Calculating distance matrix.
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_105_0.png" src="../_images/tutorial_tutorial_105_0.png" />
+<img alt="../_images/tutorial_tutorial_30_0.png" src="../_images/tutorial_tutorial_30_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -2575,7 +804,7 @@ Train distance matrix not calculated. Calculating distance matrix.
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_106_0.png" src="../_images/tutorial_tutorial_106_0.png" />
+<img alt="../_images/tutorial_tutorial_31_0.png" src="../_images/tutorial_tutorial_31_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -2598,7 +827,7 @@ Train distance matrix not calculated. Calculating distance matrix.
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_107_0.png" src="../_images/tutorial_tutorial_107_0.png" />
+<img alt="../_images/tutorial_tutorial_32_0.png" src="../_images/tutorial_tutorial_32_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -2637,7 +866,7 @@ recording: ...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_108_1.png" src="../_images/tutorial_tutorial_108_1.png" />
+<img alt="../_images/tutorial_tutorial_33_1.png" src="../_images/tutorial_tutorial_33_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -2699,7 +928,7 @@ recording: ...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_110_1.png" src="../_images/tutorial_tutorial_110_1.png" />
+<img alt="../_images/tutorial_tutorial_35_1.png" src="../_images/tutorial_tutorial_35_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -2738,7 +967,7 @@ recording: ...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_111_1.png" src="../_images/tutorial_tutorial_111_1.png" />
+<img alt="../_images/tutorial_tutorial_36_1.png" src="../_images/tutorial_tutorial_36_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -2777,7 +1006,7 @@ recording: ...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_112_1.png" src="../_images/tutorial_tutorial_112_1.png" />
+<img alt="../_images/tutorial_tutorial_37_1.png" src="../_images/tutorial_tutorial_37_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -2837,7 +1066,7 @@ recording: ...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_114_1.png" src="../_images/tutorial_tutorial_114_1.png" />
+<img alt="../_images/tutorial_tutorial_39_1.png" src="../_images/tutorial_tutorial_39_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -2900,7 +1129,7 @@ recording: ...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_116_1.png" src="../_images/tutorial_tutorial_116_1.png" />
+<img alt="../_images/tutorial_tutorial_41_1.png" src="../_images/tutorial_tutorial_41_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -2963,7 +1192,7 @@ recording: ...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_118_1.png" src="../_images/tutorial_tutorial_118_1.png" />
+<img alt="../_images/tutorial_tutorial_43_1.png" src="../_images/tutorial_tutorial_43_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -3002,7 +1231,7 @@ recording: ...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_119_1.png" src="../_images/tutorial_tutorial_119_1.png" />
+<img alt="../_images/tutorial_tutorial_44_1.png" src="../_images/tutorial_tutorial_44_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -3019,7 +1248,7 @@ recording: ...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_120_0.png" src="../_images/tutorial_tutorial_120_0.png" />
+<img alt="../_images/tutorial_tutorial_45_0.png" src="../_images/tutorial_tutorial_45_0.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -3055,7 +1284,7 @@ recording: ...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_122_0.png" src="../_images/tutorial_tutorial_122_0.png" />
+<img alt="../_images/tutorial_tutorial_47_0.png" src="../_images/tutorial_tutorial_47_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -3306,7 +1535,7 @@ Using 126 trajectories with 3073 steps over 17 coresets
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_138_0.png" src="../_images/tutorial_tutorial_138_0.png" />
+<img alt="../_images/tutorial_tutorial_63_0.png" src="../_images/tutorial_tutorial_63_0.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -3433,7 +1662,7 @@ children :                               False
 </pre></div>
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_148_0.png" src="../_images/tutorial_tutorial_148_0.png" />
+<img alt="../_images/tutorial_tutorial_73_0.png" src="../_images/tutorial_tutorial_73_0.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -3725,7 +1954,7 @@ Using 129 trajectories with 301089 steps over 6 coresets
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_154_0.png" src="../_images/tutorial_tutorial_154_0.png" />
+<img alt="../_images/tutorial_tutorial_79_0.png" src="../_images/tutorial_tutorial_79_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -3813,7 +2042,7 @@ array([[ 9.96803579e-01,  2.88007674e-04, -2.90934852e-07,
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_157_0.png" src="../_images/tutorial_tutorial_157_0.png" />
+<img alt="../_images/tutorial_tutorial_82_0.png" src="../_images/tutorial_tutorial_82_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -3839,7 +2068,7 @@ array([[ 9.96803579e-01,  2.88007674e-04, -2.90934852e-07,
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_tutorial_158_0.png" src="../_images/tutorial_tutorial_158_0.png" />
+<img alt="../_images/tutorial_tutorial_83_0.png" src="../_images/tutorial_tutorial_83_0.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">

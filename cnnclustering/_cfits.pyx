@@ -367,7 +367,7 @@ def fit_from_NeighbourhoodsArray(
     cdef ARRAYINDEX_DTYPE_t[::1] neighbours, neighbour_neighbours
     cdef npinteger current = 1
     cdef unsigned long membercount = 1
-    cdef cppqueue[ARRAYINDEX_DTYPE_t] q  # Queue  # FIFO queue
+    cdef cppqueue[ARRAYINDEX_DTYPE_t] q  # FIFO queue
 
     for init_point in range(n):
         if consider[init_point] == 0:
@@ -499,6 +499,10 @@ cpdef predict_from_NeighbourhoodsArray(
 
     return
 
+cpdef predict_from_DistancesArray():
+    """NOT IMPLEMENTED"""
+
+    return
 
 cpdef predict_from_PointsArray(
         npfloating[::1] points,

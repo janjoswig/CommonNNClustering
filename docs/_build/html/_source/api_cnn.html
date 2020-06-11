@@ -38,21 +38,6 @@
             
   <span class="target" id="module-cnnclustering.cnn"><span id="sec-api-cnn"></span></span><div class="section" id="cnn-a-python-module-for-common-nearest-neighbour-cnn-clustering">
 <h1>cnn - A Python module for common-nearest-neighbour (CNN) clustering<a class="headerlink" href="#cnn-a-python-module-for-common-nearest-neighbour-cnn-clustering" title="Permalink to this headline">¶</a></h1>
-<p>Please cite:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>B. Keller, X. Daura, W. F. van Gunsteren J. Chem. Phys.,
-2010, 132, 074110.</p></li>
-<li><ol class="upperalpha simple" start="15">
-<li><p>Lemke, B.G. Keller, J. Chem. Phys., 2016, 145, 164104.</p></li>
-</ol>
-</li>
-<li><ol class="upperalpha simple" start="15">
-<li><p>Lemke, B.G. Keller, Algorithms, 2018, 11, 19.</p></li>
-</ol>
-</li>
-</ul>
-</div></blockquote>
 <dl class="py class">
 <dt id="cnnclustering.cnn.CNN">
 <em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">CNN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">points</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">distances</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">neighbourhoods</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">graph</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">labels</span><span class="p">:</span> <span class="n">Collection<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">alias</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'root'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.CNN" title="Permalink to this definition">¶</a></dt>
@@ -475,12 +460,12 @@ the given data situation:</p>
 <blockquote>
 <div><ul>
 <li><dl class="simple">
-<dt>”progressive”: Bulk-compute neighbourhoods</dt><dd><p>if needed</p>
+<dt>”progressive”: Bulk-compute neighbourhoods</dt><dd><p>if needed.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>”conservative”: Compute neighbourhoods on-the-fly</dt><dd><p>if needed</p>
+<dt>”conservative”: Compute neighbourhoods on-the-fly</dt><dd><p>if needed.</p>
 </dd>
 </dl>
 </li>
@@ -554,79 +539,49 @@ each cluster</p>
 <dl class="py method">
 <dt id="cnnclustering.cnn.CNN.predict">
 <code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#cnnclustering.cnn.CNN.predict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Predict labels for points in a data set (<cite>other</cite>) on the basis
+<dd><p>Wraps CNN cluster prediction execution</p>
+<p>Predict labels for points in a data set (<cite>other</cite>) on the basis
 of assigned labels to a “train” set (<cite>self</cite>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>other</strong> – <cite>CNN</cite> cluster object for whose points cluster labels
-should be predicted</p></li>
+<li><p><strong>other</strong> – <a class="reference internal" href="#cnnclustering.cnn.CNN" title="cnnclustering.cnn.CNN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN</span></code></a> cluster object for whose points cluster
+labels should be predicted.</p></li>
 <li><p><strong>radius_cutoff</strong> – Find nearest neighbours within
-distance <em>r</em></p></li>
+distance <em>r</em>.</p></li>
 <li><p><strong>cnn_cutoff</strong> – Points of the same cluster must have
-at least <em>n</em> common nearest neighbours
-(Similarity criterion)</p></li>
-<li><p><strong>member_cutoff</strong> – Clusters must have more than <em>m</em> members or
-are declared noise</p></li>
-<li><p><strong>include_all</strong> – If <cite>False</cite>, keep cluster assignment for points in the test set
-that have a maximum distance of <cite>same_tol</cite> to a point
-in the train set, i.e. they are (essentially the same point)
-(currently not implemented)</p></li>
+at least <em>c</em> common nearest neighbours
+(similarity criterion).</p></li>
+<li><p><strong>include_all</strong> – If <cite>False</cite>, keep cluster assignment for points in the
+test set that have a maximum distance of <cite>same_tol</cite>
+to a point in the train set, i.e. they are essentially
+the same point (currently not implemented).</p></li>
 <li><p><strong>same_tol</strong> – Distance cutoff to treat points as the same, if
-<cite>include_all</cite> is <cite>False</cite></p></li>
+<cite>include_all</cite> is <cite>False</cite>.</p></li>
 <li><p><strong>clusters</strong> – Predict assignment of points only with respect to
-this list of clusters</p></li>
+this list of clusters.</p></li>
 <li><p><strong>purge</strong> – If <cite>True</cite>, reinitalise predicted labels.
 Override assignment memory.</p></li>
-<li><p><strong>memorize</strong> – # TODO obsolet? Always true if purge false?
-If <cite>True</cite>, remember which points in the test set have
-been already assigned and exclude them from future
-predictions</p></li>
 <li><p><strong>cnn_offset</strong> – Mainly for backwards compatibility.
-Modifies the the cnn_cutoff.</p></li>
-<li><p><strong>behaviour</strong> – <p>str, default=”lookup”
-Controlls how the predictor operates:</p>
-<ul>
+Modifies the the <cite>cnn_cutoff</cite>.</p></li>
+<li><p><strong>policy</strong> – <p>Determines the computation behaviour depending on
+the given data situation:</p>
+<blockquote>
+<div><ul>
 <li><dl class="simple">
-<dt>”lookup”, Use distance matrices CNN.train_distances and</dt><dd><p>CNN.map_matrix to lookup distances to generate the
-neighbour lists.  If one of the matrices does not exist,
-throw an error.  Consider memory mapping <cite>mmap</cite>
-when computing the distances with <code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.dist()</span></code> and
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.map()</span></code> for large data sets.</p>
+<dt>”progressive”: Bulk-compute neighbourhoods</dt><dd><p>if needed.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>”on-the-fly”, Compute distances during the prediction</dt><dd><p>using the specified <cite>method</cite>.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>”tree”, Get the neighbour lists during the prediction from</dt><dd><p>a tree query</p>
+<dt>”conservative”: Compute neighbourhoods on-the-fly</dt><dd><p>if needed.</p>
 </dd>
 </dl>
 </li>
 </ul>
+</div></blockquote>
 </p></li>
-<li><p><strong>method</strong> – <p>str, default=”plain”
-Controlls which method is used to get the neighbour lists
-within a given <cite>behaviour</cite>:</p>
-<ul>
-<li><p>”lookup”, parameter not used</p></li>
-<li><dl class="simple">
-<dt>”on-the-fly”,</dt><dd><ul>
-<li><p>”plain”, uses <code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.get_neighbours()</span></code></p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><p>”tree”, parameter not used</p></li>
-</ul>
-</p></li>
-<li><p><strong>progress</strong> – bool, default=True
-Show a progress bar</p></li>
-<li><p><strong>**kwargs</strong> – Additional keyword arguments are passed to the method that
-is used to compute the neighbour lists</p></li>
+<li><p><strong>Returns</strong> – None</p></li>
 </ul>
 </dd>
 </dl>
@@ -1423,7 +1378,7 @@ will be modified.</p>
 
 <dl class="py data">
 <dt id="cnnclustering.cnn.settings">
-<code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">settings</code><em class="property"> = {'default_cnn_cutoff': '1', 'default_cnn_offset': '0', 'default_fit_policy': 'conservative', 'default_member_cutoff': '2', 'default_radius_cutoff': '1', 'float_precision': 'sp', 'int_precision': 'sp'}</em><a class="headerlink" href="#cnnclustering.cnn.settings" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">settings</code><em class="property"> = {'default_cnn_cutoff': '1', 'default_cnn_offset': '0', 'default_fit_policy': 'conservative', 'default_member_cutoff': '2', 'default_predict_policy': 'conservative', 'default_radius_cutoff': '1', 'float_precision': 'sp', 'int_precision': 'sp'}</em><a class="headerlink" href="#cnnclustering.cnn.settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Module level settings container</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>

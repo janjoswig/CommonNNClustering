@@ -435,10 +435,10 @@ Alias :                         root
 Hierachy level :                0
 
 Data point shape :              Parts      - None
-                                Points     - 1
-                                Dimensions - 0
+                                Points     - None
+                                Dimensions - None
 
-Distance matrix calculated :    1
+Distance matrix calculated :    None
 Neighbourhoods calculated :     None
 Density graph calculated :      None
 
@@ -507,7 +507,7 @@ Data point shape :              Parts      - 1
                                 Points     - 12
                                 Dimensions - 2
 
-Distance matrix calculated :    1
+Distance matrix calculated :    None
 Neighbourhoods calculated :     None
 Density graph calculated :      None
 
@@ -569,38 +569,15 @@ Points([[ 0. ,  0. ],
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
-<span class="ansi-red-intense-fg ansi-bold">NotImplementedError</span>                       Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-11-f88b21537560&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
-<span class="ansi-green-fg">      1</span> <span class="ansi-red-intense-fg ansi-bold"># Compute neighbourhoods on-the-fly</span>
-<span class="ansi-green-intense-fg ansi-bold">----&gt; 2</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>cnnobj<span class="ansi-yellow-intense-fg ansi-bold">.</span>fit<span class="ansi-yellow-intense-fg ansi-bold">(</span>radius_cutoff<span class="ansi-yellow-intense-fg ansi-bold">=</span><span class="ansi-cyan-intense-fg ansi-bold">1.5</span><span class="ansi-yellow-intense-fg ansi-bold">,</span> cnn_cutoff<span class="ansi-yellow-intense-fg ansi-bold">=</span><span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-yellow-intense-fg ansi-bold">,</span> policy<span class="ansi-yellow-intense-fg ansi-bold">=</span><span class="ansi-blue-intense-fg ansi-bold">&#34;conservative&#34;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/CNN/cnnclustering/cnn.py</span> in <span class="ansi-cyan-fg">wrapper</span><span class="ansi-blue-intense-fg ansi-bold">(self, *args, **kwargs)</span>
-<span class="ansi-green-fg">     95</span>     <span class="ansi-yellow-intense-fg ansi-bold">@</span>functools<span class="ansi-yellow-intense-fg ansi-bold">.</span>wraps<span class="ansi-yellow-intense-fg ansi-bold">(</span>function_<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">     96</span>     <span class="ansi-green-intense-fg ansi-bold">def</span> wrapper<span class="ansi-yellow-intense-fg ansi-bold">(</span>self<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">*</span>args<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">**</span>kwargs<span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-intense-fg ansi-bold">---&gt; 97</span><span class="ansi-yellow-intense-fg ansi-bold">         </span>wrapped <span class="ansi-yellow-intense-fg ansi-bold">=</span> function_<span class="ansi-yellow-intense-fg ansi-bold">(</span>self<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">*</span>args<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">**</span>kwargs<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">     98</span>         <span class="ansi-green-intense-fg ansi-bold">if</span> wrapped <span class="ansi-green-intense-fg ansi-bold">is</span> <span class="ansi-green-intense-fg ansi-bold">not</span> <span class="ansi-green-intense-fg ansi-bold">None</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-fg">     99</span>             <span class="ansi-green-intense-fg ansi-bold">if</span> len<span class="ansi-yellow-intense-fg ansi-bold">(</span>wrapped<span class="ansi-yellow-intense-fg ansi-bold">)</span> <span class="ansi-yellow-intense-fg ansi-bold">==</span> <span class="ansi-cyan-intense-fg ansi-bold">3</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/CNN/cnnclustering/cnn.py</span> in <span class="ansi-cyan-fg">wrapper</span><span class="ansi-blue-intense-fg ansi-bold">(*args, **kwargs)</span>
-<span class="ansi-green-fg">     66</span>     <span class="ansi-green-intense-fg ansi-bold">def</span> wrapper<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">*</span>args<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">**</span>kwargs<span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-fg">     67</span>         go <span class="ansi-yellow-intense-fg ansi-bold">=</span> time<span class="ansi-yellow-intense-fg ansi-bold">.</span>time<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-intense-fg ansi-bold">---&gt; 68</span><span class="ansi-yellow-intense-fg ansi-bold">         </span>wrapped <span class="ansi-yellow-intense-fg ansi-bold">=</span> function_<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">*</span>args<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">**</span>kwargs<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">     69</span>         stop <span class="ansi-yellow-intense-fg ansi-bold">=</span> time<span class="ansi-yellow-intense-fg ansi-bold">.</span>time<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">     70</span>         <span class="ansi-green-intense-fg ansi-bold">if</span> wrapped <span class="ansi-green-intense-fg ansi-bold">is</span> <span class="ansi-green-intense-fg ansi-bold">not</span> <span class="ansi-green-intense-fg ansi-bold">None</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/CNN/cnnclustering/cnn.py</span> in <span class="ansi-cyan-fg">fit</span><span class="ansi-blue-intense-fg ansi-bold">(self, radius_cutoff, cnn_cutoff, member_cutoff, max_clusters, cnn_offset, info, sort_by_size, rec, v, policy)</span>
-<span class="ansi-green-fg">   2109</span>             <span class="ansi-green-intense-fg ansi-bold">elif</span> params<span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-blue-intense-fg ansi-bold">&#34;policy&#34;</span><span class="ansi-yellow-intense-fg ansi-bold">]</span> <span class="ansi-yellow-intense-fg ansi-bold">==</span> <span class="ansi-blue-intense-fg ansi-bold">&#34;conservative&#34;</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-fg">   2110</span>                 <span class="ansi-red-intense-fg ansi-bold"># Use distances as input and calculate neighbours online</span>
-<span class="ansi-green-intense-fg ansi-bold">-&gt; 2111</span><span class="ansi-yellow-intense-fg ansi-bold">                 </span><span class="ansi-green-intense-fg ansi-bold">raise</span> NotImplementedError<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">   2112</span>
-<span class="ansi-green-fg">   2113</span>         <span class="ansi-red-intense-fg ansi-bold"># Points loaded?</span>
-
-<span class="ansi-red-intense-fg ansi-bold">NotImplementedError</span>:
+Execution time for call of fit: 0 hours, 0 minutes, 0.0009 seconds
+--------------------------------------------------------------------------------
+#points   R         C         min       max       #clusters %largest  %noise
+12        1.500     1         2         None      2         0.417     0.333
+--------------------------------------------------------------------------------
 </pre></div></div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -608,6 +585,18 @@ Points([[ 0. ,  0. ],
 <span class="n">cnnobj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;progressive&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Execution time for call of fit: 0 hours, 0 minutes, 0.0015 seconds
+--------------------------------------------------------------------------------
+#points   R         C         min       max       #clusters %largest  %noise
+12        1.500     1         2         None      2         0.417     0.333
+--------------------------------------------------------------------------------
+</pre></div></div>
 </div>
 <div class="admonition note">
 <p><strong>Info:</strong> For this simple small data set there is virtually no performance difference between the policies. In general, bulk computation can be computationally more efficient as we can easily make use of efficient external neighbour-search methods. It also allows us to recycle once computed neighbourhood information for cluster approaches with varying <code class="docutils literal notranslate"><span class="pre">cnn_cutoff</span></code> but same <code class="docutils literal notranslate"><span class="pre">radius_cutoff</span></code>. On the other hand it can be quite memory-intensive for large data sets to store the neighbourhood
@@ -627,8 +616,8 @@ needed. The possibilities of calculating neighbourhood or distance information a
 </ul>
 <p>The <code class="docutils literal notranslate"><span class="pre">min</span></code> (keyword argument <code class="docutils literal notranslate"><span class="pre">member_cutoff</span></code>) and <code class="docutils literal notranslate"><span class="pre">max</span></code> (keyword argument <code class="docutils literal notranslate"><span class="pre">max_clusters</span></code>) only take effect in an optional post processing step when <code class="docutils literal notranslate"><span class="pre">sort_by_size</span> <span class="pre">=</span> <span class="pre">True</span></code>. The clusters are sorted in order by there size (first cluster has the highest member count) and are trimmed in the way that small clusters are considered noise.</p>
 <p>When we now look again at the cluster object overview, we can see that two things have changed. First, since we used the <em>progressive</em> policy above, the <code class="docutils literal notranslate"><span class="pre">Neighbourhoods</span> <span class="pre">calculated</span></code> entry now shows us, that neighbourhoods for 12 points at a search radius of <span class="math notranslate nohighlight">\(r = 1.5\)</span> are associated with our object. They can be re-used later. Second, <code class="docutils literal notranslate"><span class="pre">Clustered</span></code> is now set to <code class="docutils literal notranslate"><span class="pre">True</span></code> indicating that we have attempted to cluster the data set.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -636,9 +625,34 @@ needed. The possibilities of calculating neighbourhood or distance information a
 </pre></div>
 </div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+================================================================================
+CNN cluster object
+--------------------------------------------------------------------------------
+Alias :                         root
+Hierachy level :                0
+
+Data point shape :              Parts      - 1
+                                Points     - 12
+                                Dimensions - 2
+
+Distance matrix calculated :    None
+Neighbourhoods calculated :     12, r = 1.5
+Density graph calculated :      None
+
+Clustered :                     True
+Children :                      False
+================================================================================
+
+</pre></div></div>
+</div>
 <p>The essential outcome of the clustering are cluster label assignments for each point. Points classified as <em>noise</em> (not part of any cluster) are labeled 0. Integer labels larger than 0 indicate the membership to one of the identified cluster of each point. If clusters where sorted (<code class="docutils literal notranslate"><span class="pre">sort_by_size</span> <span class="pre">=</span> <span class="pre">True</span></code>), cluster 1 has the highest member count.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -646,9 +660,18 @@ needed. The possibilities of calculating neighbourhood or distance information a
 </pre></div>
 </div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Labels([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])
+</pre></div></div>
+</div>
 <p>The <code class="docutils literal notranslate"><span class="pre">labels</span></code> attribute of a cluster object always holds the result of the latest fit. All cluster results (from fits where <code class="docutils literal notranslate"><span class="pre">rec</span> <span class="pre">=</span> <span class="pre">True</span></code>) are collected in a summary without storing the actual labels.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -656,9 +679,18 @@ needed. The possibilities of calculating neighbourhood or distance information a
 </pre></div>
 </div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+CNNRecord(points=12, r=1.5, c=1, min=2, max=None, clusters=Labels(2), largest=0.4166666666666667, noise=0.3333333333333333, time=0.0009095668792724609)
+CNNRecord(points=12, r=1.5, c=1, min=2, max=None, clusters=Labels(2), largest=0.4166666666666667, noise=0.3333333333333333, time=0.0014908313751220703)
+</pre></div></div>
+</div>
 <p>If you have Pandas installed, the summary can be transformed into a handy <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -666,9 +698,72 @@ needed. The possibilities of calculating neighbourhood or distance information a
 </pre></div>
 </div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>points</th>
+      <th>r</th>
+      <th>c</th>
+      <th>min</th>
+      <th>max</th>
+      <th>clusters</th>
+      <th>largest</th>
+      <th>noise</th>
+      <th>time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>12</td>
+      <td>1.5</td>
+      <td>1</td>
+      <td>2</td>
+      <td>&lt;NA&gt;</td>
+      <td>2</td>
+      <td>0.416667</td>
+      <td>0.333333</td>
+      <td>0.000910</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>12</td>
+      <td>1.5</td>
+      <td>1</td>
+      <td>2</td>
+      <td>&lt;NA&gt;</td>
+      <td>2</td>
+      <td>0.416667</td>
+      <td>0.333333</td>
+      <td>0.001491</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
 <p>A cluster object comes with a variety of convenience methods that allow for example a quick look at a plot of data points and a cluster result.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -683,12 +778,19 @@ needed. The possibilities of calculating neighbourhood or distance information a
 </pre></div>
 </div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorial_basic_usage_42_0.png" src="../_images/tutorial_basic_usage_42_0.png" />
+</div>
+</div>
 </div>
 <div class="section" id="Functional-API">
 <h3>Functional API<a class="headerlink" href="#Functional-API" title="Permalink to this headline">¶</a></h3>
 <p>As an alternative to the class based API, the <code class="docutils literal notranslate"><span class="pre">cnnclustering.cnn</span></code> module provides a functional API for quick results.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -701,6 +803,27 @@ needed. The possibilities of calculating neighbourhood or distance information a
 <span class="n">labels</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Execution time for call of fit: 0 hours, 0 minutes, 0.0004 seconds
+--------------------------------------------------------------------------------
+#points   R         C         min       max       #clusters %largest  %noise
+12        1.500     1         2         None      2         0.417     0.333
+--------------------------------------------------------------------------------
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Labels([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])
+</pre></div></div>
 </div>
 </div>
 </div>

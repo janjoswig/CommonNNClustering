@@ -13,4 +13,5 @@ Markov-state model (csMSM) on top of a cluster result (:ref:`cmsm <sec_api_cmsm>
 
    ../tutorial/basic_usage.ipynb
    ../tutorial/scikit_learn_datasets.ipynb
+   ../tutorial/hierarchical_clustering_basics.ipynb
    ../tutorial/data_input_formats.ipynb

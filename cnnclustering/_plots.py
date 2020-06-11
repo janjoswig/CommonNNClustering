@@ -129,9 +129,9 @@ def plot_summary(
         contour_props = {}
 
     pivot = summary.groupby(
-        ["r", "n"]
+        ["r", "c"]
         ).mean()[quant].reset_index().pivot(
-            "r", "n"
+            "r", "c"
             )
 
     X_, Y_ = np.meshgrid(

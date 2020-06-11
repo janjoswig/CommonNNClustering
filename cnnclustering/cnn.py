@@ -5,14 +5,6 @@
 cnn - A Python module for common-nearest-neighbour (CNN) clustering
 ===================================================================
 
-Please cite:
-
-    * B. Keller, X. Daura, W. F. van Gunsteren J. Chem. Phys.,
-      2010, 132, 074110.
-    * O. Lemke, B.G. Keller, J. Chem. Phys., 2016, 145, 164104.
-    * O. Lemke, B.G. Keller, Algorithms, 2018, 11, 19.
-
-
 """
 
 from abc import ABC, abstractmethod
@@ -26,7 +18,6 @@ import random
 # import sys
 import tempfile
 import time
-import warnings
 from typing import Dict, List, Set, Tuple
 from typing import Collection, Iterator, Sequence  # Iterable
 from typing import Any, Optional, Type, Union, IO
@@ -71,13 +62,15 @@ def timed(function_):
             stopped = stop - go
             hours, rest = divmod(stopped, 3600)
             minutes, seconds = divmod(rest, 60)
-            print(
-                "Execution time for call of "
-                f"{function_.__name__}: "
-                f"{int(hours)} hours, "
-                f"{int(minutes)} minutes, "
-                f"{seconds:.4f} seconds"
-            )
+            if wrapped[1]:
+                # Be chatty
+                print(
+                    "Execution time for call of "
+                    f"{function_.__name__}: "
+                    f"{int(hours)} hours, "
+                    f"{int(minutes)} minutes, "
+                    f"{seconds:.4f} seconds"
+                )
             return *wrapped, stopped
         return
     return wrapper
@@ -1252,7 +1245,7 @@ class Summary(MutableSequence):
 
         ax_props_defaults = {
             "xlabel": "$R$",
-            "ylabel": "$N$",
+            "ylabel": "$C$",
         }
 
         if ax_props is not None:
@@ -2002,9 +1995,9 @@ class CNN:
                 the given data situation:
 
                     * "progressive": Bulk-compute neighbourhoods
-                        if needed
+                        if needed.
                     * "conservative": Compute neighbourhoods on-the-fly
-                        if needed
+                        if needed.
 
         Returns:
             Tuple(:obj:`CNNRecord`, `v`) if `rec` is `True`,
@@ -2064,8 +2057,9 @@ class CNN:
                                           dtype=np.int_))
             fit_fxn = _cfits.fit_from_NeighbourhoodsArray
             # Account for self-counting
+            _cnn_cutoff = params["cnn_cutoff"]
             if self.data.neighbourhoods.self_counting:
-                _cnn_cutoff = params["cnn_cutoff"] + 1
+                _cnn_cutoff += 1
             fit_args = (self.data.neighbourhoods,
                         self.labels,
                         self.labels.consider,
@@ -2081,8 +2075,9 @@ class CNN:
                                               dtype=np.int_))
                 fit_fxn = _cfits.fit_from_NeighbourhoodsArray
                 # Account for self-counting
+                _cnn_cutoff = params["cnn_cutoff"]
                 if self.data.neighbourhoods.self_counting:
-                    _cnn_cutoff = params["cnn_cutoff"] + 1
+                    _cnn_cutoff += 1
                 fit_args = (self.data.neighbourhoods,
                             self.labels,
                             self.labels.consider,
@@ -2109,8 +2104,9 @@ class CNN:
                                      dtype=np.int_))
                 fit_fxn = _cfits.fit_from_NeighbourhoodsArray
                 # Account for self-counting
+                _cnn_cutoff = params["cnn_cutoff"]
                 if self.data.neighbourhoods.self_counting:
-                    _cnn_cutoff = params["cnn_cutoff"] + 1
+                    _cnn_cutoff += 1
                 fit_args = (self.data.neighbourhoods,
                             self.labels,
                             self.labels.consider,
@@ -2182,7 +2178,6 @@ class CNN:
             other,
             radius_cutoff: Optional[float] = None,
             cnn_cutoff: Optional[int] = None,
-            # member_cutoff: Optional[int] = None,
             include_all: bool = True,
             same_tol: float = 1e-8,
             memorize: bool = True,
@@ -2192,83 +2187,53 @@ class CNN:
             behaviour: str = "lookup",
             method: str = 'plain',
             progress: bool = True,
-            policy="progressive",
+            policy: Optional[str] = None,
             **kwargs
             ) -> None:
-        """
+        """Wraps CNN cluster prediction execution
+
         Predict labels for points in a data set (`other`) on the basis
         of assigned labels to a "train" set (`self`).
 
         Args:
-            other: `CNN` cluster object for whose points cluster labels
-                should be predicted
+            other: :obj:`CNN` cluster object for whose points cluster
+                labels should be predicted.
 
             radius_cutoff: Find nearest neighbours within
-                distance *r*
+                distance *r*.
 
             cnn_cutoff: Points of the same cluster must have
-                at least *n* common nearest neighbours
-                (Similarity criterion)
-
-            member_cutoff: Clusters must have more than *m* members or
-                are declared noise
+                at least *c* common nearest neighbours
+                (similarity criterion).
 
             include_all:
-                If `False`, keep cluster assignment for points in the test set
-                that have a maximum distance of `same_tol` to a point
-                in the train set, i.e. they are (essentially the same point)
-                (currently not implemented)
+                If `False`, keep cluster assignment for points in the
+                test set that have a maximum distance of `same_tol`
+                to a point in the train set, i.e. they are essentially
+                the same point (currently not implemented).
 
             same_tol: Distance cutoff to treat points as the same, if
-                `include_all` is `False`
+                `include_all` is `False`.
 
             clusters: Predict assignment of points only with respect to
-                this list of clusters
+                this list of clusters.
 
             purge: If `True`, reinitalise predicted labels.
                 Override assignment memory.
 
-            memorize:  # TODO obsolet? Always true if purge false?
-                If `True`, remember which points in the test set have
-                been already assigned and exclude them from future
-                predictions
-
             cnn_offset: Mainly for backwards compatibility.
-                Modifies the the cnn_cutoff.
+                Modifies the the `cnn_cutoff`.
 
-            behaviour : str, default="lookup"
-                Controlls how the predictor operates:
+            policy: Determines the computation behaviour depending on
+                the given data situation:
 
-                * "lookup", Use distance matrices CNN.train_distances and
-                    CNN.map_matrix to lookup distances to generate the
-                    neighbour lists.  If one of the matrices does not exist,
-                    throw an error.  Consider memory mapping `mmap`
-                    when computing the distances with :py:meth:`CNN.dist` and
-                    :py:meth:`CNN.map` for large data sets.
+                    * "progressive": Bulk-compute neighbourhoods
+                        if needed.
+                    * "conservative": Compute neighbourhoods on-the-fly
+                        if needed.
 
-                * "on-the-fly", Compute distances during the prediction
-                    using the specified `method`.
-
-                * "tree", Get the neighbour lists during the prediction from
-                    a tree query
-
-            method : str, default="plain"
-                Controlls which method is used to get the neighbour lists
-                within a given `behaviour`:
-
-                * "lookup", parameter not used
-
-                * "on-the-fly",
-                    * "plain", uses :py:meth:`CNN.get_neighbours`
-
-                * "tree", parameter not used
-
-            progress : bool, default=True
-                Show a progress bar
-
-            **kwargs :
-                Additional keyword arguments are passed to the method that
-                is used to compute the neighbour lists
+            Returns:
+                None
         """
 
         ################################################################
@@ -2283,6 +2248,7 @@ class CNN:
             'cnn_cutoff': (cnn_cutoff, int),
             # 'member_cutoff': (member_cutoff, int),
             'cnn_offset': (cnn_offset, int),
+            'predict_policy': (policy, str),
             }
 
         params = {}
@@ -2305,14 +2271,13 @@ class CNN:
         self.check()
         other.check()
 
-        # TODO: Decouple memorize?
         if purge or (clusters is None):
             other.labels = np.zeros(other.data.shape[0]).astype(int)
             if clusters is None:
                 clusters = list(self.labels.clusterdict.keys())
 
         else:
-            if other.labels.size == 0:
+            if other.labels.shape[0] == 0:
                 other.labels = np.zeros(other.data.shape[0]).astype(int)
 
             for cluster_ in clusters:
@@ -2324,44 +2289,52 @@ class CNN:
             # Fit from pre-computed neighbourhoods,
             # no matter what the policy is
             predict_fxn = _cfits.predict_from_NeighbourhoodsArray
-            predict_args = (params["cnn_cutoff"],
-                            other.data.neighbourhoods,
+            # Account for self-counting
+            _cnn_cutoff = params["cnn_cutoff"]
+            if other.data.neighbourhoods.self_counting:
+                _cnn_cutoff += 1
+            predict_args = (other.data.neighbourhoods,
                             other.labels,
-                            other.labels._consider,
+                            other.labels.consider,
                             self.labels,
-                            set(clusters))
+                            set(clusters),
+                            _cnn_cutoff)
 
             # Predict from List[Set[int]]
             # TODO: Allow different methods and data structures
 
         # Distances calculated?
         elif other._status["distances"][0]:
-            if policy == "progressive":
+            if params["predict_policy"] == "progressive":
                 # Pre-compute neighbourhoods from distances
                 other.calc_neighbours_from_dist(r=params["radius_cutoff"])
                 predict_fxn = _cfits.predict_from_NeighbourhoodsArray
+                # Account for self-counting
+                _cnn_cutoff = params["cnn_cutoff"]
+                if other.data.neighbourhoods.self_counting:
+                    _cnn_cutoff += 1
                 predict_args = (other.data.neighbourhoods,
                                 other.labels,
                                 other.labels.consider,
                                 self.labels,
                                 set(clusters),
-                                params["cnn_cutoff"])
+                                _cnn_cutoff)
 
-            elif policy == "conservative":
+            elif params["predict_policy"] == "conservative":
                 # Use distances as input and calculate neighbours online
                 raise NotImplementedError()
 
         # Points loaded?
         elif other._status["points"][0]:
-            if policy == "progressive":
+            if params["predict_policy"] == "progressive":
                 # Pre-compute neighbourhoods from points
                 raise NotImplementedError()
-            elif policy == "conservative":
+            elif params["predict_policy"] == "conservative":
                 # Use points as input and calculate neighbours online
                 raise NotImplementedError()
         else:
             raise LookupError(
-                "No input data (neighbours, distances, or points) found"
+                "No input data (graph, neighbours, distances, or points) found"
                 )
 
         # Call prediction
@@ -3090,6 +3063,7 @@ class Settings(dict, metaclass=MetaSettings):
         'default_radius_cutoff': "1",
         'default_member_cutoff': "2",
         'default_fit_policy': "conservative",
+        'default_predict_policy': "conservative",
         'float_precision': 'sp',
         'int_precision': 'sp',
         }
