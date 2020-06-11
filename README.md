@@ -29,8 +29,8 @@ Features:
 Please refer to the following papers for the scientific background (and consider citing if you find the method useful):
 
   - B. Keller, X. Daura, W. F. van Gunsteren *J. Chem. Phys.*, __2010__, *132*, 074110.
-  - O. Lemke, B.G. Keller, *J. Chem. Phys.*, __2016__, *145*, 164104.
-  - O. Lemke, B.G. Keller, *Algorithms*, __2018__, *11*, 19.
+  - O. Lemke, B.G. Keller *J. Chem. Phys.*, __2016__, *145*, 164104.
+  - O. Lemke, B.G. Keller *Algorithms*, __2018__, *11*, 19.
 
 Documentation
 -------------
@@ -43,4 +43,4 @@ Quickstart
 Alternative scikit-learn implementation
 ---------------------------------------
 
-We provide an alternative approach to CNN clustering in the spirit of the scikit-learn project over this [fork](https://github.com/janjoswig/scikit-learn/tree/cnn_clustering).
+We provide an alternative approach to CNN clustering in the spirit of the scikit-learn project over this [fork](https://github.com/janjoswig/scikit-learn/tree/cnnclustering).
