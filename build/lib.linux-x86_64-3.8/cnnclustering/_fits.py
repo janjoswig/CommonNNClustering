@@ -1,8 +1,192 @@
+"""CNN clustering functionality
+
+Replaced by Cython extension module `_cfits` and deprecated.
+"""
+
 from collections import deque
+from typing import Type
 from typing import List, Set
 from typing import Sequence, Collection
 
 import numpy as np
+
+
+def fit_from_PointsArray(
+        points,
+        labels,
+        radius_cutoff: float,
+        cnn_cutoff: int):
+    """Apply CNN clustering from array of points
+
+    """
+
+    n = points.shape[0]
+    d = points.shape[1]
+
+    current = 1
+    membercount = 1  # Optional for min. clustersize
+    q = deque()  # Queue
+
+    # visited  # TODO Move out of this function
+    consider = np.ones(n, dtype=np.uint8)
+
+    radius_cutoff = radius_cutoff**2
+    # for distance squared
+
+    for init_point in range(n):
+        if consider[init_point] == 0:
+            continue
+        consider[init_point] = 0
+
+        neighbours = get_neighbours_PointsArray(
+            init_point, points,
+            n, d,
+            radius_cutoff
+            )
+
+        if len(neighbours) <= cnn_cutoff:
+            continue
+
+        labels[init_point] = current
+        membercount = 1
+        point = init_point
+
+        while True:
+            for member in neighbours:
+                if consider[member] == 0:
+                    continue
+
+                neighbour_neighbours = get_neighbours_PointsArray(
+                    member, points,
+                    n, d,
+                    radius_cutoff
+                    )
+
+                if len(neighbour_neighbours) <= cnn_cutoff:
+                    consider[member] = 0
+                    continue
+
+                if check_similarity_set(
+                        neighbours, neighbour_neighbours, cnn_cutoff):
+                    consider[member] = 0
+                    labels[member] = current
+                    membercount += 1
+                    q.append(member)
+
+            if not q:
+                if membercount == 1:
+                    # Revert cluster assignment
+                    labels[init_point] = 0
+                    current -= 1
+                break
+
+            point = q.popleft()
+            neighbours = get_neighbours_PointsArray(
+                point, points,
+                n, d,
+                radius_cutoff
+                )
+
+        current += 1
+
+
+def get_neighbours_PointsArray(
+        point,
+        points,
+        n, dim,
+        radius_cutoff):
+    """Caculate neighbours of a point"""
+
+    neighbours = set()
+    p = points[point]
+
+    for i in range(n):
+        if i == point:
+            # No self counting
+            continue
+
+        r = get_distance_squared_euclidean_PointsArray(
+                p, points[i], dim
+                )
+
+        if r <= radius_cutoff:
+            neighbours.add(i)
+
+    return neighbours
+
+
+def get_distance_squared_euclidean_PointsArray(
+        a, b, dim):
+    """Calculate squared euclidean distance between points (parallel)
+
+    Args:
+        a, b: Point container supporting the buffer protocol. `a`
+            and `b` have to be of length >= `dim`.
+        dim: Dimensions to consider.
+    """
+
+    total = 0
+
+    for i in range(dim):
+        total += (a[i] - b[i])**2
+
+    return total
+
+
+def check_similarity_set(a: Set[int], b: Collection[int], c: int) -> bool:
+    """Check if similarity criterion is fulfilled.
+
+    Args:
+        a: Set of point indices
+        b: Collection of point indices
+        c: Similarity cut-off
+
+    Returns:
+        True if set `a` and set `b` have at least `c` common
+        elements
+    """
+
+    if len(a.intersection(b)) >= c:
+        return True
+    return False
+
+
+def check_similarity_collection(
+        a: Collection[int], b: Collection[int], c: int) -> bool:
+    """Check if similarity criterion is fulfilled.
+
+    Args:
+        a: Collection of point indices
+        b: Collection of point indices
+        c: Similarity cut-off
+
+    Returns:
+        True if set `a` and set `b` have at least `c` common
+        elements
+    """
+
+    if len(set(a).intersection(b)) >= c:
+        return True
+    return False
+
+
+def check_similarity_array(
+        a: Type[np.ndarray], b: Type[np.ndarray], c: int) -> bool:
+    """Check if similarity criterion is fulfilled.
+
+    Args:
+        a: NumPy array of point indices
+        b: NumPy array of point indices
+        c: Similarity cut-off
+
+    Returns:
+        True if set `a` and set `b` have at least `c` common
+        elements
+    """
+
+    if np.intersect1d(a, b, assume_unique=True).shape[0] >= c:
+        return True
+    return False
 
 
 def fit_from_neighbours(

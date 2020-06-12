@@ -1,14 +1,21 @@
 """
+
+cmsm - A Python module for coreset Markov-state model estimation
+================================================================
+
 """
 
+from collections import OrderedDict
+import warnings
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.linalg import eig
-import warnings
-from sortedcontainers import SortedDict
-import matplotlib.pyplot as plt
-from matplotlib import rcParams
-from core.cnn import CNN
 from scipy.special import comb
+
+from cnnclustering.cnn import CNN
+
 
 class CMSM():
     """Core set MSM class
@@ -30,7 +37,7 @@ class CMSM():
         self.__unit = unit
         self.__step = step
         self.__its = None
-        self.__Its = SortedDict()
+        self.__Its = OrderedDict()
         self.__mode = None
 
     @staticmethod
@@ -98,12 +105,12 @@ class CMSM():
         return self.__Its
 
     @Its.setter
-    def Its(self, _Its):
-        if not isinstance(_Its, dict):
+    def Its(self, d):
+        if not isinstance(d, dict):
             raise TypeError()
         else:
-            self.__Its = SortedDict(
-                {int(k): np.asarray(v) for k, v in _Its.items()}
+            self.__Its = OrderedDict(
+                sorted(d.items(), key=lambda x: x[0])
                 )
 
     @property
@@ -571,7 +578,7 @@ f"---------------------------------------------------------\n"
 
         drawn = len(vectors)
         if ax is None:
-            figsize = rcParams["figure.figsize"]
+            figsize = mpl.rcParams["figure.figsize"]
             fig, Ax = plt.subplots(
                 drawn, 1, figsize=(figsize[0], figsize[1]*drawn)
                 )
