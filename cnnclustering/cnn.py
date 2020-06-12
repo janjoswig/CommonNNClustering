@@ -22,7 +22,7 @@ from typing import Dict, List, Set, Tuple
 from typing import Collection, Iterator, Sequence  # Iterable
 from typing import Any, Optional, Type, Union, IO
 
-import colorama  # TODO Make this optional or remove completely?
+# import colorama  # TODO Make this optional or remove completely?
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -1633,12 +1633,7 @@ class CNN:
                 chunks = np.ceil(len_self / chunksize).astype(int)
                 for chunk in tqdm.tqdm(
                         range(chunks), desc="Mapping",
-                        disable=progress, unit="Chunks", unit_scale=True,
-                        bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (
-                            colorama.Style.BRIGHT,
-                            colorama.Fore.BLUE,
-                            colorama.Fore.RESET
-                            )):
+                        disable=progress, unit="Chunks", unit_scale=True):
                     self.data.distances[
                             chunk*chunksize: (chunk+1)*chunksize] = cdist(
                         self.data.points[chunk*chunksize: (chunk+1)*chunksize],

@@ -23,8 +23,9 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GPL3",
+        "License :: OSI Approved :: MIT",
         "Operating System :: OS Independent",
         ],
-    ext_modules=cythonize(extensions)
-)
+    ext_modules=cythonize(extensions),
+    # cmdclass={'build_ext': Cython.Build.new_build_ext}
+    )
