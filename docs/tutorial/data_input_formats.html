@@ -1,0 +1,746 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data input formats &#8212; cnnclustering  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Reference" href="../_source/api_reference.html" />
+    <link rel="prev" title="Hierarchical clustering basics" href="hierarchical_clustering_basics.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container,
+div.nbinput.container div.prompt,
+div.nbinput.container div.input_area,
+div.nbinput.container div[class*=highlight],
+div.nbinput.container div[class*=highlight] pre,
+div.nboutput.container,
+div.nboutput.container div.prompt,
+div.nboutput.container div.output_area,
+div.nboutput.container div[class*=highlight],
+div.nboutput.container div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    background: #f5f5f5;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt a.copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+</style>
+<div class="section" id="Data-input-formats">
+<h1>Data input formats<a class="headerlink" href="#Data-input-formats" title="Permalink to this headline">¶</a></h1>
+<h1><p>Contents</p>
+</h1><div class="toc"><ul class="toc-item"><li><p>1  Pre-requirements</p>
+<ul class="toc-item"><li><p>1.1  Import dependencies</p>
+</li><li><p>1.2  Notebook configuration</p>
+</li></ul></li><li><p>2  Overview</p>
+</li><li><p>3  Points</p>
+<ul class="toc-item"><li><p>3.1  2D NumPy array of shape (n, d)</p>
+</li></ul></li><li><p>4  Distances</p>
+<ul class="toc-item"><li><p>4.1  2D NumPy array of shape (n, n)</p>
+</li></ul></li><li><p>5  Neighbourhoods</p>
+</li><li><p>6  Densitygraph</p>
+</li></ul></div><div class="section" id="Pre-requirements">
+<h2>Pre-requirements<a class="headerlink" href="#Pre-requirements" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Import-dependencies">
+<h3>Import dependencies<a class="headerlink" href="#Import-dependencies" title="Permalink to this headline">¶</a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+
+<span class="kn">import</span> <span class="nn">cnnclustering.cnn</span> <span class="k">as</span> <span class="nn">cnn</span>  <span class="c1"># CNN clustering</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Version information</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+3.8.3 (default, May 15 2020, 15:24:35)
+[GCC 8.3.0]
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Notebook-configuration">
+<h3>Notebook configuration<a class="headerlink" href="#Notebook-configuration" title="Permalink to this headline">¶</a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Matplotlib configuration</span>
+<span class="n">mpl</span><span class="o">.</span><span class="n">rc_file</span><span class="p">(</span>
+    <span class="s2">&quot;matplotlibrc&quot;</span><span class="p">,</span>
+    <span class="n">use_default_template</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Axis property defaults for the plots</span>
+<span class="n">ax_props</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;xlabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">&quot;ylabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">&quot;xlim&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span>
+    <span class="s2">&quot;ylim&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span>
+    <span class="s2">&quot;xticks&quot;</span><span class="p">:</span> <span class="p">(),</span>
+    <span class="s2">&quot;yticks&quot;</span><span class="p">:</span> <span class="p">(),</span>
+    <span class="s2">&quot;aspect&quot;</span><span class="p">:</span> <span class="s2">&quot;equal&quot;</span>
+<span class="p">}</span>
+
+<span class="c1"># Line plot property defaults</span>
+<span class="n">line_props</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;linewidth&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;marker&quot;</span><span class="p">:</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="Overview">
+<h2>Overview<a class="headerlink" href="#Overview" title="Permalink to this headline">¶</a></h2>
+<p>A data set of <span class="math notranslate nohighlight">\(n\)</span> points can primarily be represented through point coordinates in a <span class="math notranslate nohighlight">\(d\)</span>-dimensional space, or in terms of a pairwise distance matrix (of arbitrary metric). Secondarily, the data set can be described by neighbourhoods (in a graph structure) with respect to a specific radius cutoff. Furthermore, it is possible to trim the neighbourhoods into a density graph containing density connected points rather then neighbours for each point. The memory demand of the input forms
+and the speed at which they can be clustered varies. Currently the <code class="docutils literal notranslate"><span class="pre">cnnclustering.cnn</span></code> module can deal with the following data structures (<span class="math notranslate nohighlight">\(n\)</span>: number of points, <span class="math notranslate nohighlight">\(d\)</span>: number of dimensions).</p>
+<p><strong>Points</strong></p>
+<ul class="simple">
+<li><p>2D NumPy array of shape (<em>n</em>, <em>d</em>), holding point coordinates</p></li>
+</ul>
+<p><strong>Distances</strong></p>
+<ul class="simple">
+<li><p>2D NumPy array of shape (<em>n</em>, <em>n</em>), holding pairwise distances</p></li>
+</ul>
+<p><strong>Neighbourhoods</strong></p>
+<ul class="simple">
+<li><p>1D Numpy array of shape (<em>n</em>,) of 1D Numpy arrays of shape (&lt;= <em>n</em>,), holding point indices</p></li>
+<li><p>Python list of length (<em>n</em>) of Python sets of length (&lt;= <em>n</em>), holding point indices</p></li>
+<li><p>Sparse graph with 1D NumPy array of shape (&lt;= <em>n²</em>), holding point indices, and 1D NumPy array of shape (<em>n</em>,), holding neighbourhood start indices</p></li>
+</ul>
+<p><strong>Density graph</strong></p>
+<ul class="simple">
+<li><p>1D Numpy array of shape (<em>n</em>,) of 1D Numpy arrays of shape (&lt;= <em>n</em>,), holding point indices</p></li>
+<li><p>Python list of length (<em>n</em>) of Python sets of length (&lt;= <em>n</em>), holding point indices</p></li>
+<li><p>Sparse graph with 1D NumPy array of shape (&lt;= <em>n²</em>), holding point indices, and 1D NumPy array of shape (<em>n</em>,), holding connectivity start indices</p></li>
+</ul>
+<p>The different input structures are wrapped by corresponding classes to be handled as attributes of a <code class="docutils literal notranslate"><span class="pre">CNN</span></code> cluster object. Different kinds of input formats corresponding to the same data set are bundled in an <code class="docutils literal notranslate"><span class="pre">Data</span></code> object.</p>
+</div>
+<div class="section" id="Points">
+<h2>Points<a class="headerlink" href="#Points" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="2D-NumPy-array-of-shape-(n,-d)">
+<h3>2D NumPy array of shape (<em>n</em>, <em>d</em>)<a class="headerlink" href="#2D-NumPy-array-of-shape-(n,-d)" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">cnn</span></code> module provides the class <code class="docutils literal notranslate"><span class="pre">Points</span></code> to handle data set point coordinates. Instances of type <code class="docutils literal notranslate"><span class="pre">Points</span></code> behave essentially like NumPy arrays.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Representation of points: &quot;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">points</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Points are Numpy arrays:  &quot;</span><span class="p">,</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Representation of points:  Points([], dtype=float64)
+Points are Numpy arrays:   True
+</pre></div></div>
+</div>
+<p>If you have your data points already in the format of a 2D NumPy array, the conversion into <code class="docutils literal notranslate"><span class="pre">Points</span></code> is straightforward and does not require any copying. Note that the dtype of <code class="docutils literal notranslate"><span class="pre">Points</span></code> is for now fixed to <code class="docutils literal notranslate"><span class="pre">np.float_</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">original_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                            <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">)</span>
+<span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="p">(</span><span class="n">original_points</span><span class="p">)</span>
+<span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">points</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Points([[1., 0., 0.],
+        [1., 1., 1.]])
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[43]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">original_points</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[43]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+array([[1., 0., 0.],
+       [1., 1., 1.]])
+</pre></div></div>
+</div>
+<p>1D sequences are interpreted as a single point on initialisation.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[45]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]))</span>
+<span class="n">points</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[45]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Points([[0., 0., 0.]])
+</pre></div></div>
+</div>
+<p>Other sequences like lists do work as input, too but consider that this requires a copy.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[47]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">original_points</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                   <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
+<span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="p">(</span><span class="n">original_points</span><span class="p">)</span>
+<span class="n">points</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[47]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Points([[0., 0., 0.],
+        [1., 1., 1.]])
+</pre></div></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Points</span></code> can be used to represent data sets distributed over multiple parts. Parts could constitute independent measurements that should be clustered together but remain separated for later analyses. Internally <code class="docutils literal notranslate"><span class="pre">Points</span></code> stores the underlying point coordinates always as a (vertically stacked) 2D array. <code class="docutils literal notranslate"><span class="pre">Points.edges</span></code> is used to track the number of points belonging to each part. The alternative constructor <code class="docutils literal notranslate"><span class="pre">Points.from_parts</span></code> can be used to deduce <code class="docutils literal notranslate"><span class="pre">edges</span></code> from parts of points passed as a
+sequence of 2D sequences.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[64]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="o">.</span><span class="n">from_parts</span><span class="p">([[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                                 <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
+                                <span class="p">[[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+                                 <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]])</span>
+<span class="n">points</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[64]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Points([[0., 0., 0.],
+        [1., 1., 1.],
+        [2., 2., 2.],
+        [3., 3., 3.]])
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[65]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">points</span><span class="o">.</span><span class="n">edges</span>  <span class="c1"># 2 parts, 2 points each</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[65]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+array([2, 2])
+</pre></div></div>
+</div>
+<p>Trying to set <code class="docutils literal notranslate"><span class="pre">edges</span></code> manually to a sequence not consistent with the total number of points, will raise an error. Setting the <code class="docutils literal notranslate"><span class="pre">edges</span></code> of an empty <code class="docutils literal notranslate"><span class="pre">Points</span></code> object is, however, allowed and can be used to store part information even when no points are loaded.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[66]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">points</span><span class="o">.</span><span class="n">edges</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
+<span class="ansi-red-intense-fg ansi-bold">ValueError</span>                                Traceback (most recent call last)
+<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-66-4bd144cf309c&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
+<span class="ansi-green-intense-fg ansi-bold">----&gt; 1</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>points<span class="ansi-yellow-intense-fg ansi-bold">.</span>edges <span class="ansi-yellow-intense-fg ansi-bold">=</span> <span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-cyan-intense-fg ansi-bold">2</span><span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-cyan-intense-fg ansi-bold">3</span><span class="ansi-yellow-intense-fg ansi-bold">]</span>
+
+<span class="ansi-green-intense-fg ansi-bold">~/CNN/cnnclustering/cnn.py</span> in <span class="ansi-cyan-fg">edges</span><span class="ansi-blue-intense-fg ansi-bold">(self, x)</span>
+<span class="ansi-green-fg">    810</span>
+<span class="ansi-green-fg">    811</span>         <span class="ansi-green-intense-fg ansi-bold">if</span> <span class="ansi-yellow-intense-fg ansi-bold">(</span>n <span class="ansi-yellow-intense-fg ansi-bold">!=</span> <span class="ansi-cyan-intense-fg ansi-bold">0</span><span class="ansi-yellow-intense-fg ansi-bold">)</span> <span class="ansi-green-intense-fg ansi-bold">and</span> <span class="ansi-yellow-intense-fg ansi-bold">(</span>sum_edges <span class="ansi-yellow-intense-fg ansi-bold">!=</span> n<span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
+<span class="ansi-green-intense-fg ansi-bold">--&gt; 812</span><span class="ansi-yellow-intense-fg ansi-bold">             raise ValueError(
+</span><span class="ansi-green-fg">    813</span>                 <span class="ansi-blue-intense-fg ansi-bold">f&#34;Part edges ({sum_edges} points) do not match data points &#34;</span>
+<span class="ansi-green-fg">    814</span>                 <span class="ansi-blue-intense-fg ansi-bold">f&#34;({n} points)&#34;</span>
+
+<span class="ansi-red-intense-fg ansi-bold">ValueError</span>: Part edges (5 points) do not match data points (4 points)
+</pre></div></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Points.by_parts</span></code> can be used to retrieve the parts again one by one.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[70]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">points</span><span class="o">.</span><span class="n">by_parts</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">part</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[[0. 0. 0.]
+ [1. 1. 1.]]
+
+[[2. 2. 2.]
+ [3. 3. 3.]]
+
+</pre></div></div>
+</div>
+<p>To provide one possible way to calculate neighbourhoods from points, <code class="docutils literal notranslate"><span class="pre">Points</span></code> has a thin method wrapper for <code class="docutils literal notranslate"><span class="pre">scipy.spatial.cKDTree</span></code>. This will set <code class="docutils literal notranslate"><span class="pre">Points.tree</span></code> which is used by <code class="docutils literal notranslate"><span class="pre">CNN.calc_neighbours_from_cKDTree</span></code>. The user is encouraged to use any other external method instead.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[75]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">points</span><span class="o">.</span><span class="n">cKDTree</span><span class="p">()</span>
+<span class="n">points</span><span class="o">.</span><span class="n">tree</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[75]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;scipy.spatial.ckdtree.cKDTree at 0x7f0f6d3f3900&gt;
+</pre></div></div>
+</div>
+</div>
+</div>
+<div class="section" id="Distances">
+<h2>Distances<a class="headerlink" href="#Distances" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="2D-NumPy-array-of-shape-(n,-n)">
+<h3>2D NumPy array of shape (<em>n</em>, <em>n</em>)<a class="headerlink" href="#2D-NumPy-array-of-shape-(n,-n)" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">cnn</span></code> module provides the class <code class="docutils literal notranslate"><span class="pre">Distances</span></code> to handle data set pairwise distances as a dense matrix. Instances of type <code class="docutils literal notranslate"><span class="pre">Distances</span></code> behave (like <code class="docutils literal notranslate"><span class="pre">Points</span></code>) much like NumPy arrays.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[79]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">distances</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Distances</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="n">distances</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[79]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Distances([[0., 1.],
+           [1., 0.]])
+</pre></div></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Distances</span></code> do not support an <code class="docutils literal notranslate"><span class="pre">edges</span></code> attribute, i.e. can not represent part information. Use the <code class="docutils literal notranslate"><span class="pre">edges</span></code> of an associated <code class="docutils literal notranslate"><span class="pre">Points</span></code> instance instead.</p>
+<p>Pairwise <code class="docutils literal notranslate"><span class="pre">Distances</span></code> can be calculated for <span class="math notranslate nohighlight">\(n\)</span> points within a data set from a <code class="docutils literal notranslate"><span class="pre">Points</span></code> instance for example with <code class="docutils literal notranslate"><span class="pre">CNN.calc_dist</span></code>, resulting in a matrix of shape (<span class="math notranslate nohighlight">\(n\)</span>, <span class="math notranslate nohighlight">\(n\)</span>). They can be also calculated between <span class="math notranslate nohighlight">\(n\)</span> points in one and <span class="math notranslate nohighlight">\(m\)</span> points in another data set, resulting in a relative distance matrix (map matrix) of shape (<span class="math notranslate nohighlight">\(n\)</span>, <span class="math notranslate nohighlight">\(m\)</span>). In the later case <code class="docutils literal notranslate"><span class="pre">Distances.reference</span></code> should be used to keep track of the <code class="docutils literal notranslate"><span class="pre">CNN</span></code> object carrying the second
+data set. Such a map matrix can be used to predict cluster labels for a data set based on the fitted cluster labels of another set.</p>
+</div>
+</div>
+<div class="section" id="Neighbourhoods">
+<h2>Neighbourhoods<a class="headerlink" href="#Neighbourhoods" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="Densitygraph">
+<h2>Densitygraph<a class="headerlink" href="#Densitygraph" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">cnnclustering</a></h1>
+
+
+
+<p class="blurb">CNN clustering and csMSM estimation in Python</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=janjoswig&repo=CNN&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../_source/install.html">Installation instructions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../_source/tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html">Basic usage of the cnn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scikit_learn_datasets.html">scikit-learn Toy data sets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hierarchical_clustering_basics.html">Hierarchical clustering basics</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Data input formats</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../_source/api_reference.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../_source/tutorials.html">Tutorials</a><ul>
+      <li>Previous: <a href="hierarchical_clustering_basics.html" title="previous chapter">Hierarchical clustering basics</a></li>
+      <li>Next: <a href="../_source/api_reference.html" title="next chapter">API Reference</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Jan-Oliver Joswig.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/tutorial/data_input_formats.ipynb.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
