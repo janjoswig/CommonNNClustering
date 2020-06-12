@@ -1,12 +1,12 @@
 language: python
 python:
-  - "3.6"  
+  - "3.6"
   - "3.7"
   - "3.8"
 
 # command to install dependencies
 install:
-  - pip install -r requirements.txt -r requirements-optional.txt -r requirements-tests.txt .
+  - pip install -r requirements.txt -r requirements-optional.txt -r requirements-tests.txt
 
 # command to run tests
 script:
