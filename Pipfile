@@ -33,6 +33,7 @@ matplotlib = "*"
 pandas = "*"
 scipy = "*"
 tqdm = "*"
+pydpc = "*"
 
 [requires]
 python_version = "3.8"

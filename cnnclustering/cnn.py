@@ -2104,14 +2104,11 @@ class CNN:
             self.labels = Labels(np.zeros(len(self.data.neighbourhoods),
                                           dtype=np.int_))
             fit_fxn = _cfits.fit_from_NeighbourhoodsArray
-            # Account for self-counting
-            _cnn_cutoff = params["cnn_cutoff"]
-            if self.data.neighbourhoods.self_counting:
-                _cnn_cutoff += 1
             fit_args = (self.data.neighbourhoods,
                         self.labels,
                         self.labels.consider,
-                        _cnn_cutoff)
+                        params["cnn_cutoff"],
+                        self.data.neighbourhoods.self_counting)
             # TODO: Allow different methods and data structures
 
         # Distances calculated?
@@ -2122,14 +2119,11 @@ class CNN:
                 self.labels = Labels(np.zeros(self.data.distances.shape[0],
                                               dtype=np.int_))
                 fit_fxn = _cfits.fit_from_NeighbourhoodsArray
-                # Account for self-counting
-                _cnn_cutoff = params["cnn_cutoff"]
-                if self.data.neighbourhoods.self_counting:
-                    _cnn_cutoff += 1
                 fit_args = (self.data.neighbourhoods,
                             self.labels,
                             self.labels.consider,
-                            _cnn_cutoff)
+                            params["cnn_cutoff"],
+                            self.data.neighbourhoods.self_counting)
 
             elif params["fit_policy"] == "conservative":
                 # Use distances as input and calculate neighbours online
@@ -2151,14 +2145,11 @@ class CNN:
                 self.labels = Labels(np.zeros(self.data.points.shape[0],
                                      dtype=np.int_))
                 fit_fxn = _cfits.fit_from_NeighbourhoodsArray
-                # Account for self-counting
-                _cnn_cutoff = params["cnn_cutoff"]
-                if self.data.neighbourhoods.self_counting:
-                    _cnn_cutoff += 1
                 fit_args = (self.data.neighbourhoods,
                             self.labels,
                             self.labels.consider,
-                            _cnn_cutoff)
+                            params["cnn_cutoff"],
+                            self.data.neighbourhoods.self_counting)
 
             elif params["fit_policy"] == "conservative":
                 # Use points as input and calculate neighbours online
@@ -2337,10 +2328,6 @@ class CNN:
             # Fit from pre-computed neighbourhoods,
             # no matter what the policy is
             predict_fxn = _cfits.predict_from_NeighbourhoodsArray
-            # Account for self-counting
-            _cnn_cutoff = params["cnn_cutoff"]
-            if other.data.neighbourhoods.self_counting:
-                _cnn_cutoff += 1
             predict_args = (other.data.neighbourhoods,
                             other.labels,
                             other.labels.consider,
@@ -2357,16 +2344,13 @@ class CNN:
                 # Pre-compute neighbourhoods from distances
                 other.calc_neighbours_from_dist(r=params["radius_cutoff"])
                 predict_fxn = _cfits.predict_from_NeighbourhoodsArray
-                # Account for self-counting
-                _cnn_cutoff = params["cnn_cutoff"]
-                if other.data.neighbourhoods.self_counting:
-                    _cnn_cutoff += 1
                 predict_args = (other.data.neighbourhoods,
                                 other.labels,
                                 other.labels.consider,
                                 self.labels,
                                 set(clusters),
-                                _cnn_cutoff)
+                                params["cnn_cutoff"],
+                                other.data.neighbourhoods.self_counting)
 
             elif params["predict_policy"] == "conservative":
                 # Use distances as input and calculate neighbours online

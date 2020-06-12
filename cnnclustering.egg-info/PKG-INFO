@@ -8,6 +8,6 @@ License: UNKNOWN
 Description: desc
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
-Classifier: License :: OSI Approved :: GPL3
+Classifier: License :: OSI Approved :: MIT
 Classifier: Operating System :: OS Independent
 Description-Content-Type: text/markdown

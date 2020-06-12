@@ -282,7 +282,8 @@ cpdef fit_from_NeighbourhoodsList(
         list neighbourhoods,
         npinteger[::1] labels,
         np.uint8_t[::1] consider,
-        Py_ssize_t cnn_cutoff):
+        Py_ssize_t cnn_cutoff,
+        bint self_counting):
     """Worker function variant applying the CNN algorithm.
 
     Assigns labels to points starting from pre-computed neighbourhoods.
@@ -303,6 +304,14 @@ cpdef fit_from_NeighbourhoodsList(
     cdef npinteger current = 1           # Cluster number
     cdef unsigned long membercount  = 1           # Optional for min. clustersize
     cdef cppqueue[Py_ssize_t] q  # Queue
+    cdef Py_ssize_t cnn_cutoff_
+
+    # Account for self-counting in neighbourhoods
+    if self_counting:
+        cnn_cutoff += 1
+        cnn_cutoff_ = cnn_cutoff + 1
+    else:
+        cnn_cutoff_ = cnn_cutoff
 
     for init_point in range(n):
         if consider[init_point] == 0:
@@ -331,7 +340,7 @@ cpdef fit_from_NeighbourhoodsList(
                     continue
 
                 if check_similarity_set(
-                        neighbours, neighbour_neighbours, cnn_cutoff) == 1:
+                        neighbours, neighbour_neighbours, cnn_cutoff_) == 1:
                     consider[member] = 0
                     labels[member] = current
                     membercount += 1
@@ -360,7 +369,8 @@ def fit_from_NeighbourhoodsArray(
         object[::1] neighbourhoods,
         npinteger[::1] labels,
         np.uint8_t[::1] consider,
-        ARRAYINDEX_DTYPE_t cnn_cutoff):
+        ARRAYINDEX_DTYPE_t cnn_cutoff,
+        bint self_counting):
 
     cdef ARRAYINDEX_DTYPE_t init_point, point, member, member_i
     cdef ARRAYINDEX_DTYPE_t m, n = neighbourhoods.shape[0]
@@ -368,6 +378,14 @@ def fit_from_NeighbourhoodsArray(
     cdef npinteger current = 1
     cdef unsigned long membercount = 1
     cdef cppqueue[ARRAYINDEX_DTYPE_t] q  # FIFO queue
+    cdef ARRAYINDEX_DTYPE_t cnn_cutoff_
+
+    # Account for self-counting in neighbourhoods
+    if self_counting:
+        cnn_cutoff += 1
+        cnn_cutoff_ = cnn_cutoff + 1
+    else:
+        cnn_cutoff_ = cnn_cutoff
 
     for init_point in range(n):
         if consider[init_point] == 0:
@@ -397,7 +415,7 @@ def fit_from_NeighbourhoodsArray(
                     continue
 
                 if check_similarity_array(  # Conditional growth
-                        neighbours, m, neighbour_neighbours, cnn_cutoff) == 1:
+                        neighbours, m, neighbour_neighbours, cnn_cutoff_) == 1:
                     consider[member] = 0         # Point included
                     labels[member] = current     # Assign cluster label
                     membercount += 1             # Cluster grows
@@ -437,13 +455,22 @@ cpdef predict_from_NeighbourhoodsList(
         np.uint8_t[::1] consider,
         npinteger[::1] base_labels,
         cppset[npinteger] clusters,
-        Py_ssize_t cnn_cutoff):
+        Py_ssize_t cnn_cutoff,
+        bint self_counting):
     """"""
 
     cdef Py_ssize_t point, member
     cdef Py_ssize_t n = labels.shape[0]
     cdef set neighbours, neighbour_neighbours
     cdef cppset[npinteger].iterator search
+    cdef Py_ssize_t cnn_cutoff_
+
+    # Account for self-counting in neighbourhoods
+    if self_counting:
+        cnn_cutoff += 1
+        cnn_cutoff_ = cnn_cutoff + 1
+    else:
+        cnn_cutoff_ = cnn_cutoff
 
     for point in range(n):
         if consider[point] == 0:
@@ -457,7 +484,7 @@ cpdef predict_from_NeighbourhoodsList(
 
             neighbour_neighbours = neighbourhoods[member]
             if check_similarity_set(
-                neighbours, neighbour_neighbours, cnn_cutoff) == 1:
+                neighbours, neighbour_neighbours, cnn_cutoff_) == 1:
                 consider[point] = 0
                 labels[point] = base_labels[member]
                 break
@@ -471,13 +498,22 @@ cpdef predict_from_NeighbourhoodsArray(
         np.uint8_t[::1] consider,
         npinteger[::1] base_labels,
         cppset[npinteger] clusters,
-        ARRAYINDEX_DTYPE_t cnn_cutoff):
+        ARRAYINDEX_DTYPE_t cnn_cutoff,
+        bint self_counting):
     """"""
 
     cdef ARRAYINDEX_DTYPE_t point, member
     cdef ARRAYINDEX_DTYPE_t n = labels.shape[0]
     cdef ARRAYINDEX_DTYPE_t[::1] neighbours, neighbour_neighbours
     cdef cppset[npinteger].iterator search
+    cdef ARRAYINDEX_DTYPE_t cnn_cutoff_
+
+    # Account for self-counting in neighbourhoods
+    if self_counting:
+        cnn_cutoff += 1
+        cnn_cutoff_ = cnn_cutoff + 1
+    else:
+        cnn_cutoff_ = cnn_cutoff
 
     for point in range(n):
         if consider[point] == 0:
@@ -492,7 +528,7 @@ cpdef predict_from_NeighbourhoodsArray(
             neighbour_neighbours = neighbourhoods[member]
             if check_similarity_array(
                     neighbours, neighbours.shape[0],
-                    neighbour_neighbours, cnn_cutoff) == 1:
+                    neighbour_neighbours, cnn_cutoff_) == 1:
                 consider[point] = 0
                 labels[point] = base_labels[member]
                 break

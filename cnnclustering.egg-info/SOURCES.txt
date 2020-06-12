@@ -1,4 +1,5 @@
 README.md
+pyproject.toml
 setup.cfg
 setup.py
 cnnclustering/__init__.py
