@@ -9,7 +9,7 @@ Go to:
    * :ref:`Data input format <sec_api_cnn_input_formats>`
    * :ref:`Cluster results <sec_api_cnn_results>`
    * :ref:`Cluster results <sec_api_cnn_pandas>`
-   * :ref:`Cluster results <sec_api_cnn_decorator>`
+   * :ref:`Cluster results <sec_api_cnn_decorators>`
    * :ref:`Cluster results <sec_api_cnn_functional_api>`
 
 |
