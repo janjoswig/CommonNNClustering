@@ -36,8 +36,27 @@
 
           <div class="body" role="main">
             
-  <span class="target" id="module-cnnclustering.cnn"><span id="sec-api-cnn"></span></span><div class="section" id="cnn-a-python-module-for-common-nearest-neighbour-cnn-clustering">
-<h1>cnn - A Python module for common-nearest-neighbour (CNN) clustering<a class="headerlink" href="#cnn-a-python-module-for-common-nearest-neighbour-cnn-clustering" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="cnn-a-python-module-for-common-nearest-neighbour-cnn-clustering">
+<span id="sec-api-cnn"></span><h1>cnn - A Python module for common-nearest-neighbour (CNN) clustering<a class="headerlink" href="#cnn-a-python-module-for-common-nearest-neighbour-cnn-clustering" title="Permalink to this headline">¶</a></h1>
+<p>Go to:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#sec-api-cnn-cnn"><span class="std std-ref">CNN class API</span></a></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnn-input-formats"><span class="std std-ref">Data input format</span></a></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnn-results"><span class="std std-ref">Cluster results</span></a></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnn-pandas"><span class="std std-ref">Cluster results</span></a></p></li>
+<li><p><span class="xref std std-ref">Cluster results</span></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnn-functional-api"><span class="std std-ref">Cluster results</span></a></p></li>
+</ul>
+</div></blockquote>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="section" id="cnn-class-api">
+<span id="sec-api-cnn-cnn"></span><h2>CNN class API<a class="headerlink" href="#cnn-class-api" title="Permalink to this headline">¶</a></h2>
+<p>The functionality of this module is primarily exposed and bundled by the
+<a class="reference internal" href="#cnnclustering.cnn.CNN" title="cnnclustering.cnn.CNN"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.CNN</span></code></a> class. For hierarchical clusterings
+<a class="reference internal" href="#cnnclustering.cnn.CNNChild" title="cnnclustering.cnn.CNNChild"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.CNNChild</span></code></a> is used, too.</p>
 <dl class="py class">
 <dt id="cnnclustering.cnn.CNN">
 <em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">CNN</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">points</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">distances</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">neighbourhoods</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">graph</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">labels</span><span class="p">:</span> <span class="n">Collection<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">alias</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'root'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.CNN" title="Permalink to this definition">¶</a></dt>
@@ -395,7 +414,7 @@ is done, depends on the current data situation and the selected
 </dl>
 </li>
 <li><dl class="simple">
-<dt>pre-computed density graph</dt><dd><p>(<code class="xref py py-obj docutils literal notranslate"><span class="pre">DensitySparsegraphArray</span></code>)</p>
+<dt>pre-computed density graph</dt><dd><p>(<a class="reference internal" href="#cnnclustering.cnn.DensitySparsegraphArray" title="cnnclustering.cnn.DensitySparsegraphArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DensitySparsegraphArray</span></code></a>)</p>
 </dd>
 </dl>
 </li>
@@ -601,6 +620,9 @@ consider all.</p>
 
 </dd></dl>
 
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
 <dl class="py class">
 <dt id="cnnclustering.cnn.CNNChild">
 <em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">CNNChild</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">parent</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">alias</span><span class="o">=</span><span class="default_value">'child'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.CNNChild" title="Permalink to this definition">¶</a></dt>
@@ -615,65 +637,16 @@ the parent object when instanciated.</p>
 
 </dd></dl>
 
-<dl class="py class">
-<dt id="cnnclustering.cnn.CNNRecord">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">CNNRecord</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">points</span></em>, <em class="sig-param"><span class="n">r</span></em>, <em class="sig-param"><span class="n">c</span></em>, <em class="sig-param"><span class="n">min</span></em>, <em class="sig-param"><span class="n">max</span></em>, <em class="sig-param"><span class="n">clusters</span></em>, <em class="sig-param"><span class="n">largest</span></em>, <em class="sig-param"><span class="n">noise</span></em>, <em class="sig-param"><span class="n">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.CNNRecord" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py attribute">
-<dt id="cnnclustering.cnn.CNNRecord.c">
-<code class="sig-name descname">c</code><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.c" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 2</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cnnclustering.cnn.CNNRecord.clusters">
-<code class="sig-name descname">clusters</code><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.clusters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 5</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cnnclustering.cnn.CNNRecord.largest">
-<code class="sig-name descname">largest</code><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.largest" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 6</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cnnclustering.cnn.CNNRecord.max">
-<code class="sig-name descname">max</code><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.max" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 4</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cnnclustering.cnn.CNNRecord.min">
-<code class="sig-name descname">min</code><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.min" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 3</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cnnclustering.cnn.CNNRecord.noise">
-<code class="sig-name descname">noise</code><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.noise" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 7</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cnnclustering.cnn.CNNRecord.points">
-<code class="sig-name descname">points</code><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.points" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 0</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cnnclustering.cnn.CNNRecord.r">
-<code class="sig-name descname">r</code><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.r" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 1</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cnnclustering.cnn.CNNRecord.time">
-<code class="sig-name descname">time</code><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.time" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 8</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="data-input-formats">
+<span id="sec-api-cnn-input-formats"></span><h2>Data input formats<a class="headerlink" href="#data-input-formats" title="Permalink to this headline">¶</a></h2>
+<p>Input data of differing nature and format (<a class="reference internal" href="#sec-api-cnn-points"><span class="std std-ref">points</span></a>, <a class="reference internal" href="#sec-api-cnn-distances"><span class="std std-ref">distances</span></a>,
+<a class="reference internal" href="#sec-api-cnn-neighbourhoods"><span class="std std-ref">neighbourhoods</span></a>,
+<a class="reference internal" href="#sec-api-cnn-graph"><span class="std std-ref">density graphs</span></a>) are
+organised and bundled by the <a class="reference internal" href="#cnnclustering.cnn.Data" title="cnnclustering.cnn.Data"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.Data</span></code></a> class.</p>
 <dl class="py class">
 <dt id="cnnclustering.cnn.Data">
 <em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">Data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">points</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">distances</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">neighbourhoods</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">graph</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Data" title="Permalink to this definition">¶</a></dt>
@@ -703,12 +676,12 @@ else is passed, tries to create an instance of
 <a class="reference internal" href="#cnnclustering.cnn.NeighbourhoodsArray" title="cnnclustering.cnn.NeighbourhoodsArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighbourhoodsArray</span></code></a> using the default constructor.</p></li>
 <li><p><strong>graph</strong> – Used to set <code class="xref py py-attr docutils literal notranslate"><span class="pre">graph.</span>
 <span class="pre">If</span> <span class="pre">`None</span></code>, creates
-an empty instance of <code class="xref py py-obj docutils literal notranslate"><span class="pre">DensitySparsegraphArray</span></code>.
+an empty instance of <a class="reference internal" href="#cnnclustering.cnn.DensitySparsegraphArray" title="cnnclustering.cnn.DensitySparsegraphArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DensitySparsegraphArray</span></code></a>.
 If an instance of a class qualifying as density graph object
 (see <a class="reference internal" href="#cnnclustering.cnn.DensitygraphABC" title="cnnclustering.cnn.DensitygraphABC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DensitygraphABC</span></code></a>) is passed, uses this
 instance.  If anything
 else is passed, tries to create an instance of
-<code class="xref py py-obj docutils literal notranslate"><span class="pre">DensitySparsegraphArray</span></code> using the
+<a class="reference internal" href="#cnnclustering.cnn.DensitySparsegraphArray" title="cnnclustering.cnn.DensitySparsegraphArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DensitySparsegraphArray</span></code></a> using the
 default constructor.</p></li>
 </ul>
 </dd>
@@ -747,45 +720,525 @@ default constructor.</p></li>
 
 </dd></dl>
 
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="section" id="points">
+<span id="sec-api-cnn-points"></span><h3>Points<a class="headerlink" href="#points" title="Permalink to this headline">¶</a></h3>
+<p>Points are currently supported in the form of a 2D NumPy array of shape
+(<em>n</em>: points, <em>d</em>: dimensions) through the
+<a class="reference internal" href="#cnnclustering.cnn.Points" title="cnnclustering.cnn.Points"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.Points</span></code></a> class.</p>
 <dl class="py class">
-<dt id="cnnclustering.cnn.Densitygraph">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">Densitygraph</code><a class="headerlink" href="#cnnclustering.cnn.Densitygraph" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="cnnclustering.cnn.Points">
+<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">Points</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>numpy.ndarray<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">edges</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Sequence<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tree</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstraction class for data points</p>
+<dl class="py method">
+<dt id="cnnclustering.cnn.Points.by_parts">
+<code class="sig-name descname">by_parts</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Iterator<a class="headerlink" href="#cnnclustering.cnn.Points.by_parts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yield data by parts</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Generator of 2D <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> s (parts)</p>
+</dd>
+</dl>
+</dd></dl>
 
-<dl class="py class">
-<dt id="cnnclustering.cnn.DensitygraphABC">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">DensitygraphABC</code><a class="headerlink" href="#cnnclustering.cnn.DensitygraphABC" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dl class="py method">
+<dt id="cnnclustering.cnn.Points.cKDTree">
+<code class="sig-name descname">cKDTree</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Points.cKDTree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper for <code class="xref py py-meth docutils literal notranslate"><span class="pre">scipy.spatial.cKDTree()</span></code></p>
+<p>Sets <code class="xref py py-attr docutils literal notranslate"><span class="pre">Points.tree</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – Passed to <code class="xref py py-meth docutils literal notranslate"><span class="pre">scipy.spatial.cKDTree()</span></code></p>
+</dd>
+</dl>
+</dd></dl>
 
+<dl class="py method">
+<dt id="cnnclustering.cnn.Points.from_file">
+<em class="property">classmethod </em><code class="sig-name descname">from_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>pathlib.Path<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">from_parts</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Points.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alternative constructor</p>
+<p>Load file content to be interpreted as points. Uses <a class="reference internal" href="#cnnclustering.cnn.Points.load" title="cnnclustering.cnn.Points.load"><code class="xref py py-meth docutils literal notranslate"><span class="pre">load()</span></code></a>
+to read files.</p>
+<dl class="simple">
+<dt>Recognised input formats are:</dt><dd><ul class="simple">
+<li><p>Sequence</p></li>
+<li><p>2D Sequence (sequence of sequences all of same length)</p></li>
+<li><p>Sequence of 2D sequences all of same second dimension</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> – File name as string or <code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code> object.</p></li>
+<li><p><strong>*args</strong> – Arguments passed to <a class="reference internal" href="#cnnclustering.cnn.Points.load" title="cnnclustering.cnn.Points.load"><code class="xref py py-meth docutils literal notranslate"><span class="pre">load()</span></code></a>.</p></li>
+<li><p><strong>from_parts</strong> – If <cite>True</cite> uses <a class="reference internal" href="#cnnclustering.cnn.Points.from_parts" title="cnnclustering.cnn.Points.from_parts"><code class="xref py py-meth docutils literal notranslate"><span class="pre">from_parts()</span></code></a> constructor.
+If <cite>False</cite> uses default constructor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Instance of <a class="reference internal" href="#cnnclustering.cnn.Points" title="cnnclustering.cnn.Points"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Points</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cnn.Points.from_parts">
+<em class="property">classmethod </em><code class="sig-name descname">from_parts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Sequence<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Points.from_parts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alternative constructor</p>
+<p>Use if data is passed as collection of parts, as</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Points</span><span class="o">.</span><span class="n">from_parts</span><span class="p">([[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
+<span class="gp">... </span>                       <span class="p">[[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">]]])</span>
+<span class="gp">... </span><span class="n">p</span>
+<span class="go">Points([[0, 0],</span>
+<span class="go">        [1, 1],</span>
+<span class="go">        [2, 2],</span>
+<span class="go">        [3, 3]])</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Recognised input formats are:</dt><dd><ul class="simple">
+<li><p>Sequence</p></li>
+<li><p>2D Sequence (sequence of sequences all of same length)</p></li>
+<li><p>Sequence of 2D sequences all of same second dimension</p></li>
+</ul>
+</dd>
+</dl>
+<p>In this way, part edges are taken from the input shape and do
+not have to be specified explicitly. Calls <a class="reference internal" href="#cnnclustering.cnn.Points.get_shape" title="cnnclustering.cnn.Points.get_shape"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_shape()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>p</strong> – File name as string or <code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code> object</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Instance of <a class="reference internal" href="#cnnclustering.cnn.Points" title="cnnclustering.cnn.Points"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Points</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cnn.Points.get_shape">
+<em class="property">static </em><code class="sig-name descname">get_shape</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Points.get_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maintain data in universal shape (2D NumPy array)</p>
+<p>Analyses the format of given data and fits it into the standard
+format (parts, points, dimensions).  Creates a
+<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> vstacked along the parts componenent that
+can be passed to the <cite>Points</cite> constructor alongside part edges.
+This may not be able to deal with all possible kinds of input
+structures correctly, so check the outcome carefully.</p>
+<dl class="simple">
+<dt>Recognised input formats are:</dt><dd><ul class="simple">
+<li><p>Sequence</p></li>
+<li><p>2D Sequence (sequence of sequences all of same length)</p></li>
+<li><p>Sequence of 2D sequences all of same second dimension</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> – <p>Either <cite>None</cite>
+or:</p>
+<ul class="simple">
+<li><p>a 1D sequence of length <em>d</em>,
+interpreted as 1 point in <em>d</em> dimension</p></li>
+<li><p>a 2D sequence of length <em>n</em> (rows) and width
+<em>d</em> (columns),
+interpreted as <em>n</em> points in <em>d</em> dimensions</p></li>
+<li><p>a list of 2D sequences,
+interpreted as groups (parts) of points</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Tuple of</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>NumPy array of shape (<span class="math notranslate nohighlight">\(\sum n, d\)</span>)</p></li>
+<li><p>Part edges list, marking the end points of the
+parts</p></li>
+</ul>
+</div></blockquote>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cnn.Points.load">
+<em class="property">static </em><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#cnnclustering.cnn.Points.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads file content</p>
+<p>Depending on the filename extension, a suitable loader is
+called:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>.p: <code class="xref py py-func docutils literal notranslate"><span class="pre">pickle.load()</span></code></p></li>
+<li><p>.npy: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.load()</span></code></p></li>
+<li><p>None: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.loadtxt()</span></code></p></li>
+<li><p>.xvg, .dat: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.loadtxt()</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>Sets <code class="xref py py-attr docutils literal notranslate"><span class="pre">data</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">shape</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> – File</p></li>
+<li><p><strong>*args</strong> – Passed to loader</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>**kwargs</strong> – Passed to loader</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Return value of the loader</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="distances">
+<span id="sec-api-cnn-distances"></span><h3>Distances<a class="headerlink" href="#distances" title="Permalink to this headline">¶</a></h3>
+<p>Distances are currently supported in the form of a 2D NumPy array of shape
+(<em>n</em>: points, <em>m</em>: points) through the
+<a class="reference internal" href="#cnnclustering.cnn.Distances" title="cnnclustering.cnn.Distances"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.Distances</span></code></a> class.</p>
 <dl class="py class">
 <dt id="cnnclustering.cnn.Distances">
 <em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">Distances</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>numpy.ndarray<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">reference</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Distances" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstraction class for data point distances</p>
 </dd></dl>
 
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="neighbourhoods">
+<span id="sec-api-cnn-neighbourhoods"></span><h3>Neighbourhoods<a class="headerlink" href="#neighbourhoods" title="Permalink to this headline">¶</a></h3>
+<p>Neighbourhoods are currently supported in the form of:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>1D NumPy array of 1D Numpy arrays (
+<a class="reference internal" href="#cnnclustering.cnn.NeighbourhoodsArray" title="cnnclustering.cnn.NeighbourhoodsArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.NeighbourhoodsArray</span></code></a>)</p></li>
+<li><p>Python list of Python sets (
+<a class="reference internal" href="#cnnclustering.cnn.NeighbourhoodsList" title="cnnclustering.cnn.NeighbourhoodsList"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.NeighbourhoodsList</span></code></a>)</p></li>
+</ul>
+</div></blockquote>
+<p>Valid neighbourhood containers should inherit from the absract base
+class <a class="reference internal" href="#cnnclustering.cnn.NeighbourhoodsABC" title="cnnclustering.cnn.NeighbourhoodsABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.NeighbourhoodsABC</span></code></a> or a the general
+realisation <a class="reference internal" href="#cnnclustering.cnn.Neighbourhoods" title="cnnclustering.cnn.Neighbourhoods"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.Neighbourhoods</span></code></a>.</p>
 <dl class="py class">
-<dt id="cnnclustering.cnn.LabelInfo">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">LabelInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">origin</span></em>, <em class="sig-param"><span class="n">reference</span></em>, <em class="sig-param"><span class="n">params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.LabelInfo" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py attribute">
-<dt id="cnnclustering.cnn.LabelInfo.origin">
-<code class="sig-name descname">origin</code><a class="headerlink" href="#cnnclustering.cnn.LabelInfo.origin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 0</p>
+<dt id="cnnclustering.cnn.NeighbourhoodsArray">
+<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">NeighbourhoodsArray</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sequence</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Sequence<span class="p">[</span>int<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">reference</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">self_counting</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Array of array realisation of neighbourhood abstraction</p>
+<p>Inherits from <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> and <a class="reference internal" href="#cnnclustering.cnn.Neighbourhoods" title="cnnclustering.cnn.Neighbourhoods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Neighbourhoods</span></code></a>.</p>
+<dl class="py method">
+<dt id="cnnclustering.cnn.NeighbourhoodsArray.n_neighbours">
+<em class="property">property </em><code class="sig-name descname">n_neighbours</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsArray.n_neighbours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of neighbours for each point</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<dl class="py class">
+<dt id="cnnclustering.cnn.NeighbourhoodsList">
+<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">NeighbourhoodsList</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">neighbourhoods</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">reference</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsList" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of sets realisation of neighbourhood abstraction</p>
+<p>Inherits from <code class="xref py py-obj docutils literal notranslate"><span class="pre">collections.UserList</span></code> and <a class="reference internal" href="#cnnclustering.cnn.Neighbourhoods" title="cnnclustering.cnn.Neighbourhoods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Neighbourhoods</span></code></a>.</p>
+<dl class="py method">
+<dt id="cnnclustering.cnn.NeighbourhoodsList.n_neighbours">
+<em class="property">property </em><code class="sig-name descname">n_neighbours</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsList.n_neighbours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of neighbours for each point</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<dl class="py class">
+<dt id="cnnclustering.cnn.Neighbourhoods">
+<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">Neighbourhoods</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">neighbourhoods</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">reference</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">self_counting</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Neighbourhoods" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basic realisation of neighbourhood abstraction</p>
+<p>Inherits from <code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighboursABC</span></code>.</p>
+<p>Makes no assumptions on the nature of the stored neighbours and
+provides default implementations for the required attributes by
+<code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighboursABC</span></code>.  Since working realisations of the
+<a class="reference internal" href="#cnnclustering.cnn.Neighbourhoods" title="cnnclustering.cnn.Neighbourhoods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Neighbourhoods</span></code></a> base class usually inherit with priority
+from a collection type
+whose <cite>__init__</cite> mechanism is probably used, the alternative method
+<cite>init_finalise</cite> is offered to set the required attributes.</p>
+<dl class="py method">
+<dt id="cnnclustering.cnn.Neighbourhoods.n_neighbours">
+<em class="property">property </em><code class="sig-name descname">n_neighbours</code><a class="headerlink" href="#cnnclustering.cnn.Neighbourhoods.n_neighbours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of neighbours for each point</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cnn.Neighbourhoods.radius">
+<em class="property">property </em><code class="sig-name descname">radius</code><a class="headerlink" href="#cnnclustering.cnn.Neighbourhoods.radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return radius</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cnn.Neighbourhoods.reference">
+<em class="property">property </em><code class="sig-name descname">reference</code><a class="headerlink" href="#cnnclustering.cnn.Neighbourhoods.reference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return reference CNN instance</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cnn.Neighbourhoods.self_counting">
+<em class="property">property </em><code class="sig-name descname">self_counting</code><a class="headerlink" href="#cnnclustering.cnn.Neighbourhoods.self_counting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Self-counting of points as their own neighbours?</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<dl class="py class">
+<dt id="cnnclustering.cnn.NeighbourhoodsABC">
+<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">NeighbourhoodsABC</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsABC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstraction class for neighbourhoods</p>
+<p>Neighbourhoods (integer point indices) can be stored in different
+data structures (non-exhaustive listing):</p>
+<blockquote>
+<div><p>Collection of collections:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>list of sets (<a class="reference internal" href="#cnnclustering.cnn.NeighbourhoodsList" title="cnnclustering.cnn.NeighbourhoodsList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighbourhoodsList</span></code></a>)</p></li>
+<li><p>array of arrays (<a class="reference internal" href="#cnnclustering.cnn.NeighbourhoodsArray" title="cnnclustering.cnn.NeighbourhoodsArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighbourhoodsArray</span></code></a>)</p></li>
+</ul>
+</div></blockquote>
+<p>Linear collection plus slice indicator:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>array of neighbours plus array of starting indices
+(<code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighbourhoodsSparsegraphArray</span></code>)</p></li>
+<li><p>array in which one element indicates the length and the
+following elements are neighbours
+(<code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighbourhoodsLinear</span></code>)</p></li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+<p>To qualify as a neighbourhoods container, the following attributes
+should be present in any case:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>radius: Points are neighbours of each other with respect to</dt><dd><p>this radius (any metric).</p>
+</dd>
+<dt>reference: A <a class="reference internal" href="#cnnclustering.cnn.CNN" title="cnnclustering.cnn.CNN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN</span></code></a> instance if neighbourhoods are valid for</dt><dd><p>points in different data sets.</p>
+</dd>
+<dt>n_neighbours: Return the neighbourcount for each point in</dt><dd><p>the container.</p>
+</dd>
+<dt>self_counting: Boolean indicator, True if neighbourhoods include</dt><dd><p>self-counting (point is its own neighbour).</p>
+</dd>
+<dt>__str__: A useful str-representation revealing the type and</dt><dd><p>the radius.</p>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="py method">
+<dt id="cnnclustering.cnn.NeighbourhoodsABC.n_neighbours">
+<em class="property">abstract property </em><code class="sig-name descname">n_neighbours</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsABC.n_neighbours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of neighbours for each point</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cnn.NeighbourhoodsABC.radius">
+<em class="property">abstract property </em><code class="sig-name descname">radius</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsABC.radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return radius</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cnn.NeighbourhoodsABC.reference">
+<em class="property">abstract property </em><code class="sig-name descname">reference</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsABC.reference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return reference CNN instance</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cnn.NeighbourhoodsABC.self_counting">
+<em class="property">abstract property </em><code class="sig-name descname">self_counting</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsABC.self_counting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Self-counting of points as their own neighbours?</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="density-graphs">
+<span id="sec-api-cnn-graph"></span><h3>Density graphs<a class="headerlink" href="#density-graphs" title="Permalink to this headline">¶</a></h3>
+<p>Density graphs are currently supported in the form of a sparse graphs
+through the <code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.SparsegraphArray</span></code> class.</p>
+<p>Valid density graph containers should inherit from the absract base
+class <a class="reference internal" href="#cnnclustering.cnn.DensitygraphABC" title="cnnclustering.cnn.DensitygraphABC"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.DensitygraphABC</span></code></a> or a the general
+realisation <a class="reference internal" href="#cnnclustering.cnn.Densitygraph" title="cnnclustering.cnn.Densitygraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.Densitygraph</span></code></a>.</p>
+<dl class="py class">
+<dt id="cnnclustering.cnn.DensitySparsegraphArray">
+<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">DensitySparsegraphArray</code><a class="headerlink" href="#cnnclustering.cnn.DensitySparsegraphArray" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<dl class="py class">
+<dt id="cnnclustering.cnn.Densitygraph">
+<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">Densitygraph</code><a class="headerlink" href="#cnnclustering.cnn.Densitygraph" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<dl class="py class">
+<dt id="cnnclustering.cnn.DensitygraphABC">
+<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">DensitygraphABC</code><a class="headerlink" href="#cnnclustering.cnn.DensitygraphABC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+</div>
+<div class="section" id="cluster-results">
+<span id="sec-api-cnn-results"></span><h2>Cluster results<a class="headerlink" href="#cluster-results" title="Permalink to this headline">¶</a></h2>
+<p>Cluster results can be recorded by <a class="reference internal" href="#cnnclustering.cnn.CNN.fit" title="cnnclustering.cnn.CNN.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cnnclustering.cnn.CNN.fit()</span></code></a> as
+<a class="reference internal" href="#cnnclustering.cnn.CNNRecord" title="cnnclustering.cnn.CNNRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.CNNRecord</span></code></a>. Multiple records are collected in by
+<a class="reference internal" href="#cnnclustering.cnn.Summary" title="cnnclustering.cnn.Summary"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.Summary</span></code></a>. Cluster label assignments are stored
+independently and are currently supported through
+<a class="reference internal" href="#cnnclustering.cnn.Labels" title="cnnclustering.cnn.Labels"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.Labels</span></code></a>. Labels can be put into context by
+attaching <a class="reference internal" href="#cnnclustering.cnn.LabelInfo" title="cnnclustering.cnn.LabelInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnnclustering.cnn.LabelInfo</span></code></a>.</p>
+<dl class="py class">
+<dt id="cnnclustering.cnn.CNNRecord">
+<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">CNNRecord</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">points</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">r</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">c</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">min</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">max</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">clusters</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">largest</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">noise</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">time</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.CNNRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cluster result container</p>
+<p><a class="reference internal" href="#cnnclustering.cnn.CNNRecord" title="cnnclustering.cnn.CNNRecord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNNRecord</span></code></a> instances can be returned by <a class="reference internal" href="#cnnclustering.cnn.CNN.fit" title="cnnclustering.cnn.CNN.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.fit()</span></code></a> and
+are collected in <a class="reference internal" href="#cnnclustering.cnn.Summary" title="cnnclustering.cnn.Summary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Summary</span></code></a>.</p>
+<dl class="py attribute">
+<dt id="cnnclustering.cnn.CNNRecord.c">
+<code class="sig-name descname">c</code><em class="property">: int</em><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.c" title="Permalink to this definition">¶</a></dt>
+<dd><p>CNN cutoff <em>c</em> (similarity criterion)</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="cnnclustering.cnn.LabelInfo.params">
-<code class="sig-name descname">params</code><a class="headerlink" href="#cnnclustering.cnn.LabelInfo.params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 2</p>
+<dt id="cnnclustering.cnn.CNNRecord.clusters">
+<code class="sig-name descname">clusters</code><em class="property">: int</em><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.clusters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of identified clusters.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="cnnclustering.cnn.LabelInfo.reference">
-<code class="sig-name descname">reference</code><a class="headerlink" href="#cnnclustering.cnn.LabelInfo.reference" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 1</p>
+<dt id="cnnclustering.cnn.CNNRecord.largest">
+<code class="sig-name descname">largest</code><em class="property">: float</em><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.largest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ratio of points in the largest cluster.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering.cnn.CNNRecord.max">
+<code class="sig-name descname">max</code><em class="property">: int</em><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum cluster number. After sorting, only the biggest <cite>max</cite> clusters are kept.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering.cnn.CNNRecord.min">
+<code class="sig-name descname">min</code><em class="property">: int</em><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.min" title="Permalink to this definition">¶</a></dt>
+<dd><p>Member cutoff. Valid clusters have at least this many members.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering.cnn.CNNRecord.noise">
+<code class="sig-name descname">noise</code><em class="property">: float</em><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.noise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ratio of points classified as outliers.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering.cnn.CNNRecord.points">
+<code class="sig-name descname">points</code><em class="property">: int</em><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of points in the clustered data set.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering.cnn.CNNRecord.r">
+<code class="sig-name descname">r</code><em class="property">: float</em><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.r" title="Permalink to this definition">¶</a></dt>
+<dd><p>Radius cutoff <em>r</em>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering.cnn.CNNRecord.time">
+<code class="sig-name descname">time</code><em class="property">: float</em><a class="headerlink" href="#cnnclustering.cnn.CNNRecord.time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measured execution time for the fit, including sorting in seconds.</p>
 </dd></dl>
 
 </dd></dl>
 
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<dl class="py class">
+<dt id="cnnclustering.cnn.Summary">
+<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">Summary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iterable</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>List like container for cluster results</p>
+<p>Stores instances of <a class="reference internal" href="#cnnclustering.cnn.CNNRecord" title="cnnclustering.cnn.CNNRecord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNNRecord</span></code></a>.</p>
+<dl class="py method">
+<dt id="cnnclustering.cnn.Summary.insert">
+<code class="sig-name descname">insert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">item</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Summary.insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>S.insert(index, value) – insert value before index</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cnn.Summary.summarize">
+<code class="sig-name descname">summarize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Type<span class="p">[</span>matplotlib.axes._subplots.SubplotBase<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">quant</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'time'</span></em>, <em class="sig-param"><span class="n">treat_nan</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax_props</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Dict<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">contour_props</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Dict<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Summary.summarize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a 2D plot of record values</p>
+<p>Record values (“time”, “clusters”, “largest”, “noise”) are
+plotted against cluster parameters (radius cutoff <em>r</em>
+and cnn cutoff <em>c</em>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> – Matplotlib Axes to plot on.  If <cite>None</cite>, a new Figure
+with Axes will be created.</p></li>
+<li><p><strong>quant</strong> – <p>Record value to
+visualise:</p>
+<blockquote>
+<div><ul>
+<li><p>”time”</p></li>
+<li><p>”clusters”</p></li>
+<li><p>”largest”</p></li>
+<li><p>”noise”</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>treat_nan</strong> – If not <cite>None</cite>, use this value to pad nan-values.</p></li>
+<li><p><strong>ax_props</strong> – Used to style <cite>ax</cite>.</p></li>
+<li><p><strong>contour_props</strong> – Passed on to contour.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cnn.Summary.to_DataFrame">
+<code class="sig-name descname">to_DataFrame</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Summary.to_DataFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert list of records to (typed) pandas DataFrame</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#cnnclustering.cnn.TypedDataFrame" title="cnnclustering.cnn.TypedDataFrame"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TypedDataFrame</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
 <dl class="py class">
 <dt id="cnnclustering.cnn.Labels">
 <em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">Labels</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sequence</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Sequence<span class="p">[</span>int<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">info</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">consider</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Labels" title="Permalink to this definition">¶</a></dt>
@@ -893,437 +1346,97 @@ many members.</p></li>
 
 </dd></dl>
 
-<dl class="py class">
-<dt id="cnnclustering.cnn.MetaSettings">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">MetaSettings</code><a class="headerlink" href="#cnnclustering.cnn.MetaSettings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Metaclass to inherit class with class properties</p>
-<p>Classes constructed with this metaclass have a <code class="xref py py-attr docutils literal notranslate"><span class="pre">__defaults</span></code>
-class attribute that can be accessed as a property <code class="xref py py-attr docutils literal notranslate"><span class="pre">defaults</span></code>
-from the class.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt id="cnnclustering.cnn.Neighbourhoods">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">Neighbourhoods</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">neighbourhoods</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">reference</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">self_counting</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Neighbourhoods" title="Permalink to this definition">¶</a></dt>
-<dd><p>Basic realisation of neighbourhood abstraction</p>
-<p>Inherits from <code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighboursABC</span></code>.</p>
-<p>Makes no assumptions on the nature of the stored neighbours and
-provides default implementations for the required attributes by
-<code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighboursABC</span></code>.  Since working realisations of the
-<a class="reference internal" href="#cnnclustering.cnn.Neighbourhoods" title="cnnclustering.cnn.Neighbourhoods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Neighbourhoods</span></code></a> base class usually inherit with priority
-from a collection type
-whose <cite>__init__</cite> mechanism is probably used, the alternative method
-<cite>init_finalise</cite> is offered to set the required attributes.</p>
-<dl class="py method">
-<dt id="cnnclustering.cnn.Neighbourhoods.n_neighbours">
-<em class="property">property </em><code class="sig-name descname">n_neighbours</code><a class="headerlink" href="#cnnclustering.cnn.Neighbourhoods.n_neighbours" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return number of neighbours for each point</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering.cnn.Neighbourhoods.radius">
-<em class="property">property </em><code class="sig-name descname">radius</code><a class="headerlink" href="#cnnclustering.cnn.Neighbourhoods.radius" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return radius</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering.cnn.Neighbourhoods.reference">
-<em class="property">property </em><code class="sig-name descname">reference</code><a class="headerlink" href="#cnnclustering.cnn.Neighbourhoods.reference" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return reference CNN instance</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering.cnn.Neighbourhoods.self_counting">
-<em class="property">property </em><code class="sig-name descname">self_counting</code><a class="headerlink" href="#cnnclustering.cnn.Neighbourhoods.self_counting" title="Permalink to this definition">¶</a></dt>
-<dd><p>Self-counting of points as their own neighbours?</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="cnnclustering.cnn.NeighbourhoodsABC">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">NeighbourhoodsABC</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsABC" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstraction class for neighbourhoods</p>
-<p>Neighbourhoods (integer point indices) can be stored in different
-data structures (non-exhaustive listing):</p>
-<blockquote>
-<div><p>Collection of collections:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>list of sets (<a class="reference internal" href="#cnnclustering.cnn.NeighbourhoodsList" title="cnnclustering.cnn.NeighbourhoodsList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighbourhoodsList</span></code></a>)</p></li>
-<li><p>array of arrays (<a class="reference internal" href="#cnnclustering.cnn.NeighbourhoodsArray" title="cnnclustering.cnn.NeighbourhoodsArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighbourhoodsArray</span></code></a>)</p></li>
-</ul>
-</div></blockquote>
-<p>Linear collection plus slice indicator:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>array of neighbours plus array of starting indices
-(<code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighbourhoodsSparsegraphArray</span></code>)</p></li>
-<li><p>array in which one element indicates the length and the
-following elements are neighbours
-(<a class="reference internal" href="#cnnclustering.cnn.NeighbourhoodsLinear" title="cnnclustering.cnn.NeighbourhoodsLinear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NeighbourhoodsLinear</span></code></a>)</p></li>
-</ul>
-</div></blockquote>
-</div></blockquote>
-<p>To qualify as a neighbourhoods container, the following attributes
-should be present in any case:</p>
-<blockquote>
-<div><dl class="simple">
-<dt>radius: Points are neighbours of each other with respect to</dt><dd><p>this radius (any metric).</p>
-</dd>
-<dt>reference: A <a class="reference internal" href="#cnnclustering.cnn.CNN" title="cnnclustering.cnn.CNN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN</span></code></a> instance if neighbourhoods are valid for</dt><dd><p>points in different data sets.</p>
-</dd>
-<dt>n_neighbours: Return the neighbourcount for each point in</dt><dd><p>the container.</p>
-</dd>
-<dt>self_counting: Boolean indicator, True if neighbourhoods include</dt><dd><p>self-counting (point is its own neighbour).</p>
-</dd>
-<dt>__str__: A useful str-representation revealing the type and</dt><dd><p>the radius.</p>
-</dd>
-</dl>
-</div></blockquote>
-<dl class="py method">
-<dt id="cnnclustering.cnn.NeighbourhoodsABC.n_neighbours">
-<em class="property">abstract property </em><code class="sig-name descname">n_neighbours</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsABC.n_neighbours" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return number of neighbours for each point</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering.cnn.NeighbourhoodsABC.radius">
-<em class="property">abstract property </em><code class="sig-name descname">radius</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsABC.radius" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return radius</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering.cnn.NeighbourhoodsABC.reference">
-<em class="property">abstract property </em><code class="sig-name descname">reference</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsABC.reference" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return reference CNN instance</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering.cnn.NeighbourhoodsABC.self_counting">
-<em class="property">abstract property </em><code class="sig-name descname">self_counting</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsABC.self_counting" title="Permalink to this definition">¶</a></dt>
-<dd><p>Self-counting of points as their own neighbours?</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="cnnclustering.cnn.NeighbourhoodsArray">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">NeighbourhoodsArray</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sequence</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Sequence<span class="p">[</span>int<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">reference</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">self_counting</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsArray" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of array realisation of neighbourhood abstraction</p>
-<p>Inherits from <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> and <a class="reference internal" href="#cnnclustering.cnn.Neighbourhoods" title="cnnclustering.cnn.Neighbourhoods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Neighbourhoods</span></code></a>.</p>
-<dl class="py method">
-<dt id="cnnclustering.cnn.NeighbourhoodsArray.n_neighbours">
-<em class="property">property </em><code class="sig-name descname">n_neighbours</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsArray.n_neighbours" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return number of neighbours for each point</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="cnnclustering.cnn.NeighbourhoodsLinear">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">NeighbourhoodsLinear</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sequence</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Sequence<span class="p">[</span>int<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">reference</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsLinear" title="Permalink to this definition">¶</a></dt>
-<dd><p>Linear representation of neighbourhoods</p>
-<p>Inherits from <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> and <a class="reference internal" href="#cnnclustering.cnn.Neighbourhoods" title="cnnclustering.cnn.Neighbourhoods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Neighbourhoods</span></code></a>.</p>
-<p>Elements are neighbour counts of a specific point followed by
-elements that are indices of neighbouring points.</p>
-<dl class="py method">
-<dt id="cnnclustering.cnn.NeighbourhoodsLinear.n_neighbours">
-<em class="property">property </em><code class="sig-name descname">n_neighbours</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsLinear.n_neighbours" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return number of neighbours for each point</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="cnnclustering.cnn.NeighbourhoodsList">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">NeighbourhoodsList</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">neighbourhoods</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">reference</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsList" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of sets realisation of neighbourhood abstraction</p>
-<p>Inherits from <code class="xref py py-obj docutils literal notranslate"><span class="pre">collections.UserList</span></code> and <a class="reference internal" href="#cnnclustering.cnn.Neighbourhoods" title="cnnclustering.cnn.Neighbourhoods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Neighbourhoods</span></code></a>.</p>
-<dl class="py method">
-<dt id="cnnclustering.cnn.NeighbourhoodsList.n_neighbours">
-<em class="property">property </em><code class="sig-name descname">n_neighbours</code><a class="headerlink" href="#cnnclustering.cnn.NeighbourhoodsList.n_neighbours" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return number of neighbours for each point</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="cnnclustering.cnn.Points">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">Points</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>numpy.ndarray<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">edges</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Sequence<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tree</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Points" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstraction class for data points</p>
-<dl class="py method">
-<dt id="cnnclustering.cnn.Points.by_parts">
-<code class="sig-name descname">by_parts</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Iterator<a class="headerlink" href="#cnnclustering.cnn.Points.by_parts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Yield data by parts</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Generator of 2D <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> s (parts)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering.cnn.Points.cKDTree">
-<code class="sig-name descname">cKDTree</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Points.cKDTree" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper for <code class="xref py py-meth docutils literal notranslate"><span class="pre">scipy.spatial.cKDTree()</span></code></p>
-<p>Sets <code class="xref py py-attr docutils literal notranslate"><span class="pre">Points.tree</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>**kwargs</strong> – Passed to <code class="xref py py-meth docutils literal notranslate"><span class="pre">scipy.spatial.cKDTree()</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering.cnn.Points.from_file">
-<em class="property">classmethod </em><code class="sig-name descname">from_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>pathlib.Path<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">from_parts</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Points.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alternative constructor</p>
-<dl>
-<dt>Use if data is passed as collection of parts, as</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">Points</span><span class="o">.</span><span class="n">from_parts</span><span class="p">([[[</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">]]])</span>
-</pre></div>
+<div class="line-block">
+<div class="line"><br /></div>
 </div>
-</dd>
-<dt>Recognised input formats are:</dt><dd><ul class="simple">
-<li><p>Sequence</p></li>
-<li><p>2D Sequence (sequence of sequences all of same length)</p></li>
-<li><p>Sequence of 2D sequences all of same second dimension</p></li>
-</ul>
-</dd>
-</dl>
-<p>In this way, part edges are taken from the input shape and do
-not have to be specified explicitly. Calls <a class="reference internal" href="#cnnclustering.cnn.Points.get_shape" title="cnnclustering.cnn.Points.get_shape"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_shape()</span></code></a>
-and <a class="reference internal" href="#cnnclustering.cnn.Points.load" title="cnnclustering.cnn.Points.load"><code class="xref py py-meth docutils literal notranslate"><span class="pre">load()</span></code></a>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>f</strong> – File name as string or <code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code> object</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Instance of <a class="reference internal" href="#cnnclustering.cnn.Points" title="cnnclustering.cnn.Points"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Points</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering.cnn.Points.from_parts">
-<em class="property">classmethod </em><code class="sig-name descname">from_parts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Sequence<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Points.from_parts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alternative constructor</p>
-<dl>
-<dt>Use if data is passed as collection of parts, as</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="n">Points</span><span class="o">.</span><span class="n">from_parts</span><span class="p">([[[</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[[</span><span class="mi">2</span><span class="p">],[</span><span class="mi">3</span><span class="p">]]])</span>
-</pre></div>
-</div>
-</dd>
-<dt>Recognised input formats are:</dt><dd><ul class="simple">
-<li><p>Sequence</p></li>
-<li><p>2D Sequence (sequence of sequences all of same length)</p></li>
-<li><p>Sequence of 2D sequences all of same second dimension</p></li>
-</ul>
-</dd>
-</dl>
-<p>In this way, part edges are taken from the input shape and do
-not have to be specified explicitly. Calls <a class="reference internal" href="#cnnclustering.cnn.Points.get_shape" title="cnnclustering.cnn.Points.get_shape"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_shape()</span></code></a>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>p</strong> – File name as string or <code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code> object</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Instance of <a class="reference internal" href="#cnnclustering.cnn.Points" title="cnnclustering.cnn.Points"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Points</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering.cnn.Points.get_shape">
-<em class="property">static </em><code class="sig-name descname">get_shape</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Points.get_shape" title="Permalink to this definition">¶</a></dt>
-<dd><p>Maintain data in universal shape (2D NumPy array)</p>
-<p>Analyses the format of given data and fits it into the standard
-format (parts, points, dimensions).  Creates a
-<code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> vstacked along the parts componenent that
-can be passed to the <cite>Points</cite> constructor alongside part edges.
-This may not be able to deal with all possible kinds of input
-structures correctly, so check the outcome carefully.</p>
-<dl class="simple">
-<dt>Recognised input formats are:</dt><dd><ul class="simple">
-<li><p>Sequence</p></li>
-<li><p>2D Sequence (sequence of sequences all of same length)</p></li>
-<li><p>Sequence of 2D sequences all of same second dimension</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>data</strong> – <p>Either <cite>None</cite>
-or:</p>
+<dl class="py class">
+<dt id="cnnclustering.cnn.LabelInfo">
+<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">LabelInfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">origin</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">reference</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Type<span class="p">[</span>CNN<span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">Dict</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.LabelInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Contex information for labels</p>
+<p><a class="reference internal" href="#cnnclustering.cnn.LabelInfo" title="cnnclustering.cnn.LabelInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LabelInfo</span></code></a> instances will be attached to <a class="reference internal" href="#cnnclustering.cnn.Labels" title="cnnclustering.cnn.Labels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Labels</span></code></a> and/or
+modified by <a class="reference internal" href="#cnnclustering.cnn.CNN.fit" title="cnnclustering.cnn.CNN.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.fit()</span></code></a>, <a class="reference internal" href="#cnnclustering.cnn.CNN.reel" title="cnnclustering.cnn.CNN.reel"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.reel()</span></code></a>, and
+<a class="reference internal" href="#cnnclustering.cnn.CNN.predict" title="cnnclustering.cnn.CNN.predict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.predict()</span></code></a>.</p>
+<dl class="py attribute">
+<dt id="cnnclustering.cnn.LabelInfo.origin">
+<code class="sig-name descname">origin</code><em class="property">: Optional[str]</em><a class="headerlink" href="#cnnclustering.cnn.LabelInfo.origin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Valid identifiers are:</p>
 <ul class="simple">
-<li><p>a 1D sequence of length <em>d</em>,
-interpreted as 1 point in <em>d</em> dimension</p></li>
-<li><p>a 2D sequence of length <em>n</em> (rows) and width
-<em>d</em> (columns),
-interpreted as <em>n</em> points in <em>d</em> dimensions</p></li>
-<li><p>a list of 2D sequences,
-interpreted as groups (parts) of points</p></li>
+<li><p>“fitted”: Labels were assigned by <a class="reference internal" href="#cnnclustering.cnn.CNN.fit" title="cnnclustering.cnn.CNN.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.fit()</span></code></a>.</p></li>
+<li><p>“reeled”: Labels were overwritten by <a class="reference internal" href="#cnnclustering.cnn.CNN.reel" title="cnnclustering.cnn.CNN.reel"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.reel()</span></code></a>.</p></li>
+<li><p>“predicted”: Labels were assigned by <a class="reference internal" href="#cnnclustering.cnn.CNN.predict" title="cnnclustering.cnn.CNN.predict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.predict()</span></code></a>.</p></li>
+<li><p>None: Unkown origin.</p></li>
 </ul>
-</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><p>Tuple of</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>NumPy array of shape (<span class="math notranslate nohighlight">\(\sum n, d\)</span>)</p></li>
-<li><p>Part edges list, marking the end points of the
-parts</p></li>
-</ul>
-</div></blockquote>
-</p>
-</dd>
-</dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="cnnclustering.cnn.Points.load">
-<em class="property">static </em><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">f</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#cnnclustering.cnn.Points.load" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads file content</p>
-<p>Depending on the filename extension, a suitable loader is
-called:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>.p: <code class="xref py py-func docutils literal notranslate"><span class="pre">pickle.load()</span></code></p></li>
-<li><p>.npy: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.load()</span></code></p></li>
-<li><p>None: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.loadtxt()</span></code></p></li>
-<li><p>.xvg, .dat: <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.loadtxt()</span></code></p></li>
-</ul>
-</div></blockquote>
-<p>Sets <code class="xref py py-attr docutils literal notranslate"><span class="pre">data</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">shape</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>f</strong> – File</p></li>
-<li><p><strong>*args</strong> – Passed to loader</p></li>
-</ul>
-</dd>
-<dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><p><strong>**kwargs</strong> – Passed to loader</p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Return value of the loader</p>
-</dd>
-</dl>
+<dl class="py attribute">
+<dt id="cnnclustering.cnn.LabelInfo.params">
+<code class="sig-name descname">params</code><em class="property">: Dict</em><a class="headerlink" href="#cnnclustering.cnn.LabelInfo.params" title="Permalink to this definition">¶</a></dt>
+<dd><p>”
+An overview over cluster parameters used to assign
+labels. This is a dictionary with label numbers as keys
+and a parameter tuples (<em>r</em>, <em>c</em>) as values. This is useful
+if labels have been <em>reeled</em> or <em>predicted</em> and have
+different underlying parameters (Dict[int, Tuple(float, int)])</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering.cnn.LabelInfo.reference">
+<code class="sig-name descname">reference</code><em class="property">: Optional[Type[CNN]]</em><a class="headerlink" href="#cnnclustering.cnn.LabelInfo.reference" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <a class="reference internal" href="#cnnclustering.cnn.CNN" title="cnnclustering.cnn.CNN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN</span></code></a> instance supporting the <cite>origin</cite>.
+If <cite>origin = “fitted”</cite> or <cite>origin = “reeled”</cite>, this is a
+reference to the object carriying the labels. If
+<cite>origin = “predicted”</cite> this is a reference to the object
+carrying the base labels. Can be <cite>None</cite> if reference is
+unknown.</p>
 </dd></dl>
 
 </dd></dl>
 
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="pandas">
+<span id="sec-api-cnn-pandas"></span><h2>Pandas<a class="headerlink" href="#pandas" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="cnnclustering.cnn.Settings">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">Settings</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Class to expose and handle configuration</p>
-<p>Inherits from <a class="reference internal" href="#cnnclustering.cnn.MetaSettings" title="cnnclustering.cnn.MetaSettings"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaSettings</span></code></a> to allow access to the class
-attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">__defaults</span></code> as a property <code class="xref py py-attr docutils literal notranslate"><span class="pre">defaults</span></code>.</p>
-<p>Also derived from basic type <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>.</p>
-<p>The user can sublclass this class <a class="reference internal" href="#cnnclustering.cnn.Settings" title="cnnclustering.cnn.Settings"><code class="xref py py-class docutils literal notranslate"><span class="pre">Settings</span></code></a> to provide e.g.
-a different set of default values as <code class="xref py py-attr docutils literal notranslate"><span class="pre">__defaults</span></code>.</p>
-<dl class="py method">
-<dt id="cnnclustering.cnn.Settings.configure">
-<code class="sig-name descname">configure</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">reset</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Settings.configure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Configuration file reading</p>
-<p>Reads a yaml configuration file <code class="docutils literal notranslate"><span class="pre">.corerc</span></code> from a given path or
-one of the standard locations in the following order of
-priority:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>current working directory</p></li>
-<li><p>user home directory</p></li>
-</ul>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>path</strong> – Path to a configuration file.</p></li>
-<li><p><strong>reset</strong> – Reset to defaults. If True, <cite>path</cite> is ignored
-and no configuration file is read.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering.cnn.Settings.update">
-<code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param">E</em>, <span class="optional">]</span><em class="sig-param">**F</em><span class="sig-paren">)</span> &#x2192; None.  Update D from dict/iterable E and F.<a class="headerlink" href="#cnnclustering.cnn.Settings.update" title="Permalink to this definition">¶</a></dt>
-<dd><p>If E is present and has a .keys() method, then does:  for k in E: D[k] = E[k]
-If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
-In either case, this is followed by: for k in F:  D[k] = F[k]</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="cnnclustering.cnn.SparsegraphArray">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">SparsegraphArray</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vertices</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Sequence<span class="p">[</span>int<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">indices</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Sequence<span class="p">[</span>int<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.SparsegraphArray" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sparse graph realisation of a graph using Numpy arrays</p>
-<p>Can be used to represent neighbourhoods or a density connectivity
-graph.</p>
-</dd></dl>
-
-<dl class="py class">
-<dt id="cnnclustering.cnn.Summary">
-<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">Summary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iterable</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Summary" title="Permalink to this definition">¶</a></dt>
-<dd><p>List like container for cluster results</p>
-<p>Stores instances of <a class="reference internal" href="#cnnclustering.cnn.CNNRecord" title="cnnclustering.cnn.CNNRecord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNNRecord</span></code></a>.</p>
-<dl class="py method">
-<dt id="cnnclustering.cnn.Summary.insert">
-<code class="sig-name descname">insert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">item</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Summary.insert" title="Permalink to this definition">¶</a></dt>
-<dd><p>S.insert(index, value) – insert value before index</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering.cnn.Summary.summarize">
-<code class="sig-name descname">summarize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Type<span class="p">[</span>matplotlib.axes._subplots.SubplotBase<span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">quant</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'time'</span></em>, <em class="sig-param"><span class="n">treat_nan</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax_props</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Dict<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">contour_props</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Dict<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Summary.summarize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a 2D plot of record values</p>
-<p>Record values (“time”, “clusters”, “largest”, “noise”) are
-plotted against cluster parameters (radius cutoff <em>r</em>
-and cnn cutoff <em>c</em>).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ax</strong> – Matplotlib Axes to plot on.  If <cite>None</cite>, a new Figure
-with Axes will be created.</p></li>
-<li><p><strong>quant</strong> – <p>Record value to
-visualise:</p>
-<blockquote>
-<div><ul>
-<li><p>”time”</p></li>
-<li><p>”clusters”</p></li>
-<li><p>”largest”</p></li>
-<li><p>”noise”</p></li>
-</ul>
-</div></blockquote>
-</p></li>
-<li><p><strong>treat_nan</strong> – If not <cite>None</cite>, use this value to pad nan-values.</p></li>
-<li><p><strong>ax_props</strong> – Used to style <cite>ax</cite>.</p></li>
-<li><p><strong>contour_props</strong> – Passed on to contour.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering.cnn.Summary.to_DataFrame">
-<code class="sig-name descname">to_DataFrame</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.Summary.to_DataFrame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert list of records to (typed) pandas DataFrame</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#cnnclustering.cnn.TypedDataFrame" title="cnnclustering.cnn.TypedDataFrame"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TypedDataFrame</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
 <dt id="cnnclustering.cnn.TypedDataFrame">
-<code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">TypedDataFrame</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">columns</span></em>, <em class="sig-param"><span class="n">dtypes</span></em>, <em class="sig-param"><span class="n">content</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.TypedDataFrame" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">TypedDataFrame</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">columns</span></em>, <em class="sig-param"><span class="n">dtypes</span></em>, <em class="sig-param"><span class="n">content</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.TypedDataFrame" title="Permalink to this definition">¶</a></dt>
 <dd><p>Optional constructor to convert CNNRecords to pandas.DataFrame</p>
 </dd></dl>
 
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="decorators">
+<span id="sec-api-cnn-decorators"></span><h2>Decorators<a class="headerlink" href="#decorators" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="cnnclustering.cnn.timed">
+<code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">timed</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">function_</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.timed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to measure execution time.</p>
+<p>Forwards the output of the wrapped function and measured execution
+time as a tuple.</p>
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<dl class="py function">
+<dt id="cnnclustering.cnn.recorded">
+<code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">recorded</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">function_</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.recorded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to format fit function feedback.</p>
+<p>Used to decorate fit methods of <a class="reference internal" href="#cnnclustering.cnn.CNN" title="cnnclustering.cnn.CNN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN</span></code></a> instances.  Feedback needs to
+be sequence in record format, i.e. conforming to the <a class="reference internal" href="#cnnclustering.cnn.CNNRecord" title="cnnclustering.cnn.CNNRecord"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNNRecord</span></code></a>
+namedtuple.  If execution time was measured, the corresponding field
+will be modified.</p>
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+<div class="section" id="functional-api">
+<span id="sec-api-cnn-functional-api"></span><h2>Functional API<a class="headerlink" href="#functional-api" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="cnnclustering.cnn.calc_dist">
 <code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">calc_dist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">Any</span></em>, <em class="sig-param"><span class="n">other</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Any<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">v</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">method</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'cdist'</span></em>, <em class="sig-param"><span class="n">mmap</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mmap_file</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>Union<span class="p">[</span>pathlib.Path<span class="p">, </span>str<span class="p">, </span>IO<span class="p">[</span>bytes<span class="p">]</span><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">chunksize</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">10000</span></em>, <em class="sig-param"><span class="n">progress</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; Type<span class="p">[</span><a class="reference internal" href="#cnnclustering.cnn.Distances" title="cnnclustering.cnn.Distances">cnnclustering.cnn.Distances</a><span class="p">]</span><a class="headerlink" href="#cnnclustering.cnn.calc_dist" title="Permalink to this definition">¶</a></dt>
@@ -1346,6 +1459,9 @@ If <cite>other</cite> is <cite>None</cite>, <em>m</em> = <em>n</em>.</p>
 </dl>
 </dd></dl>
 
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
 <dl class="py function">
 <dt id="cnnclustering.cnn.fit">
 <code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">Any</span></em>, <em class="sig-param"><span class="n">radius_cutoff</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>float<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cnn_cutoff</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">member_cutoff</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">max_clusters</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">cnn_offset</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>int<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">info</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sort_by_size</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">rec</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">v</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em>, <em class="sig-param"><span class="n">policy</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; Type<span class="p">[</span><a class="reference internal" href="#cnnclustering.cnn.Labels" title="cnnclustering.cnn.Labels">cnnclustering.cnn.Labels</a><span class="p">]</span><a class="headerlink" href="#cnnclustering.cnn.fit" title="Permalink to this definition">¶</a></dt>
@@ -1366,35 +1482,10 @@ points, distances, neighbourhoods or density graph.</p>
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt id="cnnclustering.cnn.recorded">
-<code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">recorded</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">function_</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.recorded" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decorator to format fit function feedback.</p>
-<p>Used to decorate fit methods of <cite>CNN</cite> instances.  Feedback needs to
-be sequence in record format, i.e. conforming to the <cite>CNNRecord</cite>
-namedtuple.  If execution time was measured, the corresponding field
-will be modified.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt id="cnnclustering.cnn.settings">
-<code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">settings</code><em class="property"> = {'default_cnn_cutoff': '1', 'default_cnn_offset': '0', 'default_fit_policy': 'conservative', 'default_member_cutoff': '2', 'default_predict_policy': 'conservative', 'default_radius_cutoff': '1', 'float_precision': 'sp', 'int_precision': 'sp'}</em><a class="headerlink" href="#cnnclustering.cnn.settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Module level settings container</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#cnnclustering.cnn.Settings" title="cnnclustering.cnn.Settings"><code class="xref py py-class docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="cnnclustering.cnn.timed">
-<code class="sig-prename descclassname">cnnclustering.cnn.</code><code class="sig-name descname">timed</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">function_</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cnn.timed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decorator to measure execution time.</p>
-<p>Forwards the output of the wrapped function and measured execution
-time as a tuple.</p>
-</dd></dl>
-
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
 </div>
 
 

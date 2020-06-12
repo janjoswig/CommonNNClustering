@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 
-"""
-
-cnn - A Python module for common-nearest-neighbour (CNN) clustering
-===================================================================
+"""cnn -A Python module for common-nearest-neighbour (CNN) clustering
 
 """
 
 from abc import ABC, abstractmethod
-from collections import Counter, defaultdict, namedtuple, UserList
+from collections import Counter, defaultdict, UserList
 from collections.abc import MutableSequence
 import functools
 from itertools import count
@@ -18,7 +15,7 @@ import random
 # import sys
 import tempfile
 import time
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set, Tuple, NamedTuple
 from typing import Collection, Iterator, Sequence  # Iterable
 from typing import Any, Optional, Type, Union, IO
 
@@ -79,8 +76,8 @@ def timed(function_):
 def recorded(function_):
     """Decorator to format fit function feedback.
 
-    Used to decorate fit methods of `CNN` instances.  Feedback needs to
-    be sequence in record format, i.e. conforming to the `CNNRecord`
+    Used to decorate fit methods of :obj:`CNN` instances.  Feedback needs to
+    be sequence in record format, i.e. conforming to the :obj:`CNNRecord`
     namedtuple.  If execution time was measured, the corresponding field
     will be modified.
     """
@@ -799,7 +796,14 @@ class Points(np.ndarray):
         """Alternative constructor
 
         Use if data is passed as collection of parts, as
-            >>> obj = Points.from_parts([[[0],[1]], [[2],[3]]])
+
+            >>> p = Points.from_parts([[[0, 0], [1, 1]],
+            ...                        [[2, 2], [3,3]]])
+            ... p
+            Points([[0, 0],
+                    [1, 1],
+                    [2, 2],
+                    [3, 3]])
 
         Recognised input formats are:
             * Sequence
@@ -825,20 +829,19 @@ class Points(np.ndarray):
             **kwargs):
         """Alternative constructor
 
-        Use if data is passed as collection of parts, as
-            >>> obj = Points.from_parts([[[0],[1]], [[2],[3]]])
+        Load file content to be interpreted as points. Uses :meth:`load`
+        to read files.
 
         Recognised input formats are:
             * Sequence
             * 2D Sequence (sequence of sequences all of same length)
             * Sequence of 2D sequences all of same second dimension
 
-        In this way, part edges are taken from the input shape and do
-        not have to be specified explicitly. Calls :meth:`get_shape`
-        and :meth:`load`.
-
         Args:
-            f: File name as string or :obj:`pathlib.Path` object
+            f: File name as string or :obj:`pathlib.Path` object.
+            *args: Arguments passed to :meth:`load`.
+            from_parts: If `True` uses :meth:`from_parts` constructor.
+               If `False` uses default constructor.
 
         Return:
             Instance of :obj:`Points`
@@ -1275,27 +1278,77 @@ class Summary(MutableSequence):
         return fig, ax, plotted
 
 
-LabelInfo = namedtuple(
-    'LabelInfo', [
-            "origin",     # "fitted", "reeled", "predicted", None
-            "reference",  # another CNN instance, None
-            "params",     # dict of fit/predict params per label
-        ]
-    )
+class LabelInfo(NamedTuple):
+    """Contex information for labels
 
-CNNRecord = namedtuple(
-    'CNNRecord', [
-        "points",
-        "r",
-        "c",
-        "min",
-        "max",
-        "clusters",
-        "largest",
-        "noise",
-        "time",
-        ]
-    )
+    :obj:`LabelInfo` instances will be attached to :obj:`Labels` and/or
+    modified by :meth:`CNN.fit`, :meth:`CNN.reel`, and
+    :meth:`CNN.predict`.
+    """
+
+    origin: Optional[str]
+    """
+    Valid identifiers are:
+
+        * "fitted": Labels were assigned by :meth:`CNN.fit`.
+        * "reeled": Labels were overwritten by :meth:`CNN.reel`.
+        * "predicted": Labels were assigned by :meth:`CNN.predict`.
+        * None: Unkown origin.
+    """
+
+    reference: Optional[Type["CNN"]]
+    """
+    A :obj:`CNN` instance supporting the `origin`.
+    If `origin = "fitted"` or `origin = "reeled"`, this is a
+    reference to the object carriying the labels. If
+    `origin = "predicted"` this is a reference to the object
+    carrying the base labels. Can be `None` if reference is
+    unknown.
+    """
+
+    params: Dict
+    """"
+    An overview over cluster parameters used to assign
+    labels. This is a dictionary with label numbers as keys
+    and a parameter tuples (*r*, *c*) as values. This is useful
+    if labels have been *reeled* or *predicted* and have
+    different underlying parameters (Dict[int, Tuple(float, int)])
+    """
+
+
+class CNNRecord(NamedTuple):
+    """Cluster result container
+
+    :obj:`CNNRecord` instances can be returned by :meth:`CNN.fit` and
+    are collected in :obj:`Summary`.
+    """
+
+    points: int
+    """Number of points in the clustered data set."""
+
+    r: float
+    """Radius cutoff *r*."""
+
+    c: int
+    """CNN cutoff *c* (similarity criterion)"""
+
+    min: int
+    """Member cutoff. Valid clusters have at least this many members."""
+
+    max: int
+    """Maximum cluster number. After sorting, only the biggest `max` clusters are kept."""
+
+    clusters: int
+    """Number of identified clusters."""
+
+    largest: float
+    """Ratio of points in the largest cluster."""
+
+    noise: float
+    """Ratio of points classified as outliers."""
+
+    time: float
+    """Measured execution time for the fit, including sorting in seconds."""
 
 
 class CNN:
