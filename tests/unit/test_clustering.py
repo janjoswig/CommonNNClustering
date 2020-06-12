@@ -78,7 +78,7 @@ class TestCython:
             labels = np.zeros(len(neighbourhoods), dtype=np.int_)
             consider = np.ones_like(labels, dtype=np.uint8)
             cfits.fit_from_NeighbourhoodsList(
-                neighbourhoods, labels, consider, c
+                neighbourhoods, labels, consider, c, False
                 )
 
             np.testing.assert_array_equal(
@@ -101,7 +101,7 @@ class TestCython:
             labels = np.zeros(len(neighbourhoods), dtype=np.int_)
             consider = np.ones_like(labels, dtype=np.uint8)
             cfits.fit_from_NeighbourhoodsArray(
-                neighbourhoods, labels, consider, c
+                neighbourhoods, labels, consider, c, False
                 )
 
             np.testing.assert_array_equal(

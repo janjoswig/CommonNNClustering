@@ -2333,7 +2333,8 @@ class CNN:
                             other.labels.consider,
                             self.labels,
                             set(clusters),
-                            _cnn_cutoff)
+                            params["cnn_cutoff"],
+                            other.data.neighbourhoods.self_counting)
 
             # Predict from List[Set[int]]
             # TODO: Allow different methods and data structures
