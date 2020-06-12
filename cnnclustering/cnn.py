@@ -71,7 +71,7 @@ def timed(function_):
                     f"{int(minutes)} minutes, "
                     f"{seconds:.4f} seconds"
                 )
-            return *wrapped, stopped
+            return (*wrapped, stopped)
         return
     return wrapper
 
