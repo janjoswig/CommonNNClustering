@@ -1,4 +1,6 @@
-Common nearest neighbours (CNN) clustering and core-set Markov-state model estimation 
+[![Build Status](https://travis-ci.com/janjoswig/CNN.svg?branch=master)](https://travis-ci.com/janjoswig/CNN)
+
+Common nearest neighbours (CNN) clustering and core-set Markov-state model estimation
 =====================================================================================
 
 ***
@@ -13,19 +15,19 @@ cnnclustering
 -------------
 
 
-The `cnnclustering` Python package provides a flexible interface to use the <b>c</b>ommon-<b>n</b>earest-<b>n</b>eighbours cluster algorithm. While the method can be applied to abitrary data, this implementation was made before the background of processing trajectories from Molecular Dynamics simulations. In this context the cluster result can serve as a suitable basis for the construction of a core-set Markov-state (csMSM) model to capture the essential dynamics of the underlying molecular processes. 
+The `cnnclustering` Python package provides a flexible interface to use the <b>c</b>ommon-<b>n</b>earest-<b>n</b>eighbours cluster algorithm. While the method can be applied to abitrary data, this implementation was made before the background of processing trajectories from Molecular Dynamics simulations. In this context the cluster result can serve as a suitable basis for the construction of a core-set Markov-state (csMSM) model to capture the essential dynamics of the underlying molecular processes.
 
 The package provides two modules:
 
   - `cnn`: (Hierarchical) CNN clustering and analysis
   - `cmsm`: csMSM estimation and analysis
-   
+
 Features:
 
   - Flexible: Clustering can be done for data sets in different input formats. Easy interfacing with external methods.
   - Convenient: Integration of functionality, handy in the context of Molecular Dynamics.
   - Fast: Core functionalities use Cython.
-  
+
 Please refer to the following papers for the scientific background (and consider citing if you find the method useful):
 
   - B. Keller, X. Daura, W. F. van Gunsteren *J. Chem. Phys.*, __2010__, *132*, 074110.
@@ -35,7 +37,7 @@ Please refer to the following papers for the scientific background (and consider
 Documentation
 -------------
 
-The package documentation (under developement) is available [here](https://janjoswig.userpage.fu-berlin.de).
+The package documentation (under developement) is available [here](https://janjoswig.github.io/CNN/).
 
 Quickstart
 ----------
