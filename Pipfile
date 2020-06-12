@@ -32,7 +32,6 @@ numpy = "*"
 matplotlib = "*"
 pandas = "*"
 scipy = "*"
-colorama = "*"
 tqdm = "*"
 
 [requires]

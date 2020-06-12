@@ -38,16 +38,36 @@
             
   <div class="section" id="installation-instructions">
 <h1>Installation instructions<a class="headerlink" href="#installation-instructions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">cnnclustering</span></code> package is developed and tested in Python 3.8. Earlier
+versions &gt;=3.6 may work as well, though. The package has a few third
+party Python package dependencies. We recommend to install the latest
+version of:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code></p></li>
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">numpy</span></code></p></li>
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">scipy</span></code></p></li>
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">pandas</span></code> (optional)</p></li>
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">tqdm</span></code></p></li>
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">PyYAML</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>If you want to compile the Cython extensions yourself, you will need to
+install <code class="xref py py-mod docutils literal notranslate"><span class="pre">Cython</span></code> as well. The tests can be run after installing
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">pytest</span></code> and require <code class="xref py py-mod docutils literal notranslate"><span class="pre">scikit-learn</span></code>.</p>
+</div>
 <div class="section" id="pypi-commings-soon">
 <h2>PyPi (commings soon)<a class="headerlink" href="#pypi-commings-soon" title="Permalink to this headline">¶</a></h2>
-<p>pip install cnnclustering</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install cnnclustering
+</pre></div>
+</div>
 </div>
 <div class="section" id="manual-installation">
 <h2>Manual installation<a class="headerlink" href="#manual-installation" title="Permalink to this headline">¶</a></h2>
-<p>Clone the source repository
-<a class="reference external" href="https://github.com/janjoswig/CNN">https://github.com/janjoswig/CNN</a>
-and use the package <cite>cnnclustering</cite> as you prefer it, e.g. install it
-via pip.</p>
+<p>Clone the source repository <a class="reference external" href="https://github.com/janjoswig/CNN">https://github.com/janjoswig/CNN</a> and use the package
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">cnnclustering</span></code> as you prefer it, e.g. install it via pip.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/janjoswig/CNN
 $ <span class="nb">cd</span> CNN
 $ pip install .
