@@ -26,6 +26,7 @@ pytest-cov = "*"
 rstcheck = "*"
 nbsphinx = "*"
 pygments = "*"
+bump2version = "*"
 
 [packages]
 numpy = "*"

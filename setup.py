@@ -64,7 +64,7 @@ for category, fname in requirements_map.items():
 
 setup(
     name='cnnclustering',
-    version='0.3.2',
+    version='0.3.3',
     keywords=["Density-based-clustering"],
     scripts=["cnnclustering/cnn.py",
              "cnnclustering/cmsm.py",
