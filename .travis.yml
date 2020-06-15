@@ -1,11 +1,16 @@
 language: python
 python:
   - "3.8"
-
-# command to install dependencies
 install:
   - pip install -r requirements.txt -r requirements-optional.txt -r requirements-tests.txt
-
-# command to run tests
 script:
   - pytest
+deploy:
+  provider: pypi
+  username: "__token__"
+  password:
+    secure: lmJm/E/vLZf+rJtdW0zxGeN+QWTrncgRGNxrFthaRN1iqovrazmzpixGHQnEnUPnOe2sOs8RSzQEoRDyUfTd8lwqczqefURRnP2OXCv1h0jLYDqZmPOuR6DlOqwOp/6txtamMBJtlEFxozFAjBSeSMz5EwLelAVyZYpYYH+qSi8NYj5xebx6LTpe9hiDOWKwCsmbLDK9RK8KKPBYBS7918kMMy4x9WvQHhqy8oi8n9fUwyeTAGa33Eo4+2e3eBwLIiPqgQhd2dhdLQHk+TmWAvVgCRYodXIVCItFdSsvEdnIeN8t/Vh7J1XME8fHSLPvaWaQwdRNZa2sobr7fUEQf5vZ/7OLxnV36Mx7z8bnbV+BECxyZriHpqNRdJlz8lzCcnJIQZNzK/nBFtshtwId9KgxgWnHXtrjTyNYUO2lYmh28HZd6BIq5gcZUVc512bO3OeExuErmfZ1Oialy8dD/vb1/wzKLgz4pX7QGDP/IdoTudvb6RgBqZm4nTQ+DS/1wK5zC++65r3VwxzZq3taHQ/stCjKx9xpiFppEe7oSXI3A+yOscrAjHfMpbpOEo7/n7WMBoexDCILGtsNcMdHOurZfNm4IfcETWGz6KmxXiEykenaq0n+AUCsx0BuHtM1tIroAXk/b94IxJST4S0ymZ4LZcaCNDgCr3G9RMNuaPk=
+  on:
+    tags: true
+    python: "3.8"
+  skip_existing: true
