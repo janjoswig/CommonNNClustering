@@ -1,0 +1,14 @@
+include pyproject.toml
+
+# Include the license file
+include LICENSE.txt
+
+# Include the requirements files
+include requirements*.txt
+
+# Include docs
+recursive-include docs *
+
+# Include Cython sources
+recursive-include cnnclustering *.pyx
+recursive-include cnnclustering *.so
