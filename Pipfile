@@ -27,6 +27,8 @@ rstcheck = "*"
 nbsphinx = "*"
 pygments = "*"
 bump2version = "*"
+pydpc = "*"
+hdbscan = "*"
 
 [packages]
 numpy = "*"
@@ -34,7 +36,7 @@ matplotlib = "*"
 pandas = "*"
 scipy = "*"
 tqdm = "*"
-pydpc = "*"
+
 
 [requires]
 python_version = "3.8"

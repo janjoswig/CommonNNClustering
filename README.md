@@ -45,4 +45,4 @@ Quickstart
 Alternative scikit-learn implementation
 ---------------------------------------
 
-We provide an alternative approach to CNN clustering in the spirit of the scikit-learn project over this [fork](https://github.com/janjoswig/scikit-learn/tree/cnnclustering).
+We provide an alternative approach to CNN clustering in the spirit of the scikit-learn project over this [fork](https://github.com/janjoswig/scikit-learn-extra/tree/cnnclustering) of scikit-learn-contrib/scikit-learn-extra.

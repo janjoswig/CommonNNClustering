@@ -283,35 +283,36 @@ div.rendered_html tbody tr:hover {
 <ul class="toc-item"><li><p>4.1  Clustering</p>
 </li><li><p>4.2  Coreset MSM estimation</p>
 <ul class="toc-item"><li><p>4.2.1  (MSM on test data dt = 0.1 ns)</p>
-</li></ul></li></ul></li></ul></div><div class="section" id="Pre-requirements">
-<h2>Pre-requirements<a class="headerlink" href="#Pre-requirements" title="Permalink to this headline">¶</a></h2>
+</li></ul></li></ul></li></ul></div></div>
+<div class="section" id="Pre-requirements">
+<h1>Pre-requirements<a class="headerlink" href="#Pre-requirements" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="Import-dependencies">
-<h3>Import dependencies<a class="headerlink" href="#Import-dependencies" title="Permalink to this headline">¶</a></h3>
+<h2>Import dependencies<a class="headerlink" href="#Import-dependencies" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Primary imports</span>
-<span class="kn">import</span> <span class="nn">importlib</span>  <span class="c1"># Only needed for module editing</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>  <span class="c1"># Optional dependency</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">pprint</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;always&quot;</span><span class="p">)</span>  <span class="c1"># Surpress or enable warnings</span>
+<span></span># Primary imports
+import importlib  # Only needed for module editing
+import json
+import pandas as pd  # Optional dependency
+from pathlib import Path
+import pprint
+import sys
+import time
+import warnings
+warnings.simplefilter(&quot;always&quot;)  # Surpress or enable warnings
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
-<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">datasets</span>  <span class="c1"># For sklearn test data set creation</span>
-<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+from sklearn import datasets  # For sklearn test data set creation
+from sklearn.preprocessing import StandardScaler
 
-<span class="c1"># CNN clustering module</span>
-<span class="kn">import</span> <span class="nn">cnnclustering.cnn</span> <span class="k">as</span> <span class="nn">cnn</span>    <span class="c1"># CNN clustering</span>
-<span class="kn">import</span> <span class="nn">cnnclustering.cmsm</span> <span class="k">as</span> <span class="nn">cmsm</span>  <span class="c1"># Core-set MSM estimation</span>
+# CNN clustering module
+import cnnclustering.cnn as cnn    # CNN clustering
+import cnnclustering.cmsm as cmsm  # Core-set MSM estimation
 </pre></div>
 </div>
 </div>
@@ -321,8 +322,8 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Version information</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+<span></span># Version information
+print(sys.version)
 </pre></div>
 </div>
 </div>
@@ -337,18 +338,18 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="section" id="Notebook-configuration">
-<h3>Notebook configuration<a class="headerlink" href="#Notebook-configuration" title="Permalink to this headline">¶</a></h3>
+<h2>Notebook configuration<a class="headerlink" href="#Notebook-configuration" title="Permalink to this headline">¶</a></h2>
 <p>We use <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> to create plots. A <code class="docutils literal notranslate"><span class="pre">&quot;matplotlibrc&quot;</span></code> file can be used to customise the appearance of the plots.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Matplotlib configuration</span>
-<span class="n">mpl</span><span class="o">.</span><span class="n">rc_file</span><span class="p">(</span>
-    <span class="s2">&quot;matplotlibrc&quot;</span><span class="p">,</span>
-    <span class="n">use_default_template</span><span class="o">=</span><span class="kc">False</span>
-<span class="p">)</span>
+<span></span># Matplotlib configuration
+mpl.rc_file(
+    &quot;matplotlibrc&quot;,
+    use_default_template=False
+)
 </pre></div>
 </div>
 </div>
@@ -357,35 +358,35 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Axis property defaults for the plots</span>
-<span class="n">ax_props</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;xlabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="s2">&quot;ylabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="s2">&quot;xlim&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span>
-    <span class="s2">&quot;ylim&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span>
-    <span class="s2">&quot;xticks&quot;</span><span class="p">:</span> <span class="p">(),</span>
-    <span class="s2">&quot;yticks&quot;</span><span class="p">:</span> <span class="p">(),</span>
-    <span class="s2">&quot;aspect&quot;</span><span class="p">:</span> <span class="s2">&quot;equal&quot;</span>
-<span class="p">}</span>
+<span></span># Axis property defaults for the plots
+ax_props = {
+    &quot;xlabel&quot;: None,
+    &quot;ylabel&quot;: None,
+    &quot;xlim&quot;: (-2.5, 2.5),
+    &quot;ylim&quot;: (-2.5, 2.5),
+    &quot;xticks&quot;: (),
+    &quot;yticks&quot;: (),
+    &quot;aspect&quot;: &quot;equal&quot;
+}
 
-<span class="c1"># Line plot property defaults</span>
-<span class="n">line_props</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;linewidth&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="s2">&quot;marker&quot;</span><span class="p">:</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span>
-<span class="p">}</span>
+# Line plot property defaults
+line_props = {
+    &quot;linewidth&quot;: 0,
+    &quot;marker&quot;: &#39;.&#39;,
+}
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="Package-configuration">
-<h3>Package configuration<a class="headerlink" href="#Package-configuration" title="Permalink to this headline">¶</a></h3>
+<h2>Package configuration<a class="headerlink" href="#Package-configuration" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Configuration file found?</span>
-<span class="n">cnn</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">cfgfile</span>  <span class="c1"># If None, no file is provided</span>
+<span></span># Configuration file found?
+cnn.settings.cfgfile  # If None, no file is provided
 </pre></div>
 </div>
 </div>
@@ -394,8 +395,8 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Display default settings</span>
-<span class="n">cnn</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">defaults</span>
+<span></span># Display default settings
+cnn.settings.defaults
 </pre></div>
 </div>
 </div>
@@ -416,13 +417,13 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="section" id="MD-showcase---Langerin">
-<h2>MD showcase - Langerin<a class="headerlink" href="#MD-showcase---Langerin" title="Permalink to this headline">¶</a></h2>
+<h1>MD showcase - Langerin<a class="headerlink" href="#MD-showcase---Langerin" title="Permalink to this headline">¶</a></h1>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[57]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">langerin</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">[::</span><span class="mi">20</span><span class="p">,</span> <span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;../data/md_showcase_langerin.npy&quot;</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)])</span>
+<span></span>langerin = cnn.CNN(points=[x[::20, :6] for x in np.load(&quot;../data/md_showcase_langerin.npy&quot;, allow_pickle=True)])
 </pre></div>
 </div>
 </div>
@@ -431,18 +432,18 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
-    <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span>
-    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.figsize&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
-             <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.figsize&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mf">0.5</span><span class="p">)</span>
-    <span class="p">)</span>
+<span></span>fig, Ax = plt.subplots(
+    1, 3,
+    figsize=(mpl.rcParams[&#39;figure.figsize&#39;][0],
+             mpl.rcParams[&#39;figure.figsize&#39;][1]*0.5)
+    )
 
-<span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-    <span class="n">_</span> <span class="o">=</span> <span class="n">langerin</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
-        <span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="n">dim</span><span class="p">],</span> <span class="n">plot</span><span class="o">=</span><span class="s2">&quot;contourf&quot;</span><span class="p">,</span>
-        <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">,</span>
-        <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="n">dim</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="p">)</span>
+for dim in range(3):
+    _ = langerin.evaluate(
+        ax=Ax[dim], plot=&quot;contourf&quot;,
+        ax_props=ax_props,
+        dim=(dim*2, dim*2 + 1)
+        )
 </pre></div>
 </div>
 </div>
@@ -458,8 +459,8 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">langerin</span><span class="o">.</span><span class="n">calc_dist</span><span class="p">()</span>
-<span class="n">langerin</span><span class="o">.</span><span class="n">dist_hist</span><span class="p">()</span>
+<span></span>langerin.calc_dist()
+langerin.dist_hist()
 </pre></div>
 </div>
 </div>
@@ -487,7 +488,7 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">langerin</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span></span>langerin.fit(2, 5)
 </pre></div>
 </div>
 </div>
@@ -508,18 +509,18 @@ Execution time for call of fit: 0 hours, 0 minutes, 21.9658 seconds
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
-    <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span>
-    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.figsize&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
-             <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.figsize&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mf">0.5</span><span class="p">)</span>
-    <span class="p">)</span>
+<span></span>fig, Ax = plt.subplots(
+    1, 3,
+    figsize=(mpl.rcParams[&#39;figure.figsize&#39;][0],
+             mpl.rcParams[&#39;figure.figsize&#39;][1]*0.5)
+    )
 
-<span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-    <span class="n">_</span> <span class="o">=</span> <span class="n">langerin</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
-        <span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="n">dim</span><span class="p">],</span> <span class="n">plot</span><span class="o">=</span><span class="s2">&quot;dots&quot;</span><span class="p">,</span>
-        <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">,</span>
-        <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="n">dim</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="p">)</span>
+for dim in range(3):
+    _ = langerin.evaluate(
+        ax=Ax[dim], plot=&quot;dots&quot;,
+        ax_props=ax_props,
+        dim=(dim*2, dim*2 + 1)
+        )
 </pre></div>
 </div>
 </div>
@@ -535,7 +536,7 @@ Execution time for call of fit: 0 hours, 0 minutes, 21.9658 seconds
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">langerin</span><span class="o">.</span><span class="n">isolate</span><span class="p">()</span>
+<span></span>langerin.isolate()
 </pre></div>
 </div>
 </div>
@@ -544,9 +545,9 @@ Execution time for call of fit: 0 hours, 0 minutes, 21.9658 seconds
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">langerin</span><span class="o">.</span><span class="n">_children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">cKDtree</span><span class="p">()</span>
-<span class="n">langerin</span><span class="o">.</span><span class="n">_children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">calc_neighbours_from_cKDTree</span><span class="p">(</span><span class="n">r</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">langerin</span><span class="o">.</span><span class="n">_children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span></span>langerin._children[1].data.points.cKDtree()
+langerin._children[1].calc_neighbours_from_cKDTree(r=1)
+langerin._children[1].fit(1, 5)
 </pre></div>
 </div>
 </div>
@@ -567,18 +568,18 @@ Execution time for call of fit: 0 hours, 0 minutes, 0.9313 seconds
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
-    <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span>
-    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.figsize&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
-             <span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.figsize&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mf">0.5</span><span class="p">)</span>
-    <span class="p">)</span>
+<span></span>fig, Ax = plt.subplots(
+    1, 3,
+    figsize=(mpl.rcParams[&#39;figure.figsize&#39;][0],
+             mpl.rcParams[&#39;figure.figsize&#39;][1]*0.5)
+    )
 
-<span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-    <span class="n">_</span> <span class="o">=</span> <span class="n">langerin</span><span class="o">.</span><span class="n">_children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
-        <span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="n">dim</span><span class="p">],</span> <span class="n">plot</span><span class="o">=</span><span class="s2">&quot;dots&quot;</span><span class="p">,</span>
-        <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">,</span>
-        <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="n">dim</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="p">)</span>
+for dim in range(3):
+    _ = langerin._children[1].evaluate(
+        ax=Ax[dim], plot=&quot;dots&quot;,
+        ax_props=ax_props,
+        dim=(dim*2, dim*2 + 1)
+        )
 </pre></div>
 </div>
 </div>
@@ -591,19 +592,19 @@ Execution time for call of fit: 0 hours, 0 minutes, 0.9313 seconds
 </div>
 </div>
 <div class="section" id="Space-A">
-<h2>Space A<a class="headerlink" href="#Space-A" title="Permalink to this headline">¶</a></h2>
+<h1>Space A<a class="headerlink" href="#Space-A" title="Permalink to this headline">¶</a></h1>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[177]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Load the data</span>
-<span class="c1"># 130 replica of holo-langerin;</span>
-<span class="c1"># 100 ps time step;</span>
-<span class="c1"># 5 dimensional TICA projection;</span>
-<span class="c1"># 30 ns lag time, selected bb-dihedrals and H-bonds</span>
-<span class="n">proj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;p30_5.npy&#39;</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">proj</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">proj</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<span></span># Load the data
+# 130 replica of holo-langerin;
+# 100 ps time step;
+# 5 dimensional TICA projection;
+# 30 ns lag time, selected bb-dihedrals and H-bonds
+proj = np.load(&#39;p30_5.npy&#39;, allow_pickle=True)
+print(np.shape(proj), np.shape(proj[0]))
 </pre></div>
 </div>
 </div>
@@ -635,9 +636,9 @@ Execution time for call of fit: 0 hours, 0 minutes, 0.9313 seconds
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># optionally reduce dimensionality</span>
-<span class="c1"># for i in range(len(proj)):</span>
-<span class="c1">#     proj[i] = proj[i][:, :3]</span>
+<span></span># optionally reduce dimensionality
+# for i in range(len(proj)):
+#     proj[i] = proj[i][:, :3]
 </pre></div>
 </div>
 </div>
@@ -646,10 +647,10 @@ Execution time for call of fit: 0 hours, 0 minutes, 0.9313 seconds
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># initialise clustering</span>
-<span class="n">langerin</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">test</span><span class="o">=</span><span class="n">proj</span><span class="p">)</span>
-<span class="n">langerin</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">langerin</span><span class="p">)</span>
+<span></span># initialise clustering
+langerin = cnn.CNN(test=proj)
+langerin.cut(points=(None, None, 100))
+print(langerin)
 </pre></div>
 </div>
 </div>
@@ -681,14 +682,14 @@ children :                               False
 </pre></div></div>
 </div>
 <div class="section" id="Clustering">
-<h3>Clustering<a class="headerlink" href="#Clustering" title="Permalink to this headline">¶</a></h3>
+<h2>Clustering<a class="headerlink" href="#Clustering" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[116]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Distance histogram</span>
-<span class="n">langerin</span><span class="o">.</span><span class="n">dist_hist</span><span class="p">(</span><span class="n">maxima</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">maxima_props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
+<span></span># Distance histogram
+langerin.dist_hist(maxima=True, maxima_props={&quot;order&quot;: 5})
 </pre></div>
 </div>
 </div>
@@ -728,13 +729,13 @@ Train distance matrix not calculated. Calculating distance matrix.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Axis property defaults for the following plots</span>
-<span class="n">ax_props2</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;xlabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="s2">&quot;ylabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="s2">&quot;xticks&quot;</span><span class="p">:</span> <span class="p">(),</span>
-    <span class="s2">&quot;yticks&quot;</span><span class="p">:</span> <span class="p">(),</span>
-<span class="p">}</span>
+<span></span># Axis property defaults for the following plots
+ax_props2 = {
+    &quot;xlabel&quot;: None,
+    &quot;ylabel&quot;: None,
+    &quot;xticks&quot;: (),
+    &quot;yticks&quot;: (),
+}
 </pre></div>
 </div>
 </div>
@@ -743,13 +744,13 @@ Train distance matrix not calculated. Calculating distance matrix.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Have a look at the original data ...</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">langerin</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.25</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mf">1.1</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="n">original</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="n">original</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="n">original</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span></span># Have a look at the original data ...
+obj = langerin
+fig, Ax = plt.subplots(1, 3, figsize=(6.50128*0.5, 6.50128*0.25*0.618*1.1))
+obj.evaluate(ax=Ax[0], ax_props=ax_props2, mode=&quot;test&quot;, original=True)
+obj.evaluate(ax=Ax[1], ax_props=ax_props2, dim=(1, 2), mode=&quot;test&quot;, original=True)
+obj.evaluate(ax=Ax[2], ax_props=ax_props2, dim=(3, 4), mode=&quot;test&quot;, original=True)
+fig.tight_layout(pad=0.1)
 </pre></div>
 </div>
 </div>
@@ -765,38 +766,38 @@ Train distance matrix not calculated. Calculating distance matrix.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Alternatively plot this as free energy landscape</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">langerin</span>
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.2</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mf">1.1</span><span class="p">))</span>
-<span class="n">Ax</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">gspec</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_gridspec</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">22</span><span class="p">)</span>
-<span class="n">Ax</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="mi">7</span><span class="p">]))</span>
-<span class="n">Ax</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">:</span><span class="mi">14</span><span class="p">]))</span>
-<span class="n">Ax</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">14</span><span class="p">:</span><span class="mi">21</span><span class="p">]))</span>
-<span class="n">Ax</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gspec</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-<span class="n">plotted</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
-    <span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span>
-    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="n">original</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">plot</span><span class="o">=</span><span class="s1">&#39;contourf&#39;</span><span class="p">,</span> <span class="n">contour_props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;vmin&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;vmax&quot;</span><span class="p">:</span> <span class="mf">9.5</span><span class="p">,</span> <span class="s2">&quot;extend&quot;</span><span class="p">:</span> <span class="s2">&quot;max&quot;</span><span class="p">}</span>
-    <span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
-    <span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span>
-    <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="n">original</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">plot</span><span class="o">=</span><span class="s1">&#39;contourf&#39;</span><span class="p">,</span> <span class="n">contour_props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;vmin&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;vmax&quot;</span><span class="p">:</span> <span class="mf">9.5</span><span class="p">}</span>
-    <span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
-    <span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span>
-    <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
-    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="n">original</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">plot</span><span class="o">=</span><span class="s1">&#39;contourf&#39;</span><span class="p">,</span> <span class="n">contour_props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;vmin&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;vmax&quot;</span><span class="p">:</span> <span class="mf">9.5</span><span class="p">}</span>
-    <span class="p">)</span>
-<span class="c1"># cbarax = fig.add_subplot(1, 20, 20)</span>
-<span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">plotted</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">ticks</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
-<span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\Delta G$ / $kT$&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mi">1</span>
-    <span class="p">)</span>
+<span></span># Alternatively plot this as free energy landscape
+obj = langerin
+fig = plt.figure(figsize=(6.50128*0.5, 6.50128*0.2*0.618*1.1))
+Ax = []
+gspec = fig.add_gridspec(1, 22)
+Ax.append(fig.add_subplot(gspec[0, :7]))
+Ax.append(fig.add_subplot(gspec[0, 7:14]))
+Ax.append(fig.add_subplot(gspec[0, 14:21]))
+Ax.append(fig.add_subplot(gspec[0, -1]))
+plotted = obj.evaluate(
+    ax=Ax[0], ax_props=ax_props2,
+    mode=&quot;test&quot;, original=True,
+    plot=&#39;contourf&#39;, contour_props={&quot;levels&quot;: 40, &quot;vmin&quot;: 0, &quot;vmax&quot;: 9.5, &quot;extend&quot;: &quot;max&quot;}
+    )[2]
+obj.evaluate(
+    ax=Ax[1], ax_props=ax_props2,
+    dim=(1, 2),
+    mode=&quot;test&quot;, original=True,
+    plot=&#39;contourf&#39;, contour_props={&quot;levels&quot;: 40, &quot;vmin&quot;: 0, &quot;vmax&quot;: 9.5}
+    )
+obj.evaluate(
+    ax=Ax[2], ax_props=ax_props2,
+    dim=(3, 4),
+    mode=&quot;test&quot;, original=True,
+    plot=&#39;contourf&#39;, contour_props={&quot;levels&quot;: 40, &quot;vmin&quot;: 0, &quot;vmax&quot;: 9.5}
+    )
+# cbarax = fig.add_subplot(1, 20, 20)
+cbar = fig.colorbar(mappable=plotted[0], cax=Ax[3], ticks=(2, 4, 6, 8))
+cbar.set_label(r&quot;$\Delta G$ / $kT$&quot;, fontsize=8)
+fig.subplots_adjust(
+    left=0, right=0.8, bottom=0, top=1, wspace=0.5, hspace=1
+    )
 </pre></div>
 </div>
 </div>
@@ -812,14 +813,14 @@ Train distance matrix not calculated. Calculating distance matrix.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># ... and the reduced set</span>
-<span class="c1"># Have a look at the original data</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">langerin</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.25</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mf">1.1</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">original</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">original</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">original</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span></span># ... and the reduced set
+# Have a look at the original data
+obj = langerin
+fig, Ax = plt.subplots(1, 3, figsize=(6.50128*0.5, 6.50128*0.25*0.618*1.1))
+obj.evaluate(ax=Ax[0], ax_props=ax_props2, original=True)
+obj.evaluate(ax=Ax[1], ax_props=ax_props2, dim=(1, 2), original=True)
+obj.evaluate(ax=Ax[2], ax_props=ax_props2, dim=(3, 4), original=True)
+fig.tight_layout(pad=0.1)
 </pre></div>
 </div>
 </div>
@@ -835,16 +836,16 @@ Train distance matrix not calculated. Calculating distance matrix.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Level 1</span>
-<span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">langerin</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.25</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mf">1.1</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="c1"># # fig.savefig(f&quot;c_{r}_{c}.png&quot;)</span>
+<span></span># Level 1
+r, c = 4, 5
+obj = langerin
+obj.fit(radius_cutoff=r, cnn_cutoff=c)
+fig, Ax = plt.subplots(1, 3, figsize=(6.50128*0.5, 6.50128*0.25*0.618*1.1))
+obj.evaluate(ax=Ax[0], ax_props=ax_props2)
+obj.evaluate(ax=Ax[1], ax_props=ax_props2, dim=(1, 2))
+obj.evaluate(ax=Ax[2], ax_props=ax_props2, dim=(3, 4))
+fig.tight_layout(pad=0.1)
+# # fig.savefig(f&quot;c_{r}_{c}.png&quot;)
 </pre></div>
 </div>
 </div>
@@ -874,11 +875,11 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Isolate the result and prepare for level 2</span>
-<span class="n">langerin</span><span class="o">.</span><span class="n">isolate</span><span class="p">()</span>
-<span class="n">l1</span> <span class="o">=</span> <span class="n">langerin</span><span class="o">.</span><span class="n">train_children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="n">l2</span> <span class="o">=</span> <span class="n">langerin</span><span class="o">.</span><span class="n">train_children</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-<span class="n">l3</span> <span class="o">=</span> <span class="n">langerin</span><span class="o">.</span><span class="n">train_children</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span></span># Isolate the result and prepare for level 2
+langerin.isolate()
+l1 = langerin.train_children[1]
+l2 = langerin.train_children[2]
+l3 = langerin.train_children[3]
 </pre></div>
 </div>
 </div>
@@ -897,16 +898,16 @@ Configuration file found in /home/janjoswig
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Level 2, child 3</span>
-<span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">l3</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.25</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mf">1.1</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="c1"># # fig.savefig(f&quot;c3_{r}_{c}.png&quot;)</span>
+<span></span># Level 2, child 3
+r, c = 1, 0
+obj = l3
+obj.fit(radius_cutoff=r, cnn_cutoff=c)
+fig, Ax = plt.subplots(1, 3, figsize=(6.50128*0.5, 6.50128*0.25*0.618*1.1))
+obj.evaluate(ax=Ax[0], ax_props=ax_props2)
+obj.evaluate(ax=Ax[1], ax_props=ax_props2, dim=(1, 2))
+obj.evaluate(ax=Ax[2], ax_props=ax_props2, dim=(3, 4))
+fig.tight_layout(pad=0.1)
+# # fig.savefig(f&quot;c3_{r}_{c}.png&quot;)
 </pre></div>
 </div>
 </div>
@@ -936,16 +937,16 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Level 2, child 2</span>
-<span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mi">5</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">l2</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.25</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mf">1.1</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="c1"># # fig.savefig(f&quot;c2_{r}_{c}.png&quot;)</span>
+<span></span># Level 2, child 2
+r, c = 0.8, 5
+obj = l2
+obj.fit(radius_cutoff=r, cnn_cutoff=c)
+fig, Ax = plt.subplots(1, 3, figsize=(6.50128*0.5, 6.50128*0.25*0.618*1.1))
+obj.evaluate(ax=Ax[0], ax_props=ax_props2)
+obj.evaluate(ax=Ax[1], ax_props=ax_props2, dim=(1, 2))
+obj.evaluate(ax=Ax[2], ax_props=ax_props2, dim=(3, 4))
+fig.tight_layout(pad=0.1)
+# # fig.savefig(f&quot;c2_{r}_{c}.png&quot;)
 </pre></div>
 </div>
 </div>
@@ -975,16 +976,16 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Level 2, child 1</span>
-<span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="mf">1.3</span><span class="p">,</span> <span class="mi">0</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">l1</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.25</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mf">1.1</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="c1"># # fig.savefig(f&quot;c1_{r}_{c}.png&quot;)</span>
+<span></span># Level 2, child 1
+r, c = 1.3, 0
+obj = l1
+obj.fit(radius_cutoff=r, cnn_cutoff=c)
+fig, Ax = plt.subplots(1, 3, figsize=(6.50128*0.5, 6.50128*0.25*0.618*1.1))
+obj.evaluate(ax=Ax[0], ax_props=ax_props2)
+obj.evaluate(ax=Ax[1], ax_props=ax_props2, dim=(1, 2))
+obj.evaluate(ax=Ax[2], ax_props=ax_props2, dim=(3, 4))
+fig.tight_layout(pad=0.1)
+# # fig.savefig(f&quot;c1_{r}_{c}.png&quot;)
 </pre></div>
 </div>
 </div>
@@ -1014,9 +1015,9 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Isolate from l1 and prepare for level 3</span>
-<span class="n">l1</span><span class="o">.</span><span class="n">isolate</span><span class="p">()</span>
-<span class="n">l1_1</span> <span class="o">=</span> <span class="n">l1</span><span class="o">.</span><span class="n">train_children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span></span># Isolate from l1 and prepare for level 3
+l1.isolate()
+l1_1 = l1.train_children[1]
 </pre></div>
 </div>
 </div>
@@ -1035,16 +1036,16 @@ Configuration file found in /home/janjoswig
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Level 3, child 1</span>
-<span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mi">0</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">l1_1</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">member_cutoff</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.25</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mf">1.1</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="c1"># # fig.savefig(f&quot;c1_1_{r}_{c}.png&quot;)</span>
+<span></span># Level 3, child 1
+r, c = 0.9, 0
+obj = l1_1
+obj.fit(radius_cutoff=r, cnn_cutoff=c, member_cutoff=0)
+fig, Ax = plt.subplots(1, 3, figsize=(6.50128*0.5, 6.50128*0.25*0.618*1.1))
+obj.evaluate(ax=Ax[0], ax_props=ax_props2)
+obj.evaluate(ax=Ax[1], ax_props=ax_props2, dim=(1, 2))
+obj.evaluate(ax=Ax[2], ax_props=ax_props2, dim=(3, 4))
+fig.tight_layout(pad=0.1)
+# # fig.savefig(f&quot;c1_1_{r}_{c}.png&quot;)
 </pre></div>
 </div>
 </div>
@@ -1074,9 +1075,9 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Isolate from l1_1 and prepare for level 4</span>
-<span class="n">l1_1</span><span class="o">.</span><span class="n">isolate</span><span class="p">()</span>
-<span class="n">l1_1_1</span> <span class="o">=</span> <span class="n">l1_1</span><span class="o">.</span><span class="n">train_children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span></span># Isolate from l1_1 and prepare for level 4
+l1_1.isolate()
+l1_1_1 = l1_1.train_children[1]
 </pre></div>
 </div>
 </div>
@@ -1098,16 +1099,16 @@ Configuration file found in /home/janjoswig
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Level 4, child 1</span>
-<span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mi">10</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">l1_1_1</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.25</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mf">1.1</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="c1"># # fig.savefig(f&quot;c1_1_2_{r}_{c}.png&quot;)</span>
+<span></span># Level 4, child 1
+r, c = 0.6, 10
+obj = l1_1_1
+obj.fit(radius_cutoff=r, cnn_cutoff=c)
+fig, Ax = plt.subplots(1, 3, figsize=(6.50128*0.5, 6.50128*0.25*0.618*1.1))
+obj.evaluate(ax=Ax[0], ax_props=ax_props2)
+obj.evaluate(ax=Ax[1], ax_props=ax_props2, dim=(1, 2))
+obj.evaluate(ax=Ax[2], ax_props=ax_props2, dim=(3, 4))
+fig.tight_layout(pad=0.1)
+# # fig.savefig(f&quot;c1_1_2_{r}_{c}.png&quot;)
 </pre></div>
 </div>
 </div>
@@ -1137,10 +1138,10 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Isolate from l1_1_1 and prepare for level 5</span>
-<span class="n">l1_1_1</span><span class="o">.</span><span class="n">isolate</span><span class="p">()</span>
-<span class="n">l1_1_1_1</span> <span class="o">=</span> <span class="n">l1_1_1</span><span class="o">.</span><span class="n">train_children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="n">l1_1_1_2</span> <span class="o">=</span> <span class="n">l1_1_1</span><span class="o">.</span><span class="n">train_children</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span></span># Isolate from l1_1_1 and prepare for level 5
+l1_1_1.isolate()
+l1_1_1_1 = l1_1_1.train_children[1]
+l1_1_1_2 = l1_1_1.train_children[2]
 </pre></div>
 </div>
 </div>
@@ -1161,16 +1162,16 @@ Configuration file found in /home/janjoswig
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Level 5, child 2</span>
-<span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mi">15</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">l1_1_1_2</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.25</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mf">1.1</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="c1"># # fig.savefig(f&quot;c1_1_1_2_{r}_{c}.png&quot;)</span>
+<span></span># Level 5, child 2
+r, c = 0.4, 15
+obj = l1_1_1_2
+obj.fit(radius_cutoff=r, cnn_cutoff=c)
+fig, Ax = plt.subplots(1, 3, figsize=(6.50128*0.5, 6.50128*0.25*0.618*1.1))
+obj.evaluate(ax=Ax[0], ax_props=ax_props2)
+obj.evaluate(ax=Ax[1], ax_props=ax_props2, dim=(1, 2))
+obj.evaluate(ax=Ax[2], ax_props=ax_props2, dim=(3, 4))
+fig.tight_layout(pad=0.1)
+# # fig.savefig(f&quot;c1_1_1_2_{r}_{c}.png&quot;)
 </pre></div>
 </div>
 </div>
@@ -1200,16 +1201,16 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Level 5, child 1</span>
-<span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mi">20</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">l1_1_1_1</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.25</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mf">1.1</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="c1"># # fig.savefig(f&quot;c1_1_1_1_{r}_{c}.png&quot;)</span>
+<span></span># Level 5, child 1
+r, c = 0.4, 20
+obj = l1_1_1_1
+obj.fit(radius_cutoff=r, cnn_cutoff=c)
+fig, Ax = plt.subplots(1, 3, figsize=(6.50128*0.5, 6.50128*0.25*0.618*1.1))
+obj.evaluate(ax=Ax[0], ax_props=ax_props2)
+obj.evaluate(ax=Ax[1], ax_props=ax_props2, dim=(1, 2))
+obj.evaluate(ax=Ax[2], ax_props=ax_props2, dim=(3, 4))
+fig.tight_layout(pad=0.1)
+# # fig.savefig(f&quot;c1_1_1_1_{r}_{c}.png&quot;)
 </pre></div>
 </div>
 </div>
@@ -1239,8 +1240,8 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Finished?</span>
-<span class="n">langerin</span><span class="o">.</span><span class="n">pie</span><span class="p">()</span>
+<span></span># Finished?
+langerin.pie()
 </pre></div>
 </div>
 </div>
@@ -1256,11 +1257,11 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Wrap up from child to parent</span>
-<span class="n">l1_1_1</span><span class="o">.</span><span class="n">reel</span><span class="p">()</span>
-<span class="n">l1_1</span><span class="o">.</span><span class="n">reel</span><span class="p">()</span>
-<span class="n">l1</span><span class="o">.</span><span class="n">reel</span><span class="p">()</span>
-<span class="n">langerin</span><span class="o">.</span><span class="n">reel</span><span class="p">()</span>
+<span></span># Wrap up from child to parent
+l1_1_1.reel()
+l1_1.reel()
+l1.reel()
+langerin.reel()
 </pre></div>
 </div>
 </div>
@@ -1269,14 +1270,14 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Plot the total clustering result</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">langerin</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.25</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mf">1.1</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props2</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="c1"># # fig.savefig(f&quot;c1_1_1_2_{r}_{c}.png&quot;)</span>
+<span></span># Plot the total clustering result
+obj = langerin
+fig, Ax = plt.subplots(1, 3, figsize=(6.50128*0.5, 6.50128*0.25*0.618*1.1))
+obj.evaluate(ax=Ax[0], ax_props=ax_props2)
+obj.evaluate(ax=Ax[1], ax_props=ax_props2, dim=(1, 2))
+obj.evaluate(ax=Ax[2], ax_props=ax_props2, dim=(3, 4))
+fig.tight_layout(pad=0.1)
+# # fig.savefig(f&quot;c1_1_1_2_{r}_{c}.png&quot;)
 </pre></div>
 </div>
 </div>
@@ -1292,8 +1293,8 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Cluster size overview</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">langerin</span><span class="o">.</span><span class="n">train_clusterdict</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+<span></span># Cluster size overview
+print(json.dumps({k: len(v) for k, v in langerin.train_clusterdict.items()}, indent=4))
 </pre></div>
 </div>
 </div>
@@ -1329,8 +1330,8 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># store train set assignments</span>
-<span class="c1"># np.save(&quot;train_labels_30_5.npy&quot;, langerin.train_labels)</span>
+<span></span># store train set assignments
+# np.save(&quot;train_labels_30_5.npy&quot;, langerin.train_labels)
 </pre></div>
 </div>
 </div>
@@ -1339,10 +1340,10 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># load train set assignments</span>
-<span class="n">langerin</span><span class="o">.</span><span class="n">train_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;train_labels_30_5.npy&quot;</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="c1"># translate label information into clusterdict information</span>
-<span class="n">langerin</span><span class="o">.</span><span class="n">labels2dict</span><span class="p">()</span>
+<span></span># load train set assignments
+langerin.train_labels = np.load(&quot;train_labels_30_5.npy&quot;, allow_pickle=True)
+# translate label information into clusterdict information
+langerin.labels2dict()
 </pre></div>
 </div>
 </div>
@@ -1351,9 +1352,9 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Prepare distance matrices for lookup</span>
-<span class="n">langerin</span><span class="o">.</span><span class="n">dist</span><span class="p">()</span>
-<span class="n">langerin</span><span class="o">.</span><span class="n">map</span><span class="p">()</span>
+<span></span># Prepare distance matrices for lookup
+langerin.dist()
+langerin.map()
 </pre></div>
 </div>
 </div>
@@ -1362,9 +1363,9 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Predict labels for the test set</span>
-<span class="c1"># Going from small to large</span>
-<span class="n">langerin</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">clusters</span><span class="o">=</span><span class="p">[</span><span class="mi">14</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">17</span><span class="p">],</span> <span class="n">behaviour</span><span class="o">=</span><span class="s2">&quot;lookup&quot;</span><span class="p">)</span>
+<span></span># Predict labels for the test set
+# Going from small to large
+langerin.predict(0.2, 0, clusters=[14, 15, 16, 17], behaviour=&quot;lookup&quot;)
 </pre></div>
 </div>
 </div>
@@ -1373,7 +1374,7 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">langerin</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">clusters</span><span class="o">=</span><span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">],</span> <span class="n">behaviour</span><span class="o">=</span><span class="s2">&quot;lookup&quot;</span><span class="p">)</span>
+<span></span>langerin.predict(0.5, 1, clusters=[12, 13], behaviour=&quot;lookup&quot;)
 </pre></div>
 </div>
 </div>
@@ -1382,7 +1383,7 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">langerin</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">clusters</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">],</span> <span class="n">behaviour</span><span class="o">=</span><span class="s2">&quot;lookup&quot;</span><span class="p">)</span>
+<span></span>langerin.predict(0.5, 5, clusters=[10, 11], behaviour=&quot;lookup&quot;)
 </pre></div>
 </div>
 </div>
@@ -1391,7 +1392,7 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">langerin</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">clusters</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">behaviour</span><span class="o">=</span><span class="s2">&quot;lookup&quot;</span><span class="p">)</span>
+<span></span>langerin.predict(0.4, 20, clusters=[1, 2], behaviour=&quot;lookup&quot;)
 </pre></div>
 </div>
 </div>
@@ -1400,7 +1401,7 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">langerin</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">clusters</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="n">behaviour</span><span class="o">=</span><span class="s2">&quot;lookup&quot;</span><span class="p">)</span>
+<span></span>langerin.predict(0.4, 10, clusters=[3, 4, 5, 6, 7, 8, 9], behaviour=&quot;lookup&quot;)
 </pre></div>
 </div>
 </div>
@@ -1418,29 +1419,29 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Plot the total clustering result</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">langerin</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.25</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mf">1.1</span><span class="p">))</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">axprops</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">axprops</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
-<span class="n">obj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">axprops</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="c1"># # fig.savefig(f&quot;c1_1_1_2_{r}_{c}.png&quot;)</span>
+<span></span># Plot the total clustering result
+obj = langerin
+fig, Ax = plt.subplots(1, 3, figsize=(6.50128*0.5, 6.50128*0.25*0.618*1.1))
+obj.evaluate(ax=Ax[0], ax_props=axprops, mode=&quot;test&quot;)
+obj.evaluate(ax=Ax[1], ax_props=axprops, dim=(1, 2), mode=&quot;test&quot;)
+obj.evaluate(ax=Ax[2], ax_props=axprops, dim=(3, 4), mode=&quot;test&quot;)
+fig.tight_layout(pad=0.1)
+# # fig.savefig(f&quot;c1_1_1_2_{r}_{c}.png&quot;)
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="Coreset-MSM-estimation">
-<h3>Coreset MSM estimation<a class="headerlink" href="#Coreset-MSM-estimation" title="Permalink to this headline">¶</a></h3>
+<h2>Coreset MSM estimation<a class="headerlink" href="#Coreset-MSM-estimation" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="(MSM-on-train-data-dt-=-10-ns)">
-<h4>(MSM on train data <em>dt</em> = 10 ns)<a class="headerlink" href="#(MSM-on-train-data-dt-=-10-ns)" title="Permalink to this headline">¶</a></h4>
+<h3>(MSM on train data <em>dt</em> = 10 ns)<a class="headerlink" href="#(MSM-on-train-data-dt-=-10-ns)" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Create an MSM object</span>
-<span class="n">M</span> <span class="o">=</span> <span class="n">cmsm</span><span class="o">.</span><span class="n">CMSM</span><span class="p">(</span><span class="n">langerin</span><span class="o">.</span><span class="n">get_dtraj</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;ns&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span></span># Create an MSM object
+M = cmsm.CMSM(langerin.get_dtraj(mode=&#39;train&#39;), unit=&quot;ns&quot;, step=10)
 </pre></div>
 </div>
 </div>
@@ -1449,11 +1450,11 @@ recording: ...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Estimate csMSM for different lag times (given in steps)</span>
-<span class="n">lags</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">lags</span><span class="p">:</span>
-    <span class="n">M</span><span class="o">.</span><span class="n">cmsm</span><span class="p">(</span><span class="n">lag</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">minlenfactor</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-    <span class="n">M</span><span class="o">.</span><span class="n">get_its</span><span class="p">()</span>
+<span></span># Estimate csMSM for different lag times (given in steps)
+lags = [1, 2, 3, 4]
+for i in lags:
+    M.cmsm(lag=i, minlenfactor=5)
+    M.get_its()
 </pre></div>
 </div>
 </div>
@@ -1525,9 +1526,9 @@ Using 126 trajectories with 3073 steps over 17 coresets
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Plot the time scales</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">plot_its</span><span class="p">()</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span></span># Plot the time scales
+fig, ax, *_ = M.plot_its()
+fig.tight_layout(pad=0.1)
 </pre></div>
 </div>
 </div>
@@ -1560,19 +1561,19 @@ Using 126 trajectories with 3073 steps over 17 coresets
 </div>
 </div>
 <div class="section" id="Space-B">
-<h2>Space B<a class="headerlink" href="#Space-B" title="Permalink to this headline">¶</a></h2>
+<h1>Space B<a class="headerlink" href="#Space-B" title="Permalink to this headline">¶</a></h1>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[139]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Load the data</span>
-<span class="c1"># 130 replica of holo-langerin;</span>
-<span class="c1"># 100 ps time step;</span>
-<span class="c1"># 9 dimensional TICA projection;</span>
-<span class="c1"># 9 ns lag time, selected bb-dihedrals and H-bonds</span>
-<span class="n">proj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;p9_9.npy&#39;</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">proj</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">proj</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<span></span># Load the data
+# 130 replica of holo-langerin;
+# 100 ps time step;
+# 9 dimensional TICA projection;
+# 9 ns lag time, selected bb-dihedrals and H-bonds
+proj = np.load(&#39;p9_9.npy&#39;, allow_pickle=True)
+print(np.shape(proj), np.shape(proj[0]))
 </pre></div>
 </div>
 </div>
@@ -1589,9 +1590,9 @@ Using 126 trajectories with 3073 steps over 17 coresets
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># optionally reduce dimensionality</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">proj</span><span class="p">)):</span>
-    <span class="n">proj</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">proj</span><span class="p">[</span><span class="n">i</span><span class="p">][:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+<span></span># optionally reduce dimensionality
+for i in range(len(proj)):
+    proj[i] = proj[i][:, :3]
 </pre></div>
 </div>
 </div>
@@ -1600,10 +1601,10 @@ Using 126 trajectories with 3073 steps over 17 coresets
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># initialise clustering</span>
-<span class="n">langerin_b</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">test</span><span class="o">=</span><span class="n">proj</span><span class="p">)</span>
-<span class="n">langerin_b</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">langerin_b</span><span class="p">)</span>
+<span></span># initialise clustering
+langerin_b = cnn.CNN(test=proj)
+langerin_b.cut(points=(None, None, 100))
+print(langerin_b)
 </pre></div>
 </div>
 </div>
@@ -1634,10 +1635,6 @@ children :                               False
 
 </pre></div></div>
 </div>
-</div>
-</div>
-<div class="section" id="[…]">
-<h1>[…]<a class="headerlink" href="#[…]" title="Permalink to this headline">¶</a></h1>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
@@ -1647,13 +1644,15 @@ children :                               False
 </pre></div>
 </div>
 </div>
+<div class="section" id="id1">
+<h2>Clustering<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[142]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># You can also use this clustering and skip the prediction ...</span>
-<span class="n">Image</span><span class="p">(</span><span class="s2">&quot;c_predicted_9_3.png&quot;</span><span class="p">)</span>
+<span></span># You can also use this clustering and skip the prediction ...
+Image(&quot;c_predicted_9_3.png&quot;)
 </pre></div>
 </div>
 </div>
@@ -1670,22 +1669,27 @@ children :                               False
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># load train and test set assignments</span>
-<span class="n">langerin_b</span><span class="o">.</span><span class="n">train_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;train_labels_9_3.npy&quot;</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">langerin_b</span><span class="o">.</span><span class="n">test_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;test_labels_9_3.npy&quot;</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="c1"># translate label information into clusterdict information</span>
-<span class="n">langerin_b</span><span class="o">.</span><span class="n">labels2dict</span><span class="p">()</span>
-<span class="n">langerin_b</span><span class="o">.</span><span class="n">labels2dict</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span></span># load train and test set assignments
+langerin_b.train_labels = np.load(&quot;train_labels_9_3.npy&quot;, allow_pickle=True)
+langerin_b.test_labels = np.load(&quot;test_labels_9_3.npy&quot;, allow_pickle=True)
+# translate label information into clusterdict information
+langerin_b.labels2dict()
+langerin_b.labels2dict(mode=&quot;test&quot;)
 </pre></div>
 </div>
 </div>
+</div>
+<div class="section" id="id2">
+<h2>Coreset MSM estimation<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="(MSM-on-test-data-dt-=-0.1-ns)">
+<h3>(MSM on test data <em>dt</em> = 0.1 ns)<a class="headerlink" href="#(MSM-on-test-data-dt-=-0.1-ns)" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[144]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Create an MSM object</span>
-<span class="n">MB</span> <span class="o">=</span> <span class="n">cmsm</span><span class="o">.</span><span class="n">CMSM</span><span class="p">(</span><span class="n">langerin_b</span><span class="o">.</span><span class="n">get_dtraj</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;test&#39;</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;ns&quot;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span></span># Create an MSM object
+MB = cmsm.CMSM(langerin_b.get_dtraj(mode=&#39;test&#39;), unit=&quot;ns&quot;, step=0.1)
 </pre></div>
 </div>
 </div>
@@ -1694,11 +1698,11 @@ children :                               False
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Estimate csMSM for different lag times (given in steps)</span>
-<span class="n">lags</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">125</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">175</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">300</span><span class="p">]</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">lags</span><span class="p">:</span>
-    <span class="n">MB</span><span class="o">.</span><span class="n">cmsm</span><span class="p">(</span><span class="n">lag</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">minlenfactor</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-    <span class="n">MB</span><span class="o">.</span><span class="n">get_its</span><span class="p">()</span>
+<span></span># Estimate csMSM for different lag times (given in steps)
+lags = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 175, 200, 250, 300]
+for i in lags:
+    MB.cmsm(lag=i, minlenfactor=5)
+    MB.get_its()
 </pre></div>
 </div>
 </div>
@@ -1944,9 +1948,9 @@ Using 129 trajectories with 301089 steps over 6 coresets
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Plot the implied time scales</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">MB</span><span class="o">.</span><span class="n">plot_its</span><span class="p">()</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span></span># Plot the implied time scales
+fig, ax, *_ = MB.plot_its()
+fig.tight_layout(pad=0.1)
 </pre></div>
 </div>
 </div>
@@ -1962,9 +1966,9 @@ Using 129 trajectories with 301089 steps over 6 coresets
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># A Model at lag time 10 ns might be a good choice</span>
-<span class="n">MB</span><span class="o">.</span><span class="n">cmsm</span><span class="p">(</span><span class="n">lag</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
-<span class="n">MB</span><span class="o">.</span><span class="n">get_its</span><span class="p">()</span>
+<span></span># A Model at lag time 10 ns might be a good choice
+MB.cmsm(lag=100)
+MB.get_its()
 </pre></div>
 </div>
 </div>
@@ -1994,8 +1998,8 @@ Using 129 trajectories with 301089 steps over 6 coresets
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Transition matrix</span>
-<span class="n">MB</span><span class="o">.</span><span class="n">T</span>
+<span></span># Transition matrix
+MB.T
 </pre></div>
 </div>
 </div>
@@ -2024,17 +2028,17 @@ array([[ 9.96803579e-01,  2.88007674e-04, -2.90934852e-07,
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># You can plot the eigenvectors of the transition matrix (right)</span>
-<span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.figsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mi">1</span><span class="o">*</span><span class="mf">0.25</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">MB</span><span class="o">.</span><span class="n">plot_eigenvectors</span><span class="p">()</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="mf">0.08</span><span class="p">,</span>
-    <span class="n">bottom</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span>
-    <span class="n">right</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
-    <span class="n">top</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
-    <span class="n">wspace</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">hspace</span><span class="o">=</span><span class="mi">0</span>
-    <span class="p">)</span>
+<span></span># You can plot the eigenvectors of the transition matrix (right)
+mpl.rcParams[&#39;figure.figsize&#39;] = 6.50128*0.5, 6.50128*0.5*0.618*1*0.25
+fig, Ax = MB.plot_eigenvectors()
+fig.subplots_adjust(
+    left=0.08,
+    bottom=0.15,
+    right=0.99,
+    top=0.99,
+    wspace=None,
+    hspace=0
+    )
 </pre></div>
 </div>
 </div>
@@ -2050,17 +2054,17 @@ array([[ 9.96803579e-01,  2.88007674e-04, -2.90934852e-07,
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># You can plot the eigenvectors of the transition matrix (left)</span>
-<span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;figure.figsize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">6.50128</span><span class="o">*</span><span class="mf">0.5</span><span class="o">*</span><span class="mf">0.618</span><span class="o">*</span><span class="mi">1</span><span class="o">*</span><span class="mf">0.25</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">MB</span><span class="o">.</span><span class="n">plot_eigenvectors</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="mf">0.08</span><span class="p">,</span>
-    <span class="n">bottom</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span>
-    <span class="n">right</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
-    <span class="n">top</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
-    <span class="n">wspace</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">hspace</span><span class="o">=</span><span class="mi">0</span>
-    <span class="p">)</span>
+<span></span># You can plot the eigenvectors of the transition matrix (left)
+mpl.rcParams[&#39;figure.figsize&#39;] = 6.50128*0.5, 6.50128*0.5*0.618*1*0.25
+fig, Ax = MB.plot_eigenvectors(which=&quot;left&quot;, invert=True)
+fig.subplots_adjust(
+    left=0.08,
+    bottom=0.15,
+    right=0.99,
+    top=0.99,
+    wspace=None,
+    hspace=0
+    )
 </pre></div>
 </div>
 </div>
@@ -2089,16 +2093,18 @@ array([[ 9.96803579e-01,  2.88007674e-04, -2.90934852e-07,
 </pre></div>
 </div>
 </div>
-</div>
 <div class="section" id="Benchmark-framework">
-<h1>Benchmark framework<a class="headerlink" href="#Benchmark-framework" title="Permalink to this headline">¶</a></h1>
+<h4>Benchmark framework<a class="headerlink" href="#Benchmark-framework" title="Permalink to this headline">¶</a></h4>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Coming soon</span>
+<span></span># Coming soon
 </pre></div>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -2168,7 +2174,7 @@ array([[ 9.96803579e-01,  2.88007674e-04, -2.90934852e-07,
       &copy;2020, Jan-Oliver Joswig.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

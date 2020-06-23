@@ -18,7 +18,7 @@
     <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="API Reference" href="../_source/api_reference.html" />
+    <link rel="next" title="Density based clustering explained" href="algorithm_explained.html" />
     <link rel="prev" title="Hierarchical clustering basics" href="hierarchical_clustering_basics.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -291,11 +291,11 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span></span>import sys
 
-<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+import matplotlib as mpl
 
-<span class="kn">import</span> <span class="nn">cnnclustering.cnn</span> <span class="k">as</span> <span class="nn">cnn</span>  <span class="c1"># CNN clustering</span>
+import cnnclustering.cnn as cnn  # CNN clustering
 </pre></div>
 </div>
 </div>
@@ -304,8 +304,8 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Version information</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+<span></span># Version information
+print(sys.version)
 </pre></div>
 </div>
 </div>
@@ -326,11 +326,11 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Matplotlib configuration</span>
-<span class="n">mpl</span><span class="o">.</span><span class="n">rc_file</span><span class="p">(</span>
-    <span class="s2">&quot;matplotlibrc&quot;</span><span class="p">,</span>
-    <span class="n">use_default_template</span><span class="o">=</span><span class="kc">False</span>
-<span class="p">)</span>
+<span></span># Matplotlib configuration
+mpl.rc_file(
+    &quot;matplotlibrc&quot;,
+    use_default_template=False
+)
 </pre></div>
 </div>
 </div>
@@ -339,22 +339,22 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Axis property defaults for the plots</span>
-<span class="n">ax_props</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;xlabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="s2">&quot;ylabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="s2">&quot;xlim&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span>
-    <span class="s2">&quot;ylim&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span>
-    <span class="s2">&quot;xticks&quot;</span><span class="p">:</span> <span class="p">(),</span>
-    <span class="s2">&quot;yticks&quot;</span><span class="p">:</span> <span class="p">(),</span>
-    <span class="s2">&quot;aspect&quot;</span><span class="p">:</span> <span class="s2">&quot;equal&quot;</span>
-<span class="p">}</span>
+<span></span># Axis property defaults for the plots
+ax_props = {
+    &quot;xlabel&quot;: None,
+    &quot;ylabel&quot;: None,
+    &quot;xlim&quot;: (-2.5, 2.5),
+    &quot;ylim&quot;: (-2.5, 2.5),
+    &quot;xticks&quot;: (),
+    &quot;yticks&quot;: (),
+    &quot;aspect&quot;: &quot;equal&quot;
+}
 
-<span class="c1"># Line plot property defaults</span>
-<span class="n">line_props</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;linewidth&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="s2">&quot;marker&quot;</span><span class="p">:</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span>
-<span class="p">}</span>
+# Line plot property defaults
+line_props = {
+    &quot;linewidth&quot;: 0,
+    &quot;marker&quot;: &#39;.&#39;,
+}
 </pre></div>
 </div>
 </div>
@@ -396,9 +396,9 @@ and the speed at which they can be clustered varies. Currently the <code class="
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Representation of points: &quot;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">points</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Points are Numpy arrays:  &quot;</span><span class="p">,</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span>
+<span></span>points = cnn.Points()
+print(&quot;Representation of points: &quot;, repr(points))
+print(&quot;Points are Numpy arrays:  &quot;, isinstance(points, np.ndarray))
 </pre></div>
 </div>
 </div>
@@ -417,11 +417,11 @@ Points are Numpy arrays:   True
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">original_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-                            <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">)</span>
-<span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="p">(</span><span class="n">original_points</span><span class="p">)</span>
-<span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">points</span>
+<span></span>original_points = np.array([[0, 0, 0],
+                            [1, 1, 1]], dtype=np.float_)
+points = cnn.Points(original_points)
+points[0, 0] = 1
+points
 </pre></div>
 </div>
 </div>
@@ -440,7 +440,7 @@ Points([[1., 0., 0.],
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">original_points</span>
+<span></span>original_points
 </pre></div>
 </div>
 </div>
@@ -460,8 +460,8 @@ array([[1., 0., 0.],
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]))</span>
-<span class="n">points</span>
+<span></span>points = cnn.Points(np.array([0, 0, 0]))
+points
 </pre></div>
 </div>
 </div>
@@ -480,10 +480,10 @@ Points([[0., 0., 0.]])
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">original_points</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-                   <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
-<span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="p">(</span><span class="n">original_points</span><span class="p">)</span>
-<span class="n">points</span>
+<span></span>original_points = [[0, 0, 0],
+                   [1, 1, 1]]
+points = cnn.Points(original_points)
+points
 </pre></div>
 </div>
 </div>
@@ -504,11 +504,11 @@ sequence of 2D sequences.</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="o">.</span><span class="n">from_parts</span><span class="p">([[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-                                 <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
-                                <span class="p">[[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
-                                 <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]])</span>
-<span class="n">points</span>
+<span></span>points = cnn.Points.from_parts([[[0, 0, 0],
+                                 [1, 1, 1]],
+                                [[2, 2, 2],
+                                 [3, 3, 3]]])
+points
 </pre></div>
 </div>
 </div>
@@ -529,7 +529,7 @@ Points([[0., 0., 0.],
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">points</span><span class="o">.</span><span class="n">edges</span>  <span class="c1"># 2 parts, 2 points each</span>
+<span></span>points.edges  # 2 parts, 2 points each
 </pre></div>
 </div>
 </div>
@@ -548,7 +548,7 @@ array([2, 2])
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">points</span><span class="o">.</span><span class="n">edges</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span></span>points.edges = [2, 3]
 </pre></div>
 </div>
 </div>
@@ -578,8 +578,8 @@ array([2, 2])
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">points</span><span class="o">.</span><span class="n">by_parts</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">part</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span></span>for part in points.by_parts():
+    print(f&quot;{part} \n&quot;)
 </pre></div>
 </div>
 </div>
@@ -602,8 +602,8 @@ array([2, 2])
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">points</span><span class="o">.</span><span class="n">cKDTree</span><span class="p">()</span>
-<span class="n">points</span><span class="o">.</span><span class="n">tree</span>
+<span></span>points.cKDTree()
+points.tree
 </pre></div>
 </div>
 </div>
@@ -628,8 +628,8 @@ array([2, 2])
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">distances</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Distances</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
-<span class="n">distances</span>
+<span></span>distances = cnn.Distances([[0, 1], [1, 0]])
+distances
 </pre></div>
 </div>
 </div>
@@ -689,6 +689,8 @@ data set. Such a map matrix can be used to predict cluster labels for a data set
 <li class="toctree-l2"><a class="reference internal" href="scikit_learn_datasets.html">scikit-learn Toy data sets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hierarchical_clustering_basics.html">Hierarchical clustering basics</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Data input formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="algorithm_explained.html">Density based clustering explained</a></li>
+<li class="toctree-l2"><a class="reference internal" href="algorithm_explained.html#2">2</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../_source/api_reference.html">API Reference</a></li>
@@ -700,7 +702,7 @@ data set. Such a map matrix can be used to predict cluster labels for a data set
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="../_source/tutorials.html">Tutorials</a><ul>
       <li>Previous: <a href="hierarchical_clustering_basics.html" title="previous chapter">Hierarchical clustering basics</a></li>
-      <li>Next: <a href="../_source/api_reference.html" title="next chapter">API Reference</a></li>
+      <li>Next: <a href="algorithm_explained.html" title="next chapter">Density based clustering explained</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -731,7 +733,7 @@ data set. Such a map matrix can be used to predict cluster labels for a data set
       &copy;2020, Jan-Oliver Joswig.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

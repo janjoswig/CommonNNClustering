@@ -18,7 +18,7 @@
     <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="cmsm - A Python module for coreset Markov-state model estimation" href="api_cmsm.html" />
+    <link rel="next" title="cmsm - A Python module for core-set Markov-state model (csMSM) estimation" href="api_cmsm.html" />
     <link rel="prev" title="API Reference" href="api_reference.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -1358,7 +1358,7 @@ modified by <a class="reference internal" href="#cnnclustering.cnn.CNN.fit" titl
 <a class="reference internal" href="#cnnclustering.cnn.CNN.predict" title="cnnclustering.cnn.CNN.predict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.predict()</span></code></a>.</p>
 <dl class="py attribute">
 <dt id="cnnclustering.cnn.LabelInfo.origin">
-<code class="sig-name descname">origin</code><em class="property">: Optional[str]</em><a class="headerlink" href="#cnnclustering.cnn.LabelInfo.origin" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">origin</code><em class="property">: Optional<span class="p">[</span>str<span class="p">]</span></em><a class="headerlink" href="#cnnclustering.cnn.LabelInfo.origin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Valid identifiers are:</p>
 <ul class="simple">
 <li><p>“fitted”: Labels were assigned by <a class="reference internal" href="#cnnclustering.cnn.CNN.fit" title="cnnclustering.cnn.CNN.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">CNN.fit()</span></code></a>.</p></li>
@@ -1381,7 +1381,7 @@ different underlying parameters (Dict[int, Tuple(float, int)])</p>
 
 <dl class="py attribute">
 <dt id="cnnclustering.cnn.LabelInfo.reference">
-<code class="sig-name descname">reference</code><em class="property">: Optional[Type[CNN]]</em><a class="headerlink" href="#cnnclustering.cnn.LabelInfo.reference" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">reference</code><em class="property">: Optional<span class="p">[</span>Type<span class="p">[</span>CNN<span class="p">]</span><span class="p">]</span></em><a class="headerlink" href="#cnnclustering.cnn.LabelInfo.reference" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <a class="reference internal" href="#cnnclustering.cnn.CNN" title="cnnclustering.cnn.CNN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN</span></code></a> instance supporting the <cite>origin</cite>.
 If <cite>origin = “fitted”</cite> or <cite>origin = “reeled”</cite>, this is a
 reference to the object carriying the labels. If
@@ -1519,7 +1519,7 @@ points, distances, neighbourhoods or density graph.</p>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="api_reference.html">API Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">cnn - A Python module for common-nearest-neighbour (CNN) clustering</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_cmsm.html">cmsm - A Python module for coreset Markov-state model estimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_cmsm.html">cmsm - A Python module for core-set Markov-state model (csMSM) estimation</a></li>
 </ul>
 </li>
 </ul>
@@ -1530,7 +1530,7 @@ points, distances, neighbourhoods or density graph.</p>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="api_reference.html">API Reference</a><ul>
       <li>Previous: <a href="api_reference.html" title="previous chapter">API Reference</a></li>
-      <li>Next: <a href="api_cmsm.html" title="next chapter">cmsm - A Python module for coreset Markov-state model estimation</a></li>
+      <li>Next: <a href="api_cmsm.html" title="next chapter">cmsm - A Python module for core-set Markov-state model (csMSM) estimation</a></li>
   </ul></li>
   </ul></li>
 </ul>
@@ -1561,7 +1561,7 @@ points, distances, neighbourhoods or density graph.</p>
       &copy;2020, Jan-Oliver Joswig.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

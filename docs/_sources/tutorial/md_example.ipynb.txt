@@ -4,7 +4,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "# Molecular dynamics application example"
+    "## Molecular dynamics application example"
    ]
   },
   {

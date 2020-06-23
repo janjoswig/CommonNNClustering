@@ -289,15 +289,15 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
-<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">cluster</span>   <span class="c1"># Forked at https://github.com/janjoswig/scikit-learn</span>
-<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">datasets</span>  <span class="c1"># For sklearn test data set creation</span>
-<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
+<span></span>import sys
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+from sklearn import cluster   # Forked at https://github.com/janjoswig/scikit-learn
+from sklearn import datasets  # For sklearn test data set creation
+from sklearn.preprocessing import StandardScaler
 
-<span class="kn">import</span> <span class="nn">cnnclustering.cnn</span> <span class="k">as</span> <span class="nn">cnn</span>  <span class="c1"># CNN clustering</span>
+import cnnclustering.cnn as cnn  # CNN clustering
 </pre></div>
 </div>
 </div>
@@ -307,8 +307,8 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Version information</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+<span></span># Version information
+print(sys.version)
 </pre></div>
 </div>
 </div>
@@ -329,11 +329,11 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Matplotlib configuration</span>
-<span class="n">mpl</span><span class="o">.</span><span class="n">rc_file</span><span class="p">(</span>
-    <span class="s2">&quot;matplotlibrc&quot;</span><span class="p">,</span>
-    <span class="n">use_default_template</span><span class="o">=</span><span class="kc">False</span>
-<span class="p">)</span>
+<span></span># Matplotlib configuration
+mpl.rc_file(
+    &quot;matplotlibrc&quot;,
+    use_default_template=False
+)
 </pre></div>
 </div>
 </div>
@@ -342,22 +342,22 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Axis property defaults for the plots</span>
-<span class="n">ax_props</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;xlabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="s2">&quot;ylabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="s2">&quot;xlim&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span>
-    <span class="s2">&quot;ylim&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span>
-    <span class="s2">&quot;xticks&quot;</span><span class="p">:</span> <span class="p">(),</span>
-    <span class="s2">&quot;yticks&quot;</span><span class="p">:</span> <span class="p">(),</span>
-    <span class="s2">&quot;aspect&quot;</span><span class="p">:</span> <span class="s2">&quot;equal&quot;</span>
-<span class="p">}</span>
+<span></span># Axis property defaults for the plots
+ax_props = {
+    &quot;xlabel&quot;: None,
+    &quot;ylabel&quot;: None,
+    &quot;xlim&quot;: (-2.5, 2.5),
+    &quot;ylim&quot;: (-2.5, 2.5),
+    &quot;xticks&quot;: (),
+    &quot;yticks&quot;: (),
+    &quot;aspect&quot;: &quot;equal&quot;
+}
 
-<span class="c1"># Line plot property defaults</span>
-<span class="n">line_props</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;linewidth&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="s2">&quot;marker&quot;</span><span class="p">:</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span>
-<span class="p">}</span>
+# Line plot property defaults
+line_props = {
+    &quot;linewidth&quot;: 0,
+    &quot;marker&quot;: &#39;.&#39;,
+}
 </pre></div>
 </div>
 </div>
@@ -370,8 +370,8 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Configuration file found?</span>
-<span class="n">cnn</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">cfgfile</span>  <span class="c1"># If None, no file is provided</span>
+<span></span># Configuration file found?
+cnn.settings.cfgfile  # If None, no file is provided
 </pre></div>
 </div>
 </div>
@@ -380,8 +380,8 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Display default settings</span>
-<span class="n">cnn</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">defaults</span>
+<span></span># Display default settings
+cnn.settings.defaults
 </pre></div>
 </div>
 </div>
@@ -410,9 +410,9 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Data set generation parameters</span>
-<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">n_samples</span> <span class="o">=</span> <span class="mi">2000</span>
+<span></span># Data set generation parameters
+np.random.seed(0)
+n_samples = 2000
 </pre></div>
 </div>
 </div>
@@ -421,47 +421,47 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Data set generation</span>
-<span class="c1"># circles</span>
-<span class="n">noisy_circles</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">make_circles</span><span class="p">(</span>
-    <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
-    <span class="n">factor</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span>
-    <span class="n">noise</span><span class="o">=.</span><span class="mi">05</span>
-    <span class="p">)</span>
+<span></span># Data set generation
+# circles
+noisy_circles, _ = datasets.make_circles(
+    n_samples=n_samples,
+    factor=.5,
+    noise=.05
+    )
 
-<span class="c1"># moons</span>
-<span class="n">noisy_moons</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">make_moons</span><span class="p">(</span>
-    <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
-    <span class="n">noise</span><span class="o">=.</span><span class="mi">05</span>
-    <span class="p">)</span>
+# moons
+noisy_moons, _ = datasets.make_moons(
+    n_samples=n_samples,
+    noise=.05
+    )
 
-<span class="c1"># blobs</span>
-<span class="n">blobs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">make_blobs</span><span class="p">(</span>
-    <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
-    <span class="n">random_state</span><span class="o">=</span><span class="mi">8</span>
-    <span class="p">)</span>
+# blobs
+blobs, _ = datasets.make_blobs(
+    n_samples=n_samples,
+    random_state=8
+    )
 
-<span class="c1"># None</span>
-<span class="n">no_structure</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span>
-    <span class="n">n_samples</span><span class="p">,</span> <span class="mi">2</span>
-    <span class="p">)</span>
+# None
+no_structure = np.random.rand(
+    n_samples, 2
+    )
 
-<span class="c1"># aniso</span>
-<span class="n">random_state</span> <span class="o">=</span> <span class="mi">170</span>
-<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">make_blobs</span><span class="p">(</span>
-    <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
-    <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span>
-    <span class="p">)</span>
+# aniso
+random_state = 170
+X, y = datasets.make_blobs(
+    n_samples=n_samples,
+    random_state=random_state
+    )
 
-<span class="n">transformation</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">]]</span>
-<span class="n">aniso</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">transformation</span><span class="p">)</span>
+transformation = [[0.6, -0.6], [-0.4, 0.8]]
+aniso = np.dot(X, transformation)
 
-<span class="c1"># varied</span>
-<span class="n">varied</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">make_blobs</span><span class="p">(</span>
-    <span class="n">n_samples</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
-    <span class="n">cluster_std</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">],</span>
-    <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span>
-    <span class="p">)</span>
+# varied
+varied, _ = datasets.make_blobs(
+    n_samples=n_samples,
+    cluster_std=[1.0, 2.5, 0.5],
+    random_state=random_state
+    )
 </pre></div>
 </div>
 </div>
@@ -470,45 +470,45 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Define cluster parameters</span>
-<span class="n">dsets</span> <span class="o">=</span> <span class="p">[</span> <span class="c1"># &quot;name&quot;, set, **parameters</span>
-    <span class="p">(</span><span class="s1">&#39;circles&#39;</span><span class="p">,</span> <span class="n">noisy_circles</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s1">&#39;radius_cutoff&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-        <span class="s1">&#39;cnn_cutoff&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="s1">&#39;member_cutoff&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
-        <span class="s1">&#39;max_clusters&#39;</span><span class="p">:</span> <span class="kc">None</span>
-        <span class="p">}),</span>
-    <span class="p">(</span><span class="s1">&#39;moons&#39;</span><span class="p">,</span> <span class="n">noisy_moons</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s1">&#39;radius_cutoff&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-        <span class="s1">&#39;cnn_cutoff&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="s1">&#39;member_cutoff&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-        <span class="s1">&#39;max_clusters&#39;</span><span class="p">:</span> <span class="kc">None</span>
-        <span class="p">}),</span>
-    <span class="p">(</span><span class="s1">&#39;varied&#39;</span><span class="p">,</span> <span class="n">varied</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s1">&#39;radius_cutoff&#39;</span><span class="p">:</span> <span class="mf">0.28</span><span class="p">,</span>
-        <span class="s1">&#39;cnn_cutoff&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="s1">&#39;member_cutoff&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="s1">&#39;max_clusters&#39;</span><span class="p">:</span> <span class="kc">None</span>
-        <span class="p">}),</span>
-    <span class="p">(</span><span class="s1">&#39;aniso&#39;</span><span class="p">,</span> <span class="n">aniso</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s1">&#39;radius_cutoff&#39;</span><span class="p">:</span> <span class="mf">0.29</span><span class="p">,</span>
-        <span class="s1">&#39;cnn_cutoff&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
-        <span class="s1">&#39;member_cutoff&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-        <span class="s1">&#39;max_clusters&#39;</span><span class="p">:</span> <span class="kc">None</span>
-         <span class="p">}),</span>
-    <span class="p">(</span><span class="s1">&#39;blobs&#39;</span><span class="p">,</span> <span class="n">blobs</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s1">&#39;radius_cutoff&#39;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
-        <span class="s1">&#39;cnn_cutoff&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="s1">&#39;member_cutoff&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-        <span class="s1">&#39;max_clusters&#39;</span><span class="p">:</span> <span class="kc">None</span>
-        <span class="p">}),</span>
-    <span class="p">(</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">no_structure</span><span class="p">,</span> <span class="p">{</span>
-        <span class="s1">&#39;radius_cutoff&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-        <span class="s1">&#39;cnn_cutoff&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="s1">&#39;member_cutoff&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s1">&#39;max_clusters&#39;</span><span class="p">:</span> <span class="kc">None</span>
-        <span class="p">}),</span>
-    <span class="p">]</span>
+<span></span># Define cluster parameters
+dsets = [ # &quot;name&quot;, set, **parameters
+    (&#39;circles&#39;, noisy_circles, {
+        &#39;radius_cutoff&#39;: 0.5,
+        &#39;cnn_cutoff&#39;: 20,
+        &#39;member_cutoff&#39;: 100,
+        &#39;max_clusters&#39;: None
+        }),
+    (&#39;moons&#39;, noisy_moons, {
+        &#39;radius_cutoff&#39;: 0.5,
+        &#39;cnn_cutoff&#39;: 20,
+        &#39;member_cutoff&#39;: 2,
+        &#39;max_clusters&#39;: None
+        }),
+    (&#39;varied&#39;, varied, {
+        &#39;radius_cutoff&#39;: 0.28,
+        &#39;cnn_cutoff&#39;: 20,
+        &#39;member_cutoff&#39;: 20,
+        &#39;max_clusters&#39;: None
+        }),
+    (&#39;aniso&#39;, aniso, {
+        &#39;radius_cutoff&#39;: 0.29,
+        &#39;cnn_cutoff&#39;: 30,
+        &#39;member_cutoff&#39;: 5,
+        &#39;max_clusters&#39;: None
+         }),
+    (&#39;blobs&#39;, blobs, {
+        &#39;radius_cutoff&#39;: 0.4,
+        &#39;cnn_cutoff&#39;: 20,
+        &#39;member_cutoff&#39;: 2,
+        &#39;max_clusters&#39;: None
+        }),
+    (&#39;None&#39;, no_structure, {
+        &#39;radius_cutoff&#39;: 0.5,
+        &#39;cnn_cutoff&#39;: 20,
+        &#39;member_cutoff&#39;: 1,
+        &#39;max_clusters&#39;: None
+        }),
+    ]
 </pre></div>
 </div>
 </div>
@@ -517,21 +517,21 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Plot the original data sets</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="n">Ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+<span></span># Plot the original data sets
+fig, ax = plt.subplots(2, 3)
+Ax = ax.flatten()
 
-<span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dsets</span><span class="p">):</span>
-    <span class="c1"># Fit all datasets to the same value range</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-    <span class="c1"># Plot</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="o">**</span><span class="n">line_props</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="n">ax_props</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+for count, (name, data, *_) in enumerate(dsets):
+    # Fit all datasets to the same value range
+    data = StandardScaler().fit_transform(data)
+    # Plot
+    Ax[count].plot(data[:, 0], data[:, 1], **line_props)
+    Ax[count].set(**ax_props)
+    Ax[count].set_title(f&#39;{name}&#39;, fontsize=10, pad=4)
 
-<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span>
-    <span class="p">)</span>
+fig.subplots_adjust(
+    left=0, right=1, bottom=0, top=1, wspace=0.1, hspace=0.3
+    )
 
 </pre></div>
 </div>
@@ -551,27 +551,27 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Cluster the sets and plot the result</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="n">Ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+<span></span># Cluster the sets and plot the result
+fig, ax = plt.subplots(2, 3)
+Ax = ax.flatten()
 
-<span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dsets</span><span class="p">):</span>
-    <span class="c1"># Fit all datasets to the same value range</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+for count, (name, data, params) in enumerate(dsets):
+    # Fit all datasets to the same value range
+    data = StandardScaler().fit_transform(data)
 
-    <span class="n">clustering</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
-    <span class="c1"># Calculate neighbours on-the-fly</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;conservative&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">()</span>
+    clustering = cnn.CNN(points=data)
+    # Calculate neighbours on-the-fly
+    clustering.fit(**params, policy=&quot;conservative&quot;)
+    print()
 
-    <span class="c1"># Plot</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">],</span> <span class="n">annotate_pos</span><span class="o">=</span><span class="s2">&quot;random&quot;</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="n">ax_props</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    # Plot
+    clustering.evaluate(ax=Ax[count], annotate_pos=&quot;random&quot;)
+    Ax[count].set(**ax_props)
+    Ax[count].set_title(f&#39;{name}&#39;, fontsize=10, pad=4)
 
-<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span>
-    <span class="p">)</span>
+fig.subplots_adjust(
+    left=0, right=1, bottom=0, top=1, wspace=0.1, hspace=0.3
+    )
 </pre></div>
 </div>
 </div>
@@ -633,28 +633,28 @@ Execution time for call of fit: 0 hours, 0 minutes, 0.2841 seconds
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Cluster the sets and plot the result</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="n">Ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+<span></span># Cluster the sets and plot the result
+fig, ax = plt.subplots(2, 3)
+Ax = ax.flatten()
 
-<span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dsets</span><span class="p">):</span>
-    <span class="c1"># Fit all datasets to the same value range</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+for count, (name, data, params) in enumerate(dsets):
+    # Fit all datasets to the same value range
+    data = StandardScaler().fit_transform(data)
 
-    <span class="n">clustering</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">calc_dist</span><span class="p">()</span>  <span class="c1"># Pre-calculate distances from points</span>
-    <span class="c1"># Calculate neighbours on-the-fly</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;conservative&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">()</span>
+    clustering = cnn.CNN(points=data)
+    clustering.calc_dist()  # Pre-calculate distances from points
+    # Calculate neighbours on-the-fly
+    clustering.fit(**params, policy=&quot;conservative&quot;)
+    print()
 
-    <span class="c1"># Plot</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">],</span> <span class="n">annotate_pos</span><span class="o">=</span><span class="s2">&quot;random&quot;</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="n">ax_props</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    # Plot
+    clustering.evaluate(ax=Ax[count], annotate_pos=&quot;random&quot;)
+    Ax[count].set(**ax_props)
+    Ax[count].set_title(f&#39;{name}&#39;, fontsize=10, pad=4)
 
-<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span>
-    <span class="p">)</span>
+fig.subplots_adjust(
+    left=0, right=1, bottom=0, top=1, wspace=0.1, hspace=0.3
+    )
 </pre></div>
 </div>
 </div>
@@ -716,28 +716,28 @@ Execution time for call of fit: 0 hours, 0 minutes, 0.1047 seconds
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Cluster the sets and plot the result</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="n">Ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+<span></span># Cluster the sets and plot the result
+fig, ax = plt.subplots(2, 3)
+Ax = ax.flatten()
 
-<span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dsets</span><span class="p">):</span>
-    <span class="c1"># Fit all datasets to the same value range</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+for count, (name, data, params) in enumerate(dsets):
+    # Fit all datasets to the same value range
+    data = StandardScaler().fit_transform(data)
 
-    <span class="n">clustering</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">cKDTree</span><span class="p">()</span>  <span class="c1"># Build search tree on points</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">calc_neighbours_from_cKDTree</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;radius_cutoff&quot;</span><span class="p">])</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>  <span class="c1"># Fit from precomputed neighbourhoods</span>
-    <span class="nb">print</span><span class="p">()</span>
+    clustering = cnn.CNN(points=data)
+    clustering.data.points.cKDTree()  # Build search tree on points
+    clustering.calc_neighbours_from_cKDTree(params[&quot;radius_cutoff&quot;])
+    clustering.fit(**params)  # Fit from precomputed neighbourhoods
+    print()
 
-    <span class="c1"># Plot</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">],</span> <span class="n">annotate_pos</span><span class="o">=</span><span class="s2">&quot;random&quot;</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="n">ax_props</span><span class="p">)</span>
-    <span class="n">Ax</span><span class="p">[</span><span class="n">count</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    # Plot
+    clustering.evaluate(ax=Ax[count], annotate_pos=&quot;random&quot;)
+    Ax[count].set(**ax_props)
+    Ax[count].set_title(f&#39;{name}&#39;, fontsize=10, pad=4)
 
-<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span>
-    <span class="p">)</span>
+fig.subplots_adjust(
+    left=0, right=1, bottom=0, top=1, wspace=0.1, hspace=0.3
+    )
 </pre></div>
 </div>
 </div>
@@ -827,6 +827,8 @@ Execution time for call of fit: 0 hours, 0 minutes, 0.0136 seconds
 <li class="toctree-l2 current"><a class="current reference internal" href="#">scikit-learn Toy data sets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hierarchical_clustering_basics.html">Hierarchical clustering basics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_input_formats.html">Data input formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="algorithm_explained.html">Density based clustering explained</a></li>
+<li class="toctree-l2"><a class="reference internal" href="algorithm_explained.html#2">2</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../_source/api_reference.html">API Reference</a></li>
@@ -869,7 +871,7 @@ Execution time for call of fit: 0 hours, 0 minutes, 0.0136 seconds
       &copy;2020, Jan-Oliver Joswig.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
