@@ -3,7 +3,7 @@ python:
 - '3.7'
 - '3.8'
 install:
-- pip install ".[tests, optional]"
+- pip install ".[tests, optional, dev, docs]"
 script:
 - pytest
 deploy:
