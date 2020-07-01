@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: cnnclustering
-Version: 0.3.4
+Version: 0.3.5
 Summary: A Python package for common-nearest neighbour (CNN) clustering
 Home-page: https://github.com/janjoswig/CNN
 Author: Jan-Oliver Joswig
@@ -53,7 +53,7 @@ Description: [![Build Status](https://travis-ci.com/janjoswig/CNN.svg?branch=mas
         Alternative scikit-learn implementation
         ---------------------------------------
         
-        We provide an alternative approach to CNN clustering in the spirit of the scikit-learn project over this [fork](https://github.com/janjoswig/scikit-learn/tree/cnnclustering).
+        We provide an alternative approach to CNN clustering in the spirit of the scikit-learn project over this [fork](https://github.com/janjoswig/scikit-learn-extra/tree/cnnclustering) of scikit-learn-contrib/scikit-learn-extra.
         
 Keywords: Density-based-clustering
 Platform: UNKNOWN

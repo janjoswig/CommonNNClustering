@@ -171,8 +171,6 @@ docs/_sources/tutorial/hierarchical_clustering_basics.ipynb.txt
 docs/_sources/tutorial/md_example.ipynb.txt
 docs/_sources/tutorial/scikit_learn_datasets.ipynb.txt
 docs/_sources/tutorial/tutorial.ipynb.txt
-docs/_sources/tutorial/.ipynb_checkpoints/algorithm_explained-checkpoint.ipynb.txt
-docs/_sources/tutorial/.ipynb_checkpoints/basic_usage-checkpoint.ipynb.txt
 docs/_static/alabaster.css
 docs/_static/basic.css
 docs/_static/custom.css
@@ -203,9 +201,5 @@ docs/tutorial/scikit_learn_datasets.html
 docs/tutorial/scikit_learn_datasets.ipynb
 docs/tutorial/tutorial.html
 docs/tutorial/tutorial.ipynb
-docs/tutorial/.ipynb_checkpoints/algorithm_explained-checkpoint.html
-docs/tutorial/.ipynb_checkpoints/algorithm_explained-checkpoint.ipynb
-docs/tutorial/.ipynb_checkpoints/basic_usage-checkpoint.html
-docs/tutorial/.ipynb_checkpoints/basic_usage-checkpoint.ipynb
 tests/__init__.py
 tests/conftest.py
