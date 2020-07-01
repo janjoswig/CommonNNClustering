@@ -10,6 +10,8 @@ setup.cfg
 setup.py
 cnnclustering/__init__.py
 cnnclustering/_cfits.cpp
+cnnclustering/_cfits.cpython-36m-x86_64-linux-gnu.so
+cnnclustering/_cfits.cpython-37m-x86_64-linux-gnu.so
 cnnclustering/_cfits.cpython-38-x86_64-linux-gnu.so
 cnnclustering/_cfits.pyx
 cnnclustering/_fits.py

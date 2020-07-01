@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: cnnclustering
-Version: 0.3.5
+Version: 0.3.6
 Summary: A Python package for common-nearest neighbour (CNN) clustering
 Home-page: https://github.com/janjoswig/CNN
 Author: Jan-Oliver Joswig
