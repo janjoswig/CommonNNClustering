@@ -46,10 +46,10 @@ extensions = [
 compiler_directives = {
     "language_level": 3,
     "embedsignature": True,
-    "cython: boundscheck": False,
-    "cython: wraparound": False,
-    "cython: cdivision": True,
-    "cython: nonecheck": False
+    "boundscheck": False,
+    "wraparound": False,
+    "cdivision": True,
+    "nonecheck": False
     }
 extensions = cythonize(extensions, compiler_directives=compiler_directives)
 
