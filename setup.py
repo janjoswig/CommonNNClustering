@@ -2,8 +2,8 @@ import os
 from setuptools import setup, find_packages, Extension
 
 try:
-    from cython.Build import cythonize
-    from cython.Distutils import build_ext
+    from Cython.Build import cythonize
+    from Cython.Distutils import build_ext
 except ImportError:
     cythonize = None
 
