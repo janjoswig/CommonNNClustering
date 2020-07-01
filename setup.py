@@ -2,9 +2,12 @@ import os
 from setuptools import setup, find_packages, Extension
 
 try:
-    from Cython.Build import cythonize
+    from cython.Build import cythonize
+    from cython.Distutils import build_ext
 except ImportError:
     cythonize = None
+
+import numpy as np
 
 
 def no_cythonize(extensions, **_ignore):
@@ -26,25 +29,26 @@ def no_cythonize(extensions, **_ignore):
 extensions = [
     Extension(
         "cnnclustering._cfits", ["cnnclustering/_cfits.pyx"],
-        # include_path = [numpy.get_include()],
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
-        language="c++"
+        language="c++",
+        include_dirs=[np.get_include()]
         )
 ]
 
-CYTHONIZE = bool(int(os.getenv("CYTHONIZE", 0))) and cythonize is not None
+NOCYTHONIZE = bool(int(os.getenv("NOCYTHONIZE", 1))) or cythonize is None
 
-if CYTHONIZE:
-    compiler_directives = {"language_level": 3,
-                           "embedsignature": True,
-                           "cython: boundscheck": False,
-                           "cython: wraparound": False,
-                           "cython: cdivision": True,
-                           "cython: nonecheck": False}
-    extensions = cythonize(extensions, compiler_directives=compiler_directives)
-else:
+if NOCYTHONIZE:
     extensions = no_cythonize(extensions)
-
+else:
+    compiler_directives = {
+        "language_level": 3,
+        "embedsignature": True,
+        "cython: boundscheck": False,
+        "cython: wraparound": False,
+        "cython: cdivision": True,
+        "cython: nonecheck": False
+        }
+    extensions = cythonize(extensions, compiler_directives=compiler_directives)
 
 with open("README.md", "r") as readme:
     desc = readme.read()
@@ -91,4 +95,5 @@ setup(
         "docs": requirements["docs"],
         "tests": requirements["tests"],
         },
+    cmdclass=dict(build_ext=build_ext)
     )
