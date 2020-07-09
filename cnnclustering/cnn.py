@@ -2523,6 +2523,8 @@ class CNN:
             each cluster
         """
 
+        raise NotImplementedError()
+
         dict_ = self._clusterdict
         _data = np.vstack(self._data)
         _shape = self._shape
@@ -2583,25 +2585,14 @@ class CNN:
         """Transform cluster labels to discrete trajectories
 
         Returns:
-            [type]: [description]
+            List of Labels per part
         """
 
-        _dtrajs = []
+        dtraj = np.split(self.labels, np.cumsum(self.data.points.edges))
+        if len(dtraj) > 1:
+            _ = dtraj.pop()
 
-        _shape = self._shape
-        _labels = self._labels
-
-        # TODO: Better use numpy split()?
-        part_startpoint = 0
-        for part in range(0, _shape['parts']):
-            part_endpoint = part_startpoint \
-                + _shape['points'][part]
-
-            _dtrajs.append(_labels[part_startpoint: part_endpoint])
-
-            part_startpoint = np.copy(part_endpoint)
-
-        return _dtrajs
+        return dtraj
 
     def evaluate(
             self,
