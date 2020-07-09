@@ -290,18 +290,18 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>import sys
-import time
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import pandas as pd                # Optional dependency
-from sklearn import datasets       # For sklearn test data set creation
-from sklearn.preprocessing import StandardScaler
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>                <span class="c1"># Optional dependency</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">datasets</span>       <span class="c1"># For sklearn test data set creation</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
 
-import cnnclustering.cnn as cnn    # CNN clustering
-import cnnclustering.cmsm as cmsm  # Core-set MSM estimation
+<span class="kn">import</span> <span class="nn">cnnclustering.cnn</span> <span class="k">as</span> <span class="nn">cnn</span>    <span class="c1"># CNN clustering</span>
+<span class="kn">import</span> <span class="nn">cnnclustering.cmsm</span> <span class="k">as</span> <span class="nn">cmsm</span>  <span class="c1"># Core-set MSM estimation</span>
 </pre></div>
 </div>
 </div>
@@ -311,8 +311,8 @@ import cnnclustering.cmsm as cmsm  # Core-set MSM estimation
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Version information
-print(sys.version)
+<span></span><span class="c1"># Version information</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -334,11 +334,11 @@ print(sys.version)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Matplotlib configuration
-mpl.rc_file(
-    &quot;matplotlibrc&quot;,
-    use_default_template=False
-)
+<span></span><span class="c1"># Matplotlib configuration</span>
+<span class="n">mpl</span><span class="o">.</span><span class="n">rc_file</span><span class="p">(</span>
+    <span class="s2">&quot;matplotlibrc&quot;</span><span class="p">,</span>
+    <span class="n">use_default_template</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -347,22 +347,22 @@ mpl.rc_file(
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Axis property defaults for the plots
-ax_props = {
-    &quot;xlabel&quot;: None,
-    &quot;ylabel&quot;: None,
-    &quot;xlim&quot;: (-2.5, 2.5),
-    &quot;ylim&quot;: (-2.5, 2.5),
-    &quot;xticks&quot;: (),
-    &quot;yticks&quot;: (),
-    &quot;aspect&quot;: &quot;equal&quot;
-}
+<span></span><span class="c1"># Axis property defaults for the plots</span>
+<span class="n">ax_props</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;xlabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">&quot;ylabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">&quot;xlim&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span>
+    <span class="s2">&quot;ylim&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span>
+    <span class="s2">&quot;xticks&quot;</span><span class="p">:</span> <span class="p">(),</span>
+    <span class="s2">&quot;yticks&quot;</span><span class="p">:</span> <span class="p">(),</span>
+    <span class="s2">&quot;aspect&quot;</span><span class="p">:</span> <span class="s2">&quot;equal&quot;</span>
+<span class="p">}</span>
 
-# Line plot property defaults
-line_props = {
-    &quot;linewidth&quot;: 0,
-    &quot;marker&quot;: &#39;.&#39;,
-}
+<span class="c1"># Line plot property defaults</span>
+<span class="n">line_props</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;linewidth&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;marker&quot;</span><span class="p">:</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </div>
@@ -372,8 +372,8 @@ line_props = {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Pandas DataFrame print options
-pd.set_option(&#39;display.max_rows&#39;, 1000)
+<span></span><span class="c1"># Pandas DataFrame print options</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&#39;display.max_rows&#39;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -385,8 +385,8 @@ pd.set_option(&#39;display.max_rows&#39;, 1000)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Configuration file found?
-cnn.settings.cfgfile  # If None, no file is provided
+<span></span><span class="c1"># Configuration file found?</span>
+<span class="n">cnn</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">cfgfile</span>  <span class="c1"># If None, no file is provided</span>
 </pre></div>
 </div>
 </div>
@@ -395,8 +395,8 @@ cnn.settings.cfgfile  # If None, no file is provided
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Display default settings
-cnn.settings.defaults
+<span></span><span class="c1"># Display default settings</span>
+<span class="n">cnn</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">defaults</span>
 </pre></div>
 </div>
 </div>
@@ -428,14 +428,14 @@ cnn.settings.defaults
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Generate blobs with quite different point densities
-dblobs, _ = datasets.make_blobs(
-    n_samples=int(1e5),
-    cluster_std=[3.5, 0.32, 1.8],
-    random_state=1
-    )
+<span></span><span class="c1"># Generate blobs with quite different point densities</span>
+<span class="n">dblobs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">make_blobs</span><span class="p">(</span>
+    <span class="n">n_samples</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e5</span><span class="p">),</span>
+    <span class="n">cluster_std</span><span class="o">=</span><span class="p">[</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">0.32</span><span class="p">,</span> <span class="mf">1.8</span><span class="p">],</span>
+    <span class="n">random_state</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">)</span>
 
-dblobs = StandardScaler().fit_transform(dblobs)
+<span class="n">dblobs</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">dblobs</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -444,8 +444,8 @@ dblobs = StandardScaler().fit_transform(dblobs)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Initialise clustering
-cobj = cnn.CNN(points=dblobs)
+<span></span><span class="c1"># Initialise clustering</span>
+<span class="n">cobj</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">dblobs</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -454,8 +454,8 @@ cobj = cnn.CNN(points=dblobs)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Get basic information about the cnn.CNN instance via cobj.__str__()
-print(cobj)
+<span></span><span class="c1"># Get basic information about the cnn.CNN instance via cobj.__str__()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cobj</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -489,8 +489,8 @@ Children :                      False
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Plot the original data
-_ = cobj.evaluate()
+<span></span><span class="c1"># Plot the original data</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">cobj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -508,11 +508,11 @@ the clustering later for the full sized set on the basis of the reduced result.<
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># To make the clustering easier, reduce the number of points
-# (start, stop, stride)
-robj = cobj.cut(points=(None, None, 100))
-# Equivalent to:
-#     &gt;&gt;&gt; robj = cnn.CNN(points=cobj.data.points[slice(None, None, 100), :])
+<span></span><span class="c1"># To make the clustering easier, reduce the number of points</span>
+<span class="c1"># (start, stop, stride)</span>
+<span class="n">robj</span> <span class="o">=</span> <span class="n">cobj</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+<span class="c1"># Equivalent to:</span>
+<span class="c1">#     &gt;&gt;&gt; robj = cnn.CNN(points=cobj.data.points[slice(None, None, 100), :])</span>
 </pre></div>
 </div>
 </div>
@@ -521,7 +521,7 @@ robj = cobj.cut(points=(None, None, 100))
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>print(robj)
+<span></span><span class="nb">print</span><span class="p">(</span><span class="n">robj</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -556,12 +556,12 @@ Children :                      False
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Plot the reduced data
-fig, Ax = plt.subplots(1, 2)
-_ = cobj.evaluate(ax=Ax[0], ax_props=ax_props)
-_ = robj.evaluate(ax=Ax[1], ax_props=ax_props)
-Ax[0].set_title(f&quot;{cobj.data.points.shape[0]} points&quot;, fontsize=10, pad=4)
-Ax[1].set_title(f&quot;{robj.data.points.shape[0]} points&quot;, fontsize=10, pad=4)
+<span></span><span class="c1"># Plot the reduced data</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">cobj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
+<span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cobj</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> points&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">robj</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> points&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -588,10 +588,10 @@ cutoff.</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Looking at the distance distribution between points, can help to find
-# an initial value for the radius cutoff
-robj.calc_dist()  # Pre-calculate distances
-fig, ax, *_ = robj.dist_hist(maxima=True, maxima_props={&quot;order&quot;: 5})
+<span></span><span class="c1"># Looking at the distance distribution between points, can help to find</span>
+<span class="c1"># an initial value for the radius cutoff</span>
+<span class="n">robj</span><span class="o">.</span><span class="n">calc_dist</span><span class="p">()</span>  <span class="c1"># Pre-calculate distances</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">dist_hist</span><span class="p">(</span><span class="n">maxima</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">maxima_props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
 </pre></div>
 </div>
 </div>
@@ -611,11 +611,11 @@ fig, ax, *_ = robj.dist_hist(maxima=True, maxima_props={&quot;order&quot;: 5})
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># A scan of a few parameters shows that it is difficult to extract the
-# three clusters at once with one parameter set
-for r in [0.05, 0.08, 0.1, 0.125, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.75, 1., 2.]:
-    for c in [0, 1, 2, 3, 4, 5, 10, 15, 20]:
-        robj.fit(r, c, v=False)  # fit from pre-calculated distances
+<span></span><span class="c1"># A scan of a few parameters shows that it is difficult to extract the</span>
+<span class="c1"># three clusters at once with one parameter set</span>
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.125</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.35</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.45</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">20</span><span class="p">]:</span>
+        <span class="n">robj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># fit from pre-calculated distances</span>
 </pre></div>
 </div>
 </div>
@@ -625,7 +625,7 @@ for r in [0.05, 0.08, 0.1, 0.125, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>print(*robj.summary[:5], sep=&quot;\n&quot;)
+<span></span><span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="p">[:</span><span class="mi">5</span><span class="p">],</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -647,10 +647,10 @@ CNNRecord(points=1000, r=0.05, c=4, min=2, max=None, clusters=Labels(3), largest
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Get summary sorted by number of identified clusters
-df = robj.summary.to_DataFrame().sort_values(&#39;clusters&#39;)
-# Show cluster results where we have 3 clusters
-df[df.clusters == 3]
+<span></span><span class="c1"># Get summary sorted by number of identified clusters</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">to_DataFrame</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;clusters&#39;</span><span class="p">)</span>
+<span class="c1"># Show cluster results where we have 3 clusters</span>
+<span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">clusters</span> <span class="o">==</span> <span class="mi">3</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
@@ -808,17 +808,17 @@ is good), but the noise level is around 50 % and higher (which is probably not w
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Cluster attempts in comparison
-fig, ax = plt.subplots(2, 2)
-Ax = ax.flatten()
-for i, pair in enumerate([(0.050, 4), (0.125, 20), (0.2, 15), (0.450, 10)]):
-    robj.fit(*pair, rec=False)
-    _ = robj.evaluate(ax=Ax[i], ax_props=ax_props)
-    Ax[i].set_title(f&#39;{pair[0]}, {pair[1]}&#39;, fontsize=10, pad=4)
+<span></span><span class="c1"># Cluster attempts in comparison</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">Ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pair</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([(</span><span class="mf">0.050</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.125</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">15</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.450</span><span class="p">,</span> <span class="mi">10</span><span class="p">)]):</span>
+    <span class="n">robj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">*</span><span class="n">pair</span><span class="p">,</span> <span class="n">rec</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
+    <span class="n">Ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
-fig.subplots_adjust(
-    left=0.2, right=0.8, bottom=0, top=1, wspace=0, hspace=0.3
-    )
+<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
+    <span class="n">left</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span>
+    <span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -836,13 +836,13 @@ fig.subplots_adjust(
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Summarize the summary table as 2D contour plot
-# time
-fig, ax = plt.subplots()
-contour = robj.summary.summarize(ax=ax)[2][0]
-colorbar = fig.colorbar(mappable=contour, ax=ax)
-ax.set_yticks([0, 5, 10, 15, 20])
-colorbar.set_label(&quot;time / s&quot;)
+<span></span><span class="c1"># Summarize the summary table as 2D contour plot</span>
+<span class="c1"># time</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">contour</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">colorbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">contour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">20</span><span class="p">])</span>
+<span class="n">colorbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;time / s&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -859,14 +859,14 @@ colorbar.set_label(&quot;time / s&quot;)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Summarize the summary table as 2D contour plot
-# noise
-fig, ax = plt.subplots()
-contour = robj.summary.summarize(ax=ax, quant=&quot;noise&quot;)[2][0]
-colorbar = fig.colorbar(mappable=contour, ax=ax, ticks=(0, 0.5, 1))
-ax.set_yticks([0, 5, 10, 15, 20])
-colorbar.set_label(&quot;noise / %&quot;)
-ax.set_xlim(None, 1)
+<span></span><span class="c1"># Summarize the summary table as 2D contour plot</span>
+<span class="c1"># noise</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">contour</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">quant</span><span class="o">=</span><span class="s2">&quot;noise&quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">colorbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">contour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">20</span><span class="p">])</span>
+<span class="n">colorbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;noise / %&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -892,14 +892,14 @@ ax.set_xlim(None, 1)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Summarize the summary table as 2D contour plot
-# largest cluster
-fig, ax = plt.subplots()
-contour = robj.summary.summarize(ax=ax, quant=&quot;largest&quot;)[2][0]
-colorbar = fig.colorbar(mappable=contour, ax=ax, ticks=(0, 0.5, 1))
-ax.set_yticks([0, 5, 10, 15, 20])
-colorbar.set_label(&quot;largest / %&quot;)
-ax.set_xlim(None, 1)
+<span></span><span class="c1"># Summarize the summary table as 2D contour plot</span>
+<span class="c1"># largest cluster</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">contour</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">quant</span><span class="o">=</span><span class="s2">&quot;largest&quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">colorbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">contour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">20</span><span class="p">])</span>
+<span class="n">colorbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;largest / %&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -925,15 +925,15 @@ ax.set_xlim(None, 1)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Summarize the summary table as 2D contour plot
-# cluster number
-fig, ax = plt.subplots()
-contour = robj.summary.summarize(ax=ax, quant=&quot;clusters&quot;,
-                         contour_props={&quot;levels&quot;: 100})[2][0]
-colorbar = fig.colorbar(mappable=contour, ax=ax)
-ax.set_yticks([0, 5, 10, 15, 20])
-colorbar.set_label(&quot;# clusters&quot;)
-ax.set_xlim(None, 1)
+<span></span><span class="c1"># Summarize the summary table as 2D contour plot</span>
+<span class="c1"># cluster number</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">contour</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">quant</span><span class="o">=</span><span class="s2">&quot;clusters&quot;</span><span class="p">,</span>
+                         <span class="n">contour_props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">})[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">colorbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">contour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">20</span><span class="p">])</span>
+<span class="n">colorbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;# clusters&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -958,18 +958,18 @@ ax.set_xlim(None, 1)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Summarize the summary table as 2D contour plot
-# cluster number with adjusted coloring
-fig, ax = plt.subplots()
-contour = robj.summary.summarize(
-    ax=ax, quant=&quot;clusters&quot;,
-    contour_props={&quot;levels&quot;: [-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5],
-                   &quot;vmax&quot;: 5}
-    )[2][0]
-colorbar = fig.colorbar(mappable=contour, ax=ax, ticks=(0, 1, 2, 3, 4, 5))
-ax.set_yticks([0, 5, 10, 15, 20])
-colorbar.set_label(&quot;# clusters&quot;)
-ax.set_xlim(None, 1)
+<span></span><span class="c1"># Summarize the summary table as 2D contour plot</span>
+<span class="c1"># cluster number with adjusted coloring</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">contour</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">summarize</span><span class="p">(</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">quant</span><span class="o">=</span><span class="s2">&quot;clusters&quot;</span><span class="p">,</span>
+    <span class="n">contour_props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">],</span>
+                   <span class="s2">&quot;vmax&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
+    <span class="p">)[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">colorbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">contour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">20</span><span class="p">])</span>
+<span class="n">colorbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s2">&quot;# clusters&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1000,17 +1000,17 @@ CNN clustering is estimated as the number of common neighbours within the neighb
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Cluster attempts in comparison
-fig, ax = plt.subplots(2, 2)
-Ax = ax.flatten()
-for i, pair in enumerate([(0.18, 6), (0.2, 5), (0.6, 17), (1, 30)]):
-    robj.fit(*pair, rec=False)
-    _ = robj.evaluate(ax=Ax[i], ax_props=ax_props)
-    Ax[i].set_title(f&#39;{pair[0]}, {pair[1]}&#39;, fontsize=10, pad=4)
+<span></span><span class="c1"># Cluster attempts in comparison</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">Ax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pair</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([(</span><span class="mf">0.18</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="mi">17</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">30</span><span class="p">)]):</span>
+    <span class="n">robj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">*</span><span class="n">pair</span><span class="p">,</span> <span class="n">rec</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
+    <span class="n">Ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
-fig.subplots_adjust(
-    left=0.2, right=0.8, bottom=0, top=1, wspace=0, hspace=0.3
-    )
+<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
+    <span class="n">left</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span>
+    <span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1031,9 +1031,9 @@ fig.subplots_adjust(
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># After the first step, we need to isolate the cluster result
-robj.fit(0.6, 17, rec=False)
-robj.isolate()
+<span></span><span class="c1"># After the first step, we need to isolate the cluster result</span>
+<span class="n">robj</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="n">rec</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">robj</span><span class="o">.</span><span class="n">isolate</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -1043,9 +1043,9 @@ robj.isolate()
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># The children dictionary of the data after isolation holds
-# a cluster object for each cluster found in the last step
-robj.children
+<span></span><span class="c1"># The children dictionary of the data after isolation holds</span>
+<span class="c1"># a cluster object for each cluster found in the last step</span>
+<span class="n">robj</span><span class="o">.</span><span class="n">children</span>
 </pre></div>
 </div>
 </div>
@@ -1072,8 +1072,8 @@ defaultdict(&lt;function cnnclustering.cnn.CNN.isolate.&lt;locals&gt;.&lt;lambda
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Information on used cluster parameters are attached for each cluster
-robj.labels.info
+<span></span><span class="c1"># Information on used cluster parameters are attached for each cluster</span>
+<span class="n">robj</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">info</span>
 </pre></div>
 </div>
 </div>
@@ -1092,8 +1092,8 @@ LabelInfo(origin=&#39;fitted&#39;, reference=&lt;cnnclustering.cnn.CNN object at
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>robj1 = robj.children[1]  # Child cluster 1
-print(robj1)
+<span></span><span class="n">robj1</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># Child cluster 1</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">robj1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1128,9 +1128,9 @@ Children :                      False
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Distance distribution for this cluster
-robj1.calc_dist()
-fig, ax, *_ = robj1.dist_hist(maxima=True, maxima_props={&quot;order&quot;: 5})
+<span></span><span class="c1"># Distance distribution for this cluster</span>
+<span class="n">robj1</span><span class="o">.</span><span class="n">calc_dist</span><span class="p">()</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">robj1</span><span class="o">.</span><span class="n">dist_hist</span><span class="p">(</span><span class="n">maxima</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">maxima_props</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
 </pre></div>
 </div>
 </div>
@@ -1147,17 +1147,17 @@ fig, ax, *_ = robj1.dist_hist(maxima=True, maxima_props={&quot;order&quot;: 5})
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Now cluster the child cluster
-fig, Ax = plt.subplots(1, 2)
-robj1.fit(0.18, 6)
-_ = robj1.evaluate(ax=Ax[0], ax_props=ax_props)
-Ax[0].set_title(f&quot;member cutoff 1&quot;, fontsize=10, pad=4)
+<span></span><span class="c1"># Now cluster the child cluster</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">robj1</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="mf">0.18</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">robj1</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
+<span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;member cutoff 1&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
-# When the result is satisfying, but also a few very small clusters are found,
-# this can be surpressed
-robj1.fit(0.18, 6, member_cutoff=5)
-_ = robj1.evaluate(ax=Ax[1], ax_props=ax_props)
-Ax[1].set_title(f&quot;member cutoff 5&quot;, fontsize=10, pad=4)
+<span class="c1"># When the result is satisfying, but also a few very small clusters are found,</span>
+<span class="c1"># this can be surpressed</span>
+<span class="n">robj1</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="mf">0.18</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">member_cutoff</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">robj1</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
+<span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;member cutoff 5&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1200,10 +1200,10 @@ Text(0.5, 1.0, &#39;member cutoff 5&#39;)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># The cluster hierarchy can be visualised as pie diagram
-fig, ax, *plotted = robj.pie()
-ax.set_xlim(-0.3, 0.3)
-ax.set_ylim(-0.3, 0.3)
+<span></span><span class="c1"># The cluster hierarchy can be visualised as pie diagram</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="o">*</span><span class="n">plotted</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">pie</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1229,12 +1229,12 @@ ax.set_ylim(-0.3, 0.3)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Wrap up the hierarchical clustering and integrate the child clusters into
-# the parent cluster
-robj.reel()
+<span></span><span class="c1"># Wrap up the hierarchical clustering and integrate the child clusters into</span>
+<span class="c1"># the parent cluster</span>
+<span class="n">robj</span><span class="o">.</span><span class="n">reel</span><span class="p">()</span>
 
-# Manually sort clusters by size (largest = 1)
-robj.labels.sort_by_size()
+<span class="c1"># Manually sort clusters by size (largest = 1)</span>
+<span class="n">robj</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">sort_by_size</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -1243,10 +1243,10 @@ robj.labels.sort_by_size()
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>robj._children = None  # Remove child clusters
-fig, ax, *plotted = robj.pie()
-ax.set_xlim(-0.3, 0.3)
-ax.set_ylim(-0.3, 0.3)
+<span></span><span class="n">robj</span><span class="o">.</span><span class="n">_children</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Remove child clusters</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="o">*</span><span class="n">plotted</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">pie</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1271,8 +1271,8 @@ ax.set_ylim(-0.3, 0.3)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>fig, ax = plt.subplots()
-_ = robj.evaluate(ax=ax, ax_props=ax_props)
+<span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">robj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1288,8 +1288,8 @@ _ = robj.evaluate(ax=ax, ax_props=ax_props)
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># Now the paramater information becomes useful as they differ
-robj.labels.info
+<span></span><span class="c1"># Now the paramater information becomes useful as they differ</span>
+<span class="n">robj</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">info</span>
 </pre></div>
 </div>
 </div>
@@ -1307,10 +1307,10 @@ LabelInfo(origin=&#39;reeled&#39;, reference=&lt;cnnclustering.cnn.CNN object at
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>print(&quot;Label&quot;, &quot;r&quot;, &quot;n&quot;, sep=&quot;\t&quot;)
-print(&quot;-&quot; * 20)
-for k, v in sorted(robj.labels.info.params.items()):
-    print(k, *v, sep=&quot;\t&quot;)
+<span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Label&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">20</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">robj</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">v</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1334,43 +1334,43 @@ where the label info comes in handy showing us the parameters used for the fit a
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span># In the end the cluster assignment for the reduced (train) set can
-# be mapped onto another test set.
-# The assignment prediction can (and should) be done
-# for each cluster individually.
-go = time.time()
-cobj.calc_dist(robj)  # Distance map calculation
-print(f&quot;Distance matrix calculated in {time.time()-go:.2f} seconds\n&quot;)
-time.sleep(1)
+<span></span><span class="c1"># In the end the cluster assignment for the reduced (train) set can</span>
+<span class="c1"># be mapped onto another test set.</span>
+<span class="c1"># The assignment prediction can (and should) be done</span>
+<span class="c1"># for each cluster individually.</span>
+<span class="n">go</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">cobj</span><span class="o">.</span><span class="n">calc_dist</span><span class="p">(</span><span class="n">robj</span><span class="p">)</span>  <span class="c1"># Distance map calculation</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Distance matrix calculated in </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">go</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-fig, Ax = plt.subplots(1, 3)
+<span class="n">fig</span><span class="p">,</span> <span class="n">Ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 
-go = time.time()
-r = 0.15; n = 10
-robj.predict(cobj, r, n, clusters=[1], purge=True, policy=&quot;progressive&quot;)
-print(f&quot;Prediction in {time.time()-go:.2f} seconds\n&quot;)
-_ = cobj.evaluate(ax=Ax[0], ax_props=ax_props)
-Ax[2].set_title(f&#39;1 {(r, n)}&#39;, fontsize=10, pad=4)
+<span class="n">go</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">r</span> <span class="o">=</span> <span class="mf">0.15</span><span class="p">;</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">robj</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">cobj</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">clusters</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">purge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;progressive&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Prediction in </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">go</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">cobj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
+<span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;1 </span><span class="si">{</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
-go = time.time()
-r = 0.5; n = 17
-robj.predict(cobj, r, n, clusters=[2], policy=&quot;progressive&quot;)
-print(f&quot;Prediction in {time.time()-go:.2f} seconds\n&quot;)
-time.sleep(1)
-_ = cobj.evaluate(ax=Ax[1], ax_props=ax_props)
-Ax[0].set_title(f&#39;2 {(r, n)}&#39;, fontsize=10, pad=4)
+<span class="n">go</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">r</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">;</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">17</span>
+<span class="n">robj</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">cobj</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">clusters</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;progressive&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Prediction in </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">go</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">cobj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
+<span class="n">Ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;2 </span><span class="si">{</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
-go = time.time()
-r = 0.3; n = 5
-robj.predict(cobj, r, n, clusters=[3], policy=&quot;progressive&quot;)
-print(f&quot;Prediction in {time.time()-go:.2f} seconds\n&quot;)
-_ = cobj.evaluate(ax=Ax[2], ax_props=ax_props)
-Ax[1].set_title(f&#39;3 {(r, n)}&#39;, fontsize=10, pad=4)
+<span class="n">go</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">r</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">;</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">robj</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">cobj</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">clusters</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">policy</span><span class="o">=</span><span class="s2">&quot;progressive&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Prediction in </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">go</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">cobj</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">Ax</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">ax_props</span><span class="o">=</span><span class="n">ax_props</span><span class="p">)</span>
+<span class="n">Ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;3 </span><span class="si">{</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
 
-fig.subplots_adjust(
-    left=0, right=1, bottom=0, top=1, wspace=0.1, hspace=0.3
-    )
+<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span>
+    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span>
+    <span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1401,10 +1401,10 @@ Prediction in 2.46 seconds
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>print(&quot;Label&quot;, &quot;r&quot;, &quot;n&quot;, sep=&quot;\t&quot;)
-print(&quot;-&quot; * 20)
-for k, v in sorted(cobj.labels.info.params.items()):
-    print(k, *v, sep=&quot;\t&quot;)
+<span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Label&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">20</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">cobj</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">v</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
