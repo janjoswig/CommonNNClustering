@@ -285,15 +285,24 @@ cpdef fit_from_NeighbourhoodsList(
     Args:
         neighbourhoods: List of length #points containing sets of
             neighbouring point indices
+        labels: Output data container supporting the buffer protocoll
+            for cluster label assignments.  Needs to be of same length
+            as neighbourhoods.
+        consider: Data container supporting the buffer protocoll of
+            same length as labels.  Elements should be either 0 or 1
+            indicating if the point with the corresponding index should
+            be included for the clustering.
         cnn_cutoff: Points need to share at least this many neighbours
             to be assigned to the same cluster (similarity criterion).
+        self_counting: If `True`, accounts for points being in their
+            own neighbours and modifies `cnn_cutoff`.
 
     Returns:
-        Labels
+        None
     """
 
     cdef Py_ssize_t init_point, point, member
-    cdef Py_ssize_t m, n = labels.shape[0]  # Number of points
+    cdef Py_ssize_t n = labels.shape[0]  # Number of points
     cdef set neighbours, neighbour_neighbours
     cdef npinteger current = 1           # Cluster number
     cdef unsigned long membercount  = 1           # Optional for min. clustersize
@@ -314,8 +323,7 @@ cpdef fit_from_NeighbourhoodsList(
         consider[init_point] = 0      # Mark point as included
 
         neighbours = neighbourhoods[init_point]
-        m = len(neighbours)
-        if m <= cnn_cutoff:
+        if len(neighbours) <= cnn_cutoff:
             continue
 
         labels[init_point] = current  # Assign cluster label
@@ -352,7 +360,6 @@ cpdef fit_from_NeighbourhoodsList(
 
             # neighbours = cached_get_neighbours_PointsArray.evaluate(
             neighbours = neighbourhoods[point]
-            m = len(neighbours)
 
         current += 1
 

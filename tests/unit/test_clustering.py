@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 import cnnclustering.cnn as cnn
 import cnnclustering._cfits as cfits
@@ -24,114 +25,95 @@ class TestReel:
 
 class TestCython:
 
-    def test_fit_from_PointsArray_base_points_e15(
+    @pytest.mark.parametrize("radius_cutoff", [1.5])
+    @pytest.mark.parametrize("cnn_cutoff", [0, 1, 2])
+    def test_fit_from_PointsArray_base_points(
             self,
-            base_points,
-            base_labels_e15_0,
-            base_labels_e15_1,
-            base_labels_e15_2):
-        points = np.array(base_points, dtype=np.float_)
-        cases = [(0, base_labels_e15_0),
-                 (1, base_labels_e15_1),
-                 (2, base_labels_e15_2)]
-        for c, reflabels in cases:
-            labels = np.zeros(points.shape[0], dtype=np.int_)
-            consider = np.ones_like(labels, dtype=np.uint8)
-            cfits.fit_from_PointsArray(points, labels, consider, 1.5, c)
+            radius_cutoff, cnn_cutoff, base_data):
+        points = np.array(base_data["points"], dtype=np.float_)
+        labels = np.zeros(points.shape[0], dtype=np.int_)
+        consider = np.ones_like(labels, dtype=np.uint8)
+        cfits.fit_from_PointsArray(
+            points, labels, consider, radius_cutoff, cnn_cutoff
+            )
 
-            np.testing.assert_array_equal(
-                np.array(reflabels),
-                labels
-                )
+        np.testing.assert_array_equal(
+            np.array(base_data["labels"]),
+            labels
+            )
 
-    def test_fit_from_DistancesArray_base_points_e15(
+    @pytest.mark.parametrize("radius_cutoff", [1.5])
+    @pytest.mark.parametrize("cnn_cutoff", [0, 1, 2])
+    def test_fit_from_DistancesArray_base_points(
             self,
-            base_distances,
-            base_labels_e15_0,
-            base_labels_e15_1,
-            base_labels_e15_2):
-        distances = np.array(base_distances, dtype=np.float_)
-        cases = [(0, base_labels_e15_0),
-                 (1, base_labels_e15_1),
-                 (2, base_labels_e15_2)]
-        for c, reflabels in cases:
-            labels = np.zeros(distances.shape[0], dtype=np.int_)
-            consider = np.ones_like(labels, dtype=np.uint8)
-            cfits.fit_from_DistancesArray(distances, labels, consider, 1.5, c)
+            radius_cutoff, cnn_cutoff, base_data):
+        distances = np.array(base_data["distances"], dtype=np.float_)
+        labels = np.zeros(distances.shape[0], dtype=np.int_)
+        consider = np.ones_like(labels, dtype=np.uint8)
+        cfits.fit_from_DistancesArray(
+            distances, labels, consider, radius_cutoff, cnn_cutoff)
 
-            np.testing.assert_array_equal(
-                np.array(reflabels),
-                labels
-                )
+        np.testing.assert_array_equal(
+            np.array(base_data["labels"]),
+            labels
+            )
 
-    def test_fit_from_NeighbourhoodsList_base_neighbourhoods_e15(
+    @pytest.mark.parametrize("radius_cutoff", [1.5])
+    @pytest.mark.parametrize("cnn_cutoff", [0, 1, 2])
+    def test_fit_from_NeighbourhoodsList_base_neighbourhoods(
             self,
-            base_neighbourhoods_e15,
-            base_labels_e15_0,
-            base_labels_e15_1,
-            base_labels_e15_2):
-        neighbourhoods = [set(x) for x in base_neighbourhoods_e15]
-        cases = [(0, base_labels_e15_0),
-                 (1, base_labels_e15_1),
-                 (2, base_labels_e15_2)]
-        for c, reflabels in cases:
-            labels = np.zeros(len(neighbourhoods), dtype=np.int_)
-            consider = np.ones_like(labels, dtype=np.uint8)
-            cfits.fit_from_NeighbourhoodsList(
-                neighbourhoods, labels, consider, c, False
-                )
+            radius_cutoff, cnn_cutoff, base_data):
+        neighbourhoods = [set(x) for x in base_data["neighbourhoods"]]
 
-            np.testing.assert_array_equal(
-                np.array(reflabels),
-                labels
-                )
+        labels = np.zeros(len(neighbourhoods), dtype=np.int_)
+        consider = np.ones_like(labels, dtype=np.uint8)
+        cfits.fit_from_NeighbourhoodsList(
+            neighbourhoods, labels, consider, cnn_cutoff, False
+            )
 
+        np.testing.assert_array_equal(
+            np.array(base_data["labels"]),
+            labels
+            )
+
+    @pytest.mark.parametrize("radius_cutoff", [1.5])
+    @pytest.mark.parametrize("cnn_cutoff", [0, 1, 2])
     def test_fit_from_NeighbourhoodsArray_base_neighbourhoods_e15(
             self,
-            base_neighbourhoods_e15,
-            base_labels_e15_0,
-            base_labels_e15_1,
-            base_labels_e15_2):
+            radius_cutoff, cnn_cutoff, base_data):
         neighbourhoods = np.array([np.asarray(x, dtype=np.int_)
-                                   for x in base_neighbourhoods_e15])
-        cases = [(0, base_labels_e15_0),
-                 (1, base_labels_e15_1),
-                 (2, base_labels_e15_2)]
-        for c, reflabels in cases:
-            labels = np.zeros(len(neighbourhoods), dtype=np.int_)
-            consider = np.ones_like(labels, dtype=np.uint8)
-            cfits.fit_from_NeighbourhoodsArray(
-                neighbourhoods, labels, consider, c, False
-                )
+                                   for x in base_data["neighbourhoods"]])
 
-            np.testing.assert_array_equal(
-                np.array(reflabels),
-                labels
-                )
+        labels = np.zeros(len(neighbourhoods), dtype=np.int_)
+        consider = np.ones_like(labels, dtype=np.uint8)
+        cfits.fit_from_NeighbourhoodsArray(
+            neighbourhoods, labels, consider, cnn_cutoff, False
+            )
 
+        np.testing.assert_array_equal(
+            np.array(base_data["labels"]),
+            labels
+            )
+
+    @pytest.mark.parametrize("radius_cutoff", [1.5])
+    @pytest.mark.parametrize("cnn_cutoff", [0, 1, 2])
     def test_fit_from_SparsegraphArray_base_densitygraphs_e15(
             self,
-            base_densitygraph_e15_0,
-            base_densitygraph_e15_1,
-            base_densitygraph_e15_2,
-            base_labels_e15_0,
-            base_labels_e15_1,
-            base_labels_e15_2):
+            radius_cutoff, cnn_cutoff, base_data):
 
-        cases = [(base_densitygraph_e15_0, base_labels_e15_0),
-                 (base_densitygraph_e15_1, base_labels_e15_1),
-                 (base_densitygraph_e15_2, base_labels_e15_2)]
+        vertices = np.asarray(
+            base_data["densitygraph"][0], dtype=cfits.ARRAYINDEX_DTYPE
+            )
+        indices = np.asarray(
+            base_data["densitygraph"][1], dtype=cfits.ARRAYINDEX_DTYPE
+            )
+        labels = np.zeros(indices.shape[0] - 1, dtype=np.int_)
+        consider = np.ones_like(labels, dtype=np.uint8)
+        cfits.fit_from_SparsegraphArray(
+            vertices, indices, labels, consider
+            )
 
-        for graph, reflabels in cases:
-            vertices = np.asarray(graph[0], dtype=cfits.ARRAYINDEX_DTYPE)
-            indices = np.asarray(graph[1], dtype=cfits.ARRAYINDEX_DTYPE)
-            labels = np.zeros(indices.shape[0] - 1, dtype=np.int_)
-            consider = np.ones_like(labels, dtype=np.uint8)
-            cfits.fit_from_SparsegraphArray(
-                vertices, indices, labels, consider
-                )
-
-            np.testing.assert_array_equal(
-                np.array(reflabels),
-                labels
-                )
+        np.testing.assert_array_equal(
+            np.array(base_data["labels"]),
+            labels
+            )

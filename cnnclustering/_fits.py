@@ -1,6 +1,7 @@
-"""CNN clustering functionality
+"""Common-nearest neighbour clustering functionality
 
-Replaced by Cython extension module `_cfits` and deprecated.
+Replaced by Cython extension module `_cfits` and
+only used for demonstration and compatibility purpose.
 """
 
 from collections import deque
@@ -12,12 +13,14 @@ import numpy as np
 
 
 def fit_from_PointsArray(
-        points,
-        labels,
+        points: Type[np.ndarray],
+        labels: Type[np.ndarray],
+        consider: Type[np.ndarray],
         radius_cutoff: float,
         cnn_cutoff: int):
-    """Apply CNN clustering from array of points
+    """Apply common-nearest-neighbour clustering
 
+    Starting from NumPy array of points
     """
 
     n = points.shape[0]
@@ -25,10 +28,7 @@ def fit_from_PointsArray(
 
     current = 1
     membercount = 1  # Optional for min. clustersize
-    q = deque()  # Queue
-
-    # visited  # TODO Move out of this function
-    consider = np.ones(n, dtype=np.uint8)
+    q = deque()      # Queue
 
     radius_cutoff = radius_cutoff**2
     # for distance squared
@@ -189,32 +189,45 @@ def check_similarity_array(
     return False
 
 
-def fit_from_neighbours(
+def fit_from_NeighbourhoodsList(
+        neighbourhoods: List[Set[int]],
+        labels: Type[np.ndarray],
+        consider: Type[np.ndarray],
         cnn_cutoff: int,
-        neighbourhoods: List[Set[int]]) -> List[int]:
+        self_counting: bool) -> List[int]:
     """Worker function variant applying the CNN algorithm.
 
     Assigns labels to points starting from pre-computed neighbourhoods.
-    Uses Python standard library only.
 
     Args:
-        cnn_cutoff: Points need to share at least this many neighbours
-            to be assigned to the same cluster (similarity criterion).
         neighbourhoods: List of length #points containing sets of
             neighbouring point indices
+        labels: Output data container supporting the buffer protocoll
+            for cluster label assignments.  Needs to be of same length
+            as neighbourhoods.
+        consider: Data container supporting the buffer protocoll of
+            same length as labels.  Elements should be either `False`
+             or `True`
+            indicating if the point with the corresponding index should
+            be included for the clustering.
+        cnn_cutoff: Points need to share at least this many neighbours
+            to be assigned to the same cluster (similarity criterion).
+        self_counting: If `True`, accounts for points being in their
+            own neighbours and modifies `cnn_cutoff`.
 
     Returns:
-        Labels
+        None
     """
 
+    # Account for self-counting in neighbourhoods
+    if self_counting:
+        cnn_cutoff += 1
+        cnn_cutoff_ = cnn_cutoff + 1
+    else:
+        cnn_cutoff_ = cnn_cutoff
+
     # Number of points
-    len_ = len(neighbourhoods)
-
-    # Initialise labels
-    labels = [0 for _ in range(len_)]
-
-    # Track assignment
-    consider = [True for _ in range(len_)]
+    n = labels.shape[0]
 
     # Start with first cluster (0 = noise)
     current = 1
@@ -222,22 +235,20 @@ def fit_from_neighbours(
     # Initialise queue of points to scan
     queue = deque()
 
-    for init_point in range(len_):
+    for init_point in range(n):
         if not consider[init_point]:
             # Point already assigned
             continue
+        consider[init_point] = False           # Mark point as included
 
         neighbours = neighbourhoods[init_point]
         if len(neighbours) <= cnn_cutoff:
             # Point can not fulfill cnn condition
-            labels[init_point] = 0             # Assign cluster label
-            consider[init_point] = False       # Mark point as included
             continue
 
         labels[init_point] = current           # Assign cluster label
-        consider[init_point] = False           # Mark point as included
+        membercount = 1
 
-        point = init_point
         while True:
             # Loop over neighbouring points
             for member in neighbours:
@@ -247,29 +258,27 @@ def fit_from_neighbours(
 
                 neighbour_neighbours = neighbourhoods[member]
                 if len(neighbour_neighbours) <= cnn_cutoff:
-                    labels[member] = 0
                     consider[member] = False
                     continue
 
                 # conditional growth
-                if (len(neighbours.intersection(neighbour_neighbours))
-                        >= cnn_cutoff):
+                if check_similarity_set(
+                        neighbours, neighbour_neighbours, cnn_cutoff):
                     labels[member] = current
                     consider[member] = False
+                    membercount += 1
                     queue.append(member)
 
-            try:
-                while True:
-                    point = queue.popleft()  # FIFO
-                    neighbours = neighbourhoods[point]
-                    if len(neighbourhoods[point]) <= cnn_cutoff:
-                        labels[point] = 0
-                        consider[point] = False
-                        continue
-                    break
-            except IndexError:
-                # Queue empty
+            if not queue:
+                if membercount == 1:
+                    # Revert cluster assignment
+                    labels[init_point] = 0
+                    current -= 1
                 break
+
+            point = queue.popleft()  # FIFO
+
+            neighbours = neighbourhoods[point]
 
         current += 1
 
