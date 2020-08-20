@@ -11,6 +11,7 @@ CNN clustering
    :titlesonly:
 
    _source/install
+   _source/quickstart
    _source/tutorials
    _source/api_reference
 

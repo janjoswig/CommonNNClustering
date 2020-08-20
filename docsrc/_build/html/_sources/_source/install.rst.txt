@@ -20,8 +20,8 @@ If you want to compile the Cython extensions yourself, you will need to
 install :mod:`Cython` as well. The tests can be run after installing
 :mod:`pytest` and require :mod:`scikit-learn`.
 
-PyPi (commings soon)
---------------------
+PyPi
+----
 
 .. code-block:: bash
 
