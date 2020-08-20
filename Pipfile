@@ -29,6 +29,7 @@ pygments = "*"
 bump2version = "*"
 pydpc = "*"
 hdbscan = "*"
+pytest-regressions = "*"
 
 [packages]
 numpy = "*"
@@ -36,7 +37,6 @@ matplotlib = "*"
 pandas = "*"
 scipy = "*"
 tqdm = "*"
-
 
 [requires]
 python_version = "3.8"

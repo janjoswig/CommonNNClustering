@@ -172,12 +172,26 @@ def hierarchical_cobj():
 
     return cobj
 
+
 @pytest.fixture
 def random_circles_cobj():
     return cnn.CNN(
         alias="random_circles",
-        data=[
+        points=[
             datasets.make_circles(n_samples=2000, factor=.5, noise=.05),
             datasets.make_circles(n_samples=1500, factor=.6, noise=.04),
+            ]
+        )
+
+
+@pytest.fixture
+def fixed_circles_cobj():
+    return cnn.CNN(
+        alias="fixed_circles",
+        points=[
+            datasets.make_circles(n_samples=2000, factor=.5, noise=.05,
+                                  random_state=111)[0],
+            datasets.make_circles(n_samples=1500, factor=.6, noise=.04,
+                                  random_state=111)[0],
             ]
         )

@@ -81,8 +81,11 @@ class TestCython:
     def test_fit_from_NeighbourhoodsArray_base_neighbourhoods_e15(
             self,
             radius_cutoff, cnn_cutoff, base_data):
-        neighbourhoods = np.array([np.asarray(x, dtype=np.int_)
-                                   for x in base_data["neighbourhoods"]])
+        neighbourhoods = np.array(
+            [np.asarray(x, dtype=np.int_)
+             for x in base_data["neighbourhoods"]],
+            dtype=object
+            )
 
         labels = np.zeros(len(neighbourhoods), dtype=np.int_)
         consider = np.ones_like(labels, dtype=np.uint8)
@@ -117,3 +120,17 @@ class TestCython:
             np.array(base_data["labels"]),
             labels
             )
+
+
+class TestCythonRegression:
+
+    @pytest.mark.parametrize("radius_cutoff", [0.2, 0.5])
+    @pytest.mark.parametrize("cnn_cutoff", [10, 20])
+    def test_fit_from_Points(
+            self,
+            radius_cutoff, cnn_cutoff,
+            num_regression, fixed_circles_cobj):
+        fixed_circles_cobj.fit(radius_cutoff, cnn_cutoff)
+        num_regression.check({
+            'labels': np.asarray(fixed_circles_cobj.labels),
+            })
