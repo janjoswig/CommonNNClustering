@@ -89,6 +89,7 @@ docs/_images/tutorial_algorithm_explained_64_0.png
 docs/_images/tutorial_algorithm_explained_65_0.png
 docs/_images/tutorial_algorithm_explained_66_0.png
 docs/_images/tutorial_basic_usage_42_0.png
+docs/_images/tutorial_basic_usage_42_01.png
 docs/_images/tutorial_hierarchical_clustering_basics_23_0.png
 docs/_images/tutorial_hierarchical_clustering_basics_28_1.png
 docs/_images/tutorial_hierarchical_clustering_basics_30_0.png
@@ -159,13 +160,16 @@ docs/_source/api_cmsm.html
 docs/_source/api_cnn.html
 docs/_source/api_reference.html
 docs/_source/install.html
+docs/_source/quickstart.html
 docs/_source/tutorials.html
 docs/_sources/index.rst.txt
 docs/_sources/_source/api_cmsm.rst.txt
 docs/_sources/_source/api_cnn.rst.txt
 docs/_sources/_source/api_reference.rst.txt
 docs/_sources/_source/install.rst.txt
+docs/_sources/_source/quickstart.rst.txt
 docs/_sources/_source/tutorials.rst.txt
+docs/_sources/benchmark/bm.ipynb.txt
 docs/_sources/tutorial/algorithm_explained.ipynb.txt
 docs/_sources/tutorial/basic_usage.ipynb.txt
 docs/_sources/tutorial/data_input_formats.ipynb.txt
@@ -189,6 +193,8 @@ docs/_static/pygments.css
 docs/_static/searchtools.js
 docs/_static/underscore-1.3.1.js
 docs/_static/underscore.js
+docs/benchmark/bm.html
+docs/benchmark/bm.ipynb
 docs/tutorial/algorithm_explained.html
 docs/tutorial/algorithm_explained.ipynb
 docs/tutorial/basic_usage.html
@@ -203,5 +209,6 @@ docs/tutorial/scikit_learn_datasets.html
 docs/tutorial/scikit_learn_datasets.ipynb
 docs/tutorial/tutorial.html
 docs/tutorial/tutorial.ipynb
+docs/tutorial/.ipynb_checkpoints/algorithm_explained-checkpoint.ipynb
 tests/__init__.py
 tests/conftest.py

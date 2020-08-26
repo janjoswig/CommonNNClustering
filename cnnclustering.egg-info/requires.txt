@@ -1,22 +1,23 @@
-matplotlib==3.2.1
-numpy==1.18.5
-scipy==1.4.1
-tqdm==4.46.1
-PyYAML==5.3.1
+numpy>=1.18.5
+matplotlib>=3.2.1
+PyYAML>=5.3.1
+scipy>=1.4.1
+tqdm>=4.46.1
 
 [dev]
-flake8==3.8.3
-mypy==0.780
-cython==0.29.20
+flake8>=3.8.3
+mypy>=0.780
+cython>=0.29.20
 
 [docs]
-sphinx==3.1.0
-nbsphinx==0.7.0
-rstcheck==3.3.1
+sphinx>=3.1.0
+nbsphinx>=0.7.0
+rstcheck>=3.3.1
 
 [optional]
-pandas==1.0.4
+pandas>=1.0.4
 
 [tests]
-pytest==5.4.3
-scikit-learn==0.23.1
+pytest>=5.4.3
+pytest-regressions>=2.0.1
+scikit-learn>=0.23.1

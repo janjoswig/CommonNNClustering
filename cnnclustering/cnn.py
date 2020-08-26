@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from collections import Counter, defaultdict, UserList
 from collections.abc import MutableSequence
 import functools
-from itertools import count
+from itertools import count, islice
 import pickle
 from pathlib import Path
 import random
@@ -754,6 +754,8 @@ class Points(np.ndarray):
             tree: Optional[Any] = None):
         if p is None:
             p = []
+
+        assert len(np.asarray(p).shape) <= 2
         obj = np.atleast_2d(np.asarray(p, dtype=np.float_)).view(cls)
 
         if edges is None:
@@ -776,14 +778,17 @@ class Points(np.ndarray):
 
     @edges.setter
     def edges(self, x):
-        sum_edges = sum(x)
-        n, d = self.shape
+        if x is None:
+            x = []
+        else:
+            sum_edges = sum(x)
+            n, d = self.shape
 
-        if (d != 0) and (sum_edges != n):
-            raise ValueError(
-                f"Part edges ({sum_edges} points) do not match data points "
-                f"({n} points)"
-                )
+            if (d != 0) and (sum_edges != n):
+                raise ValueError(
+                    f"Part edges ({sum_edges} points) do not match data points "
+                    f"({n} points)"
+                    )
 
         self._edges = np.asarray(x, dtype=_cfits.ARRAYINDEX_DTYPE)
 
@@ -924,6 +929,9 @@ class Points(np.ndarray):
         Returns:
             Generator of 2D :obj:`numpy.ndarray` s (parts)
         """
+        _edges = self.edges
+        if _edges.shape[0] == 0:
+            _edges = np.asarray([self.shape[0]], dtype=_cfits.ARRAYINDEX_DTYPE)
 
         if self.size > 0:
             start = 0
@@ -1511,6 +1519,10 @@ class CNN:
         else:
             self._status["graph"] = (False,)
 
+    def __repr__(self):
+        _alias = self.alias if self.alias is not None else 'no alias'
+        return f"CNN clustering object ({_alias})"
+
     def __str__(self):
         # Check data situation
         self.check()
@@ -1521,8 +1533,13 @@ class CNN:
                     edge_str = (f"{self._status['edges'][1]['p']}, "
                                 f"{self.data.points.edges}")
                 else:
-                    edge_str = (f"{self._status['edges'][1]['p']}, "
-                                f"{self.data.points.edges[:5]}")  # ...
+                    points_per_parts = [
+                        str(x)
+                        for x in self.data.points.edges[:4]
+                        ]
+                    edge_str = (
+                        f"{self._status['edges'][1]['p']}, "
+                        f"[{'  '.join(points_per_parts)} ...]")
             else:
                 edge_str = f"{self._status['edges'][1]['p']}"
         else:
@@ -1577,20 +1594,26 @@ class CNN:
 
     def cut(
             self,
-            part: Optional[int] = None,
+            parts: Tuple[Optional[int], ...] = None,
             points: Tuple[Optional[int], ...] = None,
-            dimensions: Tuple[Optional[int], ...] = None):
+            dimensions: Tuple[Optional[int], ...] = None,
+            copy=True):
         """Create a new :obj:`CNN` instance from a data subset
 
         Convenience function to create a reduced cluster object.
-        Supported are continuous slices from the original data that
-        allow making a view instead of a copy.
+        Supported are slices of a Points with respect to
+        parts, points, and dimensions.  Normally, this creates a copy
+        of the original data points on the reduced object.  Copying can
+        be disabled, if only regular slices on points and dimensions
+        are required.  Beware that information on parts (edges) will
+        be lost and the resulting Points container will not be
+        C-contiguous anymore.
 
         Args:
-            part: Cut out the points for exactly one part
-                (zero based index).
+            parts: Slice parts by using (start:stop:step)
             points: Slice points by using (start:stop:step)
             dimensions: Slice dimensions by using (start:stop:step)
+            copy: If False, do not copy data points.
 
         Returns:
             :obj:`CNN`
@@ -1598,6 +1621,8 @@ class CNN:
         Todo:
             * Implement cut distance matrix
         """
+        if parts is None:
+            parts = (None, None, None)
 
         if points is None:
             points = (None, None, None)
@@ -1605,8 +1630,19 @@ class CNN:
         if dimensions is None:
             dimensions = (None, None, None)
 
-        if len(self.data.points) > 0:
-            _points = self.data.points[slice(*points), slice(*dimensions)]
+        if copy:
+            # Slice within part
+            by_parts = islice(self.data.points.by_parts(), *parts)
+            _points = Points.from_parts(
+                [part[slice(*points), slice(*dimensions)]
+                 for part in by_parts]
+                )
+
+        else:
+            # Slice merged parts
+            if len(self.data.points) > 0:
+                _points = self.data.points[slice(*points), slice(*dimensions)]
+                _points.edges = None  # TODO: Recompute edges
 
         return type(self)(points=_points)
 
@@ -2442,7 +2478,8 @@ class CNN:
             self._children[label].data.points.edges = child_edges
             self._children[label]._refindex = np.asarray(ref_index)
             self._children[label]._refindex_relative = np.asarray(
-                ref_index_relative)
+                ref_index_relative
+                )
             self._children[label].alias = f'child No. {label}'
 
         return
