@@ -749,14 +749,15 @@ class Points(np.ndarray):
 
     def __new__(
             cls,
-            p: Optional[np.ndarray] = None,
+            p: Optional[Any] = None,
             edges: Optional[Sequence] = None,
             tree: Optional[Any] = None):
         if p is None:
             p = []
 
-        assert len(np.asarray(p).shape) <= 2
-        obj = np.atleast_2d(np.asarray(p, dtype=np.float_)).view(cls)
+        p = np.asarray(p, dtype=np.float_)
+        assert len(p.shape) <= 2  # Accept structure of 2 or less D.
+        obj = np.atleast_2d(p).view(cls)
 
         if edges is None:
             edges = []
@@ -929,13 +930,14 @@ class Points(np.ndarray):
         Returns:
             Generator of 2D :obj:`numpy.ndarray` s (parts)
         """
-        _edges = self.edges
-        if _edges.shape[0] == 0:
-            _edges = np.asarray([self.shape[0]], dtype=_cfits.ARRAYINDEX_DTYPE)
 
         if self.size > 0:
+            _edges = self.edges
+            if _edges.shape[0] == 0:
+                _edges = np.asarray([self.shape[0]], dtype=_cfits.ARRAYINDEX_DTYPE)
+
             start = 0
-            for end in self.edges:
+            for end in _edges:
                 yield self[start:(start + end), :]
                 start += end
 
@@ -1415,7 +1417,7 @@ class CNN:
         self.summary = Summary()
         self._children = None
         self._refindex = None
-        self._refindex_rel = None
+        self._refindex_relative = None
         self._status = None
 
     @property
@@ -1443,8 +1445,8 @@ class CNN:
         return self._refindex
 
     @property
-    def refindex_rel(self):
-        return self._refindex_rel
+    def refindex_relative(self):
+        return self._refindex_relative
 
     @property
     def status(self):
@@ -1621,6 +1623,10 @@ class CNN:
         Todo:
             * Implement cut distance matrix
         """
+
+        if self.data.points.size == 0:
+            return type(self)
+
         if parts is None:
             parts = (None, None, None)
 
@@ -1640,9 +1646,8 @@ class CNN:
 
         else:
             # Slice merged parts
-            if len(self.data.points) > 0:
-                _points = self.data.points[slice(*points), slice(*dimensions)]
-                _points.edges = None  # TODO: Recompute edges
+            _points = self.data.points[slice(*points), slice(*dimensions)]
+            _points.edges = None  # TODO: Recompute edges
 
         return type(self)(points=_points)
 
@@ -2426,40 +2431,38 @@ class CNN:
 
         for label, cpoints in self.labels.clusterdict.items():
 
-            cpoints = list(cpoints)
+            cpoints = sorted(list(cpoints))
             # cpoints should be a sorted list due to the way clusterdict
             # is constructed by :meth:`Labels.labels2dict`
 
-            ref_index = []           # point indices in root
-            ref_index_relative = []  # point indices in parent
+            refindex = []           # point indices in root
+            refindex_relative = []  # point indices in parent
 
             if self._refindex is None:
                 # Isolate from root
-                ref_index.extend(cpoints)
-                ref_index_relative = ref_index
+                refindex.extend(cpoints)
+                refindex_relative = refindex
             else:
                 # Isolate from child
-                ref_index.extend(self._refindex[cpoints])
-                ref_index_relative.extend(cpoints)
+                refindex.extend(self._refindex[cpoints])
+                refindex_relative.extend(cpoints)
 
             # TODO Extent isolate to work with distances
             #    Work with neighbourhoods probably does not make sense
             self._children[label].data.points = self.data.points[cpoints]
             # copies data from parent to child
 
-            child_edges = None
+            child_edges = []
             # Should have the same length as in root in the end
-            # (or be None)
-            if self.data.points.edges is not None:
+            if self.data.points.edges.size > 0:
                 # Pass on part edges to child
-                child_edges = []
                 edges = iter(self.data.points.edges)
                 part_end = next(edges)
                 # End index of points in the first part
                 child_e_ = 0
                 # Number of points in the first part going to the child
 
-                for index in ref_index:
+                for index in refindex_relative:
                     if index < part_end:
                         child_e_ += 1
                         continue
@@ -2475,12 +2478,15 @@ class CNN:
                     child_e_ += 1
                 child_edges.append(child_e_)
 
+                while len(child_edges) < len(self.data.points.edges):
+                    child_edges.append(0)
+
             self._children[label].data.points.edges = child_edges
-            self._children[label]._refindex = np.asarray(ref_index)
+            self._children[label]._refindex = np.asarray(refindex)
             self._children[label]._refindex_relative = np.asarray(
-                ref_index_relative
+                refindex_relative
                 )
-            self._children[label].alias = f'child No. {label}'
+            self._children[label].alias = f'{self.alias} - {label}'
 
         return
 

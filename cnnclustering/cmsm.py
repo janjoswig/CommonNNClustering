@@ -299,7 +299,7 @@ None, 'cluster_count', 'point_count'."""
             print(
 f"\n*********************************************************\n" +
 f"---------------------------------------------------------\n" +
-f"Computing coreset MSM at lagtime {lag*self.__step} {self.__unit}\n" +
+f"Computing coreset MSM at lagtime {lag * self.__step} {self.__unit}\n" +
 f"---------------------------------------------------------\n"
             )
 
@@ -340,7 +340,7 @@ f"---------------------------------------------------------\n"
             if tooshort:
                 print(
                     f"Trajectories {tooshort}\n" +
-                    f"are shorter then step threshold (lag*minlenfactor = {threshold})\n" +
+                    f"are shorter then step threshold (lag * minlenfactor = {threshold})\n" +
                     f"and will not be used to compute the MSM.\n"
                     )
 

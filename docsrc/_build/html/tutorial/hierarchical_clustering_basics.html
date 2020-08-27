@@ -4,7 +4,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hierarchical clustering basics &#8212; cnnclustering  documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -321,8 +321,8 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-3.8.3 (default, May 15 2020, 15:24:35)
-[GCC 8.3.0]
+3.8.5 | packaged by conda-forge | (default, Aug 21 2020, 18:21:27)
+[GCC 7.5.0]
 </pre></div></div>
 </div>
 </div>
@@ -330,20 +330,20 @@ div.rendered_html tbody tr:hover {
 <h3>Notebook configuration<a class="headerlink" href="#Notebook-configuration" title="Permalink to this headline">¶</a></h3>
 <p>We use <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> to create plots. A <code class="docutils literal notranslate"><span class="pre">&quot;matplotlibrc&quot;</span></code> file can be used to customise the appearance of the plots.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Matplotlib configuration</span>
 <span class="n">mpl</span><span class="o">.</span><span class="n">rc_file</span><span class="p">(</span>
-    <span class="s2">&quot;matplotlibrc&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;../matplotlibrc&quot;</span><span class="p">,</span>
     <span class="n">use_default_template</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -368,7 +368,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>Optionally, clustering results can be nicely collected in a <code class="docutils literal notranslate"><span class="pre">pandas</span></code> data frame.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -381,7 +381,7 @@ div.rendered_html tbody tr:hover {
 <div class="section" id="Package-configuration">
 <h3>Package configuration<a class="headerlink" href="#Package-configuration" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -391,7 +391,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -401,7 +401,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -424,7 +424,7 @@ div.rendered_html tbody tr:hover {
 <div class="section" id="Getting-started">
 <h3>Getting started<a class="headerlink" href="#Getting-started" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -440,7 +440,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -450,7 +450,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -485,7 +485,7 @@ Children :                      False
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -504,7 +504,7 @@ Children :                      False
 <p>Looking at the 2D plot of the generated points above we can already tell that this is probably not the easiest of all clustering problems. One of the three clusters is hardly visible. We also have generated a fairly large amount of data points. If we have a big amount of computer-memory or enough time, we can attempt to cluster the 100,000 points directly. In terms of speed and for data exploration it might be, however, a good idea to perform the clustering on a reduced data set. We can predict
 the clustering later for the full sized set on the basis of the reduced result.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -517,7 +517,7 @@ the clustering later for the full sized set on the basis of the reduced result.<
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -552,7 +552,7 @@ Children :                      False
 </div>
 <p>We created a cluster object holding a smaller data set by using a point stride of 100, leaving us with only 1000 points that can be clustered very fast. Note, that using a slice on the original data like this does not require a copy. A plot of the reduced set also shows that we made the clustering easier just judging by visual inspection. We can now clearly spot three point clouds.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -566,7 +566,7 @@ Children :                      False
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -584,7 +584,7 @@ Text(0.5, 1.0, &#39;1000 points&#39;)
 <p>When we pre-calculate pairwise point distances, we can plot the distribution of distances. This can give us a very basic estimate for a reasonable radius cutoff as one of the cluster parameters. For globular clusters, each cluster should be visible as a peak in the distance distribution around a value that is very roughly equivalent to the radius of the point cloud. For more complicated data sets this approximation is not valid, but we can still get a feeling for the value range of the radius
 cutoff.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -996,7 +996,7 @@ is good), but the noise level is around 50 % and higher (which is probably not w
 <p>To use the hierarchical approach to clustering our data set, we will apply in a first step a pair of cluster parameters that will extract the lesser dense region of the data as an isolated cluster. That is we choose a comparably large value of the neighbour search radius <em>r</em> and a rather low value of the similarity criterion <em>c</em>. We can refer to these parameters as <em>soft</em> parameters, leaving the more dense regions of the data untouched and in one cluster. Remember that density in terms of the
 CNN clustering is estimated as the number of common neighbours within the neighbourhood intersection of two points with respect to a radius <em>r</em>. So more common neighbours (higher similarity cutoff <em>c</em>) and/or a smaller neighbourhood radius (smaller <em>r</em>) will result in a higher density requirement. To make this more clear let’s have a look again at some clusterings.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1027,7 +1027,7 @@ CNN clustering is estimated as the number of common neighbours within the neighb
 <p><strong>Upper left</strong>: Choosing parameters hard enough (<span class="math notranslate nohighlight">\(r=0.18\)</span>, <span class="math notranslate nohighlight">\(c=6\)</span>) to achieve a splitting of the two dense clusters, does also completely split up the less dense cluster. We could use this parameter set in a second hierarchical clustering step.</p>
 <p>The central element of the hierarchical cluster functionality is the <code class="docutils literal notranslate"><span class="pre">isolate</span></code> method of a cluster object. After a clustering (with soft parameters) we can <em>freeze</em> the result before we start to re-cluster.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1039,7 +1039,7 @@ CNN clustering is estimated as the number of common neighbours within the neighb
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">isolate</span></code> method will create a new cluster object (a child cluster) for every cluster of a cluster result. In our case we get two new child clusters (plus one for outliers). The clusters are stored in a dictionary under the <code class="docutils literal notranslate"><span class="pre">children</span></code> attribute of the parent cluster object.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1050,15 +1050,15 @@ CNN clustering is estimated as the number of common neighbours within the neighb
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 defaultdict(&lt;function cnnclustering.cnn.CNN.isolate.&lt;locals&gt;.&lt;lambda&gt;()&gt;,
-            {1: &lt;cnnclustering.cnn.CNNChild at 0x7f9086d3ba30&gt;,
-             2: &lt;cnnclustering.cnn.CNNChild at 0x7f9086d3bd00&gt;,
-             0: &lt;cnnclustering.cnn.CNNChild at 0x7f9086d3beb0&gt;})
+            {1: CNN clustering object (child No. 1),
+             2: CNN clustering object (child No. 2),
+             0: CNN clustering object (child No. 0)})
 </pre></div></div>
 </div>
 <p>Since we will use different cluster parameters now for different clusters it would be nice to have something to keep the overview of which cluster has been identified under which parameters. This information is provided by <code class="docutils literal notranslate"><span class="pre">labels.info</span></code>. A label info tells us three things:</p>
@@ -1068,7 +1068,7 @@ defaultdict(&lt;function cnnclustering.cnn.CNN.isolate.&lt;locals&gt;.&lt;lambda
 <li><p><code class="docutils literal notranslate"><span class="pre">params</span></code>: This is a dictionary stating the cluster parameters (<em>r</em>, <em>c</em>) that led to each cluster. For <code class="docutils literal notranslate"><span class="pre">&quot;fitted&quot;</span></code> labels, each cluster has the same parameters.</p></li>
 </ul>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1078,17 +1078,17 @@ defaultdict(&lt;function cnnclustering.cnn.CNN.isolate.&lt;locals&gt;.&lt;lambda
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-LabelInfo(origin=&#39;fitted&#39;, reference=&lt;cnnclustering.cnn.CNN object at 0x7f90884c64c0&gt;, params={1: (0.6, 17), 2: (0.6, 17)})
+LabelInfo(origin=&#39;fitted&#39;, reference=CNN clustering object (root), params={1: (0.6, 17), 2: (0.6, 17)})
 </pre></div></div>
 </div>
 <p>Every single isolated child cluster is a full-fledged, completely functional cluster object itself. When we want to re-cluster a child cluster, this is no different to clustering a parent cluster.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1124,7 +1124,7 @@ Children :                      False
 </div>
 <p>Note, that the <code class="docutils literal notranslate"><span class="pre">Hierarchy</span> <span class="pre">level</span></code> in the above overview has increased to 1. We can again plot the distance distribution within this child cluster, to see how this changed.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1143,7 +1143,7 @@ Children :                      False
 </div>
 <p>And then we can attempt the second clustering step. For somewhat inhomogeneous data sets, a typical artifact or side effect of the CNN clustering is, that very small clusters may be appear in the result. To filter those out because they are irrelevant, we can use the <code class="docutils literal notranslate"><span class="pre">member_cutoff</span></code> keyword argument of the <code class="docutils literal notranslate"><span class="pre">fit</span></code> method.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1166,12 +1166,12 @@ Children :                      False
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Execution time for call of fit: 0 hours, 0 minutes, 0.0472 seconds
+Execution time for call of fit: 0 hours, 0 minutes, 0.0616 seconds
 --------------------------------------------------------------------------------
 #points   R         C         min       max       #clusters %largest  %noise
 678       0.180     6         2         None      4         0.494     0.117
 --------------------------------------------------------------------------------
-Execution time for call of fit: 0 hours, 0 minutes, 0.0446 seconds
+Execution time for call of fit: 0 hours, 0 minutes, 0.0519 seconds
 --------------------------------------------------------------------------------
 #points   R         C         min       max       #clusters %largest  %noise
 678       0.180     6         5         None      2         0.494     0.124
@@ -1179,7 +1179,7 @@ Execution time for call of fit: 0 hours, 0 minutes, 0.0446 seconds
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1194,9 +1194,18 @@ Text(0.5, 1.0, &#39;member cutoff 5&#39;)
 <img alt="../_images/tutorial_hierarchical_clustering_basics_65_2.png" src="../_images/tutorial_hierarchical_clustering_basics_65_2.png" />
 </div>
 </div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">robj</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">edges</span>
+</pre></div>
+</div>
+</div>
 <p>As a little extra feature a cluster object has a <code class="docutils literal notranslate"><span class="pre">pie</span></code> method that allows to visualize the current state and splitting on the different hierarchy levels as a pie-diagram (from level 0 in the middle to lower levels to the outside).</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1208,7 +1217,7 @@ Text(0.5, 1.0, &#39;member cutoff 5&#39;)
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1220,12 +1229,12 @@ Text(0.5, 1.0, &#39;member cutoff 5&#39;)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_hierarchical_clustering_basics_67_1.png" src="../_images/tutorial_hierarchical_clustering_basics_67_1.png" />
+<img alt="../_images/tutorial_hierarchical_clustering_basics_68_1.png" src="../_images/tutorial_hierarchical_clustering_basics_68_1.png" />
 </div>
 </div>
 <p>Now that we have isolated one cluster in the first step and two others in a further splitting on a lower hierarchy level, the last step that remains, is to put everything back together. This can be done automatically by calling <code class="docutils literal notranslate"><span class="pre">reel</span></code> on the parent cluster object into which the child cluster results should be integrated.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1239,7 +1248,7 @@ Text(0.5, 1.0, &#39;member cutoff 5&#39;)
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1251,7 +1260,7 @@ Text(0.5, 1.0, &#39;member cutoff 5&#39;)
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1263,11 +1272,11 @@ Text(0.5, 1.0, &#39;member cutoff 5&#39;)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_hierarchical_clustering_basics_70_1.png" src="../_images/tutorial_hierarchical_clustering_basics_70_1.png" />
+<img alt="../_images/tutorial_hierarchical_clustering_basics_71_1.png" src="../_images/tutorial_hierarchical_clustering_basics_71_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1280,11 +1289,11 @@ Text(0.5, 1.0, &#39;member cutoff 5&#39;)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_hierarchical_clustering_basics_71_0.png" src="../_images/tutorial_hierarchical_clustering_basics_71_0.png" />
+<img alt="../_images/tutorial_hierarchical_clustering_basics_72_0.png" src="../_images/tutorial_hierarchical_clustering_basics_72_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1294,12 +1303,12 @@ Text(0.5, 1.0, &#39;member cutoff 5&#39;)
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-LabelInfo(origin=&#39;reeled&#39;, reference=&lt;cnnclustering.cnn.CNN object at 0x7f90884c64c0&gt;, params={2: (0.6, 17), 3: (0.18, 6), 1: (0.18, 6)})
+LabelInfo(origin=&#39;reeled&#39;, reference=CNN clustering object (root), params={2: (0.6, 17), 3: (0.18, 6), 1: (0.18, 6)})
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -1393,7 +1402,7 @@ Prediction in 2.46 seconds
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_hierarchical_clustering_basics_75_1.png" src="../_images/tutorial_hierarchical_clustering_basics_75_1.png" />
+<img alt="../_images/tutorial_hierarchical_clustering_basics_76_1.png" src="../_images/tutorial_hierarchical_clustering_basics_76_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -1459,6 +1468,7 @@ Label   r       n
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Hierarchical clustering basics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_input_formats.html">Data input formats</a></li>
 <li class="toctree-l2"><a class="reference internal" href="algorithm_explained.html">Density based clustering explained</a></li>
+<li class="toctree-l2"><a class="reference internal" href="md_example.html">Molecular dynamics application example</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../_source/api_reference.html">API Reference</a></li>
@@ -1501,7 +1511,7 @@ Label   r       n
       &copy;2020, Jan-Oliver Joswig.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

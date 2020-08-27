@@ -5,6 +5,13 @@ from sklearn import datasets
 import cnnclustering.cnn as cnn
 
 
+def pytest_collection_modifyitems(config, items):
+    for item in items:
+        # Attach xfail marker base on id
+        if "_fail" in item.nodeid:
+            item.add_marker(pytest.mark.raises())
+
+
 @pytest.fixture
 def base_data(request):
     data = {
