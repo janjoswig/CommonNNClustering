@@ -207,6 +207,15 @@ class Labels(np.ndarray):
         #         sys.stderr.flush()
         #         break
 
+    def __reduce__(self):
+        pickled_state = super().__reduce__()
+        fixed_state = pickled_state[2] + (self.info, )
+        return (pickled_state[0], pickled_state[1], fixed_state)
+
+    def __setstate__(self, state):
+        self._info = state[-1]
+        super().__setstate__(state[0:-1])
+
     @property
     def consider(self):
         return self._consider
@@ -378,7 +387,7 @@ class Labels(np.ndarray):
                 new_params = {
                     reassign[k]: v
                     for k, v in self.info.params.items()
-                    if reassign[k] != 0
+                    if (k in reassign) and (reassign[k] != 0)
                     }
                 self.info = self.info._replace(params=new_params)
 
@@ -553,7 +562,7 @@ class Neighbourhoods(NeighbourhoodsABC):
     @property
     def n_neighbours(self):
         """Return number of neighbours for each point"""
-        [len(x) for x in self.neighbourhoods]
+        return [len(x) for x in self.neighbourhoods]
 
     @property
     def reference(self):
@@ -588,7 +597,7 @@ class NeighbourhoodsList(UserList, Neighbourhoods):
     @property
     def n_neighbours(self):
         """Return number of neighbours for each point"""
-        [len(x) for x in self]
+        return [len(x) for x in self]
 
 
 class NeighbourhoodsArray(np.ndarray, Neighbourhoods):
@@ -628,7 +637,7 @@ class NeighbourhoodsArray(np.ndarray, Neighbourhoods):
     @property
     def n_neighbours(self):
         """Return number of neighbours for each point"""
-        [x.shape[0] for x in self]
+        return [x.shape[0] for x in self]
 
 
 class NeighbourhoodsLinear(np.ndarray, Neighbourhoods):
@@ -1325,6 +1334,14 @@ class LabelInfo(NamedTuple):
     different underlying parameters (Dict[int, Tuple(float, int)])
     """
 
+    def __str__(self):
+        str_ = "Label    r    c\n"
+        str_ += ("-" * 20) + "\n"
+        for k, v in sorted(self.params.items()):
+            str_ += f"{k}    {v[0]}    {v[1]}\n"
+
+        return str_
+
 
 class CNNRecord(NamedTuple):
     """Cluster result container
@@ -1784,7 +1801,7 @@ class CNN:
             neighbourhoods = np.array([
                 np.where((x > 0) & (x < r))[0].astype(np.intp)
                 for x in self.data.distances
-                ])
+                ], dtype=object)
 
             self.data.neighbourhoods = NeighbourhoodsArray(neighbourhoods, r)
         else:
@@ -1853,7 +1870,7 @@ class CNN:
                     other.data.points.tree,
                     r, **kwargs
                     )
-                ])
+                ], dtype=object)
 
             self.data.neighbourhoods = NeighbourhoodsArray(neighbourhoods, r)
         else:
@@ -1872,6 +1889,7 @@ class CNN:
             maxima_props: Optional[Dict[str, Any]] = None,
             hist_props: Optional[Dict[str, Any]] = None,
             ax_props: Optional[Dict[str, Any]] = None,
+            plot_props: Optional[Dict[str, Any]] = None,
             inter_props: Optional[Dict[str, Any]] = None):
         """Plot a histogram of distances in the data set
 
@@ -1958,12 +1976,17 @@ class CNN:
         if ax_props is not None:
             ax_props_defaults.update(ax_props)
 
+        plot_props_defaults = {}
+
+        if plot_props is not None:
+            plot_props_defaults.update(plot_props)
+
         if ax is None:
             fig, ax = plt.subplots()
         else:
             fig = ax.get_figure()
 
-        line = ax.plot(binmids, histogram)
+        line = ax.plot(binmids, histogram, **plot_props_defaults)
 
         if maxima:
             maxima_props_ = {
@@ -2949,14 +2972,14 @@ class CNN:
 
         return fig, ax, plotted
 
-    def pie(self, ax=None):
+    def pie(self, ax=None, pie_props=None):
 
         if ax is None:
             fig, ax = plt.subplots()
         else:
             fig = ax.get_figure()
 
-        plotted = _plots.pie(self, ax=ax)
+        plotted = _plots.pie(self, ax=ax, pie_props=pie_props)
 
         return fig, ax, plotted
 

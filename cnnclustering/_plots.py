@@ -10,111 +10,130 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+def getpieces(c, pieces=None, level=0, ref="0", total=None):
+    """Return cluster hierarchy structure in dict view
+
+    Used e.g. by :meth:`plot_pie`.
+
+    Pieces is a dictionary of the form
+    dict[levels][clusterref] = {child: share}, e.g. :
+
+        pieces = {
+            0: {  # Level
+                "0": {  # Reference
+                    0: {0.1, 1: 0.9}
+                },
+            1: {
+                "0.0": {
+                    0: 0.1
+                    },
+                "0.1": {
+                    0: 0.5,
+                    1: 0.2,
+                    2: 0.2
+                    }
+                }
+            }
+
+    Args:
+        c: cluster object
+        pieces: current view
+        level: current hierarchy level
+        ref: child cluster reference string
+        total: number of point in root
+
+    Returns:
+        dict
+    """
+
+    if not pieces:
+        # Init
+        pieces = {}
+    if level not in pieces:
+        # New level
+        pieces[level] = {}
+
+    if c.labels.size > 0:
+        # Build parts for current level
+        cluster_shares = {k: len(v) for k, v in c.labels.clusterdict.items()}
+        if total is None:
+            # Only for root
+            total = sum(cluster_shares.values())
+        cluster_shares = {k: v / total for k, v in cluster_shares.items()}
+
+        pieces[level][ref] = cluster_shares
+        if level > 0:
+            # Pad not reclustered clusters (as noise)
+            for higher_ref, higher_cluster_shares in pieces[level - 1].items():
+                for cluster, share in higher_cluster_shares.items():
+                    entailed_ref = ".".join([higher_ref, str(cluster)])
+                    if entailed_ref not in pieces[level]:
+                        pieces[level][entailed_ref] = {0: share}
+
+    if c._children:
+        for number, child in c._children.items():
+            pieces = getpieces(
+                child,
+                pieces=pieces,
+                level=level + 1,
+                ref=".".join([ref, str(number)]),
+                total=total
+            )
+
+    return pieces
+
+
 def pie(root, ax, pie_props=None):
     """Illustrate (hierarchichal) cluster result as pie diagram
 
     Args:
-        root: :obj:`CNN` being the origin of the pie diagram.
-        ax: `Axes` instance to plot on.
+        root: :obj:`cnnclustering.cnn.CNN` being the origin of the pie diagram.
+        ax: Matplotlib `Axes` instance to plot on.
         pie_props: Dictionary passed to :func:`matplotlib.pyplot.pie`.
 
     Returns:
-        Tuple of plotted elements (pie rings)
+        List of plotted elements (pie rings)
     """
 
-    # TODO Sort cluster labels, so that noise always comes first
-    # TODO Keep colors (transparent) for clusters that are not
-    #     reclustered
     # TODO Make noise color configurable
     # TODO Adapt the scheme for tree view
-
-    size = 0.2
-    radius = 0.22
 
     if ax is None:
         ax = plt.gca()
 
-    def getpieces(c, pieces=None, level=0, ref="0"):
-        if not pieces:
-            pieces = {}
-        if level not in pieces:
-            pieces[level] = {}
+    pie_props_defaults = {
+        "normalize": False,
+        "radius": 0.5,
+        "wedgeprops": dict(width=0.5, edgecolor='w')
+        }
 
-        if c.labels.clusterdict:
-            ring = {k: len(v) for k, v in c.labels.clusterdict.items()}
-            ringsum = np.sum(list(ring.values()))
-            ring = {k: v/ringsum for k, v in ring.items()}
-            pieces[level][ref] = ring
+    if pie_props is not None:
+        pie_props_defaults.update(pie_props)
 
-            if c._children:
-                for number, child in c._children.items():
-                    getpieces(
-                        child,
-                        pieces=pieces,
-                        level=level + 1,
-                        ref=".".join([ref, str(number)])
-                    )
-
-        return pieces
+    radius = pie_props_defaults.pop("radius")
+    try:
+        _ = pie_props_defaults.pop("colors")
+    except:
+        pass
 
     p = getpieces(root)
 
-    ringvalues = []
-    colors = []
-    for j in range(np.max(list(p[0]['0'].keys())) + 1):
-        if j in p[0]['0']:
-            ringvalues.append(p[0]['0'][j])
-            if j == 0:
-                colors.append("#262626")
-            else:
-                colors.append(next(ax._get_lines.prop_cycler)["color"])
-
     plotted = []
-
-    plotted.append(
-        ax.pie(
-            ringvalues, radius=radius, colors=colors,
-            wedgeprops=dict(width=size, edgecolor='w')
-            )
-        )
-
-    # iterating through child levels
-    for i in range(1, np.max(list(p.keys())) + 1):
-        # what has not been reclustered:
-        reclustered = np.asarray(
-            [key.rsplit('.', 1)[-1] for key in p[i].keys()]
-            ).astype(int)
-        # iterate over clusters of parent level
-        for ref, values in p[i-1].items():
-            # account for not reclustered clusters
-            for number in values:
-                if number not in reclustered:
-                    p[i][".".join([ref, str(number)])] = {0: 1}
-
-        # iterate over clusters of child level
-        for ref in p[i]:
-            preref = ref.rsplit('.', 1)[0]
-            sufref = int(ref.rsplit('.', 1)[-1])
-            p[i][ref] = {
-                k: v*p[i-1][preref][sufref]
-                for k, v in p[i][ref].items()
-            }
-
+    for level, refs in sorted(p.items()):
+        ax.set_prop_cycle(None)
         ringvalues = []
         colors = []
-        for ref in sorted(list(p[i].keys())):
-            for j in p[i][ref]:
-                ringvalues.append(p[i][ref][j])
-                if j == 0:
+        for ref, cluster_shares in sorted(refs.items()):
+            for cluster, share in sorted(cluster_shares.items()):
+                ringvalues.append(share)
+                if cluster == 0:
                     colors.append("#262626")
                 else:
                     colors.append(next(ax._get_lines.prop_cycler)["color"])
 
         plotted.append(
-            ax.pie(
-                ringvalues, radius=radius + i*size, colors=colors,
-                wedgeprops=dict(width=size, edgecolor='w')
-                )
+            ax.pie(ringvalues, radius=radius * (level + 1),
+                   colors=colors, **pie_props_defaults),
             )
 
     return plotted
