@@ -20,4 +20,5 @@ pandas>=1.0.4
 [tests]
 pytest>=5.4.3
 pytest-regressions>=2.0.1
+pytest-raises>=0.11
 scikit-learn>=0.23.1
