@@ -12,3 +12,6 @@ Pipfile.lock
 .vscode/
 .python-version
 .env
+
+# big temporary files
+docsrc/tutorial/md_example/*.npy
