@@ -34,8 +34,6 @@ bump2version = "*"
 scikit-learn = "*"
 pydpc = "*"
 hdbscan = "*"
-debacl = "*"
-
 
 [packages]
 numpy = "*"
