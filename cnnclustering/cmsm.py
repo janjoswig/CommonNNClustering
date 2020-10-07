@@ -539,9 +539,11 @@ f"---------------------------------------------------------\n"
         if ref_props is not None:
             ref_props_defaults.update(ref_props)
 
-        time = np.array([k for k in its]) * self.__step
+        time = np.array([int(k) for k in its]) * self.__step
+        sorti = np.argsort(time)
+        time = time[sorti]
         timescales = np.vstack([v for v in its.values()]) * self.__step
-        lines = ax.plot(time, timescales, **line_props_defaults)
+        lines = ax.plot(time, timescales[sorti, :], **line_props_defaults)
         ref = ax.plot(time, time, **ref_props_defaults)
 
         ax_props_defaults = {
