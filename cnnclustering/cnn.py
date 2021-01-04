@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""cnn -A Python module for common-nearest-neighbour (CNN) clustering
+"""cnn - A Python module for common-nearest-neighbour (CNN) clustering
 
 """
 

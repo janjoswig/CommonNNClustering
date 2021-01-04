@@ -187,8 +187,6 @@ cdef inline bint check_similarity_cppset(
         elements, 0 otherwise
     """
 
-    # TODO Except fused type `index_t`
-
     cdef cppset[index_t].iterator it = a.begin()
     cdef cppset[index_t].iterator search
     cdef index_t common
