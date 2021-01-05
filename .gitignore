@@ -4,6 +4,10 @@ __pycache__/
 .ipynb_checkpoints/
 .pytest_cache
 
+# coverage
+htmlcov/
+.coverage
+
 # locks
 *.swp
 Pipfile.lock
