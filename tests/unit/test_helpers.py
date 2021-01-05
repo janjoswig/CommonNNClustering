@@ -11,4 +11,4 @@ class TestTimedDecorator:
 
         decorated = cnn.timed(some_function)
         decorated_result = decorated()
-        print(decorated_result)
+        assert isinstance(decorated_result, tuple)
