@@ -12,14 +12,12 @@ from itertools import count, islice
 import pickle
 from pathlib import Path
 import random
-# import sys
 import tempfile
 import time
 from typing import Dict, List, Set, Tuple, NamedTuple
-from typing import Collection, Iterator, Sequence  # Iterable
+from typing import Collection, Iterator, Sequence
 from typing import Any, Optional, Type, Union, IO
 
-# import colorama  # TODO Make this optional or remove completely?
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np

@@ -1,32 +1,9 @@
-# import os
 from setuptools import setup, find_packages, Extension
 
 from Cython.Build import cythonize
 from Cython.Distutils import build_ext
 
-# try:
-#     from Cython.Build import cythonize
-#     from Cython.Distutils import build_ext
-# except ImportError:
-#     cythonize = None
-
 import numpy as np
-
-
-# def no_cythonize(extensions, **_ignore):
-#     for extension in extensions:
-#         sources = []
-#         for sfile in extension.sources:
-#             path, ext = os.path.splitext(sfile)
-#             if ext in (".pyx", ".py"):
-#                 if extension.language == "c++":
-#                     ext = ".cpp"
-#                 else:
-#                     ext = ".c"
-#                 sfile = path + ext
-#             sources.append(sfile)
-#         extension.sources[:] = sources
-#    return extensions
 
 
 extensions = [
@@ -38,11 +15,6 @@ extensions = [
         )
 ]
 
-# NOCYTHONIZE = bool(int(os.getenv("NOCYTHONIZE", 1))) or cythonize is None
-
-# if NOCYTHONIZE:
-#     extensions = no_cythonize(extensions)
-# else:
 compiler_directives = {
     "language_level": 3,
     "embedsignature": True,
@@ -51,6 +23,7 @@ compiler_directives = {
     "cdivision": True,
     "nonecheck": False
     }
+
 extensions = cythonize(extensions, compiler_directives=compiler_directives)
 
 with open("README.md", "r") as readme:
@@ -58,11 +31,13 @@ with open("README.md", "r") as readme:
 
 sdesc = "A Python package for common-nearest neighbour (CNN) clustering"
 
-requirements_map = {"mandatory": "",
-                    "optional": "-optional",
-                    "dev": "-dev",
-                    "docs": "-docs",
-                    "tests": "-tests"}
+requirements_map = {
+    "mandatory": "",
+    "optional": "-optional",
+    "dev": "-dev",
+    "docs": "-docs",
+    "tests": "-tests"
+    }
 
 requirements = {}
 for category, fname in requirements_map.items():
