@@ -37,8 +37,8 @@ from scipy.spatial.distance import cdist
 import tqdm
 import yaml
 
-from cnnclustering import _cfits
-from cnnclustering import _plots
+from . import _cfits
+from . import _plots
 
 
 def timed(function_):

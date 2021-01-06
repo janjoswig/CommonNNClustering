@@ -1,5 +1,3 @@
-include pyproject.toml
-
 # Include the license file
 include LICENSE.txt
 
@@ -11,4 +9,3 @@ recursive-include docs *
 
 # Include Cython sources
 recursive-include cnnclustering *.pyx
-recursive-include cnnclustering *.so

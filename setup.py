@@ -1,14 +1,12 @@
-from setuptools import setup, find_packages, Extension
+from setuptools import Extension, find_packages, setup
 
 from Cython.Build import cythonize
-from Cython.Distutils import build_ext
-
 import numpy as np
 
 
 extensions = [
     Extension(
-        "cnnclustering._cfits", ["cnnclustering/_cfits.pyx"],
+        "*", ["cnnclustering/*.pyx"],
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
         language="c++",
         include_dirs=[np.get_include()]
@@ -75,5 +73,5 @@ setup(
         "docs": requirements["docs"],
         "tests": requirements["tests"],
         },
-    cmdclass=dict(build_ext=build_ext)
+    zip_safe=False
     )
