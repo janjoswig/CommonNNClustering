@@ -8,4 +8,4 @@ include requirements*.txt
 recursive-include docs *
 
 # Include Cython sources
-recursive-include cnnclustering *.pyx
+recursive-include src/cnnclustering *.pyx
