@@ -41,72 +41,80 @@ from . import _cfits
 from . import _plots
 
 
-def timed(function_):
+def timed(function):
     """Decorator to measure execution time.
 
-    Forwards the output of the wrapped function and measured execution
-    time as a tuple.
+    Forwards the output of the wrapped function and the
+    measured execution time as a tuple.
+    Keyword argument `v = True` is interpreted as
+    verboose trigger and prints execution time.
     """
 
-    @functools.wraps(function_)
+    @functools.wraps(function)
     def wrapper(*args, **kwargs):
         go = time.time()
-        wrapped = function_(*args, **kwargs)
-        stop = time.time()
-        if wrapped is not None:
-            stopped = stop - go
+        wrapped = function(*args, **kwargs)
+        stopped = time.time() - go
+
+        if kwargs.get("v", False):
             hours, rest = divmod(stopped, 3600)
             minutes, seconds = divmod(rest, 60)
-            if wrapped[1]:
-                # Be chatty
-                print(
-                    "Execution time for call of "
-                    f"{function_.__name__}: "
-                    f"{int(hours)} hours, "
-                    f"{int(minutes)} minutes, "
-                    f"{seconds:.4f} seconds"
-                )
-            return (*wrapped, stopped)
-        return
+
+            print(
+                "Execution time for call of "
+                f"{function.__name__}: "
+                f"{int(hours)} hours, "
+                f"{int(minutes)} minutes, "
+                f"{seconds:.4f} seconds"
+            )
+
+        return (wrapped, stopped)
     return wrapper
 
 
-def recorded(function_):
+def recorded(function):
     """Decorator to format fit function feedback.
 
-    Used to decorate fit methods of :obj:`CNN` instances.  Feedback needs to
-    be sequence in record format, i.e. conforming to the :obj:`CNNRecord`
-    namedtuple.  If execution time was measured, the corresponding field
+    Used to decorate fit methods of :obj:`CNN` instances.
+    Feedback needs to be sequence in record format,
+    i.e. conforming to the :obj:`CNNRecord`
+    namedtuple.
+    If execution time was measured, the corresponding field
     will be modified.
+    Keyword argument `v = True` is interpreted as
+    verboose trigger and prints the record.
     """
 
-    @functools.wraps(function_)
+    @functools.wraps(function)
     def wrapper(self, *args, **kwargs):
-        wrapped = function_(self, *args, **kwargs)
-        if wrapped is not None:
-            if len(wrapped) == 3:
-                record = wrapped[0]._replace(time=wrapped[-1])
-            else:
-                record = wrapped[0]
+        wrapped = function(self, *args, **kwargs)
+        if wrapped is None:
+            return
 
-            if wrapped[1]:
-                # Be chatty
-                print("-" * 80)
-                print(
-                    "#points   ",
-                    "R         ", "C         ", "min       ",
-                    "max       ", "#clusters ", "%largest  ", "%noise    ",
-                    sep="")
-                for entry in record[:-1]:
-                    if entry is None:
-                        print(f"{'None':<10}", end="")
-                    elif isinstance(entry, float):
-                        print(f"{entry:<10.3f}", end="")
-                    else:
-                        print(f"{entry:<10}", end="")
-                print("\n" + "-" * 80)
+        if isinstance(wrapped, tuple):
+            record = wrapped[0]._replace(time=wrapped[-1])
+        else:
+            record = wrapped
 
-            self.summary.append(record)
+        if kwargs.get("v", False):
+            print("-" * 80)
+            print(
+                "#points   ",
+                "R         ", "C         ", "min       ",
+                "max       ", "#clusters ", "%largest  ", "%noise    ",
+                sep=""
+                )
+
+            for entry in record[:-1]:
+                if entry is None:
+                    print(f"{'None':<10}", end="")
+                elif isinstance(entry, float):
+                    print(f"{entry:<10.3f}", end="")
+                else:
+                    print(f"{entry:<10}", end="")
+            print("\n" + "-" * 80)
+
+        self.summary.append(record)
 
         return
     return wrapper
@@ -2027,9 +2035,10 @@ class CNN:
             cnn_offset: Optional[int] = None,
             info: bool = True,
             sort_by_size: bool = True,
-            rec: bool = True, v: bool = True,
+            rec: bool = True,
+            v: bool = True,
             policy: Optional[str] = None,
-            ) -> Optional[Tuple[CNNRecord, bool]]:
+            ) -> Optional[CNNRecord]:
         """Wraps CNN clustering execution
 
         Requires one of :attr:`Data.graph`, :attr:`Data.neighbourhoods`,
@@ -2269,7 +2278,7 @@ class CNN:
                 largest / self.data.points.shape[0],
                 noise / self.data.points.shape[0],
                 None,
-                ), v
+                )
 
         return None
 
