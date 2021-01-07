@@ -6,7 +6,7 @@ import numpy as np
 
 extensions = [
     Extension(
-        "*", ["cnnclustering/*.pyx"],
+        "cnnclustering._cfits", ["cnnclustering/_cfits.pyx"],
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
         language="c++",
         include_dirs=[np.get_include()]
