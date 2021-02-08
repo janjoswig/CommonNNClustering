@@ -1,12 +1,15 @@
 language: python
 python:
-- '3.6'
-- '3.7'
-- '3.8'
+  - '3.7'
+  - '3.8'
+  - '3.9'
+
 install:
-- pip install ".[tests, optional, dev]"
+  - pip install tox-travis
+
 script:
-- pytest
+  - tox
+
 deploy:
   provider: pypi
   username: __token__

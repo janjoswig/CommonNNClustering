@@ -1,14 +1,12 @@
-from setuptools import setup, find_packages, Extension
+from setuptools import Extension, find_packages, setup
 
 from Cython.Build import cythonize
-from Cython.Distutils import build_ext
-
 import numpy as np
 
 
 extensions = [
     Extension(
-        "cnnclustering._cfits", ["cnnclustering/_cfits.pyx"],
+        "cnnclustering._cfits", ["src/cnnclustering/_cfits.pyx"],
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
         language="c++",
         include_dirs=[np.get_include()]
@@ -48,16 +46,14 @@ setup(
     name='cnnclustering',
     version='0.3.11',
     keywords=["Density-based-clustering"],
-    scripts=["cnnclustering/cnn.py",
-             "cnnclustering/cmsm.py",
-             "cnnclustering/_plots.py"],
     author="Jan-Oliver Joswig",
     author_email="jan.joswig@fu-berlin.de",
     description=sdesc,
     long_description=desc,
     long_description_content_type="text/markdown",
     url="https://github.com/janjoswig/CNN",
-    packages=find_packages(),
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3",
@@ -74,5 +70,5 @@ setup(
         "docs": requirements["docs"],
         "tests": requirements["tests"],
         },
-    cmdclass=dict(build_ext=build_ext)
+    zip_safe=False
     )
