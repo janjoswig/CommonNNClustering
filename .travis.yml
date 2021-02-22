@@ -5,16 +5,25 @@ python:
   - '3.8'
   - '3.9'
 
+branches:
+  only:
+  - master
+
+env:
+  - TRACE_CYTHON=0
+
 before_install:
   - pip install --upgrade pip
 
 install:
   - pip install coveralls
   - pip install -r requirements-dev.txt
-  - pip install tox-travis
+  - pip install -r requirements-test.txt
+  - pip install -r requirements-optional.txt
+  - pip install -e
 
 script:
-  - tox
+  - coverage run -m pytest
 
 after_success:
   - coveralls
