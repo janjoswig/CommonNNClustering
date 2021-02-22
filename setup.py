@@ -1,13 +1,23 @@
+import os
 from setuptools import Extension, find_packages, setup
 
 from Cython.Build import cythonize
 import numpy as np
 
 
+PYTHON_REQUIRES = ">=3.6"
+TRACE_CYTHON = bool(int(os.getenv("TRACE_CYTHON", 0)))
+
+cython_macros = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
+
+if TRACE_CYTHON:
+    cython_macros.append(("CYTHON_TRACE", None))
+    cython_macros.append(("CYTHON_TRACE_NOGIL", None))
+
 extensions = [
     Extension(
-        "cnnclustering._cfits", ["src/cnnclustering/_cfits.pyx"],
-        define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
+        "*", ["src/cnnclustering/*.pyx"],
+        define_macros=cython_macros,
         language="c++",
         include_dirs=[np.get_include()]
         )
@@ -19,7 +29,8 @@ compiler_directives = {
     "boundscheck": False,
     "wraparound": False,
     "cdivision": True,
-    "nonecheck": False
+    "nonecheck": False,
+    "linetrace": True,
     }
 
 extensions = cythonize(extensions, compiler_directives=compiler_directives)
@@ -34,7 +45,7 @@ requirements_map = {
     "optional": "-optional",
     "dev": "-dev",
     "docs": "-docs",
-    "tests": "-tests"
+    "test": "-test"
     }
 
 requirements = {}
@@ -54,9 +65,11 @@ setup(
     url="https://github.com/janjoswig/CNN",
     packages=find_packages('src'),
     package_dir={'': 'src'},
+    package_data={"cnnclustering": ['*.pxd']},
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: MIT License",
@@ -68,7 +81,7 @@ setup(
         "optional": requirements["optional"],
         "dev": requirements["dev"],
         "docs": requirements["docs"],
-        "tests": requirements["tests"],
+        "tests": requirements["test"],
         },
     zip_safe=False
     )

@@ -4,7 +4,6 @@ import math
 
 import numpy as np
 
-import cnnclustering.cnn as cnn
 import cnnclustering._cfits as cfits
 
 
@@ -16,10 +15,10 @@ def ref_distance_euclidean(a, b):
 
 
 def test_ref_distance_euclidean():
-    assert ref_distance_euclidean((0, 0), (0, 0))  == 0
-    assert ref_distance_euclidean((0, 0), (0, 1))  == 1
-    assert ref_distance_euclidean((0, -1), (0, 1))  == 2
-    assert ref_distance_euclidean((1, 1), (1, 1))  == 0
+    assert ref_distance_euclidean((0, 0), (0, 0)) == 0
+    assert ref_distance_euclidean((0, 0), (0, 1)) == 1
+    assert ref_distance_euclidean((0, -1), (0, 1)) == 2
+    assert ref_distance_euclidean((1, 1), (1, 1)) == 0
 
 
 CASES = [  # p1, p2, result
@@ -48,8 +47,8 @@ class TestEuclideanCython:
 
             assert np.isclose(result, ref_result)
 
-            result = cfits._get_distance_squared_euclidean_PointsArray(
-                p1, p2, parallel=True
-                )
+            # result = cfits._get_distance_squared_euclidean_PointsArray(
+            #     p1, p2, parallel=True
+            #     )
 
-            assert np.isclose(result, ref_result)
+            # assert np.isclose(result, ref_result)
