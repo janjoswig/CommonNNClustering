@@ -113,7 +113,7 @@ def pie(root, ax, pie_props=None):
     radius = pie_props_defaults.pop("radius")
     try:
         _ = pie_props_defaults.pop("colors")
-    except:
+    except KeyError:
         pass
 
     p = getpieces(root)

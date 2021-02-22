@@ -16,8 +16,8 @@ def fit(
         input_data,
         labels,
         consider,
-        radius_cutoff,
-        cnn_cutoff,
+        # radius_cutoff,
+        # cnn_cutoff,
         ):
     """Generic clustering"""
 
@@ -301,7 +301,7 @@ def fit_from_NeighbourhoodsList(
         consider[init_point] = False           # Mark point as included
 
         neighbours = neighbourhoods[init_point]
-        if len(neighbours) <= cnn_cutoff:
+        if len(neighbours) <= cnn_cutoff_:
             # Point can not fulfill cnn condition
             continue
 
@@ -316,13 +316,13 @@ def fit_from_NeighbourhoodsList(
                     continue
 
                 neighbour_neighbours = neighbourhoods[member]
-                if len(neighbour_neighbours) <= cnn_cutoff:
+                if len(neighbour_neighbours) <= cnn_cutoff_:
                     consider[member] = False
                     continue
 
                 # conditional growth
                 if check_similarity_set(
-                        neighbours, neighbour_neighbours, cnn_cutoff):
+                        neighbours, neighbour_neighbours, cnn_cutoff_):
                     labels[member] = current
                     consider[member] = False
                     membercount += 1

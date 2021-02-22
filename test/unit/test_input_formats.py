@@ -16,6 +16,7 @@ TESTCASES = (
         ]
     )
 
+
 class TestPoints:
     @pytest.mark.parametrize(
         *TESTCASES,

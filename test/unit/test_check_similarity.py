@@ -6,7 +6,6 @@ elements?
 
 import numpy as np
 
-import cnnclustering.cnn as cnn
 import cnnclustering._cfits as cfits
 import cnnclustering._fits as fits
 

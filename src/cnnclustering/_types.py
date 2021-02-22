@@ -5,6 +5,7 @@ from typing import Any, Optional, Union
 from typing import Iterator, Sequence
 
 import numpy as np
+import scipy.spatial
 
 from . import _cfits
 
@@ -55,6 +56,7 @@ class Points(PointsABC):
     def get_neighbours(self, point):
         neighbours = set()
         p = self._data[point]
+        return p, neighbours
 
     def __str__(self):
         return self._data.__str__()
@@ -335,4 +337,4 @@ class PointsArray(np.ndarray):
             **kwargs: Passed to :meth:`scipy.spatial.cKDTree`
         """
 
-        self._tree = cKDTree(self, **kwargs)
+        self._tree = scipy.spatial.cKDTree(self, **kwargs)

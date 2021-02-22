@@ -9,6 +9,7 @@ before_install:
   - pip install --upgrade pip
 
 install:
+  - pip install covarage coveralls
   - pip install tox-travis
 
 script:

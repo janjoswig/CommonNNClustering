@@ -6,3 +6,8 @@ requires = [
     "numpy>=1.19",
     ]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+norecursedirs = ".tox .git"
+addopts = "-v -p no:warnings --doctest-glob='README.md' --ignore=setup.py"
+testpaths = ["test"]

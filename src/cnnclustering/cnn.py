@@ -874,7 +874,7 @@ class Points(np.ndarray):
 
     @staticmethod
     def get_shape(data: Any):
-        """Maintain data in universal shape (2D NumPy array)
+        r"""Maintain data in universal shape (2D NumPy array)
 
         Analyses the format of given data and fits it into the standard
         format (parts, points, dimensions).  Creates a
@@ -2039,7 +2039,7 @@ class CNN:
             v: bool = True,
             policy: Optional[str] = None,
             ) -> Optional[CNNRecord]:
-        """Wraps CNN clustering execution
+        r"""Wraps CNN clustering execution
 
         Requires one of :attr:`Data.graph`, :attr:`Data.neighbourhoods`,
         :attr:`Data.distances`, or :attr:`Data.points` and sets

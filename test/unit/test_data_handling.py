@@ -25,7 +25,7 @@ class TestGetShape:
     def test_None(self):
         d, e = cnn.Points.get_shape(None)
         assert d is None
-        assert e == None
+        assert e is None
 
     def test_no_sequence(self):
         with pytest.raises(TypeError):

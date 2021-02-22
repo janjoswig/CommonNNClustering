@@ -1,5 +1,6 @@
-pytest
-pytest-regressions
-pytest-raises
+flake8
 coverage
-scikit-learn
+coveralls
+pytest
+pytest-raises
+pytest-regressions

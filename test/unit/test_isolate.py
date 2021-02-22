@@ -13,6 +13,7 @@ TESTCASES = [
     ]
 ]
 
+
 class TestIsolate:
     def test_isolate_empty(self, empty_cobj):
         empty_cobj.isolate()
@@ -36,7 +37,11 @@ class TestIsolate:
         empty_cobj.labels = cnn.Labels([1, 2, 1, 2])
         empty_cobj.isolate()
         assert len(empty_cobj.children) == 2
-        assert empty_cobj.children[1].data.points.shape[0] == empty_cobj.children[2].data.points.shape[0]
+        assert (
+            empty_cobj.children[1].data.points.shape[0] ==
+            empty_cobj.children[2].data.points.shape[0]
+            )
+
         np.testing.assert_array_equal(
             empty_cobj.children[1].data.points.edges,
             empty_cobj.children[2].data.points.edges
