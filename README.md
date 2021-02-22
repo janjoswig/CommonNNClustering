@@ -2,6 +2,7 @@
 [![image](https://img.shields.io/pypi/l/cnnclustering.svg)](https://pypi.org/project/cnnclustering/)
 [![image](https://img.shields.io/pypi/pyversions/cnnclustering.svg)](https://pypi.org/project/cnnclustering/)
 [![Build Status](https://travis-ci.com/janjoswig/CNN.svg?branch=master)](https://travis-ci.com/janjoswig/CNN)
+[![Coverage Status](https://coveralls.io/repos/github/janjoswig/CNN/badge.svg?branch=master)](https://coveralls.io/github/janjoswig/CNN?branch=master)
 
 Common-nearest-neighbours (CNN) clustering
 ==========================================
