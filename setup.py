@@ -81,7 +81,7 @@ setup(
         "optional": requirements["optional"],
         "dev": requirements["dev"],
         "docs": requirements["docs"],
-        "tests": requirements["test"],
+        "test": requirements["test"],
         },
     zip_safe=False
     )
