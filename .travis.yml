@@ -1,30 +1,38 @@
 language: python
 python:
   - '3.6'
-
+  - '3.7'
+  - '3.8'
+  - '3.9'
 
 branches:
   only:
   - master
 
-env:
-  - TRACE_CYTHON=0
-
 before_install:
   - pip install --upgrade pip
-
-install:
-  - pip install coveralls
-  - pip install -r requirements-dev.txt
-  - pip install -r requirements-test.txt
-  - pip install -r requirements-optional.txt
-  - pip install -e .
+  - pip install tox-travis
 
 script:
-  - coverage run -m pytest
+  - tox
 
-after_success:
-  - coveralls
+jobs:
+  include:
+    - name: "coverage"
+      python: '3.8'
+      env:
+        - TRACE_CYTHON=1
+      before_install:
+        - pip install coveralls
+        - pip install -r requirements-dev.txt
+        - pip install -r requirements-test.txt
+        - pip install -r requirements-optional.txt
+      install:
+        - pip install -e .
+      script:
+        - coverage run -m pytest
+      after_success:
+        - coveralls
 
 deploy:
   provider: pypi
