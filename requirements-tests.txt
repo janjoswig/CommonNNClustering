@@ -1,5 +1,5 @@
 pytest
-pytest-cov
 pytest-regressions
 pytest-raises
+coverage
 scikit-learn
