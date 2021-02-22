@@ -45,7 +45,7 @@ requirements_map = {
     "optional": "-optional",
     "dev": "-dev",
     "docs": "-docs",
-    "test": "-test"
+    "test": "-test",
     }
 
 requirements = {}

@@ -1,6 +1,6 @@
-flake8
 coverage
 coveralls
+flake8
 pytest
 pytest-raises
 pytest-regressions
