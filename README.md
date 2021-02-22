@@ -3,8 +3,8 @@
 [![image](https://img.shields.io/pypi/pyversions/cnnclustering.svg)](https://pypi.org/project/cnnclustering/)
 [![Build Status](https://travis-ci.com/janjoswig/CNN.svg?branch=master)](https://travis-ci.com/janjoswig/CNN)
 
-Common-nearest-neighbours (CNN) clustering and core-set Markov-state model estimation
-=====================================================================================
+Common-nearest-neighbours (CNN) clustering
+==========================================
 
 ***
 **NOTE**
@@ -18,12 +18,11 @@ cnnclustering
 -------------
 
 
-The `cnnclustering` Python package provides a flexible interface to use the <b>c</b>ommon-<b>n</b>earest-<b>n</b>eighbours cluster algorithm. While the method can be applied to abitrary data, this implementation was made before the background of processing trajectories from Molecular Dynamics simulations. In this context the cluster result can serve as a suitable basis for the construction of a core-set Markov-state (csMSM) model to capture the essential dynamics of the underlying molecular processes.
+The `cnnclustering` Python package provides a flexible interface to use the <b>c</b>ommon-<b>n</b>earest-<b>n</b>eighbours cluster algorithm. While the method can be applied to abitrary data, this implementation was made before the background of processing trajectories from Molecular Dynamics simulations. In this context the cluster result can serve as a suitable basis for the construction of a core-set Markov-state (cs-MSM) model to capture the essential dynamics of the underlying molecular processes. For a tool for cs-MSM estimation, refer to this separate [project](https://github.com/janjoswig/cs-MSM).
 
-The package provides two modules:
+The package provides a main module:
 
-  - `cnn`: (Hierarchical) CNN clustering and analysis
-  - `cmsm`: csMSM estimation and analysis
+  - `cnnclustering`: (Hierarchical) common-nearest-neighbours clustering and analysis
 
 Features:
 
@@ -101,4 +100,4 @@ clustering.evaluate(ax=ax[1])
 Alternative scikit-learn implementation
 ---------------------------------------
 
-We provide an alternative approach to common-nearest-neighbours clustering in the spirit of the scikit-learn project over this [fork](https://github.com/janjoswig/scikit-learn-extra/tree/cnnclustering) of scikit-learn-contrib/scikit-learn-extra.
+We provide an alternative approach to common-nearest-neighbours clustering in the spirit of the scikit-learn project within [scikit-learn-extra](https://github.com/scikit-learn-contrib/scikit-learn-extra).
