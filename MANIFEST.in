@@ -1,7 +1,6 @@
-# Include the license file
 include LICENSE.txt
-
-# Include the requirements files
+include README.md
+include pyproject.toml
 include requirements*.txt
 
 # Include docs
@@ -9,3 +8,4 @@ recursive-include docs *
 
 # Include Cython sources
 recursive-include src/cnnclustering *.pyx
+recursive-include src/cnnclustering *.pxd
