@@ -444,7 +444,7 @@ class DensitySparsegraphArray:
 
 
 class NeighbourhoodsABC(ABC):
-    """Abstraction class for neighbourhoods
+    """Abstract base class for neighbourhoods classes
 
     Neighbourhoods (integer point indices) can be stored in different
     data structures (non-exhaustive listing):

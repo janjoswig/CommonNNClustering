@@ -1,7 +1,7 @@
-"""Common-nearest neighbour clustering functionality
+"""Common-nearest-neighbour clustering functionality
 
-Replaced by Cython extension module `_cfits` and
-only used for demonstration and compatibility purpose.
+Replaced by Cython extension module `_cfits` in production and
+only used for demonstration, exploration, testing, and compatibility.
 """
 
 from collections import deque
@@ -10,6 +10,65 @@ from typing import List, Set
 from typing import Sequence, Collection
 
 import numpy as np
+
+
+def fit(
+        input_data,
+        labels,
+        consider,
+        radius_cutoff,
+        cnn_cutoff,
+        ):
+    """Generic clustering"""
+
+    n = input_data.shape[0]
+
+    current = 1
+    q = deque()      # Queue
+
+    for init_point in range(n):
+        if consider[init_point] == 0:
+            continue
+        consider[init_point] = 0
+
+        neighbours = input_data.get_neighbours(
+            init_point,
+            )
+
+        if not neighbours.enough():
+            continue
+
+        labels[init_point] = current
+        point = init_point
+
+        while True:
+            for member in neighbours:
+                if consider[member] == 0:
+                    continue
+
+                neighbour_neighbours = input_data.get_neighbours(
+                    member
+                    )
+
+                if not neighbour_neighbours.enough():
+                    consider[member] = 0
+                    continue
+
+                if neighbours.check_similarity(
+                        neighbour_neighbours):
+                    consider[member] = 0
+                    labels[member] = current
+                    q.append(member)
+
+            if not q:
+                break
+
+            point = q.popleft()
+            neighbours = input_data.get_neighbours(
+                point
+                )
+
+        current += 1
 
 
 def fit_from_PointsArray(
