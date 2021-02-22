@@ -9,13 +9,11 @@ before_install:
   - pip install --upgrade pip
 
 install:
-  - pip install covarage coveralls
+  - pip install coveralls
   - pip install tox-travis
 
 script:
   - tox
-  - coverage run -m pytest
-  - coverage report -m
 
 after_success:
   - coveralls
