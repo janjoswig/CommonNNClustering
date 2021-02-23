@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """cnn - A Python module for common-nearest-neighbour (CNN) clustering
 
 """
@@ -18,9 +16,17 @@ from typing import Dict, List, Set, Tuple, NamedTuple
 from typing import Collection, Iterator, Sequence
 from typing import Any, Optional, Type, Union, IO
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import numpy as np
+
+try:
+    # Optional dependency
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    from . import plot
+    _MPL_FOUND = True
+except ModuleNotFoundError as error:
+    print("Optional dependency module not found: ", error)
+    _MPL_FOUND = False
 
 try:
     # Optional dependency
@@ -38,7 +44,6 @@ import tqdm
 import yaml
 
 from . import _cfits
-from . import _plots
 
 
 def timed(function):
@@ -1239,7 +1244,7 @@ class Summary(MutableSequence):
 
     def summarize(
             self,
-            ax: Optional[Type[mpl.axes.SubplotBase]] = None,
+            ax: Optional[Any] = None,
             quant: str = "time",
             treat_nan: Optional[Any] = None,
             ax_props: Optional[Dict] = None,
@@ -1266,6 +1271,9 @@ class Summary(MutableSequence):
             contour_props: Passed on to contour.
         """
 
+        if not _MPL_FOUND:
+            raise ModuleNotFoundError("No module named 'matplotlib'")
+
         if len(self._list) == 0:
             raise LookupError(
                 "No cluster result records in summary"
@@ -1291,7 +1299,7 @@ class Summary(MutableSequence):
         else:
             fig = ax.get_figure()
 
-        plotted = _plots.plot_summary(
+        plotted = plot.plot_summary(
             ax, self.to_DataFrame(),
             quant=quant,
             treat_nan=treat_nan,
@@ -1890,7 +1898,7 @@ class CNN:
 
     def dist_hist(
             self,
-            ax: Optional[Type[mpl.axes.SubplotBase]] = None,
+            ax: Optional[Any] = None,
             maxima: bool = False,
             maxima_props: Optional[Dict[str, Any]] = None,
             hist_props: Optional[Dict[str, Any]] = None,
@@ -1919,7 +1927,7 @@ class CNN:
            https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
         """
 
-        # TODO Move to distances class / _plots.py
+        # TODO Move to distances class / plot.py
 
         # TODO Add option for kernel density estimation
         # (scipy.stats.gaussian_kde, statsmodels.nonparametric.kde)
@@ -2669,7 +2677,7 @@ class CNN:
 
     def evaluate(
             self,
-            ax: Optional[Type[mpl.axes.SubplotBase]] = None,
+            ax: Optional[Any] = None,
             clusters: Optional[Collection[int]] = None,
             original: bool = False,
             plot: str = 'dots',
@@ -2748,7 +2756,7 @@ class CNN:
 
             plot_props:
                 Dictionary of keyword arguments passed to various
-                functions (:func:`_plots.plot_dots` etc.) with different
+                functions (:func:`plot.plot_dots` etc.) with different
                 meaning to format cluster plotting.  If `None`, uses
                 defaults that can be also defined in
                 the configuration file (*Note yet implemented*).
@@ -2776,6 +2784,9 @@ class CNN:
         Returns:
             Figure, Axes and a list of plotted elements
         """
+
+        if not _MPL_FOUND:
+            raise ModuleNotFoundError("No module named 'matplotlib'")
 
         if self.data.points.size == 0:
             raise ValueError(
@@ -2848,7 +2859,7 @@ class CNN:
             if plot_noise_props is not None:
                 plot_noise_props_defaults.update(plot_noise_props)
 
-            plotted = _plots.plot_dots(
+            plotted = plot.plot_dots(
                 ax=ax, data=_data, original=original,
                 clusterdict=clusterdict,
                 clusters=clusters,
@@ -2875,7 +2886,7 @@ class CNN:
             if plot_noise_props is not None:
                 plot_noise_props_defaults.update(plot_noise_props)
 
-            plotted = _plots.plot_scatter(
+            plotted = plot.plot_scatter(
                 ax=ax, data=_data, original=original,
                 clusterdict=clusterdict,
                 clusters=clusters,
@@ -2912,7 +2923,7 @@ class CNN:
                 if plot_noise_props is not None:
                     plot_noise_props_defaults.update(plot_noise_props)
 
-                plotted = _plots.plot_contour(
+                plotted = plot.plot_contour(
                     ax=ax, data=_data, original=original,
                     clusterdict=clusterdict,
                     clusters=clusters,
@@ -2938,7 +2949,7 @@ class CNN:
                 if plot_noise_props is not None:
                     plot_noise_props_defaults.update(plot_noise_props)
 
-                plotted = _plots.plot_contourf(
+                plotted = plot.plot_contourf(
                     ax=ax, data=_data, original=original,
                     clusterdict=clusterdict,
                     clusters=clusters,
@@ -2964,7 +2975,7 @@ class CNN:
                 if plot_noise_props is not None:
                     plot_noise_props_defaults.update(plot_noise_props)
 
-                plotted = _plots.plot_histogram(
+                plotted = plot.plot_histogram(
                     ax=ax, data=_data, original=original,
                     clusterdict=clusterdict,
                     clusters=clusters,
@@ -2986,7 +2997,7 @@ class CNN:
         else:
             fig = ax.get_figure()
 
-        plotted = _plots.pie(self, ax=ax, pie_props=pie_props)
+        plotted = plot.pie(self, ax=ax, pie_props=pie_props)
 
         return fig, ax, plotted
 
@@ -3266,6 +3277,3 @@ settings = Settings()
 """:py:class:`Settings`: Module level settings container"""
 
 settings.configure()
-
-if __name__ == "__main__":
-    pass

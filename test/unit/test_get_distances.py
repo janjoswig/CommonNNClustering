@@ -46,9 +46,3 @@ class TestEuclideanCython:
                 )
 
             assert np.isclose(result, ref_result)
-
-            # result = cfits._get_distance_squared_euclidean_PointsArray(
-            #     p1, p2, parallel=True
-            #     )
-
-            # assert np.isclose(result, ref_result)

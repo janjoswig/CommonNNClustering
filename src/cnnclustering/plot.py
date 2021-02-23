@@ -1,11 +1,10 @@
-"""Extension module containing utilities for plotting"""
+"""User module containing utilities for plotting"""
 
 import random
-from typing import Dict, Tuple  # List, Set
-from typing import Sequence  # Iterable, Iterator, Collection
-from typing import Any, Optional  # Type, Union, IO
+from typing import Dict, Tuple
+from typing import Sequence
+from typing import Any, Optional
 
-# import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
