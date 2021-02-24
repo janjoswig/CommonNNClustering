@@ -1,5 +1,7 @@
 from collections import deque
 
+from cython.operator cimport dereference as deref
+
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE
 
 
@@ -50,9 +52,16 @@ cdef class FitterDeque:
                 continue
             consider[init_point] = 0
 
-            neighbours = input_data.get_neighbours(
-                init_point, neighbours_getter, metric, special_dummy
-                )
+            if INPUT_DATA is object:
+                neighbours = input_data.get_neighbours(
+                    init_point, neighbours_getter, metric,
+                    deref(cluster_params), special_dummy,
+                    )
+            else:
+                neighbours = input_data.get_neighbours(
+                    init_point, neighbours_getter, metric,
+                    cluster_params, special_dummy,
+                    )
 
             if not neighbours.enough(cluster_params.cnn_cutoff):
                 continue
@@ -69,9 +78,16 @@ cdef class FitterDeque:
                     if consider[member] == 0:
                         continue
 
-                    neighbour_neighbours = input_data.get_neighbours(
-                        member, neighbours_getter, metric, special_dummy
-                        )
+                    if INPUT_DATA is object:
+                        neighbour_neighbours = input_data.get_neighbours(
+                            member, neighbours_getter, metric,
+                            deref(cluster_params), special_dummy
+                            )
+                    else:
+                        neighbour_neighbours = input_data.get_neighbours(
+                            member, neighbours_getter, metric,
+                            cluster_params, special_dummy
+                            )
 
                     if not neighbour_neighbours.enough(cluster_params.cnn_cutoff):
                         consider[member] = 0
@@ -87,8 +103,15 @@ cdef class FitterDeque:
                     break
 
                 point = q.popleft()
-                neighbours = input_data.get_neighbours(
-                    point, neighbours_getter, metric, special_dummy
-                    )
+                if INPUT_DATA is object:
+                    neighbours = input_data.get_neighbours(
+                        point, neighbours_getter, metric,
+                        deref(cluster_params), special_dummy
+                        )
+                else:
+                    neighbours = input_data.get_neighbours(
+                        point, neighbours_getter, metric,
+                        cluster_params, special_dummy
+                        )
 
             current += 1

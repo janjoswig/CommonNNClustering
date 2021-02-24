@@ -31,6 +31,7 @@ cdef class InputDataExtPointsMemoryview:
         AINDEX index,
         NEIGHBOURS_GETTER getter,
         METRIC metric,
+        ClusterParameters* cluster_params,
         NEIGHBOURS special_dummy)
 
 

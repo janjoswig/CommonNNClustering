@@ -20,6 +20,7 @@ class InputData(ABC):
             index: int,
             getter: Type['NeighboursGetter'],
             metric: Type['Metric'],
+            cluster_params: dict,
             special_dummy: Type['Neighbours'] = None) -> Type['Neighbours']:
         """Return neighbours of point"""
 
@@ -36,6 +37,7 @@ cdef class InputDataExtPointsMemoryview:
             AINDEX index,
             NEIGHBOURS_GETTER getter,
             METRIC metric,
+            ClusterParameters* cluster_params,
             NEIGHBOURS special_dummy):
 
         cdef NEIGHBOURS neighbours = getter.get(index, metric)
