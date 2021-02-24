@@ -1,27 +1,45 @@
 from collections import deque
 
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE
-from cnnclustering._types cimport INPUT_DATA
 
 
-cpdef void fit_deque(
+cdef void fit_id(
         INPUT_DATA input_data,
-        labels,
-        consider):
-    """Generic clustering
+        NEIGHBOURS_GETTER neighbours_getter,
+        NEIGHBOURS special_dummy,
+        METRIC metric,
+        AINDEX* labels,
+        ABOOL* consider,
+        ClusterParameters* cluster_params):
+    pass
 
-    Features of this variant:
-        V1 (Queue): Python :obj:`collections.deque`
 
-    Args:
-        input_data: Data source implementing the input data interface.
-        labels: Indexable sequence as cluster label assignment container.
-        consider: Indexable sequence of 0 and 1 to track point inclusion.
-    """
+cdef class FitterDeque:
+    cdef void fit(
+            self,
+            INPUT_DATA input_data,
+            NEIGHBOURS_GETTER neighbours_getter,
+            NEIGHBOURS special_dummy,
+            METRIC metric,
+            AINDEX* labels,
+            ABOOL* consider,
+            ClusterParameters* cluster_params):
+        """Generic clustering
 
-    cdef AINDEX n, m
+        Features of this variant:
+            V1 (Queue): Python :obj:`collections.deque`
 
-    with nogil(INPUT_DATA is object):
+        Args:
+            input_data: Data source implementing the input data interface.
+            labels: Array as cluster label assignment container.
+            consider: Boolean array to track point inclusion.
+        """
+
+        cdef AINDEX n, m, current
+        cdef AINDEX init_point, point, member, member_index
+        cdef object q
+        cdef NEIGHBOURS neighbours, neighbour_neighbours
+
         n = input_data.n_points
 
         current = 1
@@ -33,30 +51,29 @@ cpdef void fit_deque(
             consider[init_point] = 0
 
             neighbours = input_data.get_neighbours(
-                init_point,
+                init_point, neighbours_getter, metric, special_dummy
                 )
 
-            if not neighbours.enough():
+            if not neighbours.enough(cluster_params.cnn_cutoff):
                 continue
 
             labels[init_point] = current
 
             while True:
 
-                neighbours_indexable = neighbours.get_indexable()
                 m = neighbours.n_points
 
                 for member_index in range(m):
-                    member = neighbours_indexable[member_index]
+                    member = neighbours.get_member(member_index)
 
                     if consider[member] == 0:
                         continue
 
                     neighbour_neighbours = input_data.get_neighbours(
-                        member
+                        member, neighbours_getter, metric, special_dummy
                         )
 
-                    if not neighbour_neighbours.enough():
+                    if not neighbour_neighbours.enough(cluster_params.cnn_cutoff):
                         consider[member] = 0
                         continue
 
@@ -71,7 +88,7 @@ cpdef void fit_deque(
 
                 point = q.popleft()
                 neighbours = input_data.get_neighbours(
-                    point
+                    point, neighbours_getter, metric, special_dummy
                     )
 
             current += 1

@@ -19,6 +19,9 @@ class TestFit:
         labels = np.zeros(5)
         consider = np.ones_like(labels)
 
-        _fit.fit_deque(input_data_mock, labels, consider)
+        _fit.FitDeque.fit(
+            input_data_mock,
+            labels,
+            consider)
 
         print(labels, consider)
