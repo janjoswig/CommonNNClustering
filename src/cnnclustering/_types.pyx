@@ -4,6 +4,8 @@ from typing import Any, Type
 
 import numpy as np
 
+from cython.operator cimport dereference as deref
+
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
 
 
@@ -143,11 +145,18 @@ cdef class NeighboursExtMemoryview:
             SIMILARITY_CHECKER checker,
             ClusterParameters* cluster_params):
 
-        return checker.check(
-            &self.neighbours[0], #!!!!!!!!!!!!!!!!!!
-            &other.neighbours[0],
-            cluster_params
-            )
+        if SIMILARITY_CHECKER is object:
+            return checker.check(
+                self,
+                other,
+                deref(cluster_params)
+                )
+        else:
+            return checker.check(
+                self,
+                other,
+                cluster_params
+                )
 
 
 class NeighboursGetter(ABC):
@@ -187,6 +196,10 @@ class NeighboursGetterFromSequenceToSequence(NeighboursGetter):
 
     def get(self, source, index, metric, cluster_params):
         return self._neighbours_dummy(source[index])
+
+
+cdef class NeighboursGetterFromMemoryview:
+    pass
 
 
 class Metric(ABC):

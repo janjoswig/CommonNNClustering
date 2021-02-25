@@ -88,7 +88,6 @@ cdef class FitterDeque:
             if NEIGHBOURS is object:
                 if not neighbours.enough(
                         deref(cluster_params)):
-                    consider[member] = 0
                     continue
             else:
                 if not neighbours.enough(cluster_params):
