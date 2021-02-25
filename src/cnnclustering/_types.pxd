@@ -21,6 +21,9 @@ ctypedef fused NEIGHBOURS_GETTER:
 ctypedef fused METRIC:
     object
 
+ctypedef fused SIMILARITY_CHECKER:
+    object
+
 
 cdef class InputDataExtPointsMemoryview:
     cdef AVALUE[:, ::1] points
@@ -42,6 +45,9 @@ cdef class NeighboursExtMemoryview:
     cdef bint is_sorted
     cdef bint is_selfcounting
 
-    cdef bint enough(self, AINDEX cnn_cutoff)
+    cdef bint enough(self, ClusterParameters* cluster_params)
     cdef inline AINDEX get_member(self, AINDEX index) nogil
-    cdef bint check_similarity(self, NeighboursExtMemoryview other)
+    cdef bint check_similarity(
+        self, NeighboursExtMemoryview other,
+        SIMILARITY_CHECKER checker,
+        ClusterParameters* cluster_params)

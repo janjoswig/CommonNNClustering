@@ -16,6 +16,7 @@ class Fitter(ABC):
         neighbours_getter,
         special_dummy,
         metric,
+        similarity_checker,
         labels,
         consider,
         cluster_params):
@@ -27,6 +28,7 @@ cdef void fit_id(
         NEIGHBOURS_GETTER neighbours_getter,
         NEIGHBOURS special_dummy,
         METRIC metric,
+        SIMILARITY_CHECKER similarity_checker,
         AINDEX* labels,
         ABOOL* consider,
         ClusterParameters* cluster_params):
@@ -42,6 +44,7 @@ cdef class FitterDeque:
             NEIGHBOURS_GETTER neighbours_getter,
             NEIGHBOURS special_dummy,
             METRIC metric,
+            SIMILARITY_CHECKER similarity_checker,
             AINDEX* labels,
             ABOOL* consider,
             ClusterParameters* cluster_params):
@@ -82,8 +85,14 @@ cdef class FitterDeque:
                     cluster_params, special_dummy,
                     )
 
-            if not neighbours.enough(cluster_params.cnn_cutoff):
-                continue
+            if NEIGHBOURS is object:
+                if not neighbours.enough(
+                        deref(cluster_params)):
+                    consider[member] = 0
+                    continue
+            else:
+                if not neighbours.enough(cluster_params):
+                    continue
 
             labels[init_point] = current
 
@@ -108,15 +117,31 @@ cdef class FitterDeque:
                             cluster_params, special_dummy
                             )
 
-                    if not neighbour_neighbours.enough(cluster_params.cnn_cutoff):
-                        consider[member] = 0
-                        continue
+                    if NEIGHBOURS is object:
+                        if not neighbour_neighbours.enough(
+                                deref(cluster_params)):
+                            consider[member] = 0
+                            continue
 
-                    if neighbours.check_similarity(
-                            neighbour_neighbours):
-                        consider[member] = 0
-                        labels[member] = current
-                        q.append(member)
+                        if neighbours.check_similarity(
+                                neighbour_neighbours,
+                                similarity_checker,
+                                deref(cluster_params)):
+                            consider[member] = 0
+                            labels[member] = current
+                            q.append(member)
+                    else:
+                        if not neighbour_neighbours.enough(cluster_params):
+                            consider[member] = 0
+                            continue
+
+                        if neighbours.check_similarity(
+                                neighbour_neighbours,
+                                similarity_checker,
+                                cluster_params):
+                            consider[member] = 0
+                            labels[member] = current
+                            q.append(member)
 
                 if not q:
                     break

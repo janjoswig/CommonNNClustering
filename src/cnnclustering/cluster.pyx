@@ -2,7 +2,7 @@ import numpy as np
 cimport numpy as np
 
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
-from cnnclustering._fit import Fitter
+
 
 class Clustering:
 
@@ -11,11 +11,13 @@ class Clustering:
             input_data=None,
             neighbours_getter=None,
             metric=None,
+            similarity_checker=None,
             fitter=None):
 
         self._input_data = input_data
         self._neighbours_getter = neighbours_getter
         self._metric = metric
+        self._similarity_checker = similarity_checker
         self._fitter = fitter
         self._labels = np.zeros(5, dtype=P_AINDEX)
         self._consider = np.ones_like(self._labels, dtype=P_ABOOL)
@@ -26,6 +28,7 @@ class Clustering:
         NEIGHBOURS_GETTER neighbours_getter,
         NEIGHBOURS special_dummy,
         METRIC metric,
+        SIMILARITY_CHECKER similarity_checker,
         FITTER fitter,
         AVALUE radius_cutoff,
         AINDEX cnn_cutoff):
@@ -44,6 +47,7 @@ class Clustering:
                 neighbours_getter,
                 special_dummy,
                 metric,
+                similarity_checker,
                 labels,
                 consider,
                 cluster_params,
@@ -54,6 +58,7 @@ class Clustering:
                 neighbours_getter,
                 special_dummy,
                 metric,
+                similarity_checker,
                 &labels[0],
                 &consider[0],
                 cluster_params_ptr,
@@ -68,6 +73,7 @@ class Clustering:
             self._neighbours_getter,
             self._neighbours_getter.neighbours_dummy,
             self._metric,
+            self._similarity_checker,
             self._fitter,
             radius_cutoff,
             cnn_cutoff,
