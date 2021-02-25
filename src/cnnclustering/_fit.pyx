@@ -1,8 +1,25 @@
+from abc import ABC, abstractmethod
 from collections import deque
 
 from cython.operator cimport dereference as deref
 
-from cnnclustering._primitive_types import P_AINDEX, P_AVALUE
+from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
+
+
+class Fitter(ABC):
+    """Defines the fitter interface"""
+
+    @abstractmethod
+    def fit(
+        self,
+        input_data,
+        neighbours_getter,
+        special_dummy,
+        metric,
+        labels,
+        consider,
+        cluster_params):
+        """Generic clustering"""
 
 
 cdef void fit_id(
@@ -17,6 +34,8 @@ cdef void fit_id(
 
 
 cdef class FitterDeque:
+    """Concrete implementation of the fitter interface"""
+
     cdef void fit(
             self,
             INPUT_DATA input_data,

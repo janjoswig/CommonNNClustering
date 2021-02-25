@@ -93,3 +93,17 @@ cdef class NeighboursExtMemoryview:
 
     cdef bint check_similarity(self, NeighboursExtMemoryview other):
         return True
+
+
+class NeighboursGetter(ABC):
+    """Defines the neighbours-getter interface"""
+
+    @property
+    @abstractmethod
+    def neighbours_dummy(self) -> Type['Neighbours']:
+       """Return dummy instance of neighbours object this getter will create"""
+
+
+class Metric(ABC):
+    """Defines the metric-interface"""
+    pass

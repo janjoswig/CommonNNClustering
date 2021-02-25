@@ -10,6 +10,11 @@ ctypedef void (*FIT_FUN)(
     METRIC, AINDEX*, ABOOL*, ClusterParameters*)
 
 
+ctypedef fused FITTER:
+    FitterDeque
+    object
+
+
 cdef void fit_id(
         INPUT_DATA input_data,
         NEIGHBOURS_GETTER neighbours_getter,
