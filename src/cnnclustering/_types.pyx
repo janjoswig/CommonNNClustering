@@ -197,7 +197,11 @@ cdef class NeighboursGetterFromPointsMemoryview:
 
 class Metric(ABC):
     """Defines the metric-interface"""
-    pass
+
+    @abstractmethod
+    def calc_distance(
+            self, index_a: int, index_b: int, input_data: Type['InputData']):
+        """Return distance between two points in input data"""
 
 
 class SimilarityChecker(ABC):
@@ -290,7 +294,8 @@ class SimilarityCheckerSwitchContains(SimilarityChecker):
             return True
 
         if nb < na:
-           neighbours_a, neighbours_b = neighbours_b, neighbours_a
+            neighbours_a, neighbours_b = neighbours_b, neighbours_a
+            na, nb = nb, na
 
         for member_index_a in range(na):
             member_a = neighbours_a.get_member(member_index_a)
@@ -320,11 +325,11 @@ cdef class SimilarityCheckerExtContains:
         :obj:`cnnclustering._types.SimilarityCheckerExtSwitchContains`).
     """
 
-    cdef bint check(
+    cdef inline bint check(
             self,
-            NEIGHBOURS neighbours_a,
-            NEIGHBOURS neighbours_b,
-            ClusterParameters cluster_params):
+            NEIGHBOURS_EXT neighbours_a,
+            NEIGHBOURS_EXT neighbours_b,
+            ClusterParameters cluster_params) nogil:
 
         cdef AINDEX na = neighbours_a.n_points
 
@@ -343,6 +348,14 @@ cdef class SimilarityCheckerExtContains:
                     return True
                 break
         return False
+
+    def _check(
+            self,
+            NEIGHBOURS_EXT neighbours_a,
+            NEIGHBOURS_EXT neighbours_b,
+            ClusterParameters cluster_params):
+
+        return self.check(neighbours_a, neighbours_b, cluster_params)
 
 
 cdef class SimilarityCheckerExtSwitchContains:
@@ -363,11 +376,11 @@ cdef class SimilarityCheckerExtSwitchContains:
         :obj:`cnnclustering._types.SimilarityCheckerExtContains`).
     """
 
-    cdef bint check(
+    cdef inline bint check(
             self,
-            NEIGHBOURS neighbours_a,
-            NEIGHBOURS neighbours_b,
-            ClusterParameters cluster_params):
+            NEIGHBOURS_EXT neighbours_a,
+            NEIGHBOURS_EXT neighbours_b,
+            ClusterParameters cluster_params) nogil:
 
         cdef AINDEX na = neighbours_a.n_points
         cdef AINDEX nb = neighbours_b.n_points
@@ -380,7 +393,9 @@ cdef class SimilarityCheckerExtSwitchContains:
             return True
 
         if nb < na:
-           neighbours_a, neighbours_b = neighbours_b, neighbours_a
+            with gil:
+                neighbours_a, neighbours_b = neighbours_b, neighbours_a
+                na, nb = nb, na
 
         for member_index_a in range(na):
             member_a = neighbours_a.get_member(member_index_a)
@@ -390,3 +405,11 @@ cdef class SimilarityCheckerExtSwitchContains:
                     return True
                 break
         return False
+
+    def _check(
+            self,
+            NEIGHBOURS_EXT neighbours_a,
+            NEIGHBOURS_EXT neighbours_b,
+            ClusterParameters cluster_params):
+
+        return self.check(neighbours_a, neighbours_b, cluster_params)

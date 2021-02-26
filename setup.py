@@ -1,5 +1,6 @@
 import os
 from setuptools import Extension, find_packages, setup
+from typing import List, Optional, Tuple
 
 from Cython.Build import cythonize
 import numpy as np
@@ -8,7 +9,9 @@ import numpy as np
 PYTHON_REQUIRES = ">=3.6"
 TRACE_CYTHON = bool(int(os.getenv("TRACE_CYTHON", 0)))
 
-cython_macros = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
+cython_macros: List[Tuple[str, Optional[str]]] = [
+    ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")
+    ]
 
 if TRACE_CYTHON:
     cython_macros.append(("CYTHON_TRACE", None))

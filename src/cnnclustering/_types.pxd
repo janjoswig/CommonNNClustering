@@ -7,9 +7,15 @@ ctypedef fused INPUT_DATA:
     InputDataExtPointsMemoryview
     object
 
+ctypedef fused INPUT_DATA_EXT:
+    InputDataExtPointsMemoryview
+
 ctypedef fused NEIGHBOURS:
     NeighboursExtMemoryview
     object
+
+ctypedef fused NEIGHBOURS_EXT:
+    NeighboursExtMemoryview
 
 ctypedef fused NEIGHBOURS_GETTER:
     NeighboursGetterFromPointsMemoryview
@@ -19,7 +25,13 @@ ctypedef fused METRIC:
     object
 
 ctypedef fused SIMILARITY_CHECKER:
+    SimilarityCheckerExtContains
+    SimilarityCheckerExtSwitchContains
     object
+
+ctypedef fused SIMILARITY_CHECKER_EXT:
+    SimilarityCheckerExtContains
+    SimilarityCheckerExtSwitchContains
 
 
 cdef class ClusterParameters:
@@ -34,16 +46,16 @@ cdef class Labels:
 
 
 cdef class InputDataExtPointsMemoryview:
-    cdef AVALUE[:, ::1] data
-    cdef AINDEX n_points
+    cdef public:
+        AVALUE[:, ::1] data
+        AINDEX n_points
 
 
 cdef class NeighboursExtMemoryview:
 
-    cdef AINDEX[::1] neighbours
-    cdef AINDEX n_points
-    cdef bint is_sorted
-    cdef bint is_selfcounting
+    cdef public:
+        AINDEX[::1] neighbours
+        AINDEX n_points
 
     cdef bint enough(self, ClusterParameters cluster_params)
     cdef inline AINDEX get_member(self, AINDEX index) nogil
@@ -64,18 +76,18 @@ cdef class NeighboursGetterFromPointsMemoryview:
 cdef class SimilarityCheckerExtContains:
     """Implements the similarity checker interface"""
 
-    cdef bint check(
+    cdef inline bint check(
             self,
-            NEIGHBOURS neighbours_a,
-            NEIGHBOURS neighbours_b,
-            ClusterParameters cluster_params)
+            NEIGHBOURS_EXT neighbours_a,
+            NEIGHBOURS_EXT neighbours_b,
+            ClusterParameters cluster_params) nogil
 
 
 cdef class SimilarityCheckerExtSwitchContains:
     """Implements the similarity checker interface"""
 
-    cdef bint check(
+    cdef inline bint check(
             self,
-            NEIGHBOURS neighbours_a,
-            NEIGHBOURS neighbours_b,
-            ClusterParameters cluster_params)
+            NEIGHBOURS_EXT neighbours_a,
+            NEIGHBOURS_EXT neighbours_b,
+            ClusterParameters cluster_params) nogil
