@@ -3,7 +3,7 @@ import numpy as np
 from cnnclustering._types import (
     InputData, NeighboursGetter, Metric, Neighbours
     )
-from cnnclustering._fit import FitterDeque
+from cnnclustering._fit import FitterExtDeque
 
 
 class TestFit:

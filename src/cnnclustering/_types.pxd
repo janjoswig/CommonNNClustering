@@ -3,10 +3,6 @@ cimport numpy as np
 from cnnclustering._primitive_types cimport AINDEX, AVALUE, ABOOL
 
 
-cdef struct ClusterParameters:
-    AVALUE radius_cutoff
-    AINDEX cnn_cutoff
-
 ctypedef fused INPUT_DATA:
     InputDataExtPointsMemoryview
     object
@@ -16,6 +12,7 @@ ctypedef fused NEIGHBOURS:
     object
 
 ctypedef fused NEIGHBOURS_GETTER:
+    NeighboursGetterFromPointsMemoryview
     object
 
 ctypedef fused METRIC:
@@ -25,17 +22,20 @@ ctypedef fused SIMILARITY_CHECKER:
     object
 
 
-cdef class InputDataExtPointsMemoryview:
-    cdef AVALUE[:, ::1] points
-    cdef AINDEX n_points
+cdef class ClusterParameters:
+    cdef public:
+        AVALUE radius_cutoff
+        AINDEX cnn_cutoff
 
-    cdef NEIGHBOURS get_neighbours(
-        self,
-        AINDEX index,
-        NEIGHBOURS_GETTER getter,
-        METRIC metric,
-        ClusterParameters* cluster_params,
-        NEIGHBOURS special_dummy)
+
+cdef class Labels:
+    cdef AINDEX[::1] labels
+    cdef ABOOL[::1] consider
+
+
+cdef class InputDataExtPointsMemoryview:
+    cdef AVALUE[:, ::1] data
+    cdef AINDEX n_points
 
 
 cdef class NeighboursExtMemoryview:
@@ -45,9 +45,37 @@ cdef class NeighboursExtMemoryview:
     cdef bint is_sorted
     cdef bint is_selfcounting
 
-    cdef bint enough(self, ClusterParameters* cluster_params)
+    cdef bint enough(self, ClusterParameters cluster_params)
     cdef inline AINDEX get_member(self, AINDEX index) nogil
-    cdef bint check_similarity(
-        self, NeighboursExtMemoryview other,
-        SIMILARITY_CHECKER checker,
-        ClusterParameters* cluster_params)
+    cdef inline bint contains(self, AINDEX member) nogil
+
+
+cdef class NeighboursGetterFromPointsMemoryview:
+    cdef NeighboursExtMemoryview neighbours_dummy
+ 
+    cdef NeighboursExtMemoryview get(
+            self,
+            AINDEX index,
+            INPUT_DATA input_data,
+            METRIC metric,
+            ClusterParameters cluster_params)
+
+
+cdef class SimilarityCheckerExtContains:
+    """Implements the similarity checker interface"""
+
+    cdef bint check(
+            self,
+            NEIGHBOURS neighbours_a,
+            NEIGHBOURS neighbours_b,
+            ClusterParameters cluster_params)
+
+
+cdef class SimilarityCheckerExtSwitchContains:
+    """Implements the similarity checker interface"""
+
+    cdef bint check(
+            self,
+            NEIGHBOURS neighbours_a,
+            NEIGHBOURS neighbours_b,
+            ClusterParameters cluster_params)

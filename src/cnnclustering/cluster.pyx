@@ -12,15 +12,15 @@ class Clustering:
             neighbours_getter=None,
             metric=None,
             similarity_checker=None,
-            fitter=None):
+            fitter=None,
+            labels=None):
 
         self._input_data = input_data
         self._neighbours_getter = neighbours_getter
         self._metric = metric
         self._similarity_checker = similarity_checker
         self._fitter = fitter
-        self._labels = np.zeros(5, dtype=P_AINDEX)
-        self._consider = np.ones_like(self._labels, dtype=P_ABOOL)
+        self._labels = labels
 
     def _fit(
         self,
@@ -30,43 +30,28 @@ class Clustering:
         METRIC metric,
         SIMILARITY_CHECKER similarity_checker,
         FITTER fitter,
-        AVALUE radius_cutoff,
-        AINDEX cnn_cutoff):
+        Labels labels,
+        ClusterParameters cluster_params):
+
+        fitter.fit(
+            input_data,
+            neighbours_getter,
+            special_dummy,
+            metric,
+            similarity_checker,
+            labels,
+            cluster_params,
+            )
+
+    def fit(self, radius_cutoff: float, cnn_cutoff: int) -> None:
 
         cdef ClusterParameters cluster_params = ClusterParameters(
             radius_cutoff, cnn_cutoff
             )
-        cdef ClusterParameters *cluster_params_ptr = &cluster_params
 
-        cdef AINDEX[::1] labels = self._labels
-        cdef ABOOL[::1] consider = self._consider
-
-        if FITTER is object:
-            fitter.fit(
-                input_data,
-                neighbours_getter,
-                special_dummy,
-                metric,
-                similarity_checker,
-                labels,
-                consider,
-                cluster_params,
-                )
-        else:
-            fitter.fit(
-                input_data,
-                neighbours_getter,
-                special_dummy,
-                metric,
-                similarity_checker,
-                &labels[0],
-                &consider[0],
-                cluster_params_ptr,
-                )
-
-
-    def fit(self, radius_cutoff: float, cnn_cutoff: int) -> None:
-
+        self.labels = Labels(
+            np.arange(self._input_data.n_points, dtype=P_AINDEX)
+            )
 
         self._fit(
             self._input_data,
@@ -75,8 +60,8 @@ class Clustering:
             self._metric,
             self._similarity_checker,
             self._fitter,
-            radius_cutoff,
-            cnn_cutoff,
+            self._labels,
+            cluster_params
             )
 
         return

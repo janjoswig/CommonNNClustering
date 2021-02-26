@@ -1,22 +1,22 @@
 from cnnclustering._primitive_types cimport AVALUE, AINDEX, ABOOL
 from cnnclustering._types cimport (
     INPUT_DATA,
-    NEIGHBOURS, NEIGHBOURS_GETTER,
+    NEIGHBOURS_GETTER,
+    NEIGHBOURS, 
     METRIC,
     SIMILARITY_CHECKER
     )
-from cnnclustering._types cimport ClusterParameters
+from cnnclustering._types cimport ClusterParameters, Labels
 
 
 ctypedef void (*FIT_FUN)(
     INPUT_DATA, NEIGHBOURS_GETTER, NEIGHBOURS,
-    METRIC, SIMILARITY_CHECKER, AINDEX*, ABOOL*, ClusterParameters*)
+    METRIC, SIMILARITY_CHECKER, Labels, ClusterParameters)
 
 
 ctypedef fused FITTER:
-    FitterDeque
+    FitterExtDeque
     object
-
 
 cdef void fit_id(
         INPUT_DATA input_data,
@@ -24,12 +24,11 @@ cdef void fit_id(
         NEIGHBOURS special_dummy,
         METRIC metric,
         SIMILARITY_CHECKER similarity_checker,
-        AINDEX* labels,
-        ABOOL* consider,
-        ClusterParameters* cluster_params)
+        Labels labels,
+        ClusterParameters cluster_params)
 
 
-cdef class FitterDeque:
+cdef class FitterExtDeque:
     cdef void fit(
         self,
         INPUT_DATA input_data,
@@ -37,6 +36,5 @@ cdef class FitterDeque:
         NEIGHBOURS special_dummy,
         METRIC metric,
         SIMILARITY_CHECKER similarity_checker,
-        AINDEX* labels,
-        ABOOL* consider,
-        ClusterParameters* cluster_params)
+        Labels labels,
+        ClusterParameters cluster_params)

@@ -1,10 +1,17 @@
 from abc import ABC, abstractmethod
 from collections import deque
+from typing import Type
 
 from cython.operator cimport dereference as deref
 
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
-
+from cnnclustering._types import (
+    InputData,
+    NeighboursGetter,
+    Neighbours,
+    Metric,
+    SimilarityChecker
+)
 
 class Fitter(ABC):
     """Defines the fitter interface"""
@@ -12,14 +19,13 @@ class Fitter(ABC):
     @abstractmethod
     def fit(
         self,
-        input_data,
-        neighbours_getter,
-        special_dummy,
-        metric,
-        similarity_checker,
-        labels,
-        consider,
-        cluster_params):
+        input_data: Type['InputData'],
+        neighbours_getter: Type['NeighboursGetter'],
+        special_dummy: Type['Neighbours'],
+        metric: Type['Metric'],
+        similarity_checker: Type['SimilarityChecker'],
+        labels: Type['Labels'],
+        cluster_params: Type['ClusterParameters']):
         """Generic clustering"""
 
 
@@ -29,13 +35,12 @@ cdef void fit_id(
         NEIGHBOURS special_dummy,
         METRIC metric,
         SIMILARITY_CHECKER similarity_checker,
-        AINDEX* labels,
-        ABOOL* consider,
-        ClusterParameters* cluster_params):
+        Labels labels,
+        ClusterParameters cluster_params):
     pass
 
 
-cdef class FitterDeque:
+cdef class FitterExtDeque:
     """Concrete implementation of the fitter interface"""
 
     cdef void fit(
@@ -45,9 +50,8 @@ cdef class FitterDeque:
             NEIGHBOURS special_dummy,
             METRIC metric,
             SIMILARITY_CHECKER similarity_checker,
-            AINDEX* labels,
-            ABOOL* consider,
-            ClusterParameters* cluster_params):
+            Labels labels,
+            ClusterParameters cluster_params):
         """Generic clustering
 
         Features of this variant:
@@ -63,6 +67,8 @@ cdef class FitterDeque:
         cdef AINDEX init_point, point, member, member_index
         cdef object q
         cdef NEIGHBOURS neighbours, neighbour_neighbours
+        cdef AINDEX* _labels = &labels.labels[0]
+        cdef ABOOL* _consider = &labels.consider[0]
 
         n = input_data.n_points
 
@@ -70,30 +76,19 @@ cdef class FitterDeque:
         q = deque()  # V1 (Queue)
 
         for init_point in range(n):
-            if consider[init_point] == 0:
+            if _consider[init_point] == 0:
                 continue
-            consider[init_point] = 0
+            _consider[init_point] = 0
 
-            if INPUT_DATA is object:
-                neighbours = input_data.get_neighbours(
-                    init_point, neighbours_getter, metric,
-                    deref(cluster_params), special_dummy,
-                    )
-            else:
-                neighbours = input_data.get_neighbours(
-                    init_point, neighbours_getter, metric,
-                    cluster_params, special_dummy,
-                    )
+            neighbours = neighbours_getter.get(
+                init_point, input_data, metric,
+                cluster_params
+                )
 
-            if NEIGHBOURS is object:
-                if not neighbours.enough(
-                        deref(cluster_params)):
-                    continue
-            else:
-                if not neighbours.enough(cluster_params):
-                    continue
+            if not neighbours.enough(cluster_params):
+                continue
 
-            labels[init_point] = current
+            _labels[init_point] = current
 
             while True:
 
@@ -102,59 +97,33 @@ cdef class FitterDeque:
                 for member_index in range(m):
                     member = neighbours.get_member(member_index)
 
-                    if consider[member] == 0:
+                    if _consider[member] == 0:
                         continue
 
-                    if INPUT_DATA is object:
-                        neighbour_neighbours = input_data.get_neighbours(
-                            member, neighbours_getter, metric,
-                            deref(cluster_params), special_dummy
-                            )
-                    else:
-                        neighbour_neighbours = input_data.get_neighbours(
-                            member, neighbours_getter, metric,
-                            cluster_params, special_dummy
-                            )
+                    neighbour_neighbours = neighbours_getter.get(
+                        member, input_data, metric,
+                        cluster_params
+                        )
 
-                    if NEIGHBOURS is object:
-                        if not neighbour_neighbours.enough(
-                                deref(cluster_params)):
-                            consider[member] = 0
-                            continue
+                    if not neighbour_neighbours.enough(cluster_params):
+                        _consider[member] = 0
+                        continue
 
-                        if neighbours.check_similarity(
-                                neighbour_neighbours,
-                                similarity_checker,
-                                deref(cluster_params)):
-                            consider[member] = 0
-                            labels[member] = current
-                            q.append(member)
-                    else:
-                        if not neighbour_neighbours.enough(cluster_params):
-                            consider[member] = 0
-                            continue
-
-                        if neighbours.check_similarity(
-                                neighbour_neighbours,
-                                similarity_checker,
-                                cluster_params):
-                            consider[member] = 0
-                            labels[member] = current
-                            q.append(member)
+                    if similarity_checker.check(
+                            neighbours,
+                            neighbour_neighbours,
+                            cluster_params):
+                        _consider[member] = 0
+                        _labels[member] = current
+                        q.append(member)
 
                 if not q:
                     break
 
                 point = q.popleft()
-                if INPUT_DATA is object:
-                    neighbours = input_data.get_neighbours(
-                        point, neighbours_getter, metric,
-                        deref(cluster_params), special_dummy
-                        )
-                else:
-                    neighbours = input_data.get_neighbours(
-                        point, neighbours_getter, metric,
-                        cluster_params, special_dummy
-                        )
+                neighbours = neighbours_getter.get(
+                    point, input_data, metric,
+                    cluster_params
+                    )
 
             current += 1

@@ -1,9 +1,10 @@
 from cnnclustering._primitive_types cimport AVALUE, AINDEX, ABOOL
-from cnnclustering._types cimport ClusterParameters
+from cnnclustering._types cimport ClusterParameters, Labels
 from cnnclustering._types cimport InputDataExtPointsMemoryview
 from cnnclustering._types cimport (
     INPUT_DATA,
-    NEIGHBOURS, NEIGHBOURS_GETTER,
+    NEIGHBOURS_GETTER,
+    NEIGHBOURS,
     METRIC,
     SIMILARITY_CHECKER
     )
