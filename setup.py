@@ -21,7 +21,7 @@ extensions = [
     Extension(
         "*", ["src/cnnclustering/*.pyx"],
         define_macros=cython_macros,
-        language="c++",
+        # language="c++",
         include_dirs=[np.get_include()]
         )
 ]
