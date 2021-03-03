@@ -11,3 +11,6 @@ build-backend = "setuptools.build_meta"
 norecursedirs = ".tox .git"
 addopts = "-v -p no:warnings --doctest-glob='README.md' --ignore=setup.py -x"
 testpaths = ["test"]
+markers = [
+    "sklearn: requires scikit-learn install"
+    ]

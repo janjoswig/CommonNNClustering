@@ -18,11 +18,22 @@ ctypedef fused NEIGHBOURS_EXT:
     NeighboursExtMemoryview
 
 ctypedef fused NEIGHBOURS_GETTER:
-    NeighboursGetterFromPointsMemoryview
+    NeighboursGetterExtBruteForce
+    NeighboursGetterExtLookup
     object
 
+ctypedef fused NEIGHBOURS_GETTER_EXT:
+    NeighboursGetterExtBruteForce
+    NeighboursGetterExtLookup
+
 ctypedef fused METRIC:
+    MetricExtEuclideanReduced
+    MetricExtPrecomputed
     object
+
+ctypedef fused METRIC_EXT:
+    MetricExtEuclideanReduced
+    MetricExtPrecomputed
 
 ctypedef fused SIMILARITY_CHECKER:
     SimilarityCheckerExtContains
@@ -33,6 +44,13 @@ ctypedef fused SIMILARITY_CHECKER_EXT:
     SimilarityCheckerExtContains
     SimilarityCheckerExtSwitchContains
 
+ctypedef fused QUEUE:
+    QueueExtVector
+    object
+
+ctypedef fused QUEUE_EXT:
+    QueueExtVector
+
 
 cdef class ClusterParameters:
     cdef public:
@@ -41,36 +59,63 @@ cdef class ClusterParameters:
 
 
 cdef class Labels:
-    cdef AINDEX[::1] labels
-    cdef ABOOL[::1] consider
+    cdef:
+        AINDEX[::1] _labels
+        ABOOL[::1] _consider
 
 
 cdef class InputDataExtPointsMemoryview:
     cdef public:
-        AVALUE[:, ::1] data
         AINDEX n_points
+        AINDEX n_dim
+
+    cdef:
+        AVALUE[:, ::1] _data
+
+    cdef inline AVALUE get_component(
+            self, AINDEX point, AINDEX dimension) nogil
 
 
 cdef class NeighboursExtMemoryview:
 
     cdef public:
-        AINDEX[::1] neighbours
         AINDEX n_points
+
+    cdef:
+        AINDEX[::1] neighbours
 
     cdef bint enough(self, ClusterParameters cluster_params)
     cdef inline AINDEX get_member(self, AINDEX index) nogil
     cdef inline bint contains(self, AINDEX member) nogil
 
 
-cdef class NeighboursGetterFromPointsMemoryview:
+cdef class NeighboursGetterExtBruteForce:
     cdef NeighboursExtMemoryview neighbours_dummy
  
     cdef NeighboursExtMemoryview get(
             self,
             AINDEX index,
-            INPUT_DATA input_data,
-            METRIC metric,
+            INPUT_DATA_EXT input_data,
+            METRIC_EXT metric,
             ClusterParameters cluster_params)
+
+
+cdef class NeighboursGetterExtLookup:
+    pass
+
+
+cdef class MetricExtPrecomputed:
+    cdef inline AVALUE calc_distance(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data) nogil
+
+
+cdef class MetricExtEuclideanReduced:
+    cdef inline AVALUE calc_distance(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data) nogil
 
 
 cdef class SimilarityCheckerExtContains:
@@ -91,3 +136,7 @@ cdef class SimilarityCheckerExtSwitchContains:
             NEIGHBOURS_EXT neighbours_a,
             NEIGHBOURS_EXT neighbours_b,
             ClusterParameters cluster_params) nogil
+
+
+cdef class QueueExtVector:
+    pass

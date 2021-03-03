@@ -1,40 +1,39 @@
 from cnnclustering._primitive_types cimport AVALUE, AINDEX, ABOOL
+from cnnclustering._types cimport ClusterParameters, Labels
 from cnnclustering._types cimport (
     INPUT_DATA,
     NEIGHBOURS_GETTER,
     NEIGHBOURS, 
     METRIC,
-    SIMILARITY_CHECKER
+    SIMILARITY_CHECKER,
+    QUEUE
     )
-from cnnclustering._types cimport ClusterParameters, Labels
-
-
-ctypedef void (*FIT_FUN)(
-    INPUT_DATA, NEIGHBOURS_GETTER, NEIGHBOURS,
-    METRIC, SIMILARITY_CHECKER, Labels, ClusterParameters)
+from cnnclustering._types cimport (
+    INPUT_DATA_EXT,
+    NEIGHBOURS_GETTER_EXT,
+    NEIGHBOURS_EXT, 
+    METRIC_EXT,
+    SIMILARITY_CHECKER_EXT,
+    QUEUE_EXT
+    )
 
 
 ctypedef fused FITTER:
-    FitterExtDeque
+    FitterExtBFS
     object
 
-cdef void fit_id(
-        INPUT_DATA input_data,
-        NEIGHBOURS_GETTER neighbours_getter,
-        NEIGHBOURS special_dummy,
-        METRIC metric,
-        SIMILARITY_CHECKER similarity_checker,
-        Labels labels,
-        ClusterParameters cluster_params)
+ctypedef fused FITTER_EXT:
+    FitterExtBFS
 
 
-cdef class FitterExtDeque:
+cdef class FitterExtBFS:
     cdef void fit(
         self,
-        INPUT_DATA input_data,
-        NEIGHBOURS_GETTER neighbours_getter,
-        NEIGHBOURS special_dummy,
-        METRIC metric,
-        SIMILARITY_CHECKER similarity_checker,
+        INPUT_DATA_EXT input_data,
+        NEIGHBOURS_GETTER_EXT neighbours_getter,
+        NEIGHBOURS_EXT special_dummy,
+        METRIC_EXT metric,
+        SIMILARITY_CHECKER_EXT similarity_checker,
+        QUEUE_EXT queue,
         Labels labels,
         ClusterParameters cluster_params)

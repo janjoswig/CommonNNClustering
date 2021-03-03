@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
+from collections import deque
 from collections.abc import Sequence
 from typing import Any, Type
 
 import numpy as np
 
 from cython.operator cimport dereference as deref
+from libc.math cimport sqrt as csqrt, pow as cpow
 
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
 
@@ -14,19 +16,49 @@ cdef class ClusterParameters:
         self.radius_cutoff = radius_cutoff
         self.cnn_cutoff = cnn_cutoff
 
+    def to_dict(self):
+        return {
+            "radius_cutoff": self.radius_cutoff,
+            "cnn_cutoff": self.cnn_cutoff
+            }
+
+    def __repr__(self):
+        return f"{self.to_dict()!r}"
+
+    def __str__(self):
+        return f"{self.to_dict()!s}"
+
 
 cdef class Labels:
     def __cinit__(self, labels, consider=None):
-        self.labels = labels
+        self._labels = np.atleast_1d(
+            np.asarray(labels, order="c", dtype=P_AINDEX)
+            )
         if consider is None:
-            self.consider = np.ones_like(self.labels, dtype=P_ABOOL)
+            self._consider = np.ones_like(self._labels, dtype=P_ABOOL)
         else:
-            self.consider = consider
+            self._consider = np.atleast_1d(
+            np.asarray(consider, order="c", dtype=P_ABOOL)
+            )
 
-            if self.labels.shape[0] != self.consider.shape[0]:
+            if self._labels.shape[0] != self._consider.shape[0]:
                 raise ValueError(
                     "'labels' and 'consider' must have the same length"
                     )
+
+    @property
+    def labels(self):
+        return np.asarray(self._labels)
+
+    @property
+    def consider(self):
+        return np.asarray(self._consider)
+
+    def __repr__(self):
+        return f"{type(self).__name__}({list(self.labels)!s})"
+
+    def __str__(self):
+        return f"{self.labels!s}"
 
 
 class InputData(ABC):
@@ -36,6 +68,15 @@ class InputData(ABC):
     @abstractmethod
     def n_points(self) -> int:
        """Return total number of points"""
+
+    @property
+    @abstractmethod
+    def n_dim(self) -> int:
+       """Return total number of dimensions"""
+
+    @abstractmethod
+    def get_component(self, point: int, dimension: int) -> float:
+       """Return one component of point coordinates"""
 
 
 class InputDataNeighboursSequence(InputData):
@@ -51,13 +92,33 @@ class InputDataNeighboursSequence(InputData):
     def n_points(self):
         return len(self._data)
 
+    @property
+    def n_dim(self):
+        return None
+
+    def get_component(self, point: int, dimension: int) -> float:
+        return None
+
 
 cdef class InputDataExtPointsMemoryview:
     """Implements the input data interface"""
 
     def __cinit__(self, data):
-        self.data = data
-        self.n_points = self.points.shape[0]
+        self._data = data
+        self.n_points = self._data.shape[0]
+        self.n_dim = self._data.shape[1]
+
+    @property
+    def data(self):
+       return np.asarray(self._data)
+
+    cdef inline AVALUE get_component(
+            self, AINDEX point, AINDEX dimension) nogil:
+        return self._data[point, dimension]
+
+    def _get_component(
+            self, point: int, dimension: int) -> float:
+        return self.get_component(point, dimension)
 
 
 class Neighbours(ABC):
@@ -67,6 +128,14 @@ class Neighbours(ABC):
     @abstractmethod
     def n_points(self) -> int:
        """Return total number of points"""
+
+    @abstractmethod
+    def assign(self, member: int) -> None:
+       """Add a member to this container"""
+
+    @abstractmethod
+    def reset(self) -> None:
+       """Reset/empty this container"""
 
     @abstractmethod
     def enough(self, cluster_params: Type['ClusterParameters']) -> bool:
@@ -81,18 +150,24 @@ class Neighbours(ABC):
        """Return True if member is in neighbours container"""
 
 
-class NeighboursSequence(Neighbours):
-    def __init__(
-            self,
-            neighbours: Sequence):
-        self._neighbours = neighbours
+class NeighboursList(Neighbours):
+    def __init__(self):
+        self.reset()
 
     @property
     def n_points(self):
-        return len(self._neighbours)
+        return self._n_points
+
+    def assign(self, member: int):
+        self._neighbours.append(member)
+        self._n_points += 1
+
+    def reset(self):
+        self._neighbours = []
+        self._n_points = 0
 
     def enough(self, cluster_params: Type['ClusterParameters']):
-        if self.n_points > cluster_params.cnn_cutoff:
+        if self._n_points > cluster_params.cnn_cutoff:
             return True
         return False
 
@@ -105,12 +180,56 @@ class NeighboursSequence(Neighbours):
         return False
 
 
+class NeighboursSet(Neighbours):
+    def __init__(self):
+        self.reset()
+
+    @property
+    def n_points(self):
+        return self._n_points
+
+    def assign(self, member: int):
+        self._neighbours.add(member)
+        self._n_points += 1
+
+    def reset(self):
+        self._neighbours = {}
+        self._n_points = 0
+        self._query = 0
+        self._iter = None
+
+    def enough(self, cluster_params: Type['ClusterParameters']):
+        if self._n_points > cluster_params.cnn_cutoff:
+            return True
+        return False
+
+    def get_member(self, index: int) -> int:
+        if (self._iter is None) or (index != self._query):
+            self._iter = iter(self._neighbours)
+            self._query = 0
+
+        while self._query != index:
+            _ = next(self._iter)
+        return next(self._iter)
+
+    def contains(self, member: int) -> bool:
+        if member in self._neighbours:
+            return True
+        return False
+
+
 cdef class NeighboursExtMemoryview:
     """Implements the neighbours interface"""
 
-    def __cinit__(self, neighbours):
-        self.neighbours = neighbours
-        self.n_points = self.neighbours.shape[0]
+    cdef __cinit__(self, size):
+        self._neighbours =
+
+    cdef void assign(self, AINDEX member):
+        self._neighbours[self.n_points] = member
+        self.n_points += 1
+
+    cdef void reset(self):
+        self.n_points = 0
 
     cdef bint enough(self, ClusterParameters cluster_params):
         if self.n_points > cluster_params.cnn_cutoff:
@@ -142,32 +261,39 @@ class NeighboursGetter(ABC):
     def is_selfcounting(self) -> bool:
        """Return True if points count as their own neighbour"""
 
-
-    @property
-    @abstractmethod
-    def neighbours_dummy(self) -> Type['Neighbours']:
-       """Return dummy instance of neighbours object this getter will create"""
-
     @abstractmethod
     def get(
             self,
             index: int,
             input_data: Type['InputData'],
+            neighbours: Type['Neighbours'],
             metric: Type['Metric'],
-            cluster_params: Type['ClusterParameters']):
+            cluster_params: Type['ClusterParameters']) -> None:
         """Return neighbours for point in input data"""
 
 
-class NeighboursGetterFromNeighboursSequenceToSequence(NeighboursGetter):
+class NeighboursGetterLookup(NeighboursGetter):
 
     def __init__(self, is_sorted=False, is_selfcounting=False):
         self.is_sorted = is_sorted
         self.is_selfcounting = is_selfcounting
-        self._neighbours_dummy = NeighboursSequence
 
-    @property
-    def neighbours_dummy(self):
-        return self._neighbours_dummy([])
+    def get(
+            self,
+            index: int,
+            input_data: Type['InputData'],
+            neighbours: Type['Neighbours'],
+            metric: Type['Metric'],
+            cluster_params: Type['ClusterParameters']) -> None:
+
+        neighbours.assign(input_data[index])
+
+
+class NeighboursGetterBruteForce(NeighboursGetter):
+
+    def __init__(self, is_sorted=False, is_selfcounting=False):
+        self.is_sorted = False  # is_sorted
+        self.is_selfcounting = True  # is_selfcounting
 
     def get(
             self,
@@ -175,13 +301,23 @@ class NeighboursGetterFromNeighboursSequenceToSequence(NeighboursGetter):
             input_data: Type['InputData'],
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']):
-        return self._neighbours_dummy(input_data[index])
+
+        cdef AINDEX i
+        cdef AVALUE distance
+        cdef list neighbours = []
+
+        for i in range(input_data.n_points):
+            distance = metric.calc_distance(index, i, input_data)
+
+            if distance <= cluster_params.radius_cutoff:
+                neighbours.append(i)
+
+        return self._neighbours_dummy(neighbours)
 
 
-cdef class NeighboursGetterFromPointsMemoryview:
-    def __init__(self):
-        # sorted?
-        # self_counting?
+cdef class NeighboursGetterExtBruteForce:
+    def __cinit__(self, NEIGHBOURS_EXT neighbours_dummy):
+
         self.neighbours_dummy = NeighboursExtMemoryview(
             np.array([], dtype=P_AINDEX)
             )
@@ -189,10 +325,21 @@ cdef class NeighboursGetterFromPointsMemoryview:
     cdef NeighboursExtMemoryview get(
             self,
             AINDEX index,
-            INPUT_DATA input_data,
-            METRIC metric,
+            INPUT_DATA_EXT input_data,
+            METRIC_EXT metric,
             ClusterParameters cluster_params):
+
+        cdef AINDEX i
+        cdef AVALUE distance
+
+        for i in range(input_data.n_points):
+            distance = metric.calc_distance(index, i, input_data)
+
         return NeighboursExtMemoryview(np.array([], dtype=P_AINDEX))
+
+
+cdef class NeighboursGetterExtLookup:
+    pass
 
 
 class Metric(ABC):
@@ -200,8 +347,94 @@ class Metric(ABC):
 
     @abstractmethod
     def calc_distance(
-            self, index_a: int, index_b: int, input_data: Type['InputData']):
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData']) -> float:
         """Return distance between two points in input data"""
+
+
+class MetricPrecomputed(Metric):
+    def calc_distance(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData']) -> float:
+
+        return input_data.get_component(index_a, index_b)
+
+
+cdef class MetricExtPrecomputed:
+    cdef inline AVALUE calc_distance(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data) nogil:
+
+        return input_data.get_component(index_a, index_b)
+
+    def _calc_distance(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData']) -> float:
+        return self.calc_distance(index_a, index_b, input_data)
+
+
+class MetricEuclidean(Metric):
+    def calc_distance(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData']) -> float:
+
+        cdef AVALUE total = 0
+        cdef AINDEX i, n_dim = input_data.n_dim
+        cdef AVALUE a, b
+
+        for i in range(n_dim):
+            a = input_data.get_component(index_a, i)
+            b = input_data.get_component(index_b, i)
+            total += csqrt(cpow(a - b, 2))
+
+        return total
+
+
+class MetricEuclideanReduced(Metric):
+    def calc_distance(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData']) -> float:
+
+        cdef AVALUE total = 0
+        cdef AINDEX i, n_dim = input_data.n_dim
+        cdef AVALUE a, b
+
+        for i in range(n_dim):
+            a = input_data.get_component(index_a, i)
+            b = input_data.get_component(index_b, i)
+            total += cpow(a - b, 2)
+
+        return total
+
+
+cdef class MetricExtEuclideanReduced:
+    cdef inline AVALUE calc_distance(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data) nogil:
+
+        cdef AVALUE total = 0
+        cdef AINDEX i, n_dim = input_data.n_dim
+        cdef AVALUE a, b
+
+        for i in range(n_dim):
+            a = input_data.get_component(index_a, i)
+            b = input_data.get_component(index_b, i)
+            total += cpow(a - b, 2)
+
+        return total
+
+    def _calc_distance(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData']) -> float:
+        return self.calc_distance(index_a, index_b, input_data)
 
 
 class SimilarityChecker(ABC):
@@ -413,3 +646,45 @@ cdef class SimilarityCheckerExtSwitchContains:
             ClusterParameters cluster_params):
 
         return self.check(neighbours_a, neighbours_b, cluster_params)
+
+
+class Queue(ABC):
+
+    @abstractmethod
+    def push_back(self, value):
+        """Append value to back/right end"""
+
+    @abstractmethod
+    def pop_front(self):
+        """Retriev value from front/left end"""
+
+    @abstractmethod
+    def is_empty(self):
+        """Return True if there are no values in the queue"""
+
+
+class QueueDeque(Queue):
+
+    def __init__(self):
+       self._queue = deque()
+
+    @abstractmethod
+    def push_back(self, value):
+        """Append value to back/right end"""
+        self._queue.append(value)
+
+    @abstractmethod
+    def pop_front(self):
+        """Retriev value from front/left end"""
+        return self._queue.popleft()
+
+    @abstractmethod
+    def is_empty(self):
+        """Return True if there are no values in the queue"""
+        if self._queue:
+            return False
+        return True
+
+
+cdef class QueueExtVector:
+    pass

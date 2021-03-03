@@ -3,12 +3,12 @@ import pytest
 
 from cnnclustering._primitive_types import P_AINDEX
 from cnnclustering._types import (
-    SimilarityCheckerContains,
-    SimilarityCheckerSwitchContains,
-    SimilarityCheckerExtContains,
-    SimilarityCheckerExtSwitchContains,
+    NeighboursExtMemoryview,
     NeighboursSequence,
-    NeighboursExtMemoryview
+    SimilarityCheckerContains,
+    SimilarityCheckerExtContains,
+    SimilarityCheckerSwitchContains,
+    SimilarityCheckerExtSwitchContains,
 )
 from cnnclustering._types import ClusterParameters
 

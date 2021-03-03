@@ -1,12 +1,19 @@
 from cnnclustering._primitive_types cimport AVALUE, AINDEX, ABOOL
 from cnnclustering._types cimport ClusterParameters, Labels
-from cnnclustering._types cimport InputDataExtPointsMemoryview
 from cnnclustering._types cimport (
     INPUT_DATA,
     NEIGHBOURS_GETTER,
     NEIGHBOURS,
     METRIC,
-    SIMILARITY_CHECKER
+    SIMILARITY_CHECKER,
+    QUEUE
+    )
+from cnnclustering._types cimport (
+    INPUT_DATA_EXT,
+    NEIGHBOURS_GETTER_EXT,
+    NEIGHBOURS_EXT, 
+    METRIC_EXT,
+    SIMILARITY_CHECKER_EXT,
+    QUEUE_EXT
     )
 from cnnclustering._fit cimport FITTER
-from cnnclustering._fit cimport fit_id

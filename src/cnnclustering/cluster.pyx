@@ -12,6 +12,7 @@ class Clustering:
             neighbours_getter=None,
             metric=None,
             similarity_checker=None,
+            queue=None,
             fitter=None,
             labels=None):
 
@@ -19,6 +20,7 @@ class Clustering:
         self._neighbours_getter = neighbours_getter
         self._metric = metric
         self._similarity_checker = similarity_checker
+        self._queue = queue
         self._fitter = fitter
         self._labels = labels
 
@@ -29,19 +31,32 @@ class Clustering:
         NEIGHBOURS special_dummy,
         METRIC metric,
         SIMILARITY_CHECKER similarity_checker,
+        QUEUE queue,
         FITTER fitter,
         Labels labels,
         ClusterParameters cluster_params):
 
-        fitter.fit(
-            input_data,
-            neighbours_getter,
-            special_dummy,
-            metric,
-            similarity_checker,
-            labels,
-            cluster_params,
-            )
+        if (FITTER is object) or (
+                (INPUT_DATA in INPUT_DATA_EXT) and
+                (NEIGHBOURS_GETTER in NEIGHBOURS_GETTER_EXT) and
+                (NEIGHBOURS in NEIGHBOURS_EXT) and
+                (METRIC in METRIC_EXT) and
+                (SIMILARITY_CHECKER in SIMILARITY_CHECKER_EXT) and
+                (QUEUE in QUEUE_EXT)):
+            fitter.fit(
+                input_data,
+                neighbours_getter,
+                special_dummy,
+                metric,
+                similarity_checker,
+                queue,
+                labels,
+                cluster_params,
+                )
+        else:
+            raise TypeError(
+                ""
+                )
 
     def fit(self, radius_cutoff: float, cnn_cutoff: int) -> None:
 
@@ -49,7 +64,7 @@ class Clustering:
             radius_cutoff, cnn_cutoff
             )
 
-        self.labels = Labels(
+        self._labels = Labels(
             np.arange(self._input_data.n_points, dtype=P_AINDEX)
             )
 
@@ -59,6 +74,7 @@ class Clustering:
             self._neighbours_getter.neighbours_dummy,
             self._metric,
             self._similarity_checker,
+            self._queue,
             self._fitter,
             self._labels,
             cluster_params
