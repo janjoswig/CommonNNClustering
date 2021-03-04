@@ -3,8 +3,8 @@ import pytest
 
 from cnnclustering._primitive_types import P_AINDEX
 from cnnclustering._types import (
-    NeighboursExtMemoryview,
-    NeighboursSequence,
+    NeighboursExtVector,
+    NeighboursList,
     SimilarityCheckerContains,
     SimilarityCheckerExtContains,
     SimilarityCheckerSwitchContains,
@@ -22,10 +22,10 @@ class TestSimilarityChecker:
     @pytest.mark.parametrize(
         "neighbours_type,data_a,data_b,c,expected",
         [
-            (NeighboursSequence, [], [], 0, True),
-            (NeighboursSequence, [], [], 1, False),
-            (NeighboursSequence, [1, 2, 3], [2, 5], 1, True),
-            (NeighboursSequence, [1, 2, 3], [2, 5, 9, 8], 2, False),
+            (NeighboursList, [], [], 0, True),
+            (NeighboursList, [], [], 1, False),
+            (NeighboursList, [1, 2, 3], [2, 5], 1, True),
+            (NeighboursList, [1, 2, 3], [2, 5, 9, 8], 2, False),
         ],
     )
     def test_check(
@@ -45,22 +45,22 @@ class TestSimilarityChecker:
         "neighbours_type,data_a,data_b,c,expected",
         [
             (
-                NeighboursExtMemoryview,
+                NeighboursExtVector,
                 np.array([], dtype=P_AINDEX),
                 np.array([], dtype=P_AINDEX), 0, True
             ),
             (
-                NeighboursExtMemoryview,
+                NeighboursExtVector,
                 np.array([], dtype=P_AINDEX),
                 np.array([], dtype=P_AINDEX), 1, False
             ),
             (
-                NeighboursExtMemoryview,
+                NeighboursExtVector,
                 np.array([1, 2, 3], dtype=P_AINDEX),
                 np.array([2, 5], dtype=P_AINDEX), 1, True
             ),
             (
-                NeighboursExtMemoryview,
+                NeighboursExtVector,
                 np.array([1, 2, 3], dtype=P_AINDEX),
                 np.array([2, 5, 9, 8], dtype=P_AINDEX), 2, False
             ),

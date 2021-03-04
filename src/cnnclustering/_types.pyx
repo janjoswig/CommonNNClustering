@@ -31,15 +31,11 @@ cdef class ClusterParameters:
 
 cdef class Labels:
     def __cinit__(self, labels, consider=None):
-        self._labels = np.atleast_1d(
-            np.asarray(labels, order="c", dtype=P_AINDEX)
-            )
+        self._labels = labels
         if consider is None:
             self._consider = np.ones_like(self._labels, dtype=P_ABOOL)
         else:
-            self._consider = np.atleast_1d(
-            np.asarray(consider, order="c", dtype=P_ABOOL)
-            )
+            self._consider = consider
 
             if self._labels.shape[0] != self._consider.shape[0]:
                 raise ValueError(
@@ -103,7 +99,7 @@ class InputDataNeighboursSequence(InputData):
 cdef class InputDataExtPointsMemoryview:
     """Implements the input data interface"""
 
-    def __cinit__(self, data):
+    def __cinit__(self, AVALUE[:, ::1] data not None):
         self._data = data
         self.n_points = self._data.shape[0]
         self.n_dim = self._data.shape[1]
@@ -151,8 +147,12 @@ class Neighbours(ABC):
 
 
 class NeighboursList(Neighbours):
-    def __init__(self):
-        self.reset()
+    def __init__(self, neighbours=None):
+        if neighbours is not None:
+            self._neighbours = neighbours
+            self._n_points = len(self._neighbours)
+        else:
+            self.reset()
 
     @property
     def n_points(self):
@@ -181,8 +181,12 @@ class NeighboursList(Neighbours):
 
 
 class NeighboursSet(Neighbours):
-    def __init__(self):
-        self.reset()
+    def __init__(self, neighbours=None):
+        if neighbours is not None:
+            self._neighbours = neighbours
+            self._n_points = len(self._neighbours)
+        else:
+            self.reset()
 
     @property
     def n_points(self):
@@ -218,32 +222,41 @@ class NeighboursSet(Neighbours):
         return False
 
 
-cdef class NeighboursExtMemoryview:
+cdef class NeighboursExtVector:
     """Implements the neighbours interface"""
 
-    cdef __cinit__(self, size):
-        self._neighbours =
+    def __cinit__(self, AINDEX initial_size, neighbours=None):
+        self._initial_size = initial_size
 
-    cdef void assign(self, AINDEX member):
-        self._neighbours[self.n_points] = member
+        if neighbours is not None:
+            self._neighbours = neighbours
+            self._n_points = len(self._neighbours)
+            self._neighbours.reserve(self._initial_size)
+        else:
+            self.reset()
+
+    cdef inline void assign(self, AINDEX member) nogil:
+        self._neighbours.push_back(member)
         self.n_points += 1
 
-    cdef void reset(self):
+    cdef inline void reset(self) nogil:
+        self._neighbours.resize(0)
+        self._neighbours.reserve(self._initial_size)
         self.n_points = 0
 
-    cdef bint enough(self, ClusterParameters cluster_params):
+    cdef inline bint enough(self, ClusterParameters cluster_params) nogil:
         if self.n_points > cluster_params.cnn_cutoff:
             return True
         return False
 
     cdef inline AINDEX get_member(self, AINDEX index) nogil:
-        return self.neighbours[index]
+        return self._neighbours[index]
 
     cdef inline bint contains(self, AINDEX member) nogil:
         cdef AINDEX index
 
         for index in range(self.n_points):
-            if self.neighbours[index] == member:
+            if self._neighbours[index] == member:
                 return True
         return False
 
@@ -269,7 +282,7 @@ class NeighboursGetter(ABC):
             neighbours: Type['Neighbours'],
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']) -> None:
-        """Return neighbours for point in input data"""
+        """Collect neighbours for point in input data"""
 
 
 class NeighboursGetterLookup(NeighboursGetter):
@@ -286,56 +299,59 @@ class NeighboursGetterLookup(NeighboursGetter):
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']) -> None:
 
-        neighbours.assign(input_data[index])
+        neighbours.reset()
+
+        cdef AINDEX i
+        for i in input_data[index]:
+            neighbours.assign(i)
 
 
 class NeighboursGetterBruteForce(NeighboursGetter):
 
-    def __init__(self, is_sorted=False, is_selfcounting=False):
-        self.is_sorted = False  # is_sorted
-        self.is_selfcounting = True  # is_selfcounting
+    def __init__(self):
+        self.is_sorted = False
+        self.is_selfcounting = True
 
     def get(
             self,
             index: int,
             input_data: Type['InputData'],
+            neighbours: Type['Neighbours'],
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']):
 
         cdef AINDEX i
         cdef AVALUE distance
-        cdef list neighbours = []
+
+        neighbours.reset()
 
         for i in range(input_data.n_points):
             distance = metric.calc_distance(index, i, input_data)
 
             if distance <= cluster_params.radius_cutoff:
-                neighbours.append(i)
-
-        return self._neighbours_dummy(neighbours)
+                neighbours.assign(i)
 
 
 cdef class NeighboursGetterExtBruteForce:
-    def __cinit__(self, NEIGHBOURS_EXT neighbours_dummy):
 
-        self.neighbours_dummy = NeighboursExtMemoryview(
-            np.array([], dtype=P_AINDEX)
-            )
-
-    cdef NeighboursExtMemoryview get(
+    cdef get(
             self,
             AINDEX index,
             INPUT_DATA_EXT input_data,
+            NEIGHBOURS_EXT neighbours,
             METRIC_EXT metric,
             ClusterParameters cluster_params):
 
         cdef AINDEX i
         cdef AVALUE distance
 
+        neighbours.reset()
+
         for i in range(input_data.n_points):
             distance = metric.calc_distance(index, i, input_data)
 
-        return NeighboursExtMemoryview(np.array([], dtype=P_AINDEX))
+            if distance <= cluster_params.radius_cutoff:
+                neighbours.assign(i)
 
 
 cdef class NeighboursGetterExtLookup:
@@ -390,9 +406,33 @@ class MetricEuclidean(Metric):
         for i in range(n_dim):
             a = input_data.get_component(index_a, i)
             b = input_data.get_component(index_b, i)
-            total += csqrt(cpow(a - b, 2))
+            total += cpow(a - b, 2)
 
-        return total
+        return csqrt(total)
+
+
+cdef class MetricExtEuclidean:
+    cdef inline AVALUE calc_distance(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data) nogil:
+
+        cdef AVALUE total = 0
+        cdef AINDEX i, n_dim = input_data.n_dim
+        cdef AVALUE a, b
+
+        for i in range(n_dim):
+            a = input_data.get_component(index_a, i)
+            b = input_data.get_component(index_b, i)
+            total += cpow(a - b, 2)
+
+        return csqrt(total)
+
+    def _calc_distance(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData']) -> float:
+        return self.calc_distance(index_a, index_b, input_data)
 
 
 class MetricEuclideanReduced(Metric):
@@ -561,7 +601,7 @@ cdef class SimilarityCheckerExtContains:
     cdef inline bint check(
             self,
             NEIGHBOURS_EXT neighbours_a,
-            NEIGHBOURS_EXT neighbours_b,
+            NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
             ClusterParameters cluster_params) nogil:
 
         cdef AINDEX na = neighbours_a.n_points
@@ -612,7 +652,7 @@ cdef class SimilarityCheckerExtSwitchContains:
     cdef inline bint check(
             self,
             NEIGHBOURS_EXT neighbours_a,
-            NEIGHBOURS_EXT neighbours_b,
+            NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
             ClusterParameters cluster_params) nogil:
 
         cdef AINDEX na = neighbours_a.n_points
@@ -649,36 +689,35 @@ cdef class SimilarityCheckerExtSwitchContains:
 
 
 class Queue(ABC):
+    """Defines the queue interface"""
 
     @abstractmethod
-    def push_back(self, value):
-        """Append value to back/right end"""
+    def push(self, value):
+        """Put value into the queue"""
 
     @abstractmethod
-    def pop_front(self):
-        """Retriev value from front/left end"""
+    def pop(self):
+        """Retrieve value from the queue"""
 
     @abstractmethod
     def is_empty(self):
         """Return True if there are no values in the queue"""
 
 
-class QueueDeque(Queue):
+class QueueFIFODeque(Queue):
+    """Implements the queue interface"""
 
     def __init__(self):
        self._queue = deque()
 
-    @abstractmethod
-    def push_back(self, value):
+    def push(self, value):
         """Append value to back/right end"""
         self._queue.append(value)
 
-    @abstractmethod
-    def pop_front(self):
-        """Retriev value from front/left end"""
+    def pop(self):
+        """Retrieve value from front/left end"""
         return self._queue.popleft()
 
-    @abstractmethod
     def is_empty(self):
         """Return True if there are no values in the queue"""
         if self._queue:
@@ -686,5 +725,41 @@ class QueueDeque(Queue):
         return True
 
 
-cdef class QueueExtVector:
-    pass
+cdef class QueueExtLIFOVector:
+    """Implements the queue interface"""
+
+    cdef inline void push(self, AINDEX value) nogil:
+        """Append value to back/right end"""
+        self._queue.push_back(value)
+
+    cdef inline AINDEX pop(self) nogil:
+        """Retrieve value from back/right end"""
+
+        cdef AINDEX value = self._queue.back()
+        self._queue.pop_back()
+
+        return value
+
+    cdef inline bint is_empty(self) nogil:
+        """Return True if there are no values in the queue"""
+        return self._queue.empty()
+
+
+cdef class QueueExtFIFOQueue:
+    """Implements the queue interface"""
+
+    cdef inline void push(self, AINDEX value) nogil:
+        """Append value to back/right end"""
+        self._queue.push(value)
+
+    cdef inline AINDEX pop(self) nogil:
+        """Retrieve value from back/right end"""
+
+        cdef AINDEX value = self._queue.front()
+        self._queue.pop()
+
+        return value
+
+    cdef inline bint is_empty(self) nogil:
+        """Return True if there are no values in the queue"""
+        return self._queue.empty()

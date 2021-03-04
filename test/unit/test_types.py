@@ -7,7 +7,7 @@ from cnnclustering._types import (
     InputDataExtPointsMemoryview,
     InputDataNeighboursSequence,
     Labels,
-    NeighboursSequence
+    NeighboursList
     )
 
 
@@ -72,7 +72,7 @@ class TestNeighbours:
     @pytest.mark.parametrize(
         "neighbours_type,data,expected",
         [
-            (NeighboursSequence, [0, 1], 2)
+            (NeighboursList, [0, 1], 2)
         ]
     )
     def test_n_points(self, neighbours_type, data, expected):

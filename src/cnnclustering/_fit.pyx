@@ -21,7 +21,8 @@ class Fitter(ABC):
         self,
         input_data: Type['InputData'],
         neighbours_getter: Type['NeighboursGetter'],
-        special_dummy: Type['Neighbours'],
+        neighbours: Type['Neighbours'],
+        neighbour_neighbours: Type['Neighbours'],
         metric: Type['Metric'],
         similarity_checker: Type['SimilarityChecker'],
         labels: Type['Labels'],
@@ -36,7 +37,8 @@ class FitterBFS:
             self,
             object input_data,
             object neighbours_getter,
-            object special_dummy,
+            object neighbours,
+            object neighbour_neighbours,
             object metric,
             object similarity_checker,
             object queue,
@@ -51,7 +53,9 @@ class FitterBFS:
                 interface.
             neighbours_getter: Calculator implementing the
                 neighbours-getter interface.
-            special_dummy: Neighbours container implementing the
+            neighbours: Neighbours container implementing the
+                neighbours interface.
+            neighbour_neighbours: Neighbours container implementing the
                 neighbours interface.
             metric: Distance metric implementing the metric
                 interface.
@@ -66,7 +70,6 @@ class FitterBFS:
 
         cdef AINDEX n, m, current
         cdef AINDEX init_point, point, member, member_index
-        cdef object neighbours, neighbour_neighbours
         cdef AINDEX* _labels = &labels._labels[0]
         cdef ABOOL* _consider = &labels._consider[0]
 
@@ -78,8 +81,11 @@ class FitterBFS:
                 continue
             _consider[init_point] = 0
 
-            neighbours = neighbours_getter.get(
-                init_point, input_data, metric,
+            neighbours_getter.get(
+                init_point,
+                input_data,
+                neighbours,
+                metric,
                 cluster_params
                 )
 
@@ -98,8 +104,11 @@ class FitterBFS:
                     if _consider[member] == 0:
                         continue
 
-                    neighbour_neighbours = neighbours_getter.get(
-                        member, input_data, metric,
+                    neighbours_getter.get(
+                        member,
+                        input_data,
+                        neighbour_neighbours,
+                        metric,
                         cluster_params
                         )
 
@@ -113,14 +122,17 @@ class FitterBFS:
                             cluster_params):
                         _consider[member] = 0
                         _labels[member] = current
-                        queue.push_back(member)
+                        queue.push(member)
 
                 if queue.is_empty():
                     break
 
-                point = queue.pop_front()
-                neighbours = neighbours_getter.get(
-                    point, input_data, metric,
+                point = queue.pop()
+                neighbours_getter.get(
+                    point,
+                    input_data,
+                    neighbours,
+                    metric,
                     cluster_params
                     )
 
@@ -134,7 +146,8 @@ cdef class FitterExtBFS:
             self,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_GETTER_EXT neighbours_getter,
-            NEIGHBOURS_EXT special_dummy,
+            NEIGHBOURS_EXT neighbours,
+            NEIGHBOUR_NEIGHBOURS_EXT neighbour_neighbours,
             METRIC_EXT metric,
             SIMILARITY_CHECKER_EXT similarity_checker,
             QUEUE_EXT queue,
@@ -149,7 +162,9 @@ cdef class FitterExtBFS:
                 interface.
             neighbours_getter: Calculator implementing the
                 neighbours-getter interface.
-            special_dummy: Neighbours container implementing the
+            neighbours: Neighbours container implementing the
+                neighbours interface.
+            neighbour_neighbours: Neighbours container implementing the
                 neighbours interface.
             metric: Distance metric implementing the metric
                 interface.
@@ -164,7 +179,6 @@ cdef class FitterExtBFS:
 
         cdef AINDEX n, m, current
         cdef AINDEX init_point, point, member, member_index
-        cdef NEIGHBOURS_EXT neighbours, neighbour_neighbours
         cdef AINDEX* _labels = &labels._labels[0]
         cdef ABOOL* _consider = &labels._consider[0]
 
@@ -176,8 +190,11 @@ cdef class FitterExtBFS:
                 continue
             _consider[init_point] = 0
 
-            neighbours = neighbours_getter.get(
-                init_point, input_data, metric,
+            neighbours_getter.get(
+                init_point,
+                input_data,
+                neighbours,
+                metric,
                 cluster_params
                 )
 
@@ -196,8 +213,11 @@ cdef class FitterExtBFS:
                     if _consider[member] == 0:
                         continue
 
-                    neighbour_neighbours = neighbours_getter.get(
-                        member, input_data, metric,
+                    neighbours_getter.get(
+                        member,
+                        input_data,
+                        neighbour_neighbours,
+                        metric,
                         cluster_params
                         )
 
@@ -211,14 +231,17 @@ cdef class FitterExtBFS:
                             cluster_params):
                         _consider[member] = 0
                         _labels[member] = current
-                        queue.push_back(member)
+                        queue.push(member)
 
                 if queue.is_empty():
                     break
 
-                point = queue.pop_front()
-                neighbours = neighbours_getter.get(
-                    point, input_data, metric,
+                point = queue.pop()
+                neighbours_getter.get(
+                    point,
+                    input_data,
+                    neighbour_neighbours,
+                    metric,
                     cluster_params
                     )
 

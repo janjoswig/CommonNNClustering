@@ -1,5 +1,8 @@
 cimport numpy as np
 
+from libcpp.vector cimport vector as cppvector
+from libcpp.queue cimport queue as cppqueue
+
 from cnnclustering._primitive_types cimport AINDEX, AVALUE, ABOOL
 
 
@@ -11,11 +14,18 @@ ctypedef fused INPUT_DATA_EXT:
     InputDataExtPointsMemoryview
 
 ctypedef fused NEIGHBOURS:
-    NeighboursExtMemoryview
+    NeighboursExtVector
     object
 
 ctypedef fused NEIGHBOURS_EXT:
-    NeighboursExtMemoryview
+    NeighboursExtVector
+
+ctypedef fused NEIGHBOUR_NEIGHBOURS:
+    NeighboursExtVector
+    object
+
+ctypedef fused NEIGHBOUR_NEIGHBOURS_EXT:
+    NeighboursExtVector
 
 ctypedef fused NEIGHBOURS_GETTER:
     NeighboursGetterExtBruteForce
@@ -27,13 +37,16 @@ ctypedef fused NEIGHBOURS_GETTER_EXT:
     NeighboursGetterExtLookup
 
 ctypedef fused METRIC:
-    MetricExtEuclideanReduced
     MetricExtPrecomputed
+    MetricExtEuclidean
+    MetricExtEuclideanReduced
     object
 
 ctypedef fused METRIC_EXT:
-    MetricExtEuclideanReduced
     MetricExtPrecomputed
+    MetricExtEuclidean
+    MetricExtEuclideanReduced
+
 
 ctypedef fused SIMILARITY_CHECKER:
     SimilarityCheckerExtContains
@@ -45,11 +58,13 @@ ctypedef fused SIMILARITY_CHECKER_EXT:
     SimilarityCheckerExtSwitchContains
 
 ctypedef fused QUEUE:
-    QueueExtVector
+    QueueExtLIFOVector
+    QueueExtFIFOQueue
     object
 
 ctypedef fused QUEUE_EXT:
-    QueueExtVector
+    QueueExtLIFOVector
+    QueueExtFIFOQueue
 
 
 cdef class ClusterParameters:
@@ -76,26 +91,29 @@ cdef class InputDataExtPointsMemoryview:
             self, AINDEX point, AINDEX dimension) nogil
 
 
-cdef class NeighboursExtMemoryview:
+cdef class NeighboursExtVector:
 
     cdef public:
         AINDEX n_points
 
     cdef:
-        AINDEX[::1] neighbours
+        AINDEX _initial_size
+        cppvector[AINDEX] _neighbours
 
-    cdef bint enough(self, ClusterParameters cluster_params)
+    cdef inline void assign(self, AINDEX member) nogil
+    cdef inline void reset(self) nogil
+    cdef inline bint enough(self, ClusterParameters cluster_params) nogil
     cdef inline AINDEX get_member(self, AINDEX index) nogil
     cdef inline bint contains(self, AINDEX member) nogil
 
 
 cdef class NeighboursGetterExtBruteForce:
-    cdef NeighboursExtMemoryview neighbours_dummy
  
-    cdef NeighboursExtMemoryview get(
+    cdef get(
             self,
             AINDEX index,
             INPUT_DATA_EXT input_data,
+            NEIGHBOURS_EXT neighbours,
             METRIC_EXT metric,
             ClusterParameters cluster_params)
 
@@ -105,6 +123,13 @@ cdef class NeighboursGetterExtLookup:
 
 
 cdef class MetricExtPrecomputed:
+    cdef inline AVALUE calc_distance(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data) nogil
+
+
+cdef class MetricExtEuclidean:
     cdef inline AVALUE calc_distance(
             self,
             AINDEX index_a, AINDEX index_b,
@@ -124,7 +149,7 @@ cdef class SimilarityCheckerExtContains:
     cdef inline bint check(
             self,
             NEIGHBOURS_EXT neighbours_a,
-            NEIGHBOURS_EXT neighbours_b,
+            NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
             ClusterParameters cluster_params) nogil
 
 
@@ -134,9 +159,27 @@ cdef class SimilarityCheckerExtSwitchContains:
     cdef inline bint check(
             self,
             NEIGHBOURS_EXT neighbours_a,
-            NEIGHBOURS_EXT neighbours_b,
+            NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
             ClusterParameters cluster_params) nogil
 
 
-cdef class QueueExtVector:
-    pass
+cdef class QueueExtLIFOVector:
+    """Implements the queue interface"""
+
+    cdef:
+        cppvector[AINDEX] _queue
+
+    cdef inline void push(self, AINDEX value) nogil
+    cdef inline AINDEX pop(self) nogil
+    cdef inline bint is_empty(self) nogil
+
+
+cdef class QueueExtFIFOQueue:
+    """Implements the queue interface"""
+
+    cdef:
+        cppqueue[AINDEX] _queue
+
+    cdef inline void push(self, AINDEX value) nogil
+    cdef inline AINDEX pop(self) nogil
+    cdef inline bint is_empty(self) nogil

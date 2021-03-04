@@ -3,7 +3,8 @@ from cnnclustering._types cimport ClusterParameters, Labels
 from cnnclustering._types cimport (
     INPUT_DATA,
     NEIGHBOURS_GETTER,
-    NEIGHBOURS, 
+    NEIGHBOURS,
+    NEIGHBOUR_NEIGHBOURS, 
     METRIC,
     SIMILARITY_CHECKER,
     QUEUE
@@ -11,7 +12,8 @@ from cnnclustering._types cimport (
 from cnnclustering._types cimport (
     INPUT_DATA_EXT,
     NEIGHBOURS_GETTER_EXT,
-    NEIGHBOURS_EXT, 
+    NEIGHBOURS_EXT,
+    NEIGHBOUR_NEIGHBOURS_EXT,
     METRIC_EXT,
     SIMILARITY_CHECKER_EXT,
     QUEUE_EXT
@@ -31,7 +33,8 @@ cdef class FitterExtBFS:
         self,
         INPUT_DATA_EXT input_data,
         NEIGHBOURS_GETTER_EXT neighbours_getter,
-        NEIGHBOURS_EXT special_dummy,
+        NEIGHBOURS_EXT neighbours,
+        NEIGHBOUR_NEIGHBOURS_EXT neighbour_neighbours,
         METRIC_EXT metric,
         SIMILARITY_CHECKER_EXT similarity_checker,
         QUEUE_EXT queue,
