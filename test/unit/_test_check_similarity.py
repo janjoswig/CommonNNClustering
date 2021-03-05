@@ -10,13 +10,13 @@ import cnnclustering._cfits as cfits
 import cnnclustering._fits as fits
 
 CASES = [  # collection a, collection b, common elements c, result
-        ([0, 1, 2, 4], [1, 2, 5, 6], 2, True),
-        ([0, 1, 2, 4], [1, 2, 5, 6], 3, False),
-        ([], [], 0, True),
-        ([], [], 1, False),
-        ([0, 1, 2], [2, 3], 0, True),
-        ([0, 1, 2], [3, 4], 0, True)
-        ]
+    ([0, 1, 2, 4], [1, 2, 5, 6], 2, True),
+    ([0, 1, 2, 4], [1, 2, 5, 6], 3, False),
+    ([], [], 0, True),
+    ([], [], 1, False),
+    ([0, 1, 2], [2, 3], 0, True),
+    ([0, 1, 2], [3, 4], 0, True),
+]
 
 
 class TestPython:

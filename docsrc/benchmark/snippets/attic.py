@@ -1,15 +1,11 @@
 # CLuster cleanup
 
-clusters_no_noise = {
-    y: self._clusterdict[y]
-    for y in self._clusterdict if y != 0
-    }
+clusters_no_noise = {y: self._clusterdict[y] for y in self._clusterdict if y != 0}
 
 too_small = [
     self._clusterdict.pop(y)
-    for y in [x[0]
-    for x in clusters_no_noise.items() if len(x[1]) <= member_cutoff]
-    ]
+    for y in [x[0] for x in clusters_no_noise.items() if len(x[1]) <= member_cutoff]
+]
 
 if len(too_small) > 0:
     for entry in too_small:
@@ -22,10 +18,14 @@ for x in set(self._labels):
 if len(clusters_no_noise) == 0:
     largest = 0
 else:
-    largest = len(self._clusterdict[1 + np.argmax([
-        len(x)
-        for x in clusters_no_noise.values()
-            ])]) / self.data.shape_str["points"][0]
+    largest = (
+        len(
+            self._clusterdict[
+                1 + np.argmax([len(x) for x in clusters_no_noise.values()])
+            ]
+        )
+        / self.data.shape_str["points"][0]
+    )
 
 # print(f"Found largest cluster: {time.time() - go}")
 
@@ -46,25 +46,36 @@ cresult = TypedDataFrame(
         [params["member_cutoff"]],
         [params["max_clusters"]],
         [max(self._labels)],
-        [len(np.where(self._labels == max(self._labels))[1]) / self.data.shape_str["points"][0]],
+        [
+            len(np.where(self._labels == max(self._labels))[1])
+            / self.data.shape_str["points"][0]
+        ],
         [len(np.where(self._labels == 0)[0]) / self.data.shape_str["points"][0]],
         [None],
-        ],
-    )
+    ],
+)
 
 if v:
-    print("\n" + "-"*72)
+    print("\n" + "-" * 72)
     print(
         cresult[list(self.record._fields)[:-1]].to_string(
-            na_rep="None", index=False, line_width=80,
+            na_rep="None",
+            index=False,
+            line_width=80,
             header=[
-                "  #points  ", "  R  ", "  N  ", "  M  ",
-                "  max  ", "  #clusters  ", "  %largest  ",
-                "  %noise  "
-                ],
-            justify="center"
-            ))
-    print("-"*72)
+                "  #points  ",
+                "  R  ",
+                "  N  ",
+                "  M  ",
+                "  max  ",
+                "  #clusters  ",
+                "  %largest  ",
+                "  %noise  ",
+            ],
+            justify="center",
+        )
+    )
+    print("-" * 72)
 
     def isolate(self, purge=True):
         """Isolates points per clusters based on a cluster result"""
@@ -87,23 +98,24 @@ if v:
                 ref_index.extend(self._refindex[cpoints])
                 ref_index_rel.extend(cpoints)
 
-            for part in range(self._shape['parts']):
-                part_endpoint = part_startpoint \
-                    + self._shape['points'][part] - 1
+            for part in range(self._shape["parts"]):
+                part_endpoint = part_startpoint + self._shape["points"][part] - 1
 
                 cluster_data.append(
-                    self._data[part][cpoints[
-                        np.where(
-                            (cpoints
-                             >= part_startpoint)
-                            &
-                            (cpoints
-                             <= part_endpoint))[0]] - part_startpoint]
-                        )
+                    self._data[part][
+                        cpoints[
+                            np.where(
+                                (cpoints >= part_startpoint)
+                                & (cpoints <= part_endpoint)
+                            )[0]
+                        ]
+                        - part_startpoint
+                    ]
+                )
                 part_startpoint = np.copy(part_endpoint)
                 part_startpoint += 1
 
-            self._children[label].alias = f'child No. {label}'
+            self._children[label].alias = f"child No. {label}"
             self._children[label].data.points = cluster_data
             self._children[label]._refindex = np.asarray(ref_index)
             self._children[label]._refindex_rel = np.asarray(ref_index_rel)
@@ -122,7 +134,6 @@ if v:
                     yield j
         else:
             yield from ()
-
 
     @staticmethod
     def load(f: Union[Path, str], **kwargs) -> None:
@@ -149,49 +160,44 @@ if v:
         extension = Path(f).suffix
 
         case_ = {
-            '.p': lambda: pickle.load(
-                open(f, 'rb'),
-                **kwargs
-                ),
-            '.npy': lambda: np.load(
+            ".p": lambda: pickle.load(open(f, "rb"), **kwargs),
+            ".npy": lambda: np.load(
                 f,
                 # dtype=float_precision_map[float_precision],
-                **kwargs
-                ),
-            '': lambda: np.loadtxt(
+                **kwargs,
+            ),
+            "": lambda: np.loadtxt(
                 f,
                 # dtype=float_precision_map[float_precision],
-                **kwargs
-                ),
-            '.xvg': lambda: np.loadtxt(
+                **kwargs,
+            ),
+            ".xvg": lambda: np.loadtxt(
                 f,
                 # dtype=float_precision_map[float_precision],
-                **kwargs
-                ),
-            '.dat': lambda: np.loadtxt(
+                **kwargs,
+            ),
+            ".dat": lambda: np.loadtxt(
                 f,
                 # dtype=float_precision_map[float_precision],
-                **kwargs
-                ),
-             }
+                **kwargs,
+            ),
+        }
 
         return case_.get(
-            extension,
-            lambda: print(f"Unknown filename extension {extension}")
-            )()
-
+            extension, lambda: print(f"Unknown filename extension {extension}")
+        )()
 
         self.shape_str = {**self._shape}
         if self.size > 0:
-            self.shape_str['points'] = (
-                sum(self.shape_str['points']),
-                self.shape_str['points'][:5]
-                )
+            self.shape_str["points"] = (
+                sum(self.shape_str["points"]),
+                self.shape_str["points"][:5],
+            )
 
-            if len(self._shape['points']) > 5:
-                self.shape_str['points'] += ["..."]
+            if len(self._shape["points"]) > 5:
+                self.shape_str["points"] += ["..."]
 
-#### Predict
+        #### Predict
 
         len_ = len(_test)  # self.data.points.shape[0]
 
@@ -223,45 +229,49 @@ if v:
                 # TODO: Store a vstacked version in the first place
                 _train = np.vstack(self.__train)
 
-                r = radius_cutoff**2
+                r = radius_cutoff ** 2
 
                 _test_labels = []
 
-                for candidate in tqdm.tqdm(_test, desc="Predicting",
-                    disable=progress, unit="Points", unit_scale=True,
-                    bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
+                for candidate in tqdm.tqdm(
+                    _test,
+                    desc="Predicting",
+                    disable=progress,
+                    unit="Points",
+                    unit_scale=True,
+                    bar_format="%s{l_bar}%s{bar}%s{r_bar}"
+                    % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET),
+                ):
                     _test_labels.append(0)
-                    neighbours = self.get_neighbours(
-                        candidate, _train, r
-                        )
+                    neighbours = self.get_neighbours(candidate, _train, r)
 
                     # TODO: Decouple this reduction if clusters is None
                     try:
                         neighbours = neighbours[
                             np.isin(self.__train_labels[neighbours], clusters)
-                            ]
+                        ]
                     except IndexError:
                         pass
                     else:
                         for neighbour in neighbours:
                             neighbour_neighbours = self.get_neighbours(
                                 _train[neighbour], _train, r
-                                )
+                            )
 
                             # TODO: Decouple this reduction if clusters is None
                             try:
                                 neighbour_neighbours = neighbour_neighbours[
                                     np.isin(
                                         self.__train_labels[neighbour_neighbours],
-                                        clusters
-                                        )
-                                    ]
+                                        clusters,
+                                    )
+                                ]
                             except IndexError:
                                 pass
                             else:
                                 if self.check_similarity_array(
                                     neighbours, neighbour_neighbours, cnn_cutoff
-                                    ):
+                                ):
                                     _test_labels[-1] = self.__train_labels[neighbour]
                                     # break after first match
                                     break
@@ -272,43 +282,46 @@ if v:
             _map = self.__map_matrix[self.__memory_assigned]
             _test_labels = []
 
-            for candidate in tqdm.tqdm(range(len(_test)), desc="Predicting",
-                disable=progress, unit="Points", unit_scale=True,
-                bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
+            for candidate in tqdm.tqdm(
+                range(len(_test)),
+                desc="Predicting",
+                disable=progress,
+                unit="Points",
+                unit_scale=True,
+                bar_format="%s{l_bar}%s{bar}%s{r_bar}"
+                % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET),
+            ):
 
                 _test_labels.append(0)
-                neighbours = np.where(
-                    _map[candidate] < radius_cutoff
-                    )[0]
+                neighbours = np.where(_map[candidate] < radius_cutoff)[0]
 
                 # TODO: Decouple this reduction if clusters is None
                 try:
                     neighbours = neighbours[
                         np.isin(self.__train_labels[neighbours], clusters)
-                        ]
+                    ]
                 except IndexError:
                     pass
                 else:
                     for neighbour in neighbours:
                         neighbour_neighbours = np.where(
-                        (self.__train_dist_matrix[neighbour] < radius_cutoff) &
-                        (self.__train_dist_matrix[neighbour] > 0)
+                            (self.__train_dist_matrix[neighbour] < radius_cutoff)
+                            & (self.__train_dist_matrix[neighbour] > 0)
                         )[0]
 
                         try:
                             # TODO: Decouple this reduction if clusters is None
                             neighbour_neighbours = neighbour_neighbours[
                                 np.isin(
-                                    self.__train_labels[neighbour_neighbours],
-                                    clusters
-                                    )
-                                ]
+                                    self.__train_labels[neighbour_neighbours], clusters
+                                )
+                            ]
                         except IndexError:
                             pass
                         else:
                             if self.check_similarity_array(
                                 neighbours, neighbour_neighbours, cnn_cutoff
-                                ):
+                            ):
                                 _test_labels[-1] = self.__train_labels[neighbour]
                                 # break after first match
 
@@ -318,46 +331,55 @@ if v:
             if self.__train_tree is None:
                 raise LookupError(
                     "No search tree build for train data. Use CNN.kdtree(mode='train, **kwargs) first."
-                    )
+                )
 
             _train = np.vstack(self.__train)
 
             _test_labels = []
 
-            for candidate in tqdm.tqdm(_test, desc="Predicting",
-                disable=progress, unit="Points", unit_scale=True,
-                bar_format="%s{l_bar}%s{bar}%s{r_bar}" % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET)):
+            for candidate in tqdm.tqdm(
+                _test,
+                desc="Predicting",
+                disable=progress,
+                unit="Points",
+                unit_scale=True,
+                bar_format="%s{l_bar}%s{bar}%s{r_bar}"
+                % (colorama.Style.BRIGHT, colorama.Fore.BLUE, colorama.Fore.RESET),
+            ):
                 _test_labels.append(0)
-                neighbours = np.asarray(self.__train_tree.query_ball_point(
-                    candidate, radius_cutoff, **kwargs
-                    ))
+                neighbours = np.asarray(
+                    self.__train_tree.query_ball_point(
+                        candidate, radius_cutoff, **kwargs
+                    )
+                )
 
                 # TODO: Decouple this reduction if clusters is None
                 try:
                     neighbours = neighbours[
                         np.isin(self.__train_labels[neighbours], clusters)
-                        ]
+                    ]
                 except IndexError:
                     pass
                 else:
                     for neighbour in neighbours:
-                        neighbour_neighbours = np.asarray(self.__train_tree.query_ball_point(
-                            _train[neighbour], radius_cutoff, **kwargs
-                            ))
+                        neighbour_neighbours = np.asarray(
+                            self.__train_tree.query_ball_point(
+                                _train[neighbour], radius_cutoff, **kwargs
+                            )
+                        )
                         try:
                             # TODO: Decouple this reduction if clusters is None
                             neighbour_neighbours = neighbour_neighbours[
                                 np.isin(
-                                    self.__train_labels[neighbour_neighbours],
-                                    clusters
-                                    )
-                                ]
+                                    self.__train_labels[neighbour_neighbours], clusters
+                                )
+                            ]
                         except IndexError:
                             pass
                         else:
                             if self.check_similarity_array(
                                 neighbours, neighbour_neighbours, cnn_cutoff
-                                ):
+                            ):
                                 _test_labels[-1] = self.__train_labels[neighbour]
                                 # break after first match
                                 break

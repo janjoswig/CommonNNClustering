@@ -10,7 +10,8 @@ from cnnclustering._types import (
     NeighboursGetter,
     Neighbours,
     Metric,
-    SimilarityChecker
+    SimilarityChecker,
+    Queue,
 )
 
 class Fitter(ABC):
@@ -25,6 +26,7 @@ class Fitter(ABC):
         neighbour_neighbours: Type['Neighbours'],
         metric: Type['Metric'],
         similarity_checker: Type['SimilarityChecker'],
+        queue: Type['Queue'],
         labels: Type['Labels'],
         cluster_params: Type['ClusterParameters']):
         """Generic clustering"""
@@ -142,7 +144,7 @@ class FitterBFS:
 cdef class FitterExtBFS:
     """Concrete implementation of the fitter interface"""
 
-    cdef void fit(
+    cdef void _fit(
             self,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_GETTER_EXT neighbours_getter,
@@ -190,7 +192,7 @@ cdef class FitterExtBFS:
                 continue
             _consider[init_point] = 0
 
-            neighbours_getter.get(
+            neighbours_getter._get(
                 init_point,
                 input_data,
                 neighbours,
@@ -198,7 +200,7 @@ cdef class FitterExtBFS:
                 cluster_params
                 )
 
-            if not neighbours.enough(cluster_params):
+            if not neighbours._enough(cluster_params):
                 continue
 
             _labels[init_point] = current
@@ -208,12 +210,12 @@ cdef class FitterExtBFS:
                 m = neighbours.n_points
 
                 for member_index in range(m):
-                    member = neighbours.get_member(member_index)
+                    member = neighbours._get_member(member_index)
 
                     if _consider[member] == 0:
                         continue
 
-                    neighbours_getter.get(
+                    neighbours_getter._get(
                         member,
                         input_data,
                         neighbour_neighbours,
@@ -221,23 +223,23 @@ cdef class FitterExtBFS:
                         cluster_params
                         )
 
-                    if not neighbour_neighbours.enough(cluster_params):
+                    if not neighbour_neighbours._enough(cluster_params):
                         _consider[member] = 0
                         continue
 
-                    if similarity_checker.check(
+                    if similarity_checker._check(
                             neighbours,
                             neighbour_neighbours,
                             cluster_params):
                         _consider[member] = 0
                         _labels[member] = current
-                        queue.push(member)
+                        queue._push(member)
 
-                if queue.is_empty():
+                if queue._is_empty():
                     break
 
-                point = queue.pop()
-                neighbours_getter.get(
+                point = queue._pop()
+                neighbours_getter._get(
                     point,
                     input_data,
                     neighbour_neighbours,
@@ -246,3 +248,27 @@ cdef class FitterExtBFS:
                     )
 
             current += 1
+
+    def fit(
+            self,
+            INPUT_DATA_EXT input_data,
+            NEIGHBOURS_GETTER_EXT neighbours_getter,
+            NEIGHBOURS_EXT neighbours,
+            NEIGHBOUR_NEIGHBOURS_EXT neighbour_neighbours,
+            METRIC_EXT metric,
+            SIMILARITY_CHECKER_EXT similarity_checker,
+            QUEUE_EXT queue,
+            Labels labels,
+            ClusterParameters cluster_params):
+
+        self._fit(
+            input_data,
+            neighbours_getter,
+            neighbours,
+            neighbour_neighbours,
+            metric,
+            similarity_checker,
+            queue,
+            labels,
+            cluster_params,
+        )

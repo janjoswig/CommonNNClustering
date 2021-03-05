@@ -48,13 +48,11 @@ class TestGetShape:
 
     def test_2parts_2_3points_4d(self):
         d, e = cnn.Points.get_shape(
-            [[[1, 2, 3, 4], [4, 3, 2, 1]],
-             [[1, 2, 3, 4], [4, 3, 2, 1], [0, 0, 0, 0]]]
-            )
-        x = np.array([
-                [1, 2, 3, 4], [4, 3, 2, 1],
-                [1, 2, 3, 4], [4, 3, 2, 1], [0, 0, 0, 0]
-                ])
+            [[[1, 2, 3, 4], [4, 3, 2, 1]], [[1, 2, 3, 4], [4, 3, 2, 1], [0, 0, 0, 0]]]
+        )
+        x = np.array(
+            [[1, 2, 3, 4], [4, 3, 2, 1], [1, 2, 3, 4], [4, 3, 2, 1], [0, 0, 0, 0]]
+        )
         for c, i in enumerate(d):
             np.testing.assert_array_equal(i, x[c])
 
@@ -66,15 +64,9 @@ class TestGetShape:
 
     def test_2parts_2_2points_2_2_3_3d(self):
         with pytest.raises(AssertionError):
-            d, e = cnn.Points.get_shape([
-                [[1, 2], [3, 4]],
-                [[1, 2, 3], [2, 3, 4]]
-                ])
+            d, e = cnn.Points.get_shape([[[1, 2], [3, 4]], [[1, 2, 3], [2, 3, 4]]])
 
     @pytest.mark.skip(reason="This edge case is not caught yet")
     def test_2parts_2_2points_2_3_3_3d(self):
         with pytest.raises(AssertionError):
-            d, e = cnn.Points.get_shape([
-                [[1, 2], [3, 2, 1]],
-                [[1, 2, 3], [2, 3, 4]]
-                ])
+            d, e = cnn.Points.get_shape([[[1, 2], [3, 2, 1]], [[1, 2, 3], [2, 3, 4]]])

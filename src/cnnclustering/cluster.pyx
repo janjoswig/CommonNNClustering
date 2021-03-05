@@ -41,7 +41,19 @@ class Clustering:
         Labels labels,
         ClusterParameters cluster_params):
 
-        if (FITTER is object) or (
+        if FITTER is object:
+            fitter.fit(
+                input_data,
+                neighbours_getter,
+                neighbours,
+                neighbour_neighbours,
+                metric,
+                similarity_checker,
+                queue,
+                labels,
+                cluster_params,
+                )
+        elif (
                 (INPUT_DATA in INPUT_DATA_EXT) and
                 (NEIGHBOURS_GETTER in NEIGHBOURS_GETTER_EXT) and
                 (NEIGHBOURS in NEIGHBOURS_EXT) and
@@ -49,7 +61,7 @@ class Clustering:
                 (METRIC in METRIC_EXT) and
                 (SIMILARITY_CHECKER in SIMILARITY_CHECKER_EXT) and
                 (QUEUE in QUEUE_EXT)):
-            fitter.fit(
+            fitter._fit(
                 input_data,
                 neighbours_getter,
                 neighbours,
@@ -62,7 +74,9 @@ class Clustering:
                 )
         else:
             raise TypeError(
-                ""
+                "Components have invalid types. "
+                "Either `fitter` should be `object` or all other components "
+                "must be registered extension types."
                 )
 
     def fit(self, radius_cutoff: float, cnn_cutoff: int) -> None:

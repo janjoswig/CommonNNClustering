@@ -4,7 +4,7 @@ from cnnclustering._types cimport (
     INPUT_DATA,
     NEIGHBOURS_GETTER,
     NEIGHBOURS,
-    NEIGHBOUR_NEIGHBOURS, 
+    NEIGHBOUR_NEIGHBOURS,
     METRIC,
     SIMILARITY_CHECKER,
     QUEUE
@@ -29,7 +29,7 @@ ctypedef fused FITTER_EXT:
 
 
 cdef class FitterExtBFS:
-    cdef void fit(
+    cdef void _fit(
         self,
         INPUT_DATA_EXT input_data,
         NEIGHBOURS_GETTER_EXT neighbours_getter,

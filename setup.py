@@ -11,7 +11,7 @@ TRACE_CYTHON = bool(int(os.getenv("TRACE_CYTHON", 0)))
 
 cython_macros: List[Tuple[str, Optional[str]]] = [
     ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")
-    ]
+]
 
 if TRACE_CYTHON:
     cython_macros.append(("CYTHON_TRACE", None))
@@ -19,11 +19,12 @@ if TRACE_CYTHON:
 
 extensions = [
     Extension(
-        "*", ["src/cnnclustering/*.pyx"],
+        "*",
+        ["src/cnnclustering/*.pyx"],
         define_macros=cython_macros,
         language="c++",
-        include_dirs=[np.get_include()]
-        )
+        include_dirs=[np.get_include()],
+    )
 ]
 
 compiler_directives = {
@@ -34,7 +35,7 @@ compiler_directives = {
     "cdivision": True,
     "nonecheck": False,
     "linetrace": True,
-    }
+}
 
 extensions = cythonize(extensions, compiler_directives=compiler_directives)
 
@@ -49,7 +50,7 @@ requirements_map = {
     "dev": "-dev",
     "docs": "-docs",
     "test": "-test",
-    }
+}
 
 requirements = {}
 for category, fname in requirements_map.items():
@@ -57,8 +58,8 @@ for category, fname in requirements_map.items():
         requirements[category] = fp.read().strip().split("\n")
 
 setup(
-    name='cnnclustering',
-    version='0.3.11',
+    name="cnnclustering",
+    version="0.3.11",
     keywords=["Density-based-clustering"],
     author="Jan-Oliver Joswig",
     author_email="jan.joswig@fu-berlin.de",
@@ -66,9 +67,9 @@ setup(
     long_description=desc,
     long_description_content_type="text/markdown",
     url="https://github.com/janjoswig/CNN",
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
-    package_data={"cnnclustering": ['*.pxd']},
+    packages=find_packages("src"),
+    package_dir={"": "src"},
+    package_data={"cnnclustering": ["*.pxd"]},
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3",
@@ -77,7 +78,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-        ],
+    ],
     ext_modules=extensions,
     install_requires=requirements["mandatory"],
     extras_require={
@@ -85,6 +86,6 @@ setup(
         "dev": requirements["dev"],
         "docs": requirements["docs"],
         "test": requirements["test"],
-        },
+    },
     zip_safe=False,
-    )
+)

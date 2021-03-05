@@ -1,7 +1,11 @@
 import pytest
 
-from sklearn import datasets
-from sklearn.preprocessing import StandardScaler
+try:
+    from sklearn import datasets
+    from sklearn.preprocessing import StandardScaler
+    SKLEARN_FOUND = True
+except ModuleNotFoundError:
+    SKLEARN_FOUND = False
 
 from cnnclustering import cluster
 from cnnclustering._types import (
@@ -11,19 +15,27 @@ from cnnclustering._types import (
     MetricExtEuclidean,
     SimilarityCheckerExtContains,
     QueueExtFIFOQueue,
-    )
+)
 from cnnclustering._fit import FitterExtBFS
 
 
 pytestmark = pytest.mark.sklearn
 
-moons_points, moons_reference_labels = datasets.make_moons(
-    n_samples=2000, noise=.05
-    )
-moons_points = StandardScaler().fit_transform(moons_points)
+
+def make_moons():
+    moons_points, moons_reference_labels = datasets.make_moons(
+        n_samples=2000, noise=0.05
+        )
+
+    moons_points = StandardScaler().fit_transform(moons_points)
+    return moons_points, moons_reference_labels
 
 
+@pytest.mark.skip("debug")
 def test_cluster_moons():
+    if not SKLEARN_FOUND:
+        pytest.skip("Test module requires scikit-learn.")
+    moons_points, moon_reference_labels = make_moons()
     input_data = InputDataExtPointsMemoryview(moons_points)
     neighbours_getter = NeighboursGetterExtBruteForce()
     neighbours = NeighboursExtVector(500)

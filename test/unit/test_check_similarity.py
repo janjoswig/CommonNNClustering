@@ -1,7 +1,5 @@
-import numpy as np
 import pytest
 
-from cnnclustering._primitive_types import P_AINDEX
 from cnnclustering._types import (
     NeighboursExtVector,
     NeighboursList,
@@ -14,63 +12,51 @@ from cnnclustering._types import ClusterParameters
 
 
 class TestSimilarityChecker:
-
     @pytest.mark.parametrize(
-        "checker",
-        [SimilarityCheckerContains, SimilarityCheckerSwitchContains]
+        "checker_type,checker_is_ext",
+        [
+            (SimilarityCheckerContains, False),
+            (SimilarityCheckerSwitchContains, False),
+            (SimilarityCheckerExtContains, True),
+            (SimilarityCheckerExtSwitchContains, True)
+        ]
     )
     @pytest.mark.parametrize(
-        "neighbours_type,data_a,data_b,c,expected",
+        "neighbours_type,args,kwargs,neighbours_is_ext",
         [
-            (NeighboursList, [], [], 0, True),
-            (NeighboursList, [], [], 1, False),
-            (NeighboursList, [1, 2, 3], [2, 5], 1, True),
-            (NeighboursList, [1, 2, 3], [2, 5, 9, 8], 2, False),
+            (NeighboursList, (), {}, False),
+            (NeighboursExtVector, (10,), {}, True),
         ],
+    )
+    @pytest.mark.parametrize(
+        "members_a,members_b,c,expected",
+        [
+            ([], [], 0, True),
+            ([], [], 1, False),
+            ([1, 2, 3], [2, 5], 1, True),
+            ([1, 2, 3], [2, 5, 9, 8], 2, False),
+        ]
     )
     def test_check(
-            self, checker, neighbours_type, data_a, data_b, c, expected):
-        neighbours_a = neighbours_type(data_a)
-        neighbours_b = neighbours_type(data_b)
-        cluster_params = ClusterParameters(radius_cutoff=0., cnn_cutoff=c)
+            self,
+            checker_type, checker_is_ext,
+            neighbours_type, args, kwargs, neighbours_is_ext,
+            members_a, members_b, c, expected):
+        all_ext = (checker_is_ext is True and neighbours_is_ext is True)
+        all_object = (checker_is_ext is False and neighbours_is_ext is False)
+        if not (all_ext or all_object):
+            # pytest.skip("Bad combination of component types.")
+            return
 
-        passed = checker().check(neighbours_a, neighbours_b, cluster_params)
-        assert passed == expected
+        neighbours_a = neighbours_type(*args, **kwargs)
+        neighbours_b = neighbours_type(*args, **kwargs)
+        for member in members_a:
+            neighbours_a.assign(member)
+        for member in members_b:
+            neighbours_b.assign(member)
 
-    @pytest.mark.parametrize(
-        "checker",
-        [SimilarityCheckerExtContains, SimilarityCheckerExtSwitchContains]
-    )
-    @pytest.mark.parametrize(
-        "neighbours_type,data_a,data_b,c,expected",
-        [
-            (
-                NeighboursExtVector,
-                np.array([], dtype=P_AINDEX),
-                np.array([], dtype=P_AINDEX), 0, True
-            ),
-            (
-                NeighboursExtVector,
-                np.array([], dtype=P_AINDEX),
-                np.array([], dtype=P_AINDEX), 1, False
-            ),
-            (
-                NeighboursExtVector,
-                np.array([1, 2, 3], dtype=P_AINDEX),
-                np.array([2, 5], dtype=P_AINDEX), 1, True
-            ),
-            (
-                NeighboursExtVector,
-                np.array([1, 2, 3], dtype=P_AINDEX),
-                np.array([2, 5, 9, 8], dtype=P_AINDEX), 2, False
-            ),
-        ],
-    )
-    def test_check_ext(
-            self, checker, neighbours_type, data_a, data_b, c, expected):
-        neighbours_a = neighbours_type(data_a)
-        neighbours_b = neighbours_type(data_b)
-        cluster_params = ClusterParameters(radius_cutoff=0., cnn_cutoff=c)
+        cluster_params = ClusterParameters(radius_cutoff=0.0, cnn_cutoff=c)
 
-        passed = checker()._check(neighbours_a, neighbours_b, cluster_params)
+        checker = checker_type()
+        passed = checker.check(neighbours_a, neighbours_b, cluster_params)
         assert passed == expected

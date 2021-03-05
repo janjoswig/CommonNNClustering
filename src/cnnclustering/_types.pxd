@@ -87,7 +87,7 @@ cdef class InputDataExtPointsMemoryview:
     cdef:
         AVALUE[:, ::1] _data
 
-    cdef inline AVALUE get_component(
+    cdef inline AVALUE _get_component(
             self, AINDEX point, AINDEX dimension) nogil
 
 
@@ -100,16 +100,16 @@ cdef class NeighboursExtVector:
         AINDEX _initial_size
         cppvector[AINDEX] _neighbours
 
-    cdef inline void assign(self, AINDEX member) nogil
-    cdef inline void reset(self) nogil
-    cdef inline bint enough(self, ClusterParameters cluster_params) nogil
-    cdef inline AINDEX get_member(self, AINDEX index) nogil
-    cdef inline bint contains(self, AINDEX member) nogil
+    cdef inline void _assign(self, AINDEX member) nogil
+    cdef inline void _reset(self) nogil
+    cdef inline bint _enough(self, ClusterParameters cluster_params) nogil
+    cdef inline AINDEX _get_member(self, AINDEX index) nogil
+    cdef inline bint _contains(self, AINDEX member) nogil
 
 
 cdef class NeighboursGetterExtBruteForce:
- 
-    cdef get(
+
+    cdef _get(
             self,
             AINDEX index,
             INPUT_DATA_EXT input_data,
@@ -123,21 +123,21 @@ cdef class NeighboursGetterExtLookup:
 
 
 cdef class MetricExtPrecomputed:
-    cdef inline AVALUE calc_distance(
+    cdef inline AVALUE _calc_distance(
             self,
             AINDEX index_a, AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil
 
 
 cdef class MetricExtEuclidean:
-    cdef inline AVALUE calc_distance(
+    cdef inline AVALUE _calc_distance(
             self,
             AINDEX index_a, AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil
 
 
 cdef class MetricExtEuclideanReduced:
-    cdef inline AVALUE calc_distance(
+    cdef inline AVALUE _calc_distance(
             self,
             AINDEX index_a, AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil
@@ -146,7 +146,7 @@ cdef class MetricExtEuclideanReduced:
 cdef class SimilarityCheckerExtContains:
     """Implements the similarity checker interface"""
 
-    cdef inline bint check(
+    cdef inline bint _check(
             self,
             NEIGHBOURS_EXT neighbours_a,
             NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
@@ -156,7 +156,7 @@ cdef class SimilarityCheckerExtContains:
 cdef class SimilarityCheckerExtSwitchContains:
     """Implements the similarity checker interface"""
 
-    cdef inline bint check(
+    cdef inline bint _check(
             self,
             NEIGHBOURS_EXT neighbours_a,
             NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
@@ -169,9 +169,9 @@ cdef class QueueExtLIFOVector:
     cdef:
         cppvector[AINDEX] _queue
 
-    cdef inline void push(self, AINDEX value) nogil
-    cdef inline AINDEX pop(self) nogil
-    cdef inline bint is_empty(self) nogil
+    cdef inline void _push(self, AINDEX value) nogil
+    cdef inline AINDEX _pop(self) nogil
+    cdef inline bint _is_empty(self) nogil
 
 
 cdef class QueueExtFIFOQueue:
@@ -180,6 +180,6 @@ cdef class QueueExtFIFOQueue:
     cdef:
         cppqueue[AINDEX] _queue
 
-    cdef inline void push(self, AINDEX value) nogil
-    cdef inline AINDEX pop(self) nogil
-    cdef inline bint is_empty(self) nogil
+    cdef inline void _push(self, AINDEX value) nogil
+    cdef inline AINDEX _pop(self) nogil
+    cdef inline bint _is_empty(self) nogil

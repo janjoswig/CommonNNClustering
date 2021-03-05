@@ -4,8 +4,8 @@ from cnnclustering._types import (
     NeighboursGetter,
     Metric,
     SimilarityChecker,
-    Queue
-    )
+    Queue,
+)
 from cnnclustering._fit import Fitter
 
 
@@ -31,7 +31,7 @@ class TestClustering:
             similarity_checker=similarity_checker,
             queue=queue,
             fitter=fitter,
-            )
-        clustering.fit(radius_cutoff=1., cnn_cutoff=1)
+        )
+        clustering.fit(radius_cutoff=1.0, cnn_cutoff=1)
 
         fitter.fit.assert_called_once()

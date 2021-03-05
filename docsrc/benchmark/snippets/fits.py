@@ -31,8 +31,7 @@ def check_similarity_set(a: Set, b: Set, c: int) -> bool:
     return False
 
 
-def fit_from_neighbours_baseline(
-        cnn_cutoff, neighbours):
+def fit_from_neighbours_baseline(cnn_cutoff, neighbours):
     """Original implementation of CNN clustering
 
     Published in [...] For illustration purposes variables have been
@@ -78,11 +77,11 @@ def fit_from_neighbours_baseline(
 
     # Preset parameters for the clustering
 
-    cn = 0                # Cluster Number
-    w = 0                 # Control value I
+    cn = 0  # Cluster Number
+    w = 0  # Control value I
     # # Indicates clustering done, 0: False, >0: True
 
-    clusters = [0] * n    # Preset cluster list
+    clusters = [0] * n  # Preset cluster list
     # # Used instead of labels
 
     # Filter noise points
@@ -125,7 +124,7 @@ def fit_from_neighbours_baseline(
             ci[lv] = cl
 
             # # Loop over points added to the cluster
-            for a in C[ci[lv - 1]: ci[lv]]:
+            for a in C[ci[lv - 1] : ci[lv]]:
 
                 # Extract Neighborlist of a within radius_cutoff
                 Na = neighbours[a]
@@ -179,8 +178,8 @@ def fit_from_neighbours_baseline(
 
 
 def fit_stdlib_from_neighbours_index(
-        cnn_cutoff: int,
-        neighbours: List[Set[int]]) -> List:
+    cnn_cutoff: int, neighbours: List[Set[int]]
+) -> List:
     """Worker function variant applying the CNN algorithm.
 
     Assigns labels to points starting from pre-computed neighbour list.
@@ -212,14 +211,14 @@ def fit_stdlib_from_neighbours_index(
     while True:
         try:
             point = consider.index(True)  # Pick starting point
-        except ValueError:               # All points assigned
+        except ValueError:  # All points assigned
             break
-        labels[point] = current          # Assign cluster label
-        consider[point] = False           # Mark point as included
-        queue.append(point)              # Add point to queue
+        labels[point] = current  # Assign cluster label
+        consider[point] = False  # Mark point as included
+        queue.append(point)  # Add point to queue
 
         while queue:
-            point = queue.popleft()      # FIFO
+            point = queue.popleft()  # FIFO
 
             # Loop over neighbouring points
             neigh = neighbours[point]
@@ -240,8 +239,8 @@ def fit_stdlib_from_neighbours_index(
 
 
 def fit_stdlib_from_neighbours_loop(
-        cnn_cutoff: int,
-        neighbours: List[Set[int]]) -> List:
+    cnn_cutoff: int, neighbours: List[Set[int]]
+) -> List:
     """Worker function variant applying the CNN algorithm.
 
     Assigns labels to points starting from pre-computed neighbour list.
@@ -280,8 +279,8 @@ def fit_stdlib_from_neighbours_loop(
         if not consider[point]:
             # Point already assigned
             continue
-        labels[point] = current          # Assign cluster label
-        consider[point] = False           # Mark point as included
+        labels[point] = current  # Assign cluster label
+        consider[point] = False  # Mark point as included
 
         while True:
             # Loop over neighbouring points
@@ -307,8 +306,8 @@ def fit_stdlib_from_neighbours_loop(
 
 
 def fit_stdlib_from_neighbours_loop_membercheck(
-        cnn_cutoff: int,
-        neighbourhoods: List[Set[int]]) -> List[int]:
+    cnn_cutoff: int, neighbourhoods: List[Set[int]]
+) -> List[int]:
     """Worker function variant applying the CNN algorithm.
 
     Assigns labels to points starting from pre-computed neighbourhoods.
@@ -347,12 +346,12 @@ def fit_stdlib_from_neighbours_loop_membercheck(
         neighbours = neighbourhoods[init_point]
         if len(neighbours) < cnn_cutoff:
             # Point can not fulfill cnn condition
-            labels[init_point] = 0             # Assign cluster label
-            consider[init_point] = False       # Mark point as included
+            labels[init_point] = 0  # Assign cluster label
+            consider[init_point] = False  # Mark point as included
             continue
 
-        labels[init_point] = current           # Assign cluster label
-        consider[init_point] = False           # Mark point as included
+        labels[init_point] = current  # Assign cluster label
+        consider[init_point] = False  # Mark point as included
 
         point = init_point
         while True:
@@ -369,8 +368,7 @@ def fit_stdlib_from_neighbours_loop_membercheck(
                     continue
 
                 # conditional growth
-                if (len(neighbours.intersection(neighbour_neighbours))
-                        >= cnn_cutoff):
+                if len(neighbours.intersection(neighbour_neighbours)) >= cnn_cutoff:
                     labels[member] = current
                     consider[member] = False
                     queue.append(member)
@@ -416,10 +414,9 @@ def fit_numpy_mix(cnn_cutoff, neighbourhoods):
     enough = False
     while any(consider) and not enough:
         # find point with currently highest neighbour count
-        point = np.where(
-            (n_neighbours == np.max(n_neighbours[consider]))
-            & consider
-            )[0][0]
+        point = np.where((n_neighbours == np.max(n_neighbours[consider])) & consider)[
+            0
+        ][0]
 
         _clusterdict[current].add(point)
         new_point_added = True
@@ -430,16 +427,17 @@ def fit_numpy_mix(cnn_cutoff, neighbourhoods):
             new_point_added = False
 
             for member in [
-                    added_point
-                    for added_point in _clusterdict[current]
-                    if any(consider[neighbourhoods[added_point]])
-                    ]:
+                added_point
+                for added_point in _clusterdict[current]
+                if any(consider[neighbourhoods[added_point]])
+            ]:
 
-                for neighbour in neighbourhoods[member][consider[neighbourhoods[member]]]:
-                    common_neighbours = (
-                        set(neighbourhoods[member])
-                        & set(neighbourhoods[neighbour])
-                        )
+                for neighbour in neighbourhoods[member][
+                    consider[neighbourhoods[member]]
+                ]:
+                    common_neighbours = set(neighbourhoods[member]) & set(
+                        neighbourhoods[neighbour]
+                    )
 
                     if len(common_neighbours) >= cnn_cutoff:
                         # and (point in neighbours[neighbour])
@@ -455,8 +453,8 @@ def fit_numpy_mix(cnn_cutoff, neighbourhoods):
 
 
 def fit_numpy_from_neighbours_index(
-        cnn_cutoff: int,
-        neighbours: np.ndarray) -> np.ndarray:
+    cnn_cutoff: int, neighbours: np.ndarray
+) -> np.ndarray:
     """Worker function variant applying the CNN algorithm.
 
     Assigns labels to points starting from pre-computed neighbour list.
@@ -493,8 +491,8 @@ def fit_numpy_from_neighbours_index(
             point = np.nonzero(consider)[0][0]  # Pick starting point
         except IndexError:
             break
-        labels[point] = current            # Assign cluster label
-        consider[point] = False             # Mark point as included
+        labels[point] = current  # Assign cluster label
+        consider[point] = False  # Mark point as included
 
         while True:
             # Loop over neighbouring points
@@ -505,9 +503,10 @@ def fit_numpy_from_neighbours_index(
                     continue
 
                 # conditional growth
-                if len(np.intersect1d(
-                        neigh, neighbours[member], assume_unique=True
-                        )) >= cnn_cutoff:
+                if (
+                    len(np.intersect1d(neigh, neighbours[member], assume_unique=True))
+                    >= cnn_cutoff
+                ):
                     labels[member] = current
                     consider[member] = False
                     queue.append(member)
@@ -522,8 +521,8 @@ def fit_numpy_from_neighbours_index(
 
 
 def fit_numpy_from_neighbours_loop(
-        cnn_cutoff: int,
-        neighbours: np.ndarray) -> np.ndarray:
+    cnn_cutoff: int, neighbours: np.ndarray
+) -> np.ndarray:
     """Worker function variant applying the CNN algorithm.
 
     Assigns labels to points starting from pre-computed neighbour list.
@@ -558,8 +557,8 @@ def fit_numpy_from_neighbours_loop(
             point = np.nonzero(consider)[0][0]  # Pick starting point
         except IndexError:
             break
-        labels[point] = current            # Assign cluster label
-        consider[point] = False             # Mark point as included
+        labels[point] = current  # Assign cluster label
+        consider[point] = False  # Mark point as included
 
         while True:
             # Loop over neighbouring points
@@ -570,9 +569,10 @@ def fit_numpy_from_neighbours_loop(
                     continue
 
                 # conditional growth
-                if len(np.intersect1d(
-                        neigh, neighbours[member], assume_unique=True
-                        )) >= cnn_cutoff:
+                if (
+                    len(np.intersect1d(neigh, neighbours[member], assume_unique=True))
+                    >= cnn_cutoff
+                ):
                     labels[member] = current
                     consider[member] = False
                     queue.append(member)
@@ -587,8 +587,8 @@ def fit_numpy_from_neighbours_loop(
 
 
 def fit_numpy_from_neighbours_filtermembers(
-        cnn_cutoff: int,
-        neighbours: np.ndarray) -> np.ndarray:
+    cnn_cutoff: int, neighbours: np.ndarray
+) -> np.ndarray:
     """Worker function variant applying the CNN algorithm.
 
     Assigns labels to points starting from pre-computed neighbour list.
@@ -623,8 +623,8 @@ def fit_numpy_from_neighbours_filtermembers(
         if not consider[point]:
             # Point already assigned
             continue
-        labels[point] = current            # Assign cluster label
-        consider[point] = False             # Mark point as included
+        labels[point] = current  # Assign cluster label
+        consider[point] = False  # Mark point as included
 
         while True:
             # Loop over neighbouring points
@@ -632,9 +632,10 @@ def fit_numpy_from_neighbours_filtermembers(
             # Loop only over members not included
             for member in neigh[consider[neigh]]:
                 # conditional growth
-                if len(np.intersect1d(
-                        neigh, neighbours[member], assume_unique=True
-                        )) >= cnn_cutoff:
+                if (
+                    len(np.intersect1d(neigh, neighbours[member], assume_unique=True))
+                    >= cnn_cutoff
+                ):
                     labels[member] = current
                     consider[member] = False
                     queue.append(member)
@@ -649,8 +650,8 @@ def fit_numpy_from_neighbours_filtermembers(
 
 
 def fit_numpy_from_neighbours_membercheck(
-        cnn_cutoff: int,
-        neighbours: np.ndarray) -> np.ndarray:
+    cnn_cutoff: int, neighbours: np.ndarray
+) -> np.ndarray:
     """Worker function variant applying the CNN algorithm.
 
     Assigns labels to points starting from pre-computed neighbour list.
@@ -678,10 +679,7 @@ def fit_numpy_from_neighbours_membercheck(
     consider = np.ones(len_, dtype=bool)
 
     # Filter out points with not enough members
-    consider[np.where(
-        np.asarray([x.size for x in neighbours])
-        < cnn_cutoff
-        )[0]] = False
+    consider[np.where(np.asarray([x.size for x in neighbours]) < cnn_cutoff)[0]] = False
 
     # Start with first cluster (0 = noise)
     current = 1
@@ -693,8 +691,8 @@ def fit_numpy_from_neighbours_membercheck(
         if not consider[init_point]:
             # Point already assigned
             continue
-        labels[init_point] = current            # Assign cluster label
-        consider[init_point] = False             # Mark point as included
+        labels[init_point] = current  # Assign cluster label
+        consider[init_point] = False  # Mark point as included
 
         point = init_point
         while True:
@@ -703,9 +701,10 @@ def fit_numpy_from_neighbours_membercheck(
             # Loop only over members not included
             for member in neigh[consider[neigh]]:
                 # conditional growth
-                if len(np.intersect1d(
-                        neigh, neighbours[member], assume_unique=True
-                        )) >= cnn_cutoff:
+                if (
+                    len(np.intersect1d(neigh, neighbours[member], assume_unique=True))
+                    >= cnn_cutoff
+                ):
                     labels[member] = current
                     consider[member] = False
                     queue.append(member)

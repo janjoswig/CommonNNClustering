@@ -26,7 +26,7 @@ def get_neighbours_from_dist_baseline(dist, radius_cutoff):
 
     # Prepare neighborlist
     n_neighbours = np.zeros(n)  ## Neighbour count for each point
-    neighbours = [0] * n        ## Neighbourlist container
+    neighbours = [0] * n  ## Neighbourlist container
 
     # Calculate neighborlist
     for i in range(n):

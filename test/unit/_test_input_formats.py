@@ -12,20 +12,18 @@ TESTCASES = (
         ([1, 1], [1, 2], None, [1]),
         ([[1, 1], [2, 2]], [2, 2], None, [2]),
         ([[[1, 1], [2, 2]], [[3, 3], [4, 4]]], [4, 2], None, [2, 2]),
-        ([[1, 1], [2, 2], [3, 3], [4, 4]], [4, 2], [2, 2], [4])
-        ]
-    )
+        ([[1, 1], [2, 2], [3, 3], [4, 4]], [4, 2], [2, 2], [4]),
+    ],
+)
 
 
 class TestPoints:
     @pytest.mark.parametrize(
-        *TESTCASES,
-        ids=["None", "1_1d", "2_1d", "2_2d", "2p_2_2d_fail", "4_2d_e2p"]
-        )
+        *TESTCASES, ids=["None", "1_1d", "2_1d", "2_2d", "2p_2_2d_fail", "4_2d_e2p"]
+    )
     def test_default_constructor(
-            self,
-            points_passed, expected_pshape,
-            edges_passed, expected_edges_deduced):
+        self, points_passed, expected_pshape, edges_passed, expected_edges_deduced
+    ):
 
         if edges_passed is None:
             expected_edges_deduced = []
@@ -37,26 +35,22 @@ class TestPoints:
         np.testing.assert_array_equal(points.edges, expected_edges_deduced)
 
     @pytest.mark.parametrize(
-        *TESTCASES,
-        ids=["None", "1_1d", "2_1d", "2_2d", "2p_2_2d", "4_2d_e2p"]
-        )
+        *TESTCASES, ids=["None", "1_1d", "2_1d", "2_2d", "2p_2_2d", "4_2d_e2p"]
+    )
     def test_from_parts(
-            self,
-            points_passed, expected_pshape,
-            edges_passed, expected_edges_deduced):
+        self, points_passed, expected_pshape, edges_passed, expected_edges_deduced
+    ):
 
         points = cnn.Points.from_parts(points_passed)
         np.testing.assert_array_equal(points.shape, expected_pshape)
         np.testing.assert_array_equal(points.edges, expected_edges_deduced)
 
     @pytest.mark.parametrize(
-        *TESTCASES,
-        ids=["None", "1_1d", "2_1d", "2_2d", "2p_2_2d", "4_2d_e2p"]
-        )
+        *TESTCASES, ids=["None", "1_1d", "2_1d", "2_2d", "2p_2_2d", "4_2d_e2p"]
+    )
     def test_by_parts(
-            self,
-            points_passed, expected_pshape,
-            edges_passed, expected_edges_deduced):
+        self, points_passed, expected_pshape, edges_passed, expected_edges_deduced
+    ):
 
         points = cnn.Points.from_parts(points_passed)
         points_by_parts = list(points.by_parts())

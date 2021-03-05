@@ -10,7 +10,7 @@ import cnnclustering._cfits as cfits
 def ref_distance_euclidean(a, b):
     total = 0
     for component_a, component_b in zip(a, b):
-        total += (component_a - component_b)**2
+        total += (component_a - component_b) ** 2
     return math.sqrt(total)
 
 
@@ -24,9 +24,9 @@ def test_ref_distance_euclidean():
 CASES = [  # p1, p2, result
     ([0, 0], [0, 1]),
     ([0, 0], [0, 0]),
-    ([1., 2.], [3., 4.]),
+    ([1.0, 2.0], [3.0, 4.0]),
     ([11.4, 12.2, 7.5], [3.3, 4.8, 1.2]),
-    ]
+]
 
 
 class TestPython:
@@ -39,10 +39,10 @@ class TestEuclideanCython:
             p1 = np.asarray(p1, dtype=np.float_)
             p2 = np.asarray(p2, dtype=np.float_)
 
-            ref_result = ref_distance_euclidean(p1, p2)**2
+            ref_result = ref_distance_euclidean(p1, p2) ** 2
 
             result = cfits._get_distance_squared_euclidean_PointsArray(
                 p1, p2, parallel=False
-                )
+            )
 
             assert np.isclose(result, ref_result)

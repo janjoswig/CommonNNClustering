@@ -3,19 +3,19 @@ import math
 import numpy as np
 import pytest
 
-from cnnclustering._primitive_types import P_AINDEX, P_AVALUE
+from cnnclustering._primitive_types import P_AVALUE
 from cnnclustering._types import (
     InputDataExtPointsMemoryview,
     MetricEuclidean,
     MetricEuclideanReduced,
-    MetricExtEuclideanReduced
+    MetricExtEuclideanReduced,
 )
 
 
 def ref_distance_euclidean(a, b):
     total = 0
     for component_a, component_b in zip(a, b):
-        total += (component_a - component_b)**2
+        total += (component_a - component_b) ** 2
     return math.sqrt(total)
 
 
@@ -27,40 +27,35 @@ def test_ref_distance_euclidean():
 
 
 class TestMetric:
-
-    @pytest.mark.parametrize(
-        "metric",
-        [MetricExtEuclideanReduced]
-    )
+    @pytest.mark.parametrize("metric", [MetricExtEuclideanReduced])
     @pytest.mark.parametrize(
         "input_data_type,data,ref_func",
         [
             (
                 InputDataExtPointsMemoryview,
-                np.array([[0, 0, 0], [1, 1, 1]], order="c", dtype=P_AVALUE),
-                lambda a, b: ref_distance_euclidean(a, b)**2
+                np.array([[0, 0, 0], [1, 1, 1]], order="C", dtype=P_AVALUE),
+                lambda a, b: ref_distance_euclidean(a, b) ** 2,
             ),
         ],
     )
-    def test_calc_distance_ext(
-            self, metric, input_data_type, data, ref_func):
+    def test_calc_distance_ext(self, metric, input_data_type, data, ref_func):
         _metric = metric()
 
         input_data = input_data_type(data)
 
         for i in range(input_data.n_points):
             for j in range(i + 1, input_data.n_points):
-                a, b = zip(*(
-                    (
-                        input_data._get_component(i, d),
-                        input_data._get_component(j, d)
+                a, b = zip(
+                    *(
+                        (
+                            input_data.get_component(i, d),
+                            input_data.get_component(j, d),
+                        )
+                        for d in range(input_data.n_dim)
                     )
-                    for d in range(input_data.n_dim)
-                ))
+                )
                 ref_distance = ref_func(a, b)
 
-                distance = _metric._calc_distance(i, j, input_data)
+                distance = _metric.calc_distance(i, j, input_data)
 
-                np.testing.assert_approx_equal(
-                    distance, ref_distance, significant=12
-                    )
+                np.testing.assert_approx_equal(distance, ref_distance, significant=12)

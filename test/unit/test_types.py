@@ -7,16 +7,15 @@ from cnnclustering._types import (
     InputDataExtPointsMemoryview,
     InputDataNeighboursSequence,
     Labels,
-    NeighboursList
-    )
+    NeighboursList,
+    QueueFIFODeque,
+    QueueExtFIFOQueue,
+    QueueExtLIFOVector,
+)
 
 
 class TestClusterParameters:
-
-    @pytest.mark.parametrize(
-        "radius_cutoff,cnn_cutoff",
-        [(0.1, 1)]
-    )
+    @pytest.mark.parametrize("radius_cutoff,cnn_cutoff", [(0.1, 1)])
     def test_create_params(self, radius_cutoff, cnn_cutoff, file_regression):
         cluster_params = ClusterParameters(radius_cutoff, cnn_cutoff)
         repr_ = f"{cluster_params!r}"
@@ -25,7 +24,6 @@ class TestClusterParameters:
 
 
 class TestLabels:
-
     @pytest.mark.parametrize(
         "labels,consider",
         [
@@ -34,9 +32,9 @@ class TestLabels:
             pytest.param(
                 np.zeros(10, dtype=P_AINDEX),
                 np.ones(9, dtype=P_ABOOL),
-                marks=[pytest.mark.raises(exception=ValueError)]
-                ),
-        ]
+                marks=[pytest.mark.raises(exception=ValueError)],
+            ),
+        ],
     )
     def test_create_labels(self, labels, consider, file_regression):
         _labels = Labels(labels, consider)
@@ -50,17 +48,16 @@ class TestLabels:
 
 
 class TestInputData:
-
     @pytest.mark.parametrize(
         "input_data_type,data,expected",
         [
             (InputDataNeighboursSequence, [[0, 1], [0, 1]], 2),
             (
                 InputDataExtPointsMemoryview,
-                np.array([[0, 1], [0, 1]], order="c", dtype=P_AVALUE),
-                2
-            )
-        ]
+                np.array([[0, 1], [0, 1]], order="C", dtype=P_AVALUE),
+                2,
+            ),
+        ],
     )
     def test_n_points(self, input_data_type, data, expected):
         input_data = input_data_type(data)
@@ -68,13 +65,41 @@ class TestInputData:
 
 
 class TestNeighbours:
-
     @pytest.mark.parametrize(
-        "neighbours_type,data,expected",
-        [
-            (NeighboursList, [0, 1], 2)
-        ]
+        "neighbours_type,data,expected", [(NeighboursList, [0, 1], 2)]
     )
     def test_n_points(self, neighbours_type, data, expected):
         neighbours = neighbours_type(data)
         assert neighbours.n_points == expected
+
+
+class TestQueue:
+
+    @pytest.mark.parametrize(
+        "queue_type,kind",
+        [
+            (QueueFIFODeque, "fifo"),
+            (QueueExtFIFOQueue, "fifo"),
+            (QueueExtLIFOVector, "lifo"),
+        ]
+    )
+    def test_use_queue(
+            self, queue_type, kind):
+        queue = queue_type()
+
+        assert queue.is_empty()
+
+        queue.push(1)
+        assert queue.pop() == 1
+
+        pushed = list(range(10))
+        for i in pushed:
+            queue.push(i)
+
+        popped = []
+        while not queue.is_empty():
+            popped.append(queue.pop())
+
+        if kind == "lifo":
+            popped.reverse()
+        assert pushed == popped

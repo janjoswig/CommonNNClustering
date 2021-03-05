@@ -7,10 +7,8 @@ import cnnclustering.cnn as cnn
 
 
 TESTCASES = [
-    "points,labels", [
-        ([[1], [2], [3], [4]], [1, 1, 2, 2]),
-        ([[[1], [2]], [[3], [4]]], [1, 2, 1, 2])
-    ]
+    "points,labels",
+    [([[1], [2], [3], [4]], [1, 1, 2, 2]), ([[[1], [2]], [[3], [4]]], [1, 2, 1, 2])],
 ]
 
 
@@ -38,17 +36,13 @@ class TestIsolate:
         empty_cobj.isolate()
         assert len(empty_cobj.children) == 2
         assert (
-            empty_cobj.children[1].data.points.shape[0] ==
-            empty_cobj.children[2].data.points.shape[0]
-            )
+            empty_cobj.children[1].data.points.shape[0]
+            == empty_cobj.children[2].data.points.shape[0]
+        )
 
         np.testing.assert_array_equal(
             empty_cobj.children[1].data.points.edges,
-            empty_cobj.children[2].data.points.edges
-            )
-        np.testing.assert_array_equal(
-            empty_cobj.children[1]._refindex, [0, 2]
-            )
-        np.testing.assert_array_equal(
-            empty_cobj.children[2]._refindex, [1, 3]
-            )
+            empty_cobj.children[2].data.points.edges,
+        )
+        np.testing.assert_array_equal(empty_cobj.children[1]._refindex, [0, 2])
+        np.testing.assert_array_equal(empty_cobj.children[2]._refindex, [1, 3])

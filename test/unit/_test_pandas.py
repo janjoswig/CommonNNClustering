@@ -8,7 +8,6 @@ class TestPandas:
         tdf = cnn.TypedDataFrame(
             columns=["a", "b"],
             dtypes=[int, str],
-            content=[[0, 1, 2],
-                     ["None", "True", "foo"]]
+            content=[[0, 1, 2], ["None", "True", "foo"]],
         )
         assert list(tdf.columns) == ["a", "b"]

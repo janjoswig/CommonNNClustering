@@ -76,7 +76,7 @@ def getpieces(c, pieces=None, level=0, ref="0", total=None):
                 pieces=pieces,
                 level=level + 1,
                 ref=".".join([ref, str(number)]),
-                total=total
+                total=total,
             )
 
     return pieces
@@ -103,8 +103,8 @@ def pie(root, ax, pie_props=None):
     pie_props_defaults = {
         "normalize": False,
         "radius": 0.5,
-        "wedgeprops": dict(width=0.5, edgecolor='w')
-        }
+        "wedgeprops": dict(width=0.5, edgecolor="w"),
+    }
 
     if pie_props is not None:
         pie_props_defaults.update(pie_props)
@@ -131,30 +131,26 @@ def pie(root, ax, pie_props=None):
                     colors.append(next(ax._get_lines.prop_cycler)["color"])
 
         plotted.append(
-            ax.pie(ringvalues, radius=radius * (level + 1),
-                   colors=colors, **pie_props_defaults),
-            )
+            ax.pie(
+                ringvalues,
+                radius=radius * (level + 1),
+                colors=colors,
+                **pie_props_defaults,
+            ),
+        )
 
     return plotted
 
 
-def plot_summary(
-        ax, summary, quant="time", treat_nan=None,
-        contour_props=None):
+def plot_summary(ax, summary, quant="time", treat_nan=None, contour_props=None):
     """Generate a 2D plot of record values"""
 
     if contour_props is None:
         contour_props = {}
 
-    pivot = summary.groupby(
-        ["r", "c"]
-        ).mean()[quant].reset_index().pivot(
-            "r", "c"
-            )
+    pivot = summary.groupby(["r", "c"]).mean()[quant].reset_index().pivot("r", "c")
 
-    X_, Y_ = np.meshgrid(
-        pivot.index.values, pivot.columns.levels[1].values
-        )
+    X_, Y_ = np.meshgrid(pivot.index.values, pivot.columns.levels[1].values)
 
     values_ = pivot.values.T
 
@@ -163,17 +159,22 @@ def plot_summary(
 
     plotted = []
 
-    plotted.append(
-        ax.contourf(X_, Y_, values_, **contour_props)
-        )
+    plotted.append(ax.contourf(X_, Y_, values_, **contour_props))
 
     return plotted
 
 
 def plot_dots(
-        ax, data, original=True, clusterdict=None, clusters=None,
-        dot_props=None, dot_noise_props=None,
-        annotate=False, annotate_pos="mean", annotate_props=None):
+        ax,
+        data,
+        original=True,
+        clusterdict=None,
+        clusters=None,
+        dot_props=None,
+        dot_noise_props=None,
+        annotate=False,
+        annotate_pos="mean",
+        annotate_props=None):
 
     if dot_props is None:
         dot_props = {}
@@ -185,13 +186,7 @@ def plot_dots(
 
     if original:
         # Plot the original data
-        plotted.append(
-            ax.plot(
-                data[:, 0],
-                data[:, 1],
-                **dot_props
-                )
-            )
+        plotted.append(ax.plot(data[:, 0], data[:, 1], **dot_props))
 
     else:
         # Loop through the cluster result
@@ -202,33 +197,42 @@ def plot_dots(
 
                 # treat noise differently
                 if cluster == 0:
-                    plotted.append(ax.plot(
-                        data[cpoints, 0],
-                        data[cpoints, 1],
-                        **dot_noise_props
-                        ))
+                    plotted.append(
+                        ax.plot(
+                            data[cpoints, 0], data[cpoints, 1],
+                            **dot_noise_props
+                        )
+                    )
 
                 else:
-                    plotted.append(ax.plot(
-                        data[cpoints, 0],
-                        data[cpoints, 1],
-                        **dot_props
-                        ))
+                    plotted.append(
+                        ax.plot(
+                            data[cpoints, 0], data[cpoints, 1],
+                            **dot_props
+                        )
+                    )
 
                     if annotate:
                         plotted.append(
                             annotate_points(
                                 ax, annotate_pos, data, cpoints, cluster,
                                 annotate_props
-                                )
                             )
+                        )
     return plotted
 
 
 def plot_scatter(
-        ax, data, original=True, clusterdict=None, clusters=None,
-        scatter_props=None, scatter_noise_props=None,
-        annotate=False, annotate_pos="mean", annotate_props=None):
+        ax,
+        data,
+        original=True,
+        clusterdict=None,
+        clusters=None,
+        scatter_props=None,
+        scatter_noise_props=None,
+        annotate=False,
+        annotate_pos="mean",
+        annotate_props=None):
 
     if scatter_props is None:
         scatter_props = {}
@@ -239,13 +243,7 @@ def plot_scatter(
     plotted = []
 
     if original:
-        plotted.append(
-            ax.scatter(
-                data[:, 0],
-                data[:, 1],
-                **scatter_props
-                )
-            )
+        plotted.append(ax.scatter(data[:, 0], data[:, 1], **scatter_props))
 
     else:
         for cluster, cpoints in sorted(clusterdict.items()):
@@ -256,36 +254,42 @@ def plot_scatter(
                 if cluster == 0:
                     plotted.append(
                         ax.scatter(
-                            data[cpoints, 0],
-                            data[cpoints, 1],
+                            data[cpoints, 0], data[cpoints, 1],
                             **scatter_noise_props
-                            )
                         )
+                    )
 
                 else:
                     plotted.append(
                         ax.scatter(
-                            data[cpoints, 0],
-                            data[cpoints, 1],
+                            data[cpoints, 0], data[cpoints, 1],
                             **scatter_props
                             )
-                        )
+                    )
 
                     if annotate:
                         plotted.append(
                             annotate_points(
                                 ax, annotate_pos, data, cpoints, cluster,
                                 annotate_props
-                                )
                             )
+                        )
     return plotted
 
 
 def plot_contour(
-        ax, data, original=True, clusterdict=None, clusters=None,
-        contour_props=None, contour_noise_props=None,
-        hist_props=None, free_energy=True,
-        annotate=False, annotate_pos="mean", annotate_props=None):
+        ax,
+        data,
+        original=True,
+        clusterdict=None,
+        clusters=None,
+        contour_props=None,
+        contour_noise_props=None,
+        hist_props=None,
+        free_energy=True,
+        annotate=False,
+        annotate_pos="mean",
+        annotate_props=None):
 
     if contour_props is None:
         contour_props = {}
@@ -296,47 +300,47 @@ def plot_contour(
     if hist_props is None:
         hist_props = {}
 
-    if 'avoid_zero_count' in hist_props:
-        avoid_zero_count = hist_props['avoid_zero_count']
-        del hist_props['avoid_zero_count']
+    if "avoid_zero_count" in hist_props:
+        avoid_zero_count = hist_props["avoid_zero_count"]
+        del hist_props["avoid_zero_count"]
 
-    if 'mass' in hist_props:
-        mass = hist_props['mass']
-        del hist_props['mass']
+    if "mass" in hist_props:
+        mass = hist_props["mass"]
+        del hist_props["mass"]
 
-    if 'mids' in hist_props:
-        mids = hist_props['mids']
-        del hist_props['mids']
+    if "mids" in hist_props:
+        mids = hist_props["mids"]
+        del hist_props["mids"]
 
     plotted = []
 
     if original:
         x_, y_, H = get_histogram(
-            data[:, 0], data[:, 1],
+            data[:, 0],
+            data[:, 1],
             mids=mids,
             mass=mass,
             avoid_zero_count=avoid_zero_count,
-            hist_props=hist_props
+            hist_props=hist_props,
         )
 
         if free_energy:
             H = get_free_energy(H)
 
         X, Y = np.meshgrid(x_, y_)
-        plotted.append(
-            ax.contour(X, Y, H, **contour_props)
-            )
+        plotted.append(ax.contour(X, Y, H, **contour_props))
     else:
         for cluster, cpoints in sorted(clusterdict.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 
                 x_, y_, H = get_histogram(
-                    data[cpoints, 0], data[cpoints, 1],
+                    data[cpoints, 0],
+                    data[cpoints, 1],
                     mids=mids,
                     mass=mass,
                     avoid_zero_count=avoid_zero_count,
-                    hist_props=hist_props
+                    hist_props=hist_props,
                 )
 
                 if free_energy:
@@ -344,31 +348,35 @@ def plot_contour(
 
                 if cluster == 0:
                     X, Y = np.meshgrid(x_, y_)
-                    plotted.append(
-                        ax.contour(X, Y, H, **contour_noise_props)
-                        )
+                    plotted.append(ax.contour(X, Y, H, **contour_noise_props))
                 else:
                     X, Y = np.meshgrid(x_, y_)
-                    plotted.append(
-                        ax.contour(X, Y, H, **contour_props)
-                        )
+                    plotted.append(ax.contour(X, Y, H, **contour_props))
 
                 if annotate:
                     plotted.append(
                         annotate_points(
                             ax, annotate_pos, data, cpoints, cluster,
                             annotate_props
-                            )
                         )
+                    )
 
     return plotted
 
 
 def plot_contourf(
-        ax, data, original=True, clusterdict=None, clusters=None,
-        contour_props=None, contour_noise_props=None,
-        hist_props=None, free_energy=True,
-        annotate=False, annotate_pos="mean", annotate_props=None):
+        ax,
+        data,
+        original=True,
+        clusterdict=None,
+        clusters=None,
+        contour_props=None,
+        contour_noise_props=None,
+        hist_props=None,
+        free_energy=True,
+        annotate=False,
+        annotate_pos="mean",
+        annotate_props=None):
 
     if contour_props is None:
         contour_props = {}
@@ -379,47 +387,47 @@ def plot_contourf(
     if hist_props is None:
         hist_props = {}
 
-    if 'avoid_zero_count' in hist_props:
-        avoid_zero_count = hist_props['avoid_zero_count']
-        del hist_props['avoid_zero_count']
+    if "avoid_zero_count" in hist_props:
+        avoid_zero_count = hist_props["avoid_zero_count"]
+        del hist_props["avoid_zero_count"]
 
-    if 'mass' in hist_props:
-        mass = hist_props['mass']
-        del hist_props['mass']
+    if "mass" in hist_props:
+        mass = hist_props["mass"]
+        del hist_props["mass"]
 
-    if 'mids' in hist_props:
-        mids = hist_props['mids']
-        del hist_props['mids']
+    if "mids" in hist_props:
+        mids = hist_props["mids"]
+        del hist_props["mids"]
 
     plotted = []
 
     if original:
         x_, y_, H = get_histogram(
-            data[:, 0], data[:, 1],
+            data[:, 0],
+            data[:, 1],
             mids=mids,
             mass=mass,
             avoid_zero_count=avoid_zero_count,
-            hist_props=hist_props
+            hist_props=hist_props,
         )
 
         if free_energy:
             H = get_free_energy(H)
 
         X, Y = np.meshgrid(x_, y_)
-        plotted.append(
-            ax.contourf(X, Y, H, **contour_props)
-            )
+        plotted.append(ax.contourf(X, Y, H, **contour_props))
     else:
         for cluster, cpoints in sorted(clusterdict.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 
                 x_, y_, H = get_histogram(
-                    data[cpoints, 0], data[cpoints, 1],
+                    data[cpoints, 0],
+                    data[cpoints, 1],
                     mids=mids,
                     mass=mass,
                     avoid_zero_count=avoid_zero_count,
-                    hist_props=hist_props
+                    hist_props=hist_props,
                 )
 
                 if free_energy:
@@ -427,31 +435,35 @@ def plot_contourf(
 
                 if cluster == 0:
                     X, Y = np.meshgrid(x_, y_)
-                    plotted.append(
-                        ax.contourf(X, Y, H, **contour_noise_props)
-                        )
+                    plotted.append(ax.contourf(X, Y, H, **contour_noise_props))
                 else:
                     X, Y = np.meshgrid(x_, y_)
-                    plotted.append(
-                        ax.contourf(X, Y, H, **contour_props)
-                        )
+                    plotted.append(ax.contourf(X, Y, H, **contour_props))
 
                 if annotate:
                     plotted.append(
                         annotate_points(
                             ax, annotate_pos, data, cpoints, cluster,
                             annotate_props
-                            )
                         )
+                    )
 
     return plotted
 
 
 def plot_histogram(
-        ax, data, original=True, clusterdict=None, clusters=None,
-        show_props=None, show_noise_props=None,
-        hist_props=None, free_energy=True,
-        annotate=False, annotate_pos="mean", annotate_props=None):
+        ax,
+        data,
+        original=True,
+        clusterdict=None,
+        clusters=None,
+        show_props=None,
+        show_noise_props=None,
+        hist_props=None,
+        free_energy=True,
+        annotate=False,
+        annotate_pos="mean",
+        annotate_props=None):
 
     if show_props is None:
         show_props = {}
@@ -459,52 +471,52 @@ def plot_histogram(
     if show_noise_props is None:
         show_noise_props = {}
 
-    if 'extent' in show_props:
-        del show_props['extent']
+    if "extent" in show_props:
+        del show_props["extent"]
 
     if hist_props is None:
         hist_props = {}
 
-    if 'avoid_zero_count' in hist_props:
-        avoid_zero_count = hist_props['avoid_zero_count']
-        del hist_props['avoid_zero_count']
+    if "avoid_zero_count" in hist_props:
+        avoid_zero_count = hist_props["avoid_zero_count"]
+        del hist_props["avoid_zero_count"]
 
-    if 'mass' in hist_props:
-        mass = hist_props['mass']
-        del hist_props['mass']
+    if "mass" in hist_props:
+        mass = hist_props["mass"]
+        del hist_props["mass"]
 
-    if 'mids' in hist_props:
-        mids = hist_props['mids']
-        del hist_props['mids']
+    if "mids" in hist_props:
+        mids = hist_props["mids"]
+        del hist_props["mids"]
 
     plotted = []
 
     if original:
         x_, y_, H = get_histogram(
-            data[:, 0], data[:, 1],
+            data[:, 0],
+            data[:, 1],
             mids=mids,
             mass=mass,
             avoid_zero_count=avoid_zero_count,
-            hist_props=hist_props
+            hist_props=hist_props,
         )
 
         if free_energy:
             H = get_free_energy(H)
 
-        plotted.append(
-            ax.imshow(H, extent=(x_, y_), **show_props)
-            )
+        plotted.append(ax.imshow(H, extent=(x_, y_), **show_props))
     else:
         for cluster, cpoints in sorted(clusterdict.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 
                 x_, y_, H = get_histogram(
-                    data[cpoints, 0], data[cpoints, 1],
+                    data[cpoints, 0],
+                    data[cpoints, 1],
                     mids=mids,
                     mass=mass,
                     avoid_zero_count=avoid_zero_count,
-                    hist_props=hist_props
+                    hist_props=hist_props,
                 )
 
                 if free_energy:
@@ -512,20 +524,19 @@ def plot_histogram(
 
                 if cluster == 0:
                     plotted.append(
-                        ax.imshow(H, extent=(x_, y_), **show_noise_props)
+                        ax.imshow(H, extent=(x_, y_), **show_noise_props
                         )
+                    )
                 else:
-                    plotted.append(
-                        ax.imshow(H, extent=(x_, y_), **show_props)
-                        )
+                    plotted.append(ax.imshow(H, extent=(x_, y_), **show_props))
 
                 if annotate:
                     plotted.append(
                         annotate_points(
                             ax, annotate_pos, data, cpoints, cluster,
                             annotate_props
-                            )
                         )
+                    )
     return plotted
 
 
@@ -538,23 +549,16 @@ def annotate_points(ax, pos, data, points, text, annotate_props=None):
         ypos = np.mean(data[points, 1])
 
     elif pos == "random":
-        choosen = random.sample(
-            points, 1
-            )
+        choosen = random.sample(points, 1)
         xpos = data[choosen, 0]
         ypos = data[choosen, 1]
 
     else:
         raise ValueError(
-            'Keyword argument `annotate_pos` must be '
-            'one of "mean", "random"'
-            )
-
-    return ax.annotate(
-        f"{text}",
-        xy=(xpos, ypos),
-        **annotate_props
+            "Keyword argument `annotate_pos` must be " 'one of "mean", "random"'
         )
+
+    return ax.annotate(f"{text}", xy=(xpos, ypos), **annotate_props)
 
 
 def get_free_energy(H):
@@ -568,11 +572,12 @@ def get_free_energy(H):
 
 
 def get_histogram(
-        x: Sequence[float], y: Sequence[float],
-        mids: bool = True, mass: bool = True,
+        x: Sequence[float],
+        y: Sequence[float],
+        mids: bool = True,
+        mass: bool = True,
         avoid_zero_count: bool = True,
-        hist_props: Optional[Dict['str', Any]] = None
-        ) -> Tuple[np.ndarray, ...]:
+        hist_props: Optional[Dict["str", Any]] = None) -> Tuple[np.ndarray, ...]:
     """Compute a two-dimensional histogram.
 
     Taken and modified from :module:`pyemma.plots.`
@@ -599,15 +604,13 @@ def get_histogram(
     """
 
     hist_props_defaults = {
-        'bins': 100,
+        "bins": 100,
     }
 
     if hist_props is not None:
         hist_props_defaults.update(hist_props)
 
-    z, x_, y_ = np.histogram2d(
-        x, y, **hist_props_defaults
-        )
+    z, x_, y_ = np.histogram2d(x, y, **hist_props_defaults)
 
     if mids:
         x_ = 0.5 * (x_[:-1] + x_[1:])

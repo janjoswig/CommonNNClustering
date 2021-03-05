@@ -4,7 +4,6 @@ from cnnclustering import cnn
 
 
 class TestTimedDecorator:
-
     def test_decorate_none_returning_function(self):
         def some_function():
             time.sleep(0.1)
@@ -17,7 +16,7 @@ class TestTimedDecorator:
 
     def test_decorate_record_returning_function(self, capsys):
         def some_function(v=False):
-            return cnn.CNNRecord(10, 1., 1, 1, 2, 2, .9, .05, None)
+            return cnn.CNNRecord(10, 1.0, 1, 1, 2, 2, 0.9, 0.05, None)
 
         decorated = cnn.timed(some_function)
         decorated_result = decorated()
