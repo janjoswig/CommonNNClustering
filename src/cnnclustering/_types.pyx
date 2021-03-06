@@ -5,7 +5,6 @@ from typing import Any, Type
 
 import numpy as np
 
-from cython.operator cimport dereference as deref
 from libc.math cimport sqrt as csqrt, pow as cpow
 
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
@@ -62,6 +61,11 @@ class InputData(ABC):
 
     @property
     @abstractmethod
+    def data(self):
+        """Return underlying data"""
+
+    @property
+    @abstractmethod
     def n_points(self) -> int:
        """Return total number of points"""
 
@@ -83,6 +87,8 @@ class InputDataNeighboursSequence(InputData):
 
     def __init__(self, data: Sequence):
         self._data = data
+        self._n_points = len(data)
+        self._n_dim = None
 
     @property
     def n_points(self):
@@ -90,7 +96,7 @@ class InputDataNeighboursSequence(InputData):
 
     @property
     def n_dim(self):
-        return None
+        return self._n_dim
 
     def get_component(self, point: int, dimension: int) -> float:
         return None

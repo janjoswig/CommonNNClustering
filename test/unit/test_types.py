@@ -49,19 +49,20 @@ class TestLabels:
 
 class TestInputData:
     @pytest.mark.parametrize(
-        "input_data_type,data,expected",
+        "input_data_type,data,n_points,n_dim,",
         [
-            (InputDataNeighboursSequence, [[0, 1], [0, 1]], 2),
+            (InputDataNeighboursSequence, [[0, 1], [0, 1]], 2, None),
             (
                 InputDataExtPointsMemoryview,
                 np.array([[0, 1], [0, 1]], order="C", dtype=P_AVALUE),
-                2,
+                2, 2
             ),
         ],
     )
-    def test_n_points(self, input_data_type, data, expected):
+    def test_n_points(self, input_data_type, data, n_points, n_dim):
         input_data = input_data_type(data)
-        assert input_data.n_points == expected
+        assert input_data.n_points == n_points
+        assert input_data.n_dim == n_dim
 
 
 class TestNeighbours:
