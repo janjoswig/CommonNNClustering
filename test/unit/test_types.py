@@ -49,21 +49,41 @@ class TestLabels:
 
 class TestInputData:
     @pytest.mark.parametrize(
-        "input_data_type,data,n_points,n_dim,",
+        "input_data_type,data,n_points,n_dim,n_neighbours,neighbour_queries,component_queries",
         [
-            (InputDataNeighboursSequence, [[0, 1], [0, 1]], 2, None),
+            (
+                InputDataNeighboursSequence,
+                [[0, 1], [0, 1]], 2, 0, (2, 2), [(0, 0, 0)], [(1, 1, 0)]
+
+            ),
             (
                 InputDataExtPointsMemoryview,
                 np.array([[0, 1], [0, 1]], order="C", dtype=P_AVALUE),
-                2, 2
+                2, 2, (0, 0), [(0, 0, 0)], [(1, 1, 1)]
             ),
         ],
     )
-    def test_n_points(self, input_data_type, data, n_points, n_dim):
+    def test_n_points(
+            self,
+            input_data_type,
+            data,
+            n_points, n_dim,
+            n_neighbours,
+            neighbour_queries,
+            component_queries):
         input_data = input_data_type(data)
+
         assert input_data.n_points == n_points
         assert input_data.n_dim == n_dim
 
+        for c, n in enumerate(n_neighbours):
+            assert n == input_data.get_n_neighbours(c)
+
+        for point, member, expected in neighbour_queries:
+            assert expected == input_data.get_neighbour(point, member)
+
+        for point, dim, expected in component_queries:
+            assert expected == input_data.get_component(point, dim)
 
 class TestNeighbours:
     @pytest.mark.parametrize(

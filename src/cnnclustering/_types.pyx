@@ -78,6 +78,14 @@ class InputData(ABC):
     def get_component(self, point: int, dimension: int) -> float:
        """Return one component of point coordinates"""
 
+    @abstractmethod
+    def get_n_neighbours(self, point: int) -> int:
+        """Return number of neighbours for point"""
+
+    @abstractmethod
+    def get_neighbour(self, point: int, member: int) -> int:
+        """Return a member for point"""
+
 
 class InputDataNeighboursSequence(InputData):
     """Implements the input data interface
@@ -88,7 +96,8 @@ class InputDataNeighboursSequence(InputData):
     def __init__(self, data: Sequence):
         self._data = data
         self._n_points = len(data)
-        self._n_dim = None
+        self._n_dim = 0
+        self._n_neighbours = [len(s) for s in self._data]
 
     @property
     def n_points(self):
@@ -98,8 +107,24 @@ class InputDataNeighboursSequence(InputData):
     def n_dim(self):
         return self._n_dim
 
+    @property
+    def data(self):
+        return self._data
+
     def get_component(self, point: int, dimension: int) -> float:
-        return None
+        """
+
+        Method only present for consistency.
+        Returns no relevant information.
+        """
+        return 0
+
+    def get_n_neighbours(self, point: int) -> int:
+        return self._n_neighbours[point]
+
+    def get_neighbour(self, point: int, member: int) -> int:
+        """Return a member for point"""
+        return self._data[point][member]
 
 
 cdef class InputDataExtPointsMemoryview:
@@ -121,6 +146,18 @@ cdef class InputDataExtPointsMemoryview:
     def get_component(
             self, point: int, dimension: int) -> float:
         return self._get_component(point, dimension)
+
+    cdef inline AINDEX _get_n_neighbours(self, AINDEX point) nogil:
+        return 0
+
+    def get_n_neighbours(self, point: int):
+        return self._get_n_neighbours(point)
+
+    cdef inline AINDEX _get_neighbour(self, AINDEX point, AINDEX member) nogil:
+        return 0
+
+    def get_neighbour(self, point: int, member: int):
+        return self._get_neighbour(point, member)
 
 
 class Neighbours(ABC):

@@ -89,6 +89,8 @@ cdef class InputDataExtPointsMemoryview:
 
     cdef inline AVALUE _get_component(
             self, AINDEX point, AINDEX dimension) nogil
+    cdef inline AINDEX _get_n_neighbours(self, AINDEX point) nogil
+    cdef inline AINDEX _get_neighbour(self, AINDEX point, AINDEX member) nogil
 
 
 cdef class NeighboursExtVector:
