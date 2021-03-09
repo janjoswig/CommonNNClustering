@@ -1,4 +1,5 @@
 import os
+import sysconfig
 from setuptools import Extension, find_packages, setup
 from typing import List, Optional, Tuple
 
@@ -17,6 +18,10 @@ if TRACE_CYTHON:
     cython_macros.append(("CYTHON_TRACE", None))
     cython_macros.append(("CYTHON_TRACE_NOGIL", None))
 
+extra_compile_args = set(sysconfig.get_config_var('CFLAGS').split())
+extra_compile_args.discard('-Wstrict-prototypes')
+extra_compile_args.add("-fno-var-tracking-assignments")
+
 extensions = [
     Extension(
         "*",
@@ -24,6 +29,7 @@ extensions = [
         define_macros=cython_macros,
         language="c++",
         include_dirs=[np.get_include()],
+        extra_compile_args=list(extra_compile_args),
     )
 ]
 

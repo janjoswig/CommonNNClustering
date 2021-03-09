@@ -7,11 +7,28 @@
             [
                 "NPY_NO_DEPRECATED_API",
                 "NPY_1_7_API_VERSION"
+            ],
+            [
+                "CYTHON_TRACE",
+                null
+            ],
+            [
+                "CYTHON_TRACE_NOGIL",
+                null
             ]
         ],
         "depends": [
             "/home/janjoswig/.pyenv/versions/miniconda3-4.7.12/envs/cnnclustering/lib/python3.8/site-packages/numpy/core/include/numpy/arrayobject.h",
             "/home/janjoswig/.pyenv/versions/miniconda3-4.7.12/envs/cnnclustering/lib/python3.8/site-packages/numpy/core/include/numpy/ufuncobject.h"
+        ],
+        "extra_compile_args": [
+            "-fwrapv",
+            "-DNDEBUG",
+            "-O3",
+            "-Wsign-compare",
+            "-Wall",
+            "-fno-var-tracking-assignments",
+            "-g"
         ],
         "include_dirs": [
             "/home/janjoswig/.pyenv/versions/miniconda3-4.7.12/envs/cnnclustering/lib/python3.8/site-packages/numpy/core/include"

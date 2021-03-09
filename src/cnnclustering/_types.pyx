@@ -346,8 +346,16 @@ class NeighboursGetter(ABC):
 class NeighboursGetterLookup(NeighboursGetter):
 
     def __init__(self, is_sorted=False, is_selfcounting=False):
-        self.is_sorted = is_sorted
-        self.is_selfcounting = is_selfcounting
+        self._is_sorted = is_sorted
+        self._is_selfcounting = is_selfcounting
+
+    @property
+    def is_sorted(self) -> bool:
+        return self._is_sorted
+
+    @property
+    def is_selfcounting(self) -> bool:
+        return self._is_selfcounting
 
     def get(
             self,
@@ -360,8 +368,9 @@ class NeighboursGetterLookup(NeighboursGetter):
         neighbours.reset()
 
         cdef AINDEX i
-        for i in input_data[index]:
-            neighbours.assign(i)
+
+        for i in range(input_data.get_n_neighbours(index)):
+            neighbours.assign(input_data.get_neighbour(index, i))
 
 
 class NeighboursGetterBruteForce(NeighboursGetter):
@@ -602,7 +611,7 @@ class SimilarityCheckerContains(SimilarityChecker):
                 common += 1
                 if common == c:
                     return True
-                break
+                continue
         return False
 
 
@@ -650,7 +659,7 @@ class SimilarityCheckerSwitchContains(SimilarityChecker):
                 common += 1
                 if common == c:
                     return True
-                break
+                continue
         return False
 
 
@@ -693,7 +702,7 @@ cdef class SimilarityCheckerExtContains:
                 common += 1
                 if common == c:
                     return True
-                break
+                continue
         return False
 
     def check(
@@ -750,7 +759,7 @@ cdef class SimilarityCheckerExtSwitchContains:
                 common += 1
                 if common == c:
                     return True
-                break
+                continue
         return False
 
     def check(

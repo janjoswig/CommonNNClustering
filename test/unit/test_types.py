@@ -8,6 +8,7 @@ from cnnclustering._types import (
     InputDataNeighboursSequence,
     Labels,
     NeighboursList,
+    NeighboursGetterLookup,
     QueueFIFODeque,
     QueueExtFIFOQueue,
     QueueExtLIFOVector,
@@ -85,13 +86,35 @@ class TestInputData:
         for point, dim, expected in component_queries:
             assert expected == input_data.get_component(point, dim)
 
+
 class TestNeighbours:
     @pytest.mark.parametrize(
-        "neighbours_type,data,expected", [(NeighboursList, [0, 1], 2)]
+        "neighbours_type,data,n_points,",
+        [
+            (NeighboursList, [0, 1], 2)
+        ]
     )
-    def test_n_points(self, neighbours_type, data, expected):
+    def test_neighbours(self, neighbours_type, data, n_points):
         neighbours = neighbours_type(data)
-        assert neighbours.n_points == expected
+        assert neighbours.n_points == n_points
+
+        neighbours.assign(5)
+        assert neighbours.n_points == n_points + 1
+        assert neighbours.get_member(n_points) == 5
+        assert neighbours.contains(5)
+
+
+class TestNeighboursGetter:
+    def test_get(self):
+        input_data = InputDataNeighboursSequence([[1, 2, 3], [0, 2, 3, 4]])
+        neighbours = NeighboursList()
+        neighbours_getter = NeighboursGetterLookup()
+        cluster_params = ClusterParameters(
+            radius_cutoff=0, cnn_cutoff=0
+            )
+
+        neighbours_getter.get(0, input_data, neighbours, None, cluster_params)
+        assert neighbours._neighbours == [1, 2, 3]
 
 
 class TestQueue:

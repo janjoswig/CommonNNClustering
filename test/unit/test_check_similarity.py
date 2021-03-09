@@ -35,6 +35,7 @@ class TestSimilarityChecker:
             ([], [], 1, False),
             ([1, 2, 3], [2, 5], 1, True),
             ([1, 2, 3], [2, 5, 9, 8], 2, False),
+            ([1, 2, 3, 9, 10], [2, 5, 9, 8, 10], 3, True),
         ]
     )
     def test_check(
