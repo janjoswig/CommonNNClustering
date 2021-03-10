@@ -164,6 +164,142 @@ def plot_summary(ax, summary, quantity="time", treat_nan=None, contour_props=Non
     return plotted
 
 
+def plot_distance_histogram(
+        ax: Optional[Any] = None,
+        maxima: bool = False,
+        maxima_props: Optional[Dict[str, Any]] = None,
+        hist_props: Optional[Dict[str, Any]] = None,
+        ax_props: Optional[Dict[str, Any]] = None,
+        plot_props: Optional[Dict[str, Any]] = None,
+        inter_props: Optional[Dict[str, Any]] = None):
+    """Plot a histogram of distances in the data set
+
+    Requires :attr:`data.distances`.
+
+    Args:
+        ax: Matplotlib Axes to plot on. If `None`, Figure and Axes
+            are created.
+        maxima: Whether to mark the maxima of the
+            distribution. Uses `scipy.signal.argrelextrema`_.
+        maxima_props: Keyword arguments passed to
+            `scipy.signal.argrelextrema`_ if `maxima` is set
+            to True.
+        hist_props: Keyword arguments passed to
+            `numpy.histogram`_ to compute the histogram.
+        ax_props: Keyword arguments for Matplotlib Axes styling.
+
+    .. _scipy.signal.argrelextrema:
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.argrelextrema.html
+    .. _numpy.histogram:
+        https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
+    """
+
+    # TODO Move to distances class / plot.py
+
+    # TODO Add option for kernel density estimation
+    # (scipy.stats.gaussian_kde, statsmodels.nonparametric.kde)
+
+    if self.data.distances is None:
+        raise ValueError(
+            "No distances calculated."
+            )
+
+    # TODO make this a configuration option
+    hist_props_defaults = {
+        "bins": 100,
+        "density": True,
+    }
+
+    if hist_props is not None:
+        hist_props_defaults.update(hist_props)
+
+    histogram, bins = np.histogram(
+        self.data.distances.flat,
+        **hist_props_defaults
+        )
+
+    binmids = 0.5 * (bins[:-1] + bins[1:])
+
+    if inter_props is not None:
+        # TODO make this a configuation option
+        inter_props_defaults = {
+            "ifactor": 0.5,
+            "kind": 'linear',
+        }
+
+        inter_props_defaults.update(inter_props)
+
+        ifactor = inter_props_defaults.pop("ifactor")
+
+        ipoints = int(
+            np.ceil(len(binmids) * ifactor)
+            )
+        ibinmids = np.linspace(binmids[0], binmids[-1], ipoints)
+        histogram = interp1d(
+            binmids,
+            histogram,
+            **inter_props_defaults
+            )(ibinmids)
+
+        binmids = ibinmids
+
+    ylimit = np.max(histogram) * 1.1
+
+    # TODO make this a configuration option
+    ax_props_defaults = {
+        "xlabel": "d / au",
+        "ylabel": '',
+        "yticks": (),
+        "xlim": (np.min(binmids), np.max(binmids)),
+        "ylim": (0, ylimit),
+    }
+
+    if ax_props is not None:
+        ax_props_defaults.update(ax_props)
+
+    plot_props_defaults = {}
+
+    if plot_props is not None:
+        plot_props_defaults.update(plot_props)
+
+    if ax is None:
+        fig, ax = plt.subplots()
+    else:
+        fig = ax.get_figure()
+
+    line = ax.plot(binmids, histogram, **plot_props_defaults)
+
+    if maxima:
+        maxima_props_ = {
+            "order": 2,
+            "mode": "clip"
+            }
+
+        if maxima_props is not None:
+            maxima_props_.update(maxima_props)
+
+        found = argrelextrema(histogram, np.greater, **maxima_props_)[0]
+        settings['default_radius_cutoff'] = \
+            f"{binmids[found[0]]:.2f}"
+
+        annotations = []
+        for candidate in found:
+            annotations.append(
+                ax.annotate(
+                    f"{binmids[candidate]:.2f}",
+                    xy=(binmids[candidate], histogram[candidate]),
+                    xytext=(binmids[candidate],
+                            histogram[candidate] + (ylimit / 100))
+                    )
+                )
+    else:
+        annotations = None
+
+    ax.set(**ax_props_defaults)
+
+    return fig, ax, line, annotations
+
+
 def plot_dots(
         ax,
         data,
