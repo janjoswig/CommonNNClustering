@@ -401,18 +401,18 @@ class NeighboursGetterBruteForce(NeighboursGetter):
 
 cdef class NeighboursGetterExtBruteForce:
 
-    cdef _get(
+    cdef inline void _get(
             self,
             AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
             METRIC_EXT metric,
-            ClusterParameters cluster_params):
+            ClusterParameters cluster_params) nogil:
 
         cdef AINDEX i
         cdef AVALUE distance
 
-        neighbours.reset()
+        neighbours._reset()
 
         for i in range(input_data.n_points):
             distance = metric._calc_distance(index, i, input_data)

@@ -34,7 +34,7 @@ ctypedef fused NEIGHBOURS_GETTER:
 
 ctypedef fused NEIGHBOURS_GETTER_EXT:
     NeighboursGetterExtBruteForce
-    NeighboursGetterExtLookup
+    # NeighboursGetterExtLookup
 
 ctypedef fused METRIC:
     MetricExtDummy
@@ -113,13 +113,13 @@ cdef class NeighboursExtVector:
 
 cdef class NeighboursGetterExtBruteForce:
 
-    cdef _get(
+    cdef inline void _get(
             self,
             AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
             METRIC_EXT metric,
-            ClusterParameters cluster_params)
+            ClusterParameters cluster_params) nogil
 
 
 cdef class NeighboursGetterExtLookup:

@@ -39,4 +39,4 @@ cdef class FitterExtBFS:
         SIMILARITY_CHECKER_EXT similarity_checker,
         QUEUE_EXT queue,
         Labels labels,
-        ClusterParameters cluster_params)
+        ClusterParameters cluster_params) nogil
