@@ -19,7 +19,7 @@ cnnclustering
 -------------
 
 
-The `cnnclustering` Python package provides a flexible interface to use the <b>c</b>ommon-<b>n</b>earest-<b>n</b>eighbours cluster algorithm. While the method can be applied to abitrary data, this implementation was made before the background of processing trajectories from Molecular Dynamics simulations. In this context the cluster result can serve as a suitable basis for the construction of a core-set Markov-state (cs-MSM) model to capture the essential dynamics of the underlying molecular processes. For a tool for cs-MSM estimation, refer to this separate [project](https://github.com/janjoswig/cs-MSM).
+The `cnnclustering` Python package provides a flexible interface to use the <b>c</b>ommon-<b>n</b>earest-<b>n</b>eighbours cluster algorithm. While the method can be applied to arbitrary data, this implementation was made before the background of processing trajectories from Molecular Dynamics simulations. In this context the cluster result can serve as a suitable basis for the construction of a core-set Markov-state (cs-MSM) model to capture the essential dynamics of the underlying molecular processes. For a tool for cs-MSM estimation, refer to this separate [project](https://github.com/janjoswig/cs-MSM).
 
 The package provides a main module:
 
@@ -63,36 +63,29 @@ Quickstart
 ----------
 
 ```python
-from cnnclustering import cnn
-import matplotlib.pyplot as plt
+>>> from cnnclustering.cluster import prepare_clustering
 
-# 2D data points (list of lists, 12 points in 2 dimensions)
-data_points = [   # point index
-    [0, 0],       # 0
-    [1, 1],       # 1
-    [1, 0],       # 2
-    [0, -1],      # 3
-    [0.5, -0.5],  # 4
-    [2,  1.5],    # 5
-    [2.5, -0.5],  # 6
-    [4, 2],       # 7
-    [4.5, 2.5],   # 8
-    [5, -1],      # 9
-    [5.5, -0.5],  # 10
-    [5.5, -1.5],  # 11
-    ]
+>>> # 2D data points (list of lists, 12 points in 2 dimensions)
+>>> data_points = [   # point index
+...     [0, 0],       # 0
+...     [1, 1],       # 1
+...     [1, 0],       # 2
+...     [0, -1],      # 3
+...     [0.5, -0.5],  # 4
+...     [2,  1.5],    # 5
+...     [2.5, -0.5],  # 6
+...     [4, 2],       # 7
+...     [4.5, 2.5],   # 8
+...     [5, -1],      # 9
+...     [5.5, -0.5],  # 10
+...     [5.5, -1.5],  # 11
+...     ]
 
-clustering = cnn.CNN(points=data_points)
-clustering.fit(radius_cutoff=1.5, cnn_cutoff=1)
-clustering.labels
-# Labels([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])
+>>> clustering = prepare_clustering(data_points)
+>>> clustering.fit(radius_cutoff=1.5, cnn_cutoff=1)
+>>> clustering.labels
+Labels([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])
 
-fig, ax = plt.subplots(1, 2)
-ax[0].set_title("original")
-clustering.evaluate(ax=ax[0], original=True)
-
-ax[1].set_title("clustered")
-clustering.evaluate(ax=ax[1])
 ```
 
 ![quickstart](docs/_images/tutorial_basic_usage_42_0.png)

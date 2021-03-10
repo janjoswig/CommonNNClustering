@@ -8,6 +8,7 @@ from cnnclustering._types import (
     InputDataExtPointsMemoryview,
     MetricEuclidean,
     MetricEuclideanReduced,
+    MetricExtEuclidean,
     MetricExtEuclideanReduced,
 )
 
@@ -27,14 +28,38 @@ def test_ref_distance_euclidean():
 
 
 class TestMetric:
-    @pytest.mark.parametrize("metric", [MetricExtEuclideanReduced])
     @pytest.mark.parametrize(
-        "input_data_type,data,ref_func",
+        "metric,ref_func",
+        [
+            (
+                MetricEuclidean,
+                lambda a, b: ref_distance_euclidean(a, b),
+            ),
+            (
+                MetricEuclideanReduced,
+                lambda a, b: ref_distance_euclidean(a, b) ** 2,
+            ),
+            (
+                MetricExtEuclidean,
+                lambda a, b: ref_distance_euclidean(a, b),
+            ),
+            (
+                MetricExtEuclideanReduced,
+                lambda a, b: ref_distance_euclidean(a, b) ** 2,
+            ),
+        ]
+    )
+    @pytest.mark.parametrize(
+        "input_data_type,data",
         [
             (
                 InputDataExtPointsMemoryview,
-                np.array([[0, 0, 0], [1, 1, 1]], order="C", dtype=P_AVALUE),
-                lambda a, b: ref_distance_euclidean(a, b) ** 2,
+                np.array([
+                    [0, 0, 0],
+                    [1, 1, 1],
+                    [1.2, 1.5, 1.3],
+                    ], order="C", dtype=P_AVALUE
+                )
             ),
         ],
     )
@@ -58,4 +83,6 @@ class TestMetric:
 
                 distance = _metric.calc_distance(i, j, input_data)
 
-                np.testing.assert_approx_equal(distance, ref_distance, significant=12)
+                np.testing.assert_approx_equal(
+                    distance, ref_distance, significant=12
+                    )

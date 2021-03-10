@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from sklearn import neighbors
 
 try:
     from sklearn.neighbors import KDTree
@@ -11,10 +12,15 @@ from cnnclustering import cluster
 from cnnclustering._types import (
     InputDataNeighboursSequence,
     InputDataExtPointsMemoryview,
+    NeighboursGetterBruteForce,
     NeighboursGetterLookup,
     NeighboursGetterExtBruteForce,
     NeighboursList,
+    NeighboursSet,
     NeighboursExtVector,
+    MetricDummy,
+    MetricEuclidean,
+    MetricExtDummy,
     MetricExtEuclidean,
     SimilarityCheckerContains,
     SimilarityCheckerExtContains,
@@ -51,70 +57,100 @@ def equalise_labels(labels):
     return labels
 
 
+def convert_points_to_neighbours_array_array(points, r, c):
+    tree = KDTree(points)
+    return tree.query_radius(
+        points, r=r, return_distance=False
+        )
+
+def convert_points_to_neighbours_list_set(points, r, c):
+    tree = KDTree(points)
+    points = tree.query_radius(
+        points, r=r, return_distance=False
+        )
+    return [set(neighbours) for neighbours in points]
+
+
+def no_convert(points, r, c):
+    return points
+
+
 @pytest.mark.parametrize(
     (
-        "input_data_t,neighbours_getter_t,neighbours_t,neighbour_neighbours_t,"
-        "metric_t,similarity_checker_t,queue_t,fitter_t"
+        "components,converter"
     ),
     [
         (
-            InputDataNeighboursSequence,
-            NeighboursGetterLookup,
-            NeighboursList,
-            NeighboursList,
-            None,
-            SimilarityCheckerContains,
-            QueueFIFODeque,
-            FitterBFS
-        )
+            (
+                ("input_data", InputDataNeighboursSequence, (), {}),
+                (
+                    "neighbours_getter", NeighboursGetterLookup,
+                    (), {"is_selfcounting": True}
+                ),
+                ("neighbours", NeighboursList, (), {}),
+                ("neighbour_neighbours", NeighboursList, (), {}),
+                ("metric", MetricDummy, (), {}),
+                ("similarity_checker", SimilarityCheckerContains, (), {}),
+                ("queue", QueueFIFODeque, (), {}),
+                ("fitter", FitterBFS, (), {}),
+            ),
+            convert_points_to_neighbours_array_array
+        ),
+        pytest.param(
+            (
+                ("input_data", InputDataExtPointsMemoryview, (), {}),
+                ("neighbours_getter", NeighboursGetterBruteForce, (), {}),
+                ("neighbours", NeighboursExtVector, (500,), {}),
+                ("neighbour_neighbours", NeighboursExtVector, (500,), {}),
+                ("metric", MetricEuclidean, (), {}),
+                ("similarity_checker", SimilarityCheckerContains, (), {}),
+                ("queue", QueueFIFODeque, (), {}),
+                ("fitter", FitterBFS, (), {}),
+            ),
+            no_convert,
+            marks=[pytest.mark.heavy]
+        ),
+        pytest.param(
+            (
+                ("input_data", InputDataExtPointsMemoryview, (), {}),
+                ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
+                ("neighbours", NeighboursExtVector, (500,), {}),
+                ("neighbour_neighbours", NeighboursExtVector, (500,), {}),
+                ("metric", MetricExtEuclidean, (), {}),
+                ("similarity_checker", SimilarityCheckerExtContains, (), {}),
+                ("queue", QueueExtFIFOQueue, (), {}),
+                ("fitter", FitterExtBFS, (), {}),
+            ),
+            no_convert,
+            marks=[pytest.mark.heavy]
+        ),
     ]
 )
 @pytest.mark.parametrize(
-    "n_samples,gen_func,gen_kwargs,convert_to,r,c",
-    [(1500, "moons", {}, "neighbours", 0.2, 5)]
+    "n_samples,gen_func,gen_kwargs,r,c",
+    [(1500, "moons", {}, 0.2, 5)]
 )
 def test_cluster_toy_data_with_reference(
-        n_samples, gen_func, gen_kwargs, toy_data_points, convert_to,
-        input_data_t, neighbours_getter_t, neighbours_t,
-        neighbour_neighbours_t,
-        metric_t, similarity_checker_t, queue_t, fitter_t,
-        r, c):
+        n_samples, gen_func, gen_kwargs, toy_data_points, converter,
+        r, c, components):
     if not SKLEARN_FOUND:
         pytest.skip("Test module requires scikit-learn.")
 
     points, reference_labels = toy_data_points
+    points = converter(points, r, c)
 
-    if convert_to == "neighbours":
-        tree = KDTree(points)
-        input_data_raw = tree.query_radius(
-            points, r=r, return_distance=False
+    prepared_components = {}
+    for component_kw, component_type, args, kwargs in components:
+        if component_kw == "input_data":
+            args = (points, *args)
+
+        if component_type is not None:
+            prepared_components[component_kw] = component_type(
+                *args, **kwargs
             )
-    else:
-        input_data_raw = points
-
-    input_data = input_data_t(input_data_raw)
-    neighbours_getter = neighbours_getter_t()
-    neighbours = neighbours_t()
-    neighbour_neighbours = neighbour_neighbours_t()
-
-    if metric_t is not None:
-        metric = metric_t()
-    else:
-        metric = None
-
-    similarity_checker = similarity_checker_t()
-    queue = queue_t()
-    fitter = fitter_t()
 
     clustering = cluster.Clustering(
-        input_data=input_data,
-        neighbours_getter=neighbours_getter,
-        neighbours=neighbours,
-        neighbour_neighbours=neighbour_neighbours,
-        metric=metric,
-        similarity_checker=similarity_checker,
-        queue=queue,
-        fitter=fitter,
+        **prepared_components
     )
 
     clustering.fit(r, c)

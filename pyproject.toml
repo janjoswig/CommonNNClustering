@@ -8,9 +8,10 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
-norecursedirs = ".tox .git"
+norecursedirs = ".tox .git docs build htmlcov src"
 addopts = "-v -p no:warnings --doctest-glob='*.md' --ignore=setup.py -x"
-testpaths = ["test"]
+testpaths = ["test", "."]
 markers = [
-    "sklearn: requires scikit-learn install"
+    "sklearn: requires scikit-learn install",
+    "heavy: takes quite a long time",
     ]

@@ -70,10 +70,16 @@ class FitterBFS:
                 :obj:`cnnclustering._types.ClusterParameters`.
         """
 
+        cdef AINDEX member_cutoff = cluster_params.cnn_cutoff
+
         cdef AINDEX n, m, current
         cdef AINDEX init_point, point, member, member_index
         cdef AINDEX* _labels = &labels._labels[0]
         cdef ABOOL* _consider = &labels._consider[0]
+
+        if neighbours_getter.is_selfcounting:
+            member_cutoff += 1
+            cluster_params.cnn_cutoff += 2
 
         n = input_data.n_points
         current = 1
@@ -91,7 +97,7 @@ class FitterBFS:
                 cluster_params
                 )
 
-            if not neighbours.enough(cluster_params):
+            if not neighbours.enough(member_cutoff):
                 continue
 
             _labels[init_point] = current
@@ -114,7 +120,7 @@ class FitterBFS:
                         cluster_params
                         )
 
-                    if not neighbour_neighbours.enough(cluster_params):
+                    if not neighbour_neighbours.enough(member_cutoff):
                         _consider[member] = 0
                         continue
 
@@ -179,10 +185,16 @@ cdef class FitterExtBFS:
                 :obj:`cnnclustering._types.ClusterParameters`.
         """
 
+        cdef AINDEX member_cutoff = cluster_params.cnn_cutoff
+
         cdef AINDEX n, m, current
         cdef AINDEX init_point, point, member, member_index
         cdef AINDEX* _labels = &labels._labels[0]
         cdef ABOOL* _consider = &labels._consider[0]
+
+        if neighbours_getter.is_selfcounting:
+            member_cutoff += 1
+            cluster_params.cnn_cutoff += 2
 
         n = input_data.n_points
         current = 1
@@ -200,7 +212,7 @@ cdef class FitterExtBFS:
                 cluster_params
                 )
 
-            if not neighbours._enough(cluster_params):
+            if not neighbours._enough(member_cutoff):
                 continue
 
             _labels[init_point] = current
@@ -223,7 +235,7 @@ cdef class FitterExtBFS:
                         cluster_params
                         )
 
-                    if not neighbour_neighbours._enough(cluster_params):
+                    if not neighbour_neighbours._enough(member_cutoff):
                         _consider[member] = 0
                         continue
 
@@ -242,7 +254,7 @@ cdef class FitterExtBFS:
                 neighbours_getter._get(
                     point,
                     input_data,
-                    neighbour_neighbours,
+                    neighbours,
                     metric,
                     cluster_params
                     )

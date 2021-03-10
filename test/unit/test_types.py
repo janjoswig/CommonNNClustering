@@ -7,7 +7,9 @@ from cnnclustering._types import (
     InputDataExtPointsMemoryview,
     InputDataNeighboursSequence,
     Labels,
+    NeighboursSet,
     NeighboursList,
+    NeighboursExtVector,
     NeighboursGetterLookup,
     QueueFIFODeque,
     QueueExtFIFOQueue,
@@ -89,19 +91,23 @@ class TestInputData:
 
 class TestNeighbours:
     @pytest.mark.parametrize(
-        "neighbours_type,data,n_points,",
+        "neighbours_type,args,kwargs,n_points,",
         [
-            (NeighboursList, [0, 1], 2)
+            (NeighboursList, ([0, 1, 3],), {}, 3),
+            (NeighboursSet, ({0, 1, 3},), {}, 3),
+            (NeighboursExtVector, (5, [0, 1, 3],), {}, 3),
         ]
     )
-    def test_neighbours(self, neighbours_type, data, n_points):
-        neighbours = neighbours_type(data)
+    def test_neighbours(self, neighbours_type, args, kwargs, n_points):
+        neighbours = neighbours_type(*args, **kwargs)
         assert neighbours.n_points == n_points
 
         neighbours.assign(5)
         assert neighbours.n_points == n_points + 1
         assert neighbours.get_member(n_points) == 5
         assert neighbours.contains(5)
+        assert neighbours.enough(3)
+        assert not neighbours.enough(4)
 
 
 class TestNeighboursGetter:

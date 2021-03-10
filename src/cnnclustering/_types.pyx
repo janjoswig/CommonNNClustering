@@ -177,7 +177,7 @@ class Neighbours(ABC):
        """Reset/empty this container"""
 
     @abstractmethod
-    def enough(self, cluster_params: Type['ClusterParameters']) -> bool:
+    def enough(self, member_cutoff: int) -> bool:
         """Return True if there are enough points"""
 
     @abstractmethod
@@ -209,8 +209,8 @@ class NeighboursList(Neighbours):
         self._neighbours = []
         self._n_points = 0
 
-    def enough(self, cluster_params: Type['ClusterParameters']):
-        if self._n_points > cluster_params.cnn_cutoff:
+    def enough(self, member_cutoff: int):
+        if self._n_points > member_cutoff:
             return True
         return False
 
@@ -228,6 +228,8 @@ class NeighboursSet(Neighbours):
         if neighbours is not None:
             self._neighbours = neighbours
             self._n_points = len(self._neighbours)
+            self._query = 0
+            self._iter = None
         else:
             self.reset()
 
@@ -240,13 +242,13 @@ class NeighboursSet(Neighbours):
         self._n_points += 1
 
     def reset(self):
-        self._neighbours = {}
+        self._neighbours = set()
         self._n_points = 0
         self._query = 0
         self._iter = None
 
-    def enough(self, cluster_params: Type['ClusterParameters']):
-        if self._n_points > cluster_params.cnn_cutoff:
+    def enough(self, member_cutoff: int):
+        if self._n_points > member_cutoff:
             return True
         return False
 
@@ -257,6 +259,8 @@ class NeighboursSet(Neighbours):
 
         while self._query != index:
             _ = next(self._iter)
+            self._query += 1
+
         return next(self._iter)
 
     def contains(self, member: int) -> bool:
@@ -273,7 +277,7 @@ cdef class NeighboursExtVector:
 
         if neighbours is not None:
             self._neighbours = neighbours
-            self._n_points = len(self._neighbours)
+            self.n_points = len(self._neighbours)
             self._neighbours.reserve(self._initial_size)
         else:
             self._reset()
@@ -293,13 +297,13 @@ cdef class NeighboursExtVector:
     def reset(self):
         self._reset()
 
-    cdef inline bint _enough(self, ClusterParameters cluster_params) nogil:
-        if self.n_points > cluster_params.cnn_cutoff:
+    cdef inline bint _enough(self, AINDEX member_cutoff) nogil:
+        if self.n_points > member_cutoff:
             return True
         return False
 
-    def enough(self, cluster_params: Type["ClusterParameters"]):
-        self._enough(cluster_params)
+    def enough(self, member_cutoff: int):
+        return self._enough(member_cutoff)
 
     cdef inline AINDEX _get_member(self, AINDEX index) nogil:
         return self._neighbours[index]
@@ -376,8 +380,16 @@ class NeighboursGetterLookup(NeighboursGetter):
 class NeighboursGetterBruteForce(NeighboursGetter):
 
     def __init__(self):
-        self.is_sorted = False
-        self.is_selfcounting = True
+        self._is_sorted = False
+        self._is_selfcounting = True
+
+    @property
+    def is_sorted(self) -> bool:
+        return self._is_sorted
+
+    @property
+    def is_selfcounting(self) -> bool:
+        return self._is_selfcounting
 
     def get(
             self,
@@ -400,6 +412,10 @@ class NeighboursGetterBruteForce(NeighboursGetter):
 
 
 cdef class NeighboursGetterExtBruteForce:
+
+    def __cinit__(self):
+        self.is_sorted = False
+        self.is_selfcounting = True
 
     cdef inline void _get(
             self,

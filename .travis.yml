@@ -30,7 +30,7 @@ jobs:
       install:
         - pip install -e .
       script:
-        - coverage run -m pytest
+        - coverage run -m pytest -m "not heavy"
       after_success:
         - coveralls
 

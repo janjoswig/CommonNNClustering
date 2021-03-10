@@ -106,12 +106,15 @@ cdef class NeighboursExtVector:
 
     cdef inline void _assign(self, AINDEX member) nogil
     cdef inline void _reset(self) nogil
-    cdef inline bint _enough(self, ClusterParameters cluster_params) nogil
+    cdef inline bint _enough(self, AINDEX member_cutoff) nogil
     cdef inline AINDEX _get_member(self, AINDEX index) nogil
     cdef inline bint _contains(self, AINDEX member) nogil
 
 
 cdef class NeighboursGetterExtBruteForce:
+    cdef public:
+        bint is_selfcounting
+        bint is_sorted
 
     cdef inline void _get(
             self,
