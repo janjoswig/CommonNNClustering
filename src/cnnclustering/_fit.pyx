@@ -2,8 +2,6 @@ from abc import ABC, abstractmethod
 from collections import deque
 from typing import Type
 
-from cython.operator cimport dereference as deref
-
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
 from cnnclustering._types import (
     InputData,
@@ -71,11 +69,15 @@ class FitterBFS:
         """
 
         cdef AINDEX member_cutoff = cluster_params.cnn_cutoff
-
         cdef AINDEX n, m, current
         cdef AINDEX init_point, point, member, member_index
         cdef AINDEX* _labels = &labels._labels[0]
         cdef ABOOL* _consider = &labels._consider[0]
+
+        if metric is not None:
+            cluster_params.radius_cutoff = metric.adjust_radius(
+                cluster_params.radius_cutoff
+                )
 
         if neighbours_getter.is_selfcounting:
             member_cutoff += 1
@@ -186,11 +188,14 @@ cdef class FitterExtBFS:
         """
 
         cdef AINDEX member_cutoff = cluster_params.cnn_cutoff
-
         cdef AINDEX n, m, current
         cdef AINDEX init_point, point, member, member_index
         cdef AINDEX* _labels = &labels._labels[0]
         cdef ABOOL* _consider = &labels._consider[0]
+
+        cluster_params.radius_cutoff = metric._adjust_radius(
+            cluster_params.radius_cutoff
+            )
 
         if neighbours_getter.is_selfcounting:
             member_cutoff += 1

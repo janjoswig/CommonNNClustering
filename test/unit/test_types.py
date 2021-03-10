@@ -74,6 +74,7 @@ class TestInputData:
             n_neighbours,
             neighbour_queries,
             component_queries):
+
         input_data = input_data_type(data)
 
         assert input_data.n_points == n_points
@@ -87,6 +88,8 @@ class TestInputData:
 
         for point, dim, expected in component_queries:
             assert expected == input_data.get_component(point, dim)
+
+        assert isinstance(input_data.data, (np.ndarray, list))
 
 
 class TestNeighbours:
@@ -106,8 +109,12 @@ class TestNeighbours:
         assert neighbours.n_points == n_points + 1
         assert neighbours.get_member(n_points) == 5
         assert neighbours.contains(5)
+        assert not neighbours.contains(99)
         assert neighbours.enough(3)
         assert not neighbours.enough(4)
+
+        neighbours.reset()
+        assert neighbours.n_points == 0
 
 
 class TestNeighboursGetter:

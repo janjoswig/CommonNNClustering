@@ -1,5 +1,26 @@
+from collections.abc import MutableSequence
+from typing import Any, NamedTuple
+from typing import Optional
+import weakref
+
 import numpy as np
 cimport numpy as np
+
+try:
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    from . import plot
+    MPL_FOUND = True
+except ModuleNotFoundError as error:
+    print("Optional dependency module not found: ", error)
+    MPL_FOUND = False
+
+try:
+    import pandas as pd
+    PANDAS_FOUND = True
+except ModuleNotFoundError as error:
+    print("Optional dependency module not found: ", error)
+    PANDAS_FOUND = False
 
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
 from cnnclustering._types import (
@@ -110,7 +131,6 @@ def prepare_clustering(input_data, preparation_hook=None, **recipe):
 
 
 class Clustering:
-
     def __init__(
             self,
             input_data=None,
@@ -160,3 +180,220 @@ class Clustering:
     @property
     def labels(self):
         return self._labels
+
+    def summarize(
+            self,
+            ax: Optional[Any] = None,
+            quantity: str = "time",
+            treat_nan: Optional[Any] = None,
+            ax_props: Optional[dict] = None,
+            contour_props: Optional[dict] = None):
+        """Generate a 2D plot of record values
+
+        Record values ("time", "clusters", "largest", "noise") are
+        plotted against cluster parameters (radius cutoff *r*
+        and cnn cutoff *c*).
+
+        Args:
+            ax: Matplotlib Axes to plot on.  If `None`, a new Figure
+                with Axes will be created.
+            quantity: Record value to
+                visualise:
+
+                    * "time"
+                    * "clusters"
+                    * "largest"
+                    * "noise"
+
+            treat_nan: If not `None`, use this value to pad nan-values.
+            ax_props: Used to style `ax`.
+            contour_props: Passed on to contour.
+        """
+
+        if not MPL_FOUND:
+            raise ModuleNotFoundError("No module named 'matplotlib'")
+
+        if len(self._list) == 0:
+            raise LookupError(
+                "No cluster result records in summary"
+                )
+
+        ax_props_defaults = {
+            "xlabel": "$R$",
+            "ylabel": "$C$",
+        }
+
+        if ax_props is not None:
+            ax_props_defaults.update(ax_props)
+
+        contour_props_defaults = {
+                "cmap": mpl.cm.inferno,
+            }
+
+        if contour_props is not None:
+            contour_props_defaults.update(contour_props)
+
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.get_figure()
+
+        plotted = plot.plot_summary(
+            ax, self.to_DataFrame(),
+            quantity=quantity,
+            treat_nan=treat_nan,
+            contour_props=contour_props_defaults
+            )
+
+        ax.set(**ax_props_defaults)
+
+        return fig, ax, plotted
+
+
+class ClusteringChild(Clustering):
+    """Clustering subclass.
+
+    Increments the hierarchy level of
+    the parent object when instantiated.
+
+    Attributes:
+        parent: Weak reference to parent
+    """
+
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.parent = weakref.proxy(parent)
+        self.hierarchy_level = parent.hierarchy_level + 1
+
+
+class Record(NamedTuple):
+    """Cluster result container
+
+    :obj:`cnnclustering.cluster.Record` instances can be returned by
+    :meth:`cnnclustering.cluster.Clustering.fit` and
+    are collected in :obj:`cnnclustering.cluster.Summary`.
+    """
+
+    points: int
+    """Number of points in the clustered data set."""
+
+    r: float
+    """Radius cutoff :math:*r*."""
+
+    c: int
+    """CNN cutoff :math:*c* (similarity criterion)"""
+
+    min: int
+    """Member cutoff. Valid clusters have at least this many members."""
+
+    max: int
+    """Maximum cluster number. After sorting, only the biggest `max` clusters are kept."""
+
+    clusters: int
+    """Number of identified clusters."""
+
+    largest: float
+    """Ratio of points in the largest cluster."""
+
+    noise: float
+    """Ratio of points classified as outliers."""
+
+    time: float
+    """Measured execution time for the fit, including sorting in seconds."""
+
+
+class Summary(MutableSequence):
+    """List like container for cluster results
+
+    Stores instances of :obj:`cnnclustering.cluster.Record`.
+    """
+
+    def __init__(self, iterable=None):
+        if iterable is None:
+            iterable = []
+
+        self._list = []
+        for i in iterable:
+            self.append(i)
+
+    def __getitem__(self, key):
+        return self._list.__getitem__(key)
+
+    def __setitem__(self, key, item):
+        if isinstance(item, Record):
+            self._list.__setitem__(key, item)
+        else:
+            raise TypeError(
+                "Summary can only contain records of type `Record`"
+            )
+
+    def __delitem__(self, key):
+        self._list.__delitem__(key)
+
+    def __len__(self):
+        return self._list.__len__()
+
+    def __str__(self):
+        return self._list.__str__()
+
+    def insert(self, index, item):
+        if isinstance(item, Record):
+            self._list.insert(index, item)
+        else:
+            raise TypeError(
+                "Summary can only contain records of type `Record`"
+            )
+
+    def to_DataFrame(self):
+        """Convert list of records to (typed) :obj:`pandas.DataFrame`
+
+        Returns:
+            :obj:`pandas.DataFrame`
+        """
+
+        if not PANDAS_FOUND:
+            raise ModuleNotFoundError("No module named 'pandas'")
+
+        _record_dtypes = [
+            pd.Int64Dtype(),  # points
+            np.float64,       # r
+            pd.Int64Dtype(),  # n
+            pd.Int64Dtype(),  # min
+            pd.Int64Dtype(),  # max
+            pd.Int64Dtype(),  # clusters
+            np.float64,       # largest
+            np.float64,       # noise
+            np.float64,       # time
+            ]
+
+        content = []
+        for field in Record._fields:
+            content.append([
+                record.__getattribute__(field)
+                for record in self._list
+                ])
+
+        return make_typed_DataFrame(
+            columns=Record._fields,
+            dtypes=_record_dtypes,
+            content=content,
+            )
+
+
+def make_typed_DataFrame(columns, dtypes, content=None):
+    """Construct :obj:`pandas.DataFrame` with typed columns"""
+
+    if not PANDAS_FOUND:
+        raise ModuleNotFoundError("No module named 'pandas'")
+
+    assert len(columns) == len(dtypes)
+
+    if content is None:
+        content = [[] for i in range(len(columns))]
+
+    df = pd.DataFrame({
+        k: pd.array(c, dtype=v)
+        for k, v, c in zip(columns, dtypes, content)
+        })
+
+    return df

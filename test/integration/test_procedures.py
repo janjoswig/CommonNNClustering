@@ -1,9 +1,11 @@
+from functools import partial
 import numpy as np
 import pytest
 from sklearn import neighbors
 
 try:
     from sklearn.neighbors import KDTree
+    from sklearn.metrics import pairwise_distances
     SKLEARN_FOUND = True
 except ModuleNotFoundError:
     SKLEARN_FOUND = False
@@ -19,8 +21,10 @@ from cnnclustering._types import (
     NeighboursSet,
     NeighboursExtVector,
     MetricDummy,
+    MetricPrecomputed,
     MetricEuclidean,
     MetricExtDummy,
+    MetricExtPrecomputed,
     MetricExtEuclidean,
     SimilarityCheckerContains,
     SimilarityCheckerExtContains,
@@ -63,13 +67,8 @@ def convert_points_to_neighbours_array_array(points, r, c):
         points, r=r, return_distance=False
         )
 
-def convert_points_to_neighbours_list_set(points, r, c):
-    tree = KDTree(points)
-    points = tree.query_radius(
-        points, r=r, return_distance=False
-        )
-    return [set(neighbours) for neighbours in points]
-
+def convert_points_to_distances_array2d(points, r, c):
+    return pairwise_distances(points)
 
 def no_convert(points, r, c):
     return points
@@ -95,6 +94,19 @@ def no_convert(points, r, c):
                 ("fitter", FitterBFS, (), {}),
             ),
             convert_points_to_neighbours_array_array
+        ),
+        pytest.param(
+            (
+                ("input_data", InputDataExtPointsMemoryview, (), {}),
+                ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
+                ("neighbours", NeighboursExtVector, (250,), {}),
+                ("neighbour_neighbours", NeighboursExtVector, (250,), {}),
+                ("metric", MetricExtPrecomputed, (), {}),
+                ("similarity_checker", SimilarityCheckerExtContains, (), {}),
+                ("queue", QueueExtFIFOQueue, (), {}),
+                ("fitter", FitterExtBFS, (), {}),
+            ),
+            convert_points_to_distances_array2d,
         ),
         pytest.param(
             (

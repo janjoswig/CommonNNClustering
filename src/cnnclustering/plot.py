@@ -142,13 +142,13 @@ def pie(root, ax, pie_props=None):
     return plotted
 
 
-def plot_summary(ax, summary, quant="time", treat_nan=None, contour_props=None):
+def plot_summary(ax, summary, quantity="time", treat_nan=None, contour_props=None):
     """Generate a 2D plot of record values"""
 
     if contour_props is None:
         contour_props = {}
 
-    pivot = summary.groupby(["r", "c"]).mean()[quant].reset_index().pivot("r", "c")
+    pivot = summary.groupby(["r", "c"]).mean()[quantity].reset_index().pivot("r", "c")
 
     X_, Y_ = np.meshgrid(pivot.index.values, pivot.columns.levels[1].values)
 
@@ -577,7 +577,7 @@ def get_histogram(
         mids: bool = True,
         mass: bool = True,
         avoid_zero_count: bool = True,
-        hist_props: Optional[Dict["str", Any]] = None) -> Tuple[np.ndarray, ...]:
+        hist_props: Optional[Dict[str, Any]] = None) -> Tuple[np.ndarray, ...]:
     """Compute a two-dimensional histogram.
 
     Taken and modified from :module:`pyemma.plots.`

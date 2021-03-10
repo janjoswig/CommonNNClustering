@@ -109,7 +109,7 @@ class InputDataNeighboursSequence(InputData):
 
     @property
     def data(self):
-        return self._data
+        return [np.asarray(list(s)) for s in self._data]
 
     def get_component(self, point: int, dimension: int) -> float:
         """
@@ -475,6 +475,9 @@ class MetricDummy(Metric):
             input_data: Type['InputData']) -> float:
         return 0.
 
+    def adjust_radius(self, radius_cutoff: float) -> float:
+        return radius_cutoff
+
 
 cdef class MetricExtDummy:
     cdef inline AVALUE _calc_distance(
@@ -490,6 +493,12 @@ cdef class MetricExtDummy:
             INPUT_DATA_EXT input_data) -> float:
         return self._calc_distance(index_a, index_b, input_data)
 
+    cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
+        return radius_cutoff
+
+    def adjust_radius(self, radius_cutoff: float) -> float:
+       return self._adjust_radius(radius_cutoff)
+
 
 class MetricPrecomputed(Metric):
     def calc_distance(
@@ -498,6 +507,9 @@ class MetricPrecomputed(Metric):
             input_data: Type['InputData']) -> float:
 
         return input_data.get_component(index_a, index_b)
+
+    def adjust_radius(self, radius_cutoff: float) -> float:
+        return radius_cutoff
 
 
 cdef class MetricExtPrecomputed:
@@ -513,6 +525,12 @@ cdef class MetricExtPrecomputed:
             AINDEX index_a, AINDEX index_b,
             INPUT_DATA_EXT input_data) -> float:
         return self._calc_distance(index_a, index_b, input_data)
+
+    cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
+        return radius_cutoff
+
+    def adjust_radius(self, radius_cutoff: float) -> float:
+       return self._adjust_radius(radius_cutoff)
 
 
 class MetricEuclidean(Metric):
@@ -531,6 +549,9 @@ class MetricEuclidean(Metric):
             total += cpow(a - b, 2)
 
         return csqrt(total)
+
+    def adjust_radius(self, radius_cutoff: float) -> float:
+        return radius_cutoff
 
 
 cdef class MetricExtEuclidean:
@@ -556,6 +577,12 @@ cdef class MetricExtEuclidean:
             INPUT_DATA_EXT input_data) -> float:
         return self._calc_distance(index_a, index_b, input_data)
 
+    cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
+        return radius_cutoff
+
+    def adjust_radius(self, radius_cutoff: float) -> float:
+       return self._adjust_radius(radius_cutoff)
+
 
 class MetricEuclideanReduced(Metric):
     def calc_distance(
@@ -573,6 +600,9 @@ class MetricEuclideanReduced(Metric):
             total += cpow(a - b, 2)
 
         return total
+
+    def adjust_radius(self, radius_cutoff: float) -> float:
+        return radius_cutoff**2
 
 
 cdef class MetricExtEuclideanReduced:
@@ -597,6 +627,12 @@ cdef class MetricExtEuclideanReduced:
             AINDEX index_a, AINDEX index_b,
             INPUT_DATA_EXT input_data) -> float:
         return self._calc_distance(index_a, index_b, input_data)
+
+    cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
+        return cpow(radius_cutoff, 2)
+
+    def adjust_radius(self, radius_cutoff: float) -> float:
+       return self._adjust_radius(radius_cutoff)
 
 
 class SimilarityChecker(ABC):
