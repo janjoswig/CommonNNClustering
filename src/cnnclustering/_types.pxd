@@ -37,12 +37,14 @@ ctypedef fused NEIGHBOURS_GETTER_EXT:
     NeighboursGetterExtLookup
 
 ctypedef fused METRIC:
+    MetricExtDummy
     MetricExtPrecomputed
     MetricExtEuclidean
     MetricExtEuclideanReduced
     object
 
 ctypedef fused METRIC_EXT:
+    MetricExtDummy
     MetricExtPrecomputed
     MetricExtEuclidean
     MetricExtEuclideanReduced
@@ -122,6 +124,13 @@ cdef class NeighboursGetterExtBruteForce:
 
 cdef class NeighboursGetterExtLookup:
     pass
+
+
+cdef class MetricExtDummy:
+    cdef inline AVALUE _calc_distance(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data) nogil
 
 
 cdef class MetricExtPrecomputed:

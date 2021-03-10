@@ -452,6 +452,29 @@ class Metric(ABC):
         """Return distance between two points in input data"""
 
 
+class MetricDummy(Metric):
+    def calc_distance(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData']) -> float:
+        return 0.
+
+
+cdef class MetricExtDummy:
+    cdef inline AVALUE _calc_distance(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data) nogil:
+
+        return 0.
+
+    def calc_distance(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data) -> float:
+        return self._calc_distance(index_a, index_b, input_data)
+
+
 class MetricPrecomputed(Metric):
     def calc_distance(
             self,
