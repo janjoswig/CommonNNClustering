@@ -13,5 +13,6 @@ addopts = "-v -p no:warnings --doctest-glob='*.md' --ignore=setup.py -x"
 testpaths = ["test", "."]
 markers = [
     "sklearn: requires scikit-learn install",
+    "pandas: requires pandas install",
     "heavy: takes quite a long time",
     ]

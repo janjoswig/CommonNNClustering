@@ -147,7 +147,7 @@ def test_cluster_toy_data_with_reference(
         n_samples, gen_func, gen_kwargs, toy_data_points, converter,
         r, c, components):
     if not SKLEARN_FOUND:
-        pytest.skip("Test module requires scikit-learn.")
+        pytest.skip("Test function requires scikit-learn.")
 
     points, reference_labels = toy_data_points
     points = converter(points, r, c)
