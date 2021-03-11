@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections.abc import MutableSequence
 from typing import Any, NamedTuple
 from typing import Optional
@@ -267,6 +268,29 @@ class Clustering:
         self._fitter = fitter
         self._labels = labels
 
+        self._children = None
+
+    @property
+    def labels(self):
+        return self._labels
+
+    @labels.setter
+    def labels(self, value):
+        if not isinstance(value, Labels):
+            value = Labels(value)
+        self._labels = value
+
+    @property
+    def hierarchy_level(self):
+        return self._hierarchy_level
+
+    @hierarchy_level.setter
+    def hierarchy_level(self, value):
+        self._hierarchy_level = int(value)
+
+    def __repr__(self):
+        return f"{type(self).__name}()"
+
     def fit(self, radius_cutoff: float, cnn_cutoff: int) -> None:
 
         cdef ClusterParameters cluster_params = ClusterParameters(
@@ -291,9 +315,24 @@ class Clustering:
 
         return
 
-    @property
-    def labels(self):
-        return self._labels
+    def isolate(self, purge: bool = True):
+        """Split input data based on cluster labels"""
+
+        if purge or (self._children is None):
+            self._children = defaultdict(
+                lambda: ClusteringChild(parent=self)
+                )
+
+        for label, indices in self.labels.mapping.items():
+            # Assume indices to be sorted
+            parent_indices = indices
+            if self.labels._root_indices is None:
+                root_indices = indices
+            else:
+                root_indices = self.labels._root_indices[indices]
+
+        self._children[label].input_data = self.input_data.reduce(indices)
+
 
     def summarize(
             self,
@@ -374,9 +413,25 @@ class ClusteringChild(Clustering):
         parent: Weak reference to parent
     """
 
+    take_over_attrs = [
+        "neighbours_getter",
+        "neighbours",
+        "neighbour_neighbours",
+        "metric",
+        "similarity_checker",
+        "queue",
+        "fitter",
+        ]
+
     def __init__(self, parent, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         self.parent = weakref.proxy(parent)
+
+        for attr in self.take_over_attrs:
+            if getattr(self, attr) is None:
+                setattr(self, attr, getattr(self.parent, attr))
+
         self.hierarchy_level = parent.hierarchy_level + 1
 
 

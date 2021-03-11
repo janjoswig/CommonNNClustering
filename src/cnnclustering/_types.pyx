@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from collections import deque
+from collections import deque, defaultdict
 from collections.abc import Sequence
 from typing import Any, Type
 
@@ -40,6 +40,17 @@ cdef class Labels:
                 raise ValueError(
                     "'labels' and 'consider' must have the same length"
                     )
+
+    def to_mapping(self):
+        mapping = defaultdict(list)
+        for index, label in enumerate(self._labels):
+            mapping[label].append(index)
+
+        return mapping
+
+    @property
+    def mapping(self):
+        return self.to_mapping()
 
     @property
     def labels(self):

@@ -49,6 +49,12 @@ class TestLabels:
         str_ = f"{_labels!s}"
         file_regression.check(f"{repr_}\n{str_}")
 
+    def test_to_mapping(self):
+        labels = Labels(np.array([1, 1, 2, 2, 0, 1], dtype=P_AINDEX, order="C"))
+        mapping = labels.to_mapping()
+        assert mapping == labels.mapping
+        assert mapping == {0: [4], 1: [0, 1, 5], 2: [2, 3]}
+
 
 class TestInputData:
     @pytest.mark.parametrize(
