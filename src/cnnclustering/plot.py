@@ -8,6 +8,14 @@ from typing import Any, Optional
 import matplotlib.pyplot as plt
 import numpy as np
 
+try:
+    import scipy.signal
+    import scipy.interpolate
+    SCIPY_FOUND = True
+except ModuleNotFoundError as error:
+    print("Optional dependency module not found: ", error)
+    SCIPY_FOUND = False
+
 
 def getpieces(c, pieces=None, level=0, ref="0", total=None):
     """Return cluster hierarchy structure in dict view
@@ -164,21 +172,19 @@ def plot_summary(ax, summary, quantity="time", treat_nan=None, contour_props=Non
     return plotted
 
 
-def plot_distance_histogram(
-        ax: Optional[Any] = None,
+def plot_histogram(
+        ax,
+        x,
         maxima: bool = False,
-        maxima_props: Optional[Dict[str, Any]] = None,
-        hist_props: Optional[Dict[str, Any]] = None,
-        ax_props: Optional[Dict[str, Any]] = None,
-        plot_props: Optional[Dict[str, Any]] = None,
-        inter_props: Optional[Dict[str, Any]] = None):
-    """Plot a histogram of distances in the data set
-
-    Requires :attr:`data.distances`.
+        maxima_props: dict = None,
+        hist_props: dict = None,
+        ax_props: dict = None,
+        plot_props: dict = None,
+        inter_props: dict = None):
+    """Plot a histogram from 1D data
 
     Args:
-        ax: Matplotlib Axes to plot on. If `None`, Figure and Axes
-            are created.
+        ax: Matplotlib Axes to plot on.
         maxima: Whether to mark the maxima of the
             distribution. Uses `scipy.signal.argrelextrema`_.
         maxima_props: Keyword arguments passed to
@@ -187,24 +193,21 @@ def plot_distance_histogram(
         hist_props: Keyword arguments passed to
             `numpy.histogram`_ to compute the histogram.
         ax_props: Keyword arguments for Matplotlib Axes styling.
+        plot_props: Keyword arguments used when plotting histogram line.
+        inter_props: Keyword arguments passed on to
+        `scipy.interpolate.interp1d`_
 
     .. _scipy.signal.argrelextrema:
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.argrelextrema.html
+    .. _scipy.interpolate.interp1d:
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html
     .. _numpy.histogram:
         https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
     """
 
-    # TODO Move to distances class / plot.py
+    if not SCIPY_FOUND:
+        raise ModuleNotFoundError("No module named 'scipy'")
 
-    # TODO Add option for kernel density estimation
-    # (scipy.stats.gaussian_kde, statsmodels.nonparametric.kde)
-
-    if self.data.distances is None:
-        raise ValueError(
-            "No distances calculated."
-            )
-
-    # TODO make this a configuration option
     hist_props_defaults = {
         "bins": 100,
         "density": True,
@@ -214,14 +217,13 @@ def plot_distance_histogram(
         hist_props_defaults.update(hist_props)
 
     histogram, bins = np.histogram(
-        self.data.distances.flat,
+        x,
         **hist_props_defaults
         )
 
     binmids = 0.5 * (bins[:-1] + bins[1:])
 
     if inter_props is not None:
-        # TODO make this a configuation option
         inter_props_defaults = {
             "ifactor": 0.5,
             "kind": 'linear',
@@ -235,7 +237,7 @@ def plot_distance_histogram(
             np.ceil(len(binmids) * ifactor)
             )
         ibinmids = np.linspace(binmids[0], binmids[-1], ipoints)
-        histogram = interp1d(
+        histogram = scipy.interpolate.interp1d(
             binmids,
             histogram,
             **inter_props_defaults
@@ -245,7 +247,6 @@ def plot_distance_histogram(
 
     ylimit = np.max(histogram) * 1.1
 
-    # TODO make this a configuration option
     ax_props_defaults = {
         "xlabel": "d / au",
         "ylabel": '',
@@ -278,9 +279,9 @@ def plot_distance_histogram(
         if maxima_props is not None:
             maxima_props_.update(maxima_props)
 
-        found = argrelextrema(histogram, np.greater, **maxima_props_)[0]
-        settings['default_radius_cutoff'] = \
-            f"{binmids[found[0]]:.2f}"
+        found = scipy.signal.argrelextrema(
+            histogram, np.greater, **maxima_props_
+            )[0]
 
         annotations = []
         for candidate in found:
@@ -451,7 +452,7 @@ def plot_contour(
     plotted = []
 
     if original:
-        x_, y_, H = get_histogram(
+        x_, y_, H = get_histogram2d(
             data[:, 0],
             data[:, 1],
             mids=mids,
@@ -470,7 +471,7 @@ def plot_contour(
             if cluster in clusters:
                 cpoints = list(cpoints)
 
-                x_, y_, H = get_histogram(
+                x_, y_, H = get_histogram2d(
                     data[cpoints, 0],
                     data[cpoints, 1],
                     mids=mids,
@@ -538,7 +539,7 @@ def plot_contourf(
     plotted = []
 
     if original:
-        x_, y_, H = get_histogram(
+        x_, y_, H = get_histogram2d(
             data[:, 0],
             data[:, 1],
             mids=mids,
@@ -557,7 +558,7 @@ def plot_contourf(
             if cluster in clusters:
                 cpoints = list(cpoints)
 
-                x_, y_, H = get_histogram(
+                x_, y_, H = get_histogram2d(
                     data[cpoints, 0],
                     data[cpoints, 1],
                     mids=mids,
@@ -628,7 +629,7 @@ def plot_histogram(
     plotted = []
 
     if original:
-        x_, y_, H = get_histogram(
+        x_, y_, H = get_histogram2d(
             data[:, 0],
             data[:, 1],
             mids=mids,
@@ -646,7 +647,7 @@ def plot_histogram(
             if cluster in clusters:
                 cpoints = list(cpoints)
 
-                x_, y_, H = get_histogram(
+                x_, y_, H = get_histogram2d(
                     data[cpoints, 0],
                     data[cpoints, 1],
                     mids=mids,
@@ -707,7 +708,7 @@ def get_free_energy(H):
     return dG
 
 
-def get_histogram(
+def get_histogram2d(
         x: Sequence[float],
         y: Sequence[float],
         mids: bool = True,

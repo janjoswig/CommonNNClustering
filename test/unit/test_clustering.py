@@ -1,3 +1,6 @@
+import pytest
+import numpy as np
+
 from cnnclustering import cluster
 from cnnclustering._types import (
     InputData,
@@ -35,3 +38,50 @@ class TestClustering:
         clustering.fit(radius_cutoff=1.0, cnn_cutoff=1)
 
         fitter.fit.assert_called_once()
+
+
+class TestPreparationHooks:
+
+    @pytest.mark.parametrize(
+        "data,expected_data,expected_meta",
+        [
+            pytest.param(
+                1, None, None,
+                marks=pytest.mark.raises(exception=TypeError)
+            ),
+            ([], [[]], {"edges": [1]}),
+            ([1, 2, 3], [[1, 2, 3]], {"edges": [1]}),
+            pytest.param(
+                [[1, 2, 3], [4, 5]], None, None,
+                marks=pytest.mark.raises(exception=ValueError)
+            ),
+            (
+                [[1, 2, 3], [4, 5, 6]], [[1, 2, 3], [4, 5, 6]],
+                {"edges": [2]}
+            ),
+            pytest.param(
+                [[[1, 2, 3], [4, 5, 6]],
+                 [[7, 8, 9], [10, 11], [13, 14, 15]]], None, None,
+                marks=pytest.mark.raises(exception=ValueError)
+            ),
+            (
+                [[[1, 2, 3], [4, 5, 6]],
+                 [[7, 8, 9], [10, 11, 12], [13, 14, 15]]],
+                [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15]],
+                {"edges": [2, 3]}
+            ),
+        ],
+        ids=[
+            "invalid", "empty", "1d", "2d_invalid", "2d", "1d2d_invalid",
+            "1d2d"
+            ]
+    )
+    def test_prepare_points_from_parts(
+            self, data, expected_data, expected_meta):
+        reformatted_data, meta = cluster.prepare_points_from_parts(data)
+        print(reformatted_data)
+        np.testing.assert_array_equal(
+            expected_data,
+            reformatted_data
+            )
+        assert meta == expected_meta

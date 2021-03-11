@@ -70,13 +70,31 @@ COMPONENT_NAME_TYPE_MAP = {
 
 COMPONENT_KW_ALT = {
     "neighbour_neighbours": "neighbours",
+    "getter": "neighbours_getter",
+    "checker": "similarity_checker",
 }
 
-def prepare_clustering(input_data, preparation_hook=None, **recipe):
-    """Initialise clustering with input data"""
+
+def prepare_clustering(data, preparation_hook=None, **recipe):
+    """Initialise clustering with input data
+
+    Args:
+        data: Data that should be clustered in a format
+            compatible with 'input_data' specified in the building
+            `recipe`.  May go through `preparation_hook` to establish
+            compatibility.
+
+    Keyword args:
+        preparation_hook: A function that takes `input_data` as a
+            single argument and returns it (optionally) re-formatted.
+            May return meta-information as a second return value (None
+            otherwise).  If `None` uses :meth:`prepare_points_from_parts`.
+        recipe: Building instructions for a
+            :obj:`cnnclustering.cluster.Clustering` instance.
+    """
 
 
-    default_recipe = recipe = {
+    default_recipe = {
         "input_data": "array2d",
         "neighbours_getter": "brute_force",
         "neighbours": ("vector", (10,), {}),
@@ -90,9 +108,9 @@ def prepare_clustering(input_data, preparation_hook=None, **recipe):
     default_recipe.update(recipe)
 
     if preparation_hook is not None:
-        input_data = preparation_hook(input_data)
+        data, meta = preparation_hook(data)
     else:
-        input_data = np.asarray(input_data)
+        data, meta = prepare_points_from_parts(data)
 
     components = {}
     for component_kw, component_details in default_recipe.items():
@@ -120,7 +138,7 @@ def prepare_clustering(input_data, preparation_hook=None, **recipe):
             component_type = component_details
 
         if _component_kw == "input_data":
-            args = (input_data, *args)
+            args = (data, *args)
 
         if component_type is not None:
             components[component_kw] = component_type(
@@ -128,6 +146,100 @@ def prepare_clustering(input_data, preparation_hook=None, **recipe):
             )
 
     return Clustering(**components)
+
+
+def prepare_points_from_parts(data):
+    r"""Prepare input data points
+
+    Use when point components are passed as sequence of parts, e.g. as
+
+        >>> input_data, meta = prepare_points_parts([[[0, 0],
+        ...                                           [1, 1]],
+        ...                                          [[2, 2],
+        ...                                           [3,3]]])
+        >>> input_data
+        array([[0, 0],
+               [1, 1],
+               [2, 2],
+               [3, 3]])
+
+        >>> meta
+        {"edges": [2, 2]}
+
+    Recognised data formats are:
+
+        * Sequence of length *d*:
+            interpreted as 1 point with *d* components.
+        * 2D Sequence (sequence of sequences all of same length) with
+            length *n* (rows) and width *d* (columns):
+            interpreted as *n* points with *d* components.
+        * Sequence of 2D sequences all of same width:
+            interpreted as parts (groups) of points.
+
+    The returned input data format is compatible with:
+
+        * `cnnclustering._types.InputDataExtPointsMemoryview`
+
+    Args:
+        data: Input data that should be prepared.
+
+    Returns:
+        * Formatted input data (NumPy array of shape
+            :math:`\sum n_\mathrm{part}, d`)
+        * Dictionary of meta-information
+
+    Notes:
+        Does not catch deeper nested formats.
+    """
+
+    try:
+        d1 = len(data)
+    except TypeError as error:
+        raise error
+
+    finished = False
+
+    if d1 == 0:
+        # Empty sequence
+        data = [np.array([[]])]
+        finished = True
+
+    if not finished:
+        try:
+            d2 = [len(x) for x in data]
+            all_d2_equal = (len(set(d2)) == 1)
+        except TypeError:
+            # 1D Sequence
+            data = [np.array([data])]
+            finished = True
+
+    if not finished:
+        try:
+            d3 = [len(y) for x in data for y in x]
+            all_d3_equal = (len(set(d3)) == 1)
+        except TypeError:
+            if not all_d2_equal:
+                raise ValueError(
+                    "Dimension mismatch"
+                )
+            # 2D Sequence of sequences of same length
+            data = [np.asarray(data)]
+            finished = True
+
+    if not finished:
+        if not all_d3_equal:
+            raise ValueError(
+                "Dimension mismatch"
+            )
+        # Sequence of 2D sequences of same width
+        data = [np.asarray(x) for x in data]
+        finished = True
+
+    meta = {}
+
+    meta["edges"] = [x.shape[0] for x in data]
+
+    return np.asarray(np.vstack(data), order="C", dtype=P_AVALUE), meta
 
 
 class Clustering:
@@ -142,6 +254,8 @@ class Clustering:
             queue=None,
             fitter=None,
             labels=None):
+
+        self.hierarchy_level = 0
 
         self._input_data = input_data
         self._neighbours_getter = neighbours_getter

@@ -1,4 +1,3 @@
-from functools import partial
 import numpy as np
 import pytest
 from sklearn import neighbors
@@ -51,11 +50,11 @@ class LabelTracker(dict):
 def equalise_labels(labels):
     label_map = LabelTracker()
 
-    for index, l in enumerate(labels):
-        if l == 0:
+    for index, label in enumerate(labels):
+        if label == 0:
             continue
 
-        new_label = label_map[l]
+        new_label = label_map[label]
         labels[index] = new_label
 
     return labels
@@ -67,8 +66,10 @@ def convert_points_to_neighbours_array_array(points, r, c):
         points, r=r, return_distance=False
         )
 
+
 def convert_points_to_distances_array2d(points, r, c):
     return pairwise_distances(points)
+
 
 def no_convert(points, r, c):
     return points
