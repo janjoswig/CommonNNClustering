@@ -127,6 +127,10 @@ class InputDataNeighboursSequence(InputData):
     def meta(self):
         return self._meta
 
+    @meta.setter
+    def meta(self, value):
+        self._meta = value
+
     @property
     def n_points(self):
         return len(self._data)

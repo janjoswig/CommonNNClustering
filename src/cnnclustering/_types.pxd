@@ -79,6 +79,8 @@ cdef class Labels:
     cdef:
         AINDEX[::1] _labels
         ABOOL[::1] _consider
+        AINDEX[::1] _root_indices
+        AINDEX[::1] _parent_indices
 
 
 cdef class InputDataExtPointsMemoryview:

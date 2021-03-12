@@ -329,13 +329,46 @@ class Clustering:
         for label, indices in self.labels.mapping.items():
             # Assume indices to be sorted
             parent_indices = indices
-            if self.labels._root_indices is None:
+            if self._root_indices is None:
                 root_indices = indices
             else:
-                root_indices = self.labels._root_indices[indices]
+                root_indices = self._root_indices[indices]
 
-        self._children[label].input_data = self.input_data.get_subset(indices)
+            self._children[label]._input_data = self._input_data.get_subset(indices)
+            self._children[label]._root_indices = np.asarray(root_indices)
+            self._children[label]._parent_indices = np.asarray(parent_indices)
 
+            edges = self._input_data.meta.get("edges", None)
+            if edges is None:
+               continue
+
+            self._children[label].input_data.meta["edges"] = child_edges = []
+
+            if not edges:
+                continue
+
+            edges_iter = iter(edges)
+            index_part_end = next(edges_iter)
+            child_index_part_end = 0
+
+            for index in parent_indices:
+                if index < index_part_end:
+                    child_index_part_end += 1
+                    continue
+
+                while index >= index_part_end:
+                    child_edges.append(child_index_part_end)
+                    index_part_end += next(edges_iter)
+                    child_index_part_end = 0
+
+                child_index_part_end += 1
+
+            child_edges.append(child_index_part_end)
+
+            while len(child_edges) < len(edges):
+               child_edges.append(0)
+
+        return
 
     def summarize(
             self,

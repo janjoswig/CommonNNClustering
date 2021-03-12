@@ -3,6 +3,7 @@ import pytest
 
 from cnnclustering import cluster
 from cnnclustering._types import (
+    Labels,
     InputData,
     NeighboursGetter,
     Metric,
@@ -38,6 +39,10 @@ class TestClustering:
         clustering.fit(radius_cutoff=1.0, cnn_cutoff=1)
 
         fitter.fit.assert_called_once()
+
+    def test_isolate(self):
+        clustering = cluster.Clustering()
+        clustering.isolate()
 
 
 class TestPreparationHooks:
