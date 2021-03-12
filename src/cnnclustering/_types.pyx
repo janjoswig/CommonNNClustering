@@ -97,6 +97,10 @@ class InputData(ABC):
     def get_neighbour(self, point: int, member: int) -> int:
         """Return a member for point"""
 
+    @abstractmethod
+    def get_subset(self, indices: Sequence) -> Type['InputData']:
+        """Return input data subset"""
+
 
 class InputDataNeighboursSequence(InputData):
     """Implements the input data interface
@@ -137,6 +141,16 @@ class InputDataNeighboursSequence(InputData):
         """Return a member for point"""
         return self._data[point][member]
 
+    def get_subset(self, indices: Sequence) -> Type['InputDataNeighboursSequence']:
+        """Return input data subset"""
+        data_subset = [
+            [m for m in s if m in indices]
+            for i, s in enumerate(self._data)
+            if i in indices
+        ]
+
+        return type(self)(data_subset)
+
 
 cdef class InputDataExtPointsMemoryview:
     """Implements the input data interface"""
@@ -169,6 +183,11 @@ cdef class InputDataExtPointsMemoryview:
 
     def get_neighbour(self, point: int, member: int):
         return self._get_neighbour(point, member)
+
+    def get_subset(self, object indices: Sequence) -> Type['InputDataExtPointsMemoryview']:
+        """Return input data subset"""
+        return type(self)(self.data[indices])
+        # Slow because it goes via numpy array
 
 
 class Neighbours(ABC):

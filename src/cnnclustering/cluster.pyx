@@ -331,7 +331,7 @@ class Clustering:
             else:
                 root_indices = self.labels._root_indices[indices]
 
-        self._children[label].input_data = self.input_data.reduce(indices)
+        self._children[label].input_data = self.input_data.get_subset(indices)
 
 
     def summarize(

@@ -72,7 +72,7 @@ class TestInputData:
             ),
         ],
     )
-    def test_n_points(
+    def test_create_input_data(
             self,
             input_data_type,
             data,
@@ -96,6 +96,22 @@ class TestInputData:
             assert expected == input_data.get_component(point, dim)
 
         assert isinstance(input_data.data, (np.ndarray, list))
+
+    def test_get_subset(self):
+        input_data = InputDataExtPointsMemoryview(
+            np.array([[0, 1, 2],
+                      [3, 4, 5],
+                      [6, 7, 8],
+                      [9, 10, 11]], dtype=P_AVALUE, order="C")
+            )
+
+        input_data_subset = input_data.get_subset([1, 2])
+
+        np.testing.assert_array_equal(
+            input_data_subset.data,
+            np.array([[3, 4, 5],
+                      [6, 7, 8]])
+        )
 
 
 class TestNeighbours:
