@@ -97,20 +97,35 @@ class TestInputData:
 
         assert isinstance(input_data.data, (np.ndarray, list))
 
-    def test_get_subset(self):
-        input_data = InputDataExtPointsMemoryview(
-            np.array([[0, 1, 2],
-                      [3, 4, 5],
-                      [6, 7, 8],
-                      [9, 10, 11]], dtype=P_AVALUE, order="C")
-            )
+    @pytest.mark.parametrize(
+        "input_data_type,data,indices,expected",
+        [
+            (
+                InputDataExtPointsMemoryview,
+                np.array([[0, 1, 2],
+                          [3, 4, 5],
+                          [6, 7, 8],
+                          [9, 10, 11]], dtype=P_AVALUE, order="C"),
+                [1, 2],
+                np.array([[3, 4, 5],
+                          [6, 7, 8]])
+            ),
+            (
+                InputDataNeighboursSequence,
+                [[1, 2, 3], [0, 2, 4], [0, 1, 4], [0], [1, 2]],
+                [1, 2],
+                [[2], [1]]
+            ),
+        ]
+    )
+    def test_get_subset(self, input_data_type, data, indices, expected):
+        input_data = input_data_type(data)
 
-        input_data_subset = input_data.get_subset([1, 2])
+        input_data_subset = input_data.get_subset(indices)
 
         np.testing.assert_array_equal(
             input_data_subset.data,
-            np.array([[3, 4, 5],
-                      [6, 7, 8]])
+            expected
         )
 
 

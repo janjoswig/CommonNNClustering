@@ -77,6 +77,11 @@ class InputData(ABC):
 
     @property
     @abstractmethod
+    def meta(self):
+        """Return meta-information"""
+
+    @property
+    @abstractmethod
     def n_points(self) -> int:
        """Return total number of points"""
 
@@ -108,11 +113,19 @@ class InputDataNeighboursSequence(InputData):
     Neighbours of points stored as a sequence.
     """
 
-    def __init__(self, data: Sequence):
+    def __init__(self, data: Sequence, *, meta=None):
         self._data = data
         self._n_points = len(data)
         self._n_dim = 0
         self._n_neighbours = [len(s) for s in self._data]
+
+        if meta is None:
+            meta = {}
+        self._meta = meta
+
+    @property
+    def meta(self):
+        return self._meta
 
     @property
     def n_points(self):
@@ -155,10 +168,14 @@ class InputDataNeighboursSequence(InputData):
 cdef class InputDataExtPointsMemoryview:
     """Implements the input data interface"""
 
-    def __cinit__(self, AVALUE[:, ::1] data not None):
+    def __cinit__(self, AVALUE[:, ::1] data not None, *, meta=None):
         self._data = data
         self.n_points = self._data.shape[0]
         self.n_dim = self._data.shape[1]
+
+        if meta is None:
+            meta = {}
+        self.meta = meta
 
     @property
     def data(self):

@@ -85,6 +85,7 @@ cdef class InputDataExtPointsMemoryview:
     cdef public:
         AINDEX n_points
         AINDEX n_dim
+        dict meta
 
     cdef:
         AVALUE[:, ::1] _data

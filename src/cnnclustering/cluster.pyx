@@ -141,6 +141,9 @@ def prepare_clustering(data, preparation_hook=None, **recipe):
         if _component_kw == "input_data":
             args = (data, *args)
 
+            meta.update(kwargs.get("meta", {}))
+            kwargs["meta"] = meta
+
         if component_type is not None:
             components[component_kw] = component_type(
                 *args, **kwargs
