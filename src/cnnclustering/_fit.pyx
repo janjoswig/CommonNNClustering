@@ -17,20 +17,20 @@ class Fitter(ABC):
 
     @abstractmethod
     def fit(
-        self,
-        input_data: Type['InputData'],
-        neighbours_getter: Type['NeighboursGetter'],
-        neighbours: Type['Neighbours'],
-        neighbour_neighbours: Type['Neighbours'],
-        metric: Type['Metric'],
-        similarity_checker: Type['SimilarityChecker'],
-        queue: Type['Queue'],
-        labels: Type['Labels'],
-        cluster_params: Type['ClusterParameters']):
+            self,
+            input_data: Type['InputData'],
+            neighbours_getter: Type['NeighboursGetter'],
+            neighbours: Type['Neighbours'],
+            neighbour_neighbours: Type['Neighbours'],
+            metric: Type['Metric'],
+            similarity_checker: Type['SimilarityChecker'],
+            queue: Type['Queue'],
+            labels: Type['Labels'],
+            cluster_params: Type['ClusterParameters']):
         """Generic clustering"""
 
 
-class FitterBFS:
+class FitterBFS(Fitter):
     """Concrete implementation of the fitter interface"""
 
     def fit(
@@ -84,7 +84,7 @@ class FitterBFS:
             cluster_params.cnn_cutoff += 2
 
         n = input_data.n_points
-        current = 1
+        current = cluster_params.current_start
 
         for init_point in range(n):
             if _consider[init_point] == 0:
@@ -202,7 +202,7 @@ cdef class FitterExtBFS:
             cluster_params.cnn_cutoff += 2
 
         n = input_data.n_points
-        current = 1
+        current = cluster_params.current_start
 
         for init_point in range(n):
             if _consider[init_point] == 0:
@@ -289,3 +289,104 @@ cdef class FitterExtBFS:
             labels,
             cluster_params,
         )
+
+
+class Predictor(ABC):
+    """Defines the predictor interface"""
+
+    @abstractmethod
+    def predict(
+            self,
+            input_data: Type['InputData'],
+            predictand_input_data: Type['InputData'],
+            neighbours_getter: Type['NeighboursGetter'],
+            neighbours: Type['Neighbours'],
+            neighbour_neighbours: Type['Neighbours'],
+            metric: Type['Metric'],
+            similarity_checker: Type['SimilarityChecker'],
+            labels: Type['Labels'],
+            predictand_labels: Type['Labels'],
+            cluster_params: Type['ClusterParameters']):
+        """Generic cluster label prediction"""
+
+
+class PredictorFirstmatch(Predictor):
+
+    def predict(
+            self,
+            object input_data,
+            object predictand_input_data,
+            object neighbours_getter,
+            object neighbours,
+            object neighbour_neighbours,
+            object metric,
+            object similarity_checker,
+            Labels labels,
+            Labels predictand_labels,
+            ClusterParameters cluster_params):
+        """Generic cluster label prediction"""
+
+        cdef AINDEX member_cutoff = cluster_params.cnn_cutoff
+        cdef AINDEX n, m, point, member, member_index, label
+
+        cdef AINDEX* _labels = &labels._labels[0]
+        cdef AINDEX* _predictand_labels = &predictand_labels._labels[0]
+        cdef ABOOL* _consider = &predictand_labels._consider[0]
+        cdef cppunordered_set[AINDEX] _consider_set = labels._consider_set
+
+        cluster_params.radius_cutoff = metric.adjust_radius(
+            cluster_params.radius_cutoff
+            )
+
+        if neighbours_getter.is_selfcounting:
+            member_cutoff += 1
+            cluster_params.cnn_cutoff += 2
+
+        n = predictand_input_data.n_points
+
+        for point in range(n):
+            if _consider[point] == 0:
+                continue
+
+            neighbours_getter.get_other(
+                point,
+                input_data,
+                predictand_input_data,
+                neighbours,
+                metric,
+                cluster_params
+            )
+
+            if not neighbour_neighbours.enough(member_cutoff):
+                continue
+
+            m = neighbours.n_points
+
+            for member_index in range(m):
+                member = neighbours.get_member(member_index)
+                label = _labels[member]
+
+                if _consider_set.find(label) == _consider_set.end():
+                    continue
+
+                neighbours_getter.get_other(
+                    point,
+                    input_data,
+                    predictand_input_data,
+                    neighbour_neighbours,
+                    metric,
+                    cluster_params
+                    )
+
+                if not neighbour_neighbours.enough(member_cutoff):
+                    continue
+
+                if similarity_checker.check(
+                        neighbours,
+                        neighbour_neighbours,
+                        cluster_params):
+                    _consider[member] = 0
+                    _labels[member] = label
+                    break
+
+        return

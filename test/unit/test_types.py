@@ -28,19 +28,40 @@ class TestClusterParameters:
 
 class TestLabels:
     @pytest.mark.parametrize(
-        "labels,consider",
+        "labels,consider,meta,constructor",
         [
-            (np.zeros(10, dtype=P_AINDEX), None),
-            (np.zeros(10, dtype=P_AINDEX), np.ones(10, dtype=P_ABOOL)),
+            (np.zeros(10, dtype=P_AINDEX), None, None, None),
+            (
+                np.zeros(10, dtype=P_AINDEX),
+                np.ones(10, dtype=P_ABOOL),
+                None,
+                None
+            ),
             pytest.param(
                 np.zeros(10, dtype=P_AINDEX),
                 np.ones(9, dtype=P_ABOOL),
+                None,
+                None,
                 marks=[pytest.mark.raises(exception=ValueError)],
+            ),
+            (
+                [0, 0, 0],
+                [1, 1, 1],
+                None,
+                "from_sequence"
             ),
         ],
     )
-    def test_create_labels(self, labels, consider, file_regression):
-        _labels = Labels(labels, consider)
+    def test_create_labels(
+            self, labels, consider, meta, constructor, file_regression):
+        if constructor is None:
+            _labels = Labels(labels, consider=consider, meta=meta)
+        else:
+            _labels = getattr(Labels, constructor)(
+                labels,
+                consider=consider,
+                meta=meta
+                )
 
         assert isinstance(_labels.labels, np.ndarray)
         assert isinstance(_labels.consider, np.ndarray)
@@ -54,6 +75,34 @@ class TestLabels:
         mapping = labels.to_mapping()
         assert mapping == labels.mapping
         assert mapping == {0: [4], 1: [0, 1, 5], 2: [2, 3]}
+
+    def test_to_set(self):
+        labels = Labels(np.array([1, 1, 2, 2, 0, 1], dtype=P_AINDEX, order="C"))
+        label_set = labels.to_set()
+        assert label_set == labels.set
+        assert label_set == {0, 1, 2}
+
+
+    @pytest.mark.parametrize(
+        "kwargs,expected",
+        [
+            ({}, [1, 1, 3, 3, 0, 1, 2, 2, 2, 1, 4]),
+            ({"member_cutoff": 2}, [1, 1, 3, 3, 0, 1, 2, 2, 2, 1, 0]),
+            (
+                {"member_cutoff": 2, "max_clusters": 2},
+                [1, 1, 0, 0, 0, 1, 2, 2, 2, 1, 0]
+            ),
+        ]
+    )
+    def test_sort_by_size(self, kwargs, expected):
+        labels = Labels(
+            np.array([1, 1, 2, 2, 0, 1, 3, 3, 3, 1, 5], dtype=P_AINDEX, order="C")
+            )
+        labels.sort_by_size(**kwargs)
+        np.testing.assert_array_equal(
+            labels.labels,
+            expected
+        )
 
 
 class TestInputData:

@@ -1,3 +1,5 @@
+from libcpp.unordered_set cimport unordered_set as cppunordered_set
+
 from cnnclustering._primitive_types cimport AVALUE, AINDEX, ABOOL
 from cnnclustering._types cimport ClusterParameters, Labels
 from cnnclustering._types cimport (

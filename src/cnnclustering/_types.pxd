@@ -2,6 +2,7 @@ cimport numpy as np
 
 from libcpp.vector cimport vector as cppvector
 from libcpp.queue cimport queue as cppqueue
+from libcpp.unordered_set cimport unordered_set as cppunordered_set
 
 from cnnclustering._primitive_types cimport AINDEX, AVALUE, ABOOL
 
@@ -73,14 +74,19 @@ cdef class ClusterParameters:
     cdef public:
         AVALUE radius_cutoff
         AINDEX cnn_cutoff
+        AINDEX current_start
 
 
 cdef class Labels:
+    cdef public:
+        dict meta
+
     cdef:
         AINDEX[::1] _labels
         ABOOL[::1] _consider
         AINDEX[::1] _root_indices
         AINDEX[::1] _parent_indices
+        cppunordered_set[AINDEX] _consider_set
 
 
 cdef class InputDataExtPointsMemoryview:

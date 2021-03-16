@@ -1313,6 +1313,7 @@ class Summary(MutableSequence):
 
 class LabelInfo(NamedTuple):
     """Contex information for labels
+    
 
     :obj:`LabelInfo` instances will be attached to :obj:`Labels` and/or
     modified by :meth:`CNN.fit`, :meth:`CNN.reel`, and

@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from collections import deque, defaultdict
+from collections import Counter, defaultdict, deque
 from collections.abc import Sequence
-from typing import Any, Type
+from itertools import count
+from typing import Any, Optional, Type
 
 import numpy as np
 
@@ -11,14 +12,16 @@ from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
 
 
 cdef class ClusterParameters:
-    def __cinit__(self, radius_cutoff, cnn_cutoff):
+    def __cinit__(self, radius_cutoff, cnn_cutoff, current_start=1):
         self.radius_cutoff = radius_cutoff
         self.cnn_cutoff = cnn_cutoff
+        self.current_start = current_start
 
     def to_dict(self):
         return {
             "radius_cutoff": self.radius_cutoff,
-            "cnn_cutoff": self.cnn_cutoff
+            "cnn_cutoff": self.cnn_cutoff,
+            "current_start": self.current_start
             }
 
     def __repr__(self):
@@ -29,7 +32,8 @@ cdef class ClusterParameters:
 
 
 cdef class Labels:
-    def __cinit__(self, labels, consider=None):
+    def __cinit__(self, labels, *, consider=None, meta=None):
+
         self._labels = labels
         if consider is None:
             self._consider = np.ones_like(self._labels, dtype=P_ABOOL)
@@ -41,16 +45,17 @@ cdef class Labels:
                     "'labels' and 'consider' must have the same length"
                     )
 
-    def to_mapping(self):
-        mapping = defaultdict(list)
-        for index, label in enumerate(self._labels):
-            mapping[label].append(index)
-
-        return mapping
+        if meta is None:
+            meta = {}
+        self.meta = meta
 
     @property
     def mapping(self):
         return self.to_mapping()
+
+    @property
+    def set(self):
+        return self.to_set()
 
     @property
     def labels(self):
@@ -60,12 +65,115 @@ cdef class Labels:
     def consider(self):
         return np.asarray(self._consider)
 
+    @property
+    def shape(self):
+        return self._labels.shape
+
+    @property
+    def consider_set(self):
+        return self._consider_set
+
     def __repr__(self):
         return f"{type(self).__name__}({list(self.labels)!s})"
 
     def __str__(self):
         return f"{self.labels!s}"
 
+    @classmethod
+    def from_sequence(cls, labels, *, consider=None, meta=None):
+        labels = np.array(labels, order="C", dtype=P_AINDEX)
+
+        if consider is not None:
+            consider = np.array(consider, order="C", dtype=P_ABOOL)
+
+        return cls(labels, consider=consider, meta=meta)
+
+    def to_mapping(self):
+        cdef AINDEX index, label
+
+        mapping = defaultdict(list)
+
+        for index in range(self._labels.shape[0]):
+            label = self._labels[index]
+            mapping[label].append(index)
+
+        return mapping
+
+    def to_set(self):
+        cdef AINDEX index, label
+        cdef set label_set = set()
+
+        for index in range(self._labels.shape[0]):
+            label = self._labels[index]
+            label_set.add(label)
+
+        return label_set
+
+    def sort_by_size(
+            self,
+            member_cutoff: Optional[int] = None,
+            max_clusters: Optional[int] = None):
+        """Sort labels by clustersize in-place
+
+        Re-assigns cluster numbers so that the biggest cluster (that is
+        not noise) is cluster 1.  Also filters clusters out, that have
+        not at least `member_cutoff` members.  Optionally, does only
+        keep the `max_clusters` largest clusters.
+
+        Args:
+           member_cutoff: Valid clusters need to have at least this
+              many members.
+           max_clusters: Only keep this many clusters.
+        """
+
+        cdef AINDEX _max_clusters, _member_cutoff, cluster_count
+        cdef AINDEX index, old_label, new_label, member_count
+        cdef dict reassign_map, params
+
+        if member_cutoff is None:
+            _member_cutoff = 1
+        else:
+            _member_cutoff = member_cutoff
+
+        frequencies = Counter(self._labels)
+        if 0 in frequencies:
+            _ = frequencies.pop(0)
+
+        if frequencies:
+            if max_clusters is None:
+               _max_clusters = len(frequencies)
+            else:
+               _max_clusters = max_clusters
+
+            order = frequencies.most_common()
+            reassign_map = {}
+            reassign_map[0] = 0
+
+            new_labels = count(1)
+            for cluster_count, (old_label, member_count) in enumerate(order, 1):
+                if cluster_count > _max_clusters:
+                    reassign_map[old_label] = 0
+                    continue
+                
+                if member_count >= _member_cutoff:
+                    new_label = next(new_labels)
+                    reassign_map[old_label] = new_label
+                    continue
+
+                reassign_map[old_label] = 0
+
+            for index in range(self._labels.shape[0]):
+                old_label = self._labels[index]
+                self._labels[index] = reassign_map[old_label]
+
+            params = self.meta.get("params", {})
+            self.meta["params"] = {
+                reassign_map[k]: v
+                for k, v in params.items()
+                if (k in reassign_map) and (reassign_map[k] != 0)
+                }
+
+        return
 
 class InputData(ABC):
     """Defines the input data interface"""

@@ -108,6 +108,7 @@ def no_convert(points, r, c):
                 ("fitter", FitterExtBFS, (), {}),
             ),
             convert_points_to_distances_array2d,
+            marks=[pytest.mark.heavy]
         ),
         pytest.param(
             (

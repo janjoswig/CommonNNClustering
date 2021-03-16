@@ -1,5 +1,7 @@
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import MutableSequence
+import functools
+import time
 from typing import Any, NamedTuple
 from typing import Optional
 import weakref
@@ -272,6 +274,10 @@ class Clustering:
         self._labels = labels
 
         self._children = None
+        self._root_indices = None
+        self._parent_indices = None
+
+        self._summary = Summary()
 
     @property
     def labels(self):
@@ -291,35 +297,156 @@ class Clustering:
     def hierarchy_level(self, value):
         self._hierarchy_level = int(value)
 
+    @property
+    def summary(self):
+        return self._summary
+
     def __repr__(self):
-        return f"{type(self).__name}()"
+        return f"{type(self).__name__}()"
 
-    def fit(self, radius_cutoff: float, cnn_cutoff: int) -> None:
+    def fit(
+            self,
+            radius_cutoff: float,
+            cnn_cutoff: int,
+            member_cutoff: int = None,
+            max_clusters: int = None,
+            cnn_offset: int = None,
+            sort_by_size: bool = True,
+            info: bool = True,
+            record: bool = True,
+            record_time: bool = True,
+            v: bool = True) -> None:
+        """Execute clustering procedure
 
-        cdef ClusterParameters cluster_params = ClusterParameters(
-            radius_cutoff, cnn_cutoff
+        Args:
+            radius_cutoff: Neighbour search radius.
+            cnn_cutoff: Similarity criterion.
+            member_cutoff: Valid clusters need to have at least this
+                many members.  Passed on  to :meth:`Labels.sort_by_size`
+                if `sort_by_size` is `True`.  Has no effect otherwise
+                and valid clusters have at least one member.
+            max_clusters: Keep only the largest `max_clusters` clusters.
+                Passed on to :meth:`Labels.sort_by_size` if
+                `sort_by_size` is `True.   Has no effect otherwise.
+            cnn_cutoff: Exists for compatibility reasons and is
+                substracted from `cnn_cutoff`.  If `cnn_offset = 0`, two
+                points need to share at least `cnn_cutoff` neighbours
+                to be part of the same cluster without counting any of
+                the two points.  In former versions of the clustering,
+                self-counting was included and `cnn_cutoff = 2` is
+                equivalent to `cnn_cutoff = 0` in this version.
+            sort_by_size: Weather to sort (and trim) the created
+                :obj:`Labels` instance.  See also
+                :meth:`Labels.sort_by_size`.
+            info: Wether to modify :obj:`Labels.meta` information for
+                this clustering.
+            record: Wether to create a :obj:`Record`
+                instance for this clustering which is appended to the
+                :obj:`Summary`.
+            record_time: Wether to time clustering execution.
+            v: Be chatty.
+        """
+
+        cdef set old_label_set, new_label_set
+        cdef ClusterParameters cluster_params
+        cdef AINDEX current_start, _cnn_offset
+
+        if cnn_offset is None:
+            _cnn_offset = 0
+        else:
+            _cnn_offset = cnn_offset
+
+        if (self._labels is None) or (not self._labels.meta.get("frozen", False)):
+            self._labels = Labels(
+                np.zeros(self._input_data.n_points, order="C", dtype=P_AINDEX)
+                )
+            old_label_set = set()
+            current_start = 1
+        else:
+            old_label_set =self._labels.to_set()
+            current_start = max(old_label_set) + 1
+
+        cluster_params = ClusterParameters(
+            radius_cutoff,
+            cnn_cutoff - _cnn_offset,
+            current_start,
             )
 
-        self._labels = Labels(
-            np.zeros(self._input_data.n_points, order="c", dtype=P_AINDEX)
-            )
+        if record_time:
+            _, execution_time = timed(self._fitter.fit)(
+                self._input_data,
+                self._neighbours_getter,
+                self._neighbours,
+                self._neighbour_neighbours,
+                self._metric,
+                self._similarity_checker,
+                self._queue,
+                self._labels,
+                cluster_params
+                )
+        else:
+            self._fitter.fit(
+                self._input_data,
+                self._neighbours_getter,
+                self._neighbours,
+                self._neighbour_neighbours,
+                self._metric,
+                self._similarity_checker,
+                self._queue,
+                self._labels,
+                cluster_params
+                )
+            execution_time = None
 
-        self._fitter.fit(
-            self._input_data,
-            self._neighbours_getter,
-            self._neighbours,
-            self._neighbour_neighbours,
-            self._metric,
-            self._similarity_checker,
-            self._queue,
-            self._labels,
-            cluster_params
-            )
+        if info:
+            new_label_set = self._labels.to_set()
+            params = {
+                k: (cluster_params.radius_cutoff, cluster_params.cnn_cutoff)
+                for k in new_label_set - old_label_set
+                if k != 0
+                }
+            meta = {
+                "params": params,
+                "reference": weakref.proxy(self),
+                "origin": "fit"
+            }
+
+        if sort_by_size:
+            self._labels.sort_by_size(member_cutoff, max_clusters)
+
+        if record:
+            n_noise = 0
+            frequencies = Counter(self._labels.labels)
+
+            if 0 in frequencies:
+                n_noise = frequencies.pop(0)
+
+            n_largest = frequencies.most_common(1)[0][1] if frequencies else 0
+
+            rec = Record(
+                self._input_data.n_points,
+                cluster_params.radius_cutoff,
+                cluster_params.cnn_cutoff,
+                member_cutoff,
+                max_clusters,
+                len(self._labels.to_set() - {0}),
+                n_largest / self._input_data.n_points,
+                n_noise / self._input_data.n_points,
+                execution_time,
+                )
+
+            if v:
+                print(rec)
+
+            self._summary.append(rec)
 
         return
 
-    def isolate(self, purge: bool = True):
-        """Split input data based on cluster labels"""
+    def isolate(self, bint purge: bool = True):
+        """Split input data into childs based on cluster labels"""
+
+        cdef AINDEX label
+        cdef list indices
 
         if purge or (self._children is None):
             self._children = defaultdict(
@@ -342,7 +469,7 @@ class Clustering:
             if edges is None:
                continue
 
-            self._children[label].input_data.meta["edges"] = child_edges = []
+            self._children[label]._input_data.meta["edges"] = child_edges = []
 
             if not edges:
                 continue
@@ -369,6 +496,64 @@ class Clustering:
                child_edges.append(0)
 
         return
+
+    def reel(self, depth: Optional[int] = None) -> None:
+        """Wrap up label assignments of lower hierarchy levels
+
+        Args:
+            depth: How many lower levels to consider. If `None`,
+            consider all.
+        """
+
+        cdef AINDEX label, new_label, parent_index
+
+        def _reel(parent, depth):
+            if parent._children is None:
+                return
+
+            if depth is not None:
+                depth -= 1
+
+            parent_labels = parent._labels.labels
+            for label, child in parent._children.items():
+                if (depth is None) or (depth > 0):
+                    _reel(child, depth)
+
+                n_clusters = max(parent_labels)
+
+                if child._labels is None:
+                    continue
+
+                child_labels = child._labels.labels
+                for index, label in enumerate(child_labels):
+                    if label == 0:
+                        new_label = 0
+                    else:
+                        new_label = label + n_clusters
+
+                    parent_index = child._parent_indices[index]
+                    parent_labels[parent_index] = new_label
+
+                try:
+                    _ = parent._labels.meta["params"].pop(label)
+                except KeyError:
+                    pass
+
+                params = child._labels.meta.get("params", {})
+                for label, p in params.items():
+                    parent._labels.meta["params"][label] = p
+ 
+        if depth is not None:
+            assert depth > 0
+
+        _reel(self, depth)
+
+        return
+
+    def predict(
+            self):
+
+        self._predictor.predict()
 
     def summarize(
             self,
@@ -450,13 +635,13 @@ class ClusteringChild(Clustering):
     """
 
     take_over_attrs = [
-        "neighbours_getter",
-        "neighbours",
-        "neighbour_neighbours",
-        "metric",
-        "similarity_checker",
-        "queue",
-        "fitter",
+        "_neighbours_getter",
+        "_neighbours",
+        "_neighbour_neighbours",
+        "_metric",
+        "_similarity_checker",
+        "_queue",
+        "_fitter",
         ]
 
     def __init__(self, parent, *args, **kwargs):
@@ -471,40 +656,94 @@ class ClusteringChild(Clustering):
         self.hierarchy_level = parent.hierarchy_level + 1
 
 
-class Record(NamedTuple):
+class Record:
     """Cluster result container
 
-    :obj:`cnnclustering.cluster.Record` instances can be returned by
+    :obj:`cnnclustering.cluster.Record` instances can created during
     :meth:`cnnclustering.cluster.Clustering.fit` and
     are collected in :obj:`cnnclustering.cluster.Summary`.
     """
 
-    points: int
-    """Number of points in the clustered data set."""
+    __slots__ = [
+        "n_points",
+        "radius_cutoff",
+        "cnn_cutoff",
+        "member_cutoff",
+        "max_clusters",
+        "n_clusters",
+        "ratio_largest",
+        "ratio_noise",
+        "execution_time",
+        ]
 
-    r: float
-    """Radius cutoff :math:*r*."""
+    def __init__(
+            self,
+            n_points=None,
+            radius_cutoff=None,
+            cnn_cutoff=None,
+            member_cutoff=None,
+            max_clusters=None,
+            n_clusters=None,
+            ratio_largest=None,
+            ratio_noise=None,
+            execution_time=None):
 
-    c: int
-    """CNN cutoff :math:*c* (similarity criterion)"""
+        self.n_points = n_points
+        self.radius_cutoff = radius_cutoff
+        self.cnn_cutoff = cnn_cutoff
+        self.member_cutoff = member_cutoff
+        self.max_clusters = max_clusters
+        self.n_clusters = n_clusters
+        self.ratio_largest = ratio_largest
+        self.ratio_noise = ratio_noise
+        self.execution_time = execution_time
 
-    min: int
-    """Member cutoff. Valid clusters have at least this many members."""
+    def __repr__(self):
+        attrs_str = ", ".join(
+            [
+                f"{attr}={getattr(self, attr)!r}"
+                for attr in self.__slots__
+            ]
+            )
+        return f"{type(self).__name__}({attrs_str})"
 
-    max: int
-    """Maximum cluster number. After sorting, only the biggest `max` clusters are kept."""
+    def __str__(self):
+        attr_str = ""
+        for attr in self.__slots__:
+            if attr == "execution_time":
+               continue
 
-    clusters: int
-    """Number of identified clusters."""
+            value = getattr(self, attr)
+            if value is None:
+                attr_str += f"{value!r:<10}"
+            elif isinstance(value, float):
+                attr_str += f"{value:<10.3f}"
+            else:
+                attr_str += f"{value:<10}"
 
-    largest: float
-    """Ratio of points in the largest cluster."""
+        if self.execution_time is not None:
+            hours, rest = divmod(self.execution_time, 3600)
+            minutes, seconds = divmod(rest, 60)
+            execution_time_str = f"{int(hours):0>2}:{int(minutes):0>2}:{seconds:.3f}"
+        else:
+            execution_time_str = None
 
-    noise: float
-    """Ratio of points classified as outliers."""
-
-    time: float
-    """Measured execution time for the fit, including sorting in seconds."""
+        printable = (
+            f'{"-" * 95}\n'
+            f"#points   "
+            f"R         "
+            f"C         "
+            f"min       "
+            f"max       "
+            f"#clusters "
+            f"%largest  "
+            f"%noise    "
+            f"t        \n"
+            f"{attr_str}"
+            f"{execution_time_str}\n"
+            f'{"-" * 95}\n'
+        )
+        return printable
 
 
 class Summary(MutableSequence):
@@ -602,3 +841,16 @@ def make_typed_DataFrame(columns, dtypes, content=None):
         })
 
     return df
+
+
+def timed(function):
+    """Decorator to measure execution time"""
+
+    @functools.wraps(function)
+    def wrapper(*args, **kwargs):
+        go = time.time()
+        wrapped_return = function(*args, **kwargs)
+        stop = time.time()
+
+        return wrapped_return, stop - go
+    return wrapper
