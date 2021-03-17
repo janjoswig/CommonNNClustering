@@ -62,7 +62,7 @@ def getpieces(c, pieces=None, level=0, ref="0", total=None):
 
     if c.labels.size > 0:
         # Build parts for current level
-        cluster_shares = {k: len(v) for k, v in c.labels.clusterdict.items()}
+        cluster_shares = {k: len(v) for k, v in c.labels.mapping.items()}
         if total is None:
             # Only for root
             total = sum(cluster_shares.values())
@@ -305,7 +305,7 @@ def plot_dots(
         ax,
         data,
         original=True,
-        clusterdict=None,
+        cluster_map=None,
         clusters=None,
         dot_props=None,
         dot_noise_props=None,
@@ -327,7 +327,7 @@ def plot_dots(
 
     else:
         # Loop through the cluster result
-        for cluster, cpoints in sorted(clusterdict.items()):
+        for cluster, cpoints in sorted(cluster_map.items()):
             # plot if cluster is in the list of considered clusters
             if cluster in clusters:
                 cpoints = list(cpoints)
@@ -363,7 +363,7 @@ def plot_scatter(
         ax,
         data,
         original=True,
-        clusterdict=None,
+        cluster_map=None,
         clusters=None,
         scatter_props=None,
         scatter_noise_props=None,
@@ -383,7 +383,7 @@ def plot_scatter(
         plotted.append(ax.scatter(data[:, 0], data[:, 1], **scatter_props))
 
     else:
-        for cluster, cpoints in sorted(clusterdict.items()):
+        for cluster, cpoints in sorted(cluster_map.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 
@@ -418,7 +418,7 @@ def plot_contour(
         ax,
         data,
         original=True,
-        clusterdict=None,
+        cluster_map=None,
         clusters=None,
         contour_props=None,
         contour_noise_props=None,
@@ -467,7 +467,7 @@ def plot_contour(
         X, Y = np.meshgrid(x_, y_)
         plotted.append(ax.contour(X, Y, H, **contour_props))
     else:
-        for cluster, cpoints in sorted(clusterdict.items()):
+        for cluster, cpoints in sorted(cluster_map.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 
@@ -505,7 +505,7 @@ def plot_contourf(
         ax,
         data,
         original=True,
-        clusterdict=None,
+        cluster_map=None,
         clusters=None,
         contour_props=None,
         contour_noise_props=None,
@@ -554,7 +554,7 @@ def plot_contourf(
         X, Y = np.meshgrid(x_, y_)
         plotted.append(ax.contourf(X, Y, H, **contour_props))
     else:
-        for cluster, cpoints in sorted(clusterdict.items()):
+        for cluster, cpoints in sorted(cluster_map.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 
@@ -592,7 +592,7 @@ def plot_histogram(
         ax,
         data,
         original=True,
-        clusterdict=None,
+        cluster_map=None,
         clusters=None,
         show_props=None,
         show_noise_props=None,
@@ -643,7 +643,7 @@ def plot_histogram(
 
         plotted.append(ax.imshow(H, extent=(x_, y_), **show_props))
     else:
-        for cluster, cpoints in sorted(clusterdict.items()):
+        for cluster, cpoints in sorted(cluster_map.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 

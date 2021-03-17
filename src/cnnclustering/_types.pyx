@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from collections import Counter, defaultdict, deque
-from collections.abc import Sequence
 from itertools import count
 from typing import Any, Optional, Type
+from typing import Iterator, Sequence
 
 import numpy as np
 
@@ -72,6 +72,10 @@ cdef class Labels:
     @property
     def consider_set(self):
         return self._consider_set
+
+    @consider_set.setter
+    def consider_set(self, value):
+        self._consider_set = value
 
     def __repr__(self):
         return f"{type(self).__name__}({list(self.labels)!s})"
@@ -227,17 +231,14 @@ class InputDataNeighboursSequence(InputData):
         self._n_dim = 0
         self._n_neighbours = [len(s) for s in self._data]
 
+        _meta = {"kind": "neighbours"}
         if meta is None:
-            meta = {}
-        self._meta = meta
+            _meta.update(meta)
+        self._meta = _meta
 
     @property
     def meta(self):
         return self._meta
-
-    @meta.setter
-    def meta(self, value):
-        self._meta = value
 
     @property
     def n_points(self):
@@ -285,9 +286,10 @@ cdef class InputDataExtPointsMemoryview:
         self.n_points = self._data.shape[0]
         self.n_dim = self._data.shape[1]
 
+        _meta = {"kind": "points"}
         if meta is None:
-            meta = {}
-        self.meta = meta
+            _meta.update(meta)
+        self.meta = _meta
 
     @property
     def data(self):
@@ -318,6 +320,27 @@ cdef class InputDataExtPointsMemoryview:
         return type(self)(self.data[indices])
         # Slow because it goes via numpy array
 
+    def by_parts(self) -> Iterator:
+        """Yield data by parts
+
+        Returns:
+            Generator of 2D :obj:`numpy.ndarray` s (parts)
+        """
+
+        if self.n_points > 0:
+            edges = self.meta.get("edges", None)
+            if not edges:
+               edges = [self.n_points]
+
+            data = self.data
+
+            start = 0
+            for end in edges:
+                yield data[start:(start + end), :]
+                start += end
+
+        else:
+            yield from ()
 
 class Neighbours(ABC):
     """Defines the neighbours interface"""
@@ -535,6 +558,22 @@ class NeighboursGetterLookup(NeighboursGetter):
         for i in range(input_data.get_n_neighbours(index)):
             neighbours.assign(input_data.get_neighbour(index, i))
 
+    def get_other(
+            self,
+            index: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData'],
+            neighbours: Type['Neighbours'],
+            metric: Type['Metric'],
+            cluster_params: Type['ClusterParameters']):
+
+        neighbours.reset()
+
+        cdef AINDEX i
+
+        for i in range(other_input_data.get_n_neighbours(index)):
+            neighbours.assign(input_data.get_neighbour(index, i))
+
 
 class NeighboursGetterBruteForce(NeighboursGetter):
 
@@ -565,6 +604,28 @@ class NeighboursGetterBruteForce(NeighboursGetter):
 
         for i in range(input_data.n_points):
             distance = metric.calc_distance(index, i, input_data)
+
+            if distance <= cluster_params.radius_cutoff:
+                neighbours.assign(i)
+
+    def get_other(
+            self,
+            index: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData'],
+            neighbours: Type['Neighbours'],
+            metric: Type['Metric'],
+            cluster_params: Type['ClusterParameters']):
+
+        cdef AINDEX i
+        cdef AVALUE distance
+
+        neighbours.reset()
+
+        for i in range(input_data.n_points):
+            distance = metric.calc_distance_other(
+                index, i, input_data, other_input_data
+                )
 
             if distance <= cluster_params.radius_cutoff:
                 neighbours.assign(i)
@@ -611,6 +672,46 @@ cdef class NeighboursGetterExtBruteForce:
             cluster_params,
         )
 
+    cdef inline void _get_other(
+            self,
+            AINDEX index,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data,
+            NEIGHBOURS_EXT neighbours,
+            METRIC_EXT metric,
+            ClusterParameters cluster_params) nogil:
+
+        cdef AINDEX i
+        cdef AVALUE distance
+
+        neighbours._reset()
+
+        for i in range(input_data.n_points):
+            distance = metric._calc_distance_other(
+                index, i, input_data, other_input_data
+                )
+
+            if distance <= cluster_params.radius_cutoff:
+                neighbours._assign(i)
+
+    def get_other(
+            self,
+            AINDEX index,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data,
+            NEIGHBOURS_EXT neighbours,
+            METRIC_EXT metric,
+            ClusterParameters cluster_params):
+
+        self._get_other(
+            index,
+            input_data,
+            other_input_data,
+            neighbours,
+            metric,
+            cluster_params,
+        )
+
 
 cdef class NeighboursGetterExtLookup:
     pass
@@ -634,6 +735,13 @@ class MetricDummy(Metric):
             input_data: Type['InputData']) -> float:
         return 0.
 
+    def calc_distance_other(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData']) -> float:
+        return 0.
+
     def adjust_radius(self, radius_cutoff: float) -> float:
         return radius_cutoff
 
@@ -652,6 +760,24 @@ cdef class MetricExtDummy:
             INPUT_DATA_EXT input_data) -> float:
         return self._calc_distance(index_a, index_b, input_data)
 
+    cdef inline AVALUE _calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) nogil:
+
+        return 0.
+
+    def calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) -> float:
+
+        return self._calc_distance_other(
+            index_a, index_b, input_data, other_input_data
+            )
+
     cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
         return radius_cutoff
 
@@ -666,6 +792,14 @@ class MetricPrecomputed(Metric):
             input_data: Type['InputData']) -> float:
 
         return input_data.get_component(index_a, index_b)
+
+    def calc_distance_other(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData']) -> float:
+
+        return other_input_data.get_component(index_a, index_b)
 
     def adjust_radius(self, radius_cutoff: float) -> float:
         return radius_cutoff
@@ -684,6 +818,24 @@ cdef class MetricExtPrecomputed:
             AINDEX index_a, AINDEX index_b,
             INPUT_DATA_EXT input_data) -> float:
         return self._calc_distance(index_a, index_b, input_data)
+
+    cdef inline AVALUE _calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) nogil:
+
+        return other_input_data._get_component(index_a, index_b)
+
+    def calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) -> float:
+
+        return self._calc_distance_other(
+            index_a, index_b, input_data, other_input_data
+            )
 
     cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
         return radius_cutoff
@@ -704,6 +856,23 @@ class MetricEuclidean(Metric):
 
         for i in range(n_dim):
             a = input_data.get_component(index_a, i)
+            b = input_data.get_component(index_b, i)
+            total += cpow(a - b, 2)
+
+        return csqrt(total)
+
+    def calc_distance_other(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData']) -> float:
+
+        cdef AVALUE total = 0
+        cdef AINDEX i, n_dim = input_data.n_dim
+        cdef AVALUE a, b
+
+        for i in range(n_dim):
+            a = other_input_data.get_component(index_a, i)
             b = input_data.get_component(index_b, i)
             total += cpow(a - b, 2)
 
@@ -736,6 +905,33 @@ cdef class MetricExtEuclidean:
             INPUT_DATA_EXT input_data) -> float:
         return self._calc_distance(index_a, index_b, input_data)
 
+    cdef inline AVALUE _calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) nogil:
+
+        cdef AVALUE total = 0
+        cdef AINDEX i, n_dim = input_data.n_dim
+        cdef AVALUE a, b
+
+        for i in range(n_dim):
+            a = other_input_data._get_component(index_a, i)
+            b = input_data._get_component(index_b, i)
+            total += cpow(a - b, 2)
+
+        return csqrt(total)
+
+    def calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) -> float:
+
+        return self._calc_distance_other(
+            index_a, index_b, input_data, other_input_data
+            )
+
     cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
         return radius_cutoff
 
@@ -755,6 +951,23 @@ class MetricEuclideanReduced(Metric):
 
         for i in range(n_dim):
             a = input_data.get_component(index_a, i)
+            b = input_data.get_component(index_b, i)
+            total += cpow(a - b, 2)
+
+        return total
+
+    def calc_distance_other(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData']) -> float:
+
+        cdef AVALUE total = 0
+        cdef AINDEX i, n_dim = input_data.n_dim
+        cdef AVALUE a, b
+
+        for i in range(n_dim):
+            a = other_input_data.get_component(index_a, i)
             b = input_data.get_component(index_b, i)
             total += cpow(a - b, 2)
 
@@ -786,6 +999,33 @@ cdef class MetricExtEuclideanReduced:
             AINDEX index_a, AINDEX index_b,
             INPUT_DATA_EXT input_data) -> float:
         return self._calc_distance(index_a, index_b, input_data)
+
+    cdef inline AVALUE _calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) nogil:
+
+        cdef AVALUE total = 0
+        cdef AINDEX i, n_dim = input_data.n_dim
+        cdef AVALUE a, b
+
+        for i in range(n_dim):
+            a = other_input_data._get_component(index_a, i)
+            b = input_data._get_component(index_b, i)
+            total += cpow(a - b, 2)
+
+        return total
+
+    def calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) -> float:
+
+        return self._calc_distance_other(
+            index_a, index_b, input_data, other_input_data
+            )
 
     cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
         return cpow(radius_cutoff, 2)

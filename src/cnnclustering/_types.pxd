@@ -133,6 +133,14 @@ cdef class NeighboursGetterExtBruteForce:
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil
 
+    cdef inline void _get_other(
+            self,
+            AINDEX index,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data,
+            NEIGHBOURS_EXT neighbours,
+            METRIC_EXT metric,
+            ClusterParameters cluster_params) nogil
 
 cdef class NeighboursGetterExtLookup:
     pass
@@ -144,6 +152,12 @@ cdef class MetricExtDummy:
             AINDEX index_a, AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil
 
+    cdef inline AVALUE _calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) nogil
+
     cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil
 
 
@@ -152,6 +166,12 @@ cdef class MetricExtPrecomputed:
             self,
             AINDEX index_a, AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil
+
+    cdef inline AVALUE _calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) nogil
 
     cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil
 
@@ -162,6 +182,12 @@ cdef class MetricExtEuclidean:
             AINDEX index_a, AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil
 
+    cdef inline AVALUE _calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) nogil
+
     cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil
 
 
@@ -170,6 +196,12 @@ cdef class MetricExtEuclideanReduced:
             self,
             AINDEX index_a, AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil
+
+    cdef inline AVALUE _calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) nogil
 
     cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil
 

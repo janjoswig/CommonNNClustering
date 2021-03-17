@@ -2,8 +2,8 @@ from collections import Counter, defaultdict
 from collections.abc import MutableSequence
 import functools
 import time
-from typing import Any, NamedTuple
-from typing import Optional
+from typing import Any, Optional, Type, Union
+from typing import Container, Tuple, Sequence
 import weakref
 
 import numpy as np
@@ -259,6 +259,7 @@ class Clustering:
             similarity_checker=None,
             queue=None,
             fitter=None,
+            predictor=None,
             labels=None):
 
         self.hierarchy_level = 0
@@ -271,6 +272,7 @@ class Clustering:
         self._similarity_checker = similarity_checker
         self._queue = queue
         self._fitter = fitter
+        self._predictor = predictor
         self._labels = labels
 
         self._children = None
@@ -315,7 +317,8 @@ class Clustering:
             info: bool = True,
             record: bool = True,
             record_time: bool = True,
-            v: bool = True) -> None:
+            v: bool = True,
+            purge: bool = False) -> None:
         """Execute clustering procedure
 
         Args:
@@ -328,7 +331,7 @@ class Clustering:
             max_clusters: Keep only the largest `max_clusters` clusters.
                 Passed on to :meth:`Labels.sort_by_size` if
                 `sort_by_size` is `True.   Has no effect otherwise.
-            cnn_cutoff: Exists for compatibility reasons and is
+            cnn_offset: Exists for compatibility reasons and is
                 substracted from `cnn_cutoff`.  If `cnn_offset = 0`, two
                 points need to share at least `cnn_cutoff` neighbours
                 to be part of the same cluster without counting any of
@@ -345,6 +348,8 @@ class Clustering:
                 :obj:`Summary`.
             record_time: Wether to time clustering execution.
             v: Be chatty.
+            purge: If True, force reinitialisation of cluster label
+                assignments.
         """
 
         cdef set old_label_set, new_label_set
@@ -356,7 +361,9 @@ class Clustering:
         else:
             _cnn_offset = cnn_offset
 
-        if (self._labels is None) or (not self._labels.meta.get("frozen", False)):
+        if (self._labels is None) or purge or (
+                not self._labels.meta.get("frozen", False)):
+
             self._labels = Labels(
                 np.zeros(self._input_data.n_points, order="C", dtype=P_AINDEX)
                 )
@@ -410,6 +417,10 @@ class Clustering:
                 "reference": weakref.proxy(self),
                 "origin": "fit"
             }
+            old_params = self._labels.meta.get("params", {})
+            old_params.update(meta["params"])
+            meta["params"] = old_params
+            self._labels.meta.update(meta)
 
         if sort_by_size:
             self._labels.sort_by_size(member_cutoff, max_clusters)
@@ -551,13 +562,108 @@ class Clustering:
         return
 
     def predict(
-            self):
+            self,
+            other: Type["Clustering"],
+            radius_cutoff: float,
+            cnn_cutoff: int,
+            clusters: Optional[Sequence[int]] = None,
+            cnn_offset: Optional[int] = None,
+            info: bool = True,
+            record: bool = True,
+            record_time: bool = True,
+            v: bool = True,
+            purge: bool = False):
+        """Execute prediction procedure
 
-        self._predictor.predict()
+        Args:
+            other: :obj:`cnnclustering.cluster.Clustering` instance for
+                which cluster labels should be predicted.
+            radius_cutoff: Neighbour search radius.
+            cnn_cutoff: Similarity criterion.
+            cluster: Sequence of cluster labels that should be included
+               in the prediction.
+            cnn_offset: Exists for compatibility reasons and is
+                substracted from `cnn_cutoff`.  If `cnn_offset = 0`, two
+                points need to share at least `cnn_cutoff` neighbours
+                to be part of the same cluster without counting any of
+                the two points.  In former versions of the clustering,
+                self-counting was included and `cnn_cutoff = 2` is
+                equivalent to `cnn_cutoff = 0` in this version.
+            purge: If True, force re-initialisation of predicted cluster
+                labels.
+        """
+
+        cdef ClusterParameters cluster_params
+
+        if cnn_offset is None:
+            _cnn_offset = 0
+        else:
+            _cnn_offset = cnn_offset
+
+        if (other._labels is None) or purge or (
+                not other._labels.meta.get("frozen", False)):
+            other._labels = Labels(
+                np.zeros(other._input_data.n_points, order="C", dtype=P_AINDEX)
+                )
+
+        cluster_params = ClusterParameters(
+            radius_cutoff,
+            cnn_cutoff - _cnn_offset,
+            0,
+            )
+
+        if clusters is None:
+           clusters = self._labels.to_set() - {0}
+
+        other._labels.consider_set = clusters
+
+        if record_time:
+            _, execution_time = timed(self._predictor.predict)(
+                self._input_data,
+                other._input_data,
+                other._neighbours_getter,
+                other._neighbours,
+                other._neighbour_neighbours,
+                other._metric,
+                other._similarity_checker,
+                self._labels,
+                other._labels,
+                cluster_params
+                )
+        else:
+            self._predictor.predict(
+                self._input_data,
+                other._input_data,
+                other._neighbours_getter,
+                other._neighbours,
+                other._neighbour_neighbours,
+                other._metric,
+                other._similarity_checker,
+                self._labels,
+                other._labels,
+                cluster_params
+                )
+            execution_time = None
+
+        if info:
+            params = {
+                k: (cluster_params.radius_cutoff, cluster_params.cnn_cutoff)
+                for k in clusters
+                if k != 0
+                }
+            meta = {
+                "params": params,
+                "reference": weakref.proxy(self),
+                "origin": "predict"
+            }
+            old_params = other._labels.meta.get("params", {})
+            old_params.update(meta["params"])
+            meta["params"] = old_params
+            other._labels.meta.update(meta)
 
     def summarize(
             self,
-            ax: Optional[Any] = None,
+            ax=None,
             quantity: str = "time",
             treat_nan: Optional[Any] = None,
             ax_props: Optional[dict] = None,
@@ -618,6 +724,331 @@ class Clustering:
             treat_nan=treat_nan,
             contour_props=contour_props_defaults
             )
+
+        ax.set(**ax_props_defaults)
+
+        return fig, ax, plotted
+
+    def evaluate(
+            self,
+            ax=None,
+            clusters: Optional[Container[int]] = None,
+            original: bool = False,
+            plot_style: str = 'dots',
+            parts: Optional[Tuple[Optional[int]]] = None,
+            points: Optional[Tuple[Optional[int]]] = None,
+            dim: Optional[Tuple[int, int]] = None,
+            mask: Optional[Sequence[Union[bool, int]]] = None,
+            ax_props: Optional[dict] = None,
+            annotate: bool = True,
+            annotate_pos: str = "mean",
+            annotate_props: Optional[dict] = None,
+            plot_props: Optional[dict] = None,
+            plot_noise_props: Optional[dict] = None,
+            hist_props: Optional[dict] = None,
+            free_energy: bool = True):
+
+        """Returns a 2D plot of an original data set or a cluster result
+
+        Args: ax: The `Axes` instance to which to add the plot.  If
+            `None`, a new `Figure` with `Axes` will be created.
+
+            clusters:
+                Cluster numbers to include in the plot.  If `None`,
+                consider all.
+
+            original:
+                Allows to plot the original data instead of a cluster
+                result.  Overrides `clusters`.  Will be considered
+                `True`, if no cluster result is present.
+
+            plot_style:
+                The kind of plotting method to use.
+
+                    * "dots", :func:`ax.plot`
+                    * "scatter", :func:`ax.scatter`
+                    * "contour", :func:`ax.contour`
+                    * "contourf", :func:`ax.contourf`
+
+            parts:
+                Use a slice (start, stop, stride) on the data parts
+                before plotting. Will be applied before a slice on `points`.
+
+            points:
+                Use a slice (start, stop, stride) on the data points
+                before plotting.
+
+            dim:
+                Use these two dimensions for plotting.  If `None`, uses
+                (0, 1).
+
+            mask:
+                Sequence of boolean or integer values used for optional
+                fancy indexing on the point data array.  Note, that this
+                is applied after regular slicing (e.g. via `points`) and
+                requires a copy of the indexed data (may be slow and
+                memory intensive for big data sets).
+
+            annotate:
+                If there is a cluster result, plot the cluster numbers.
+                Uses `annotate_pos` to determinte the position of the
+                annotations.
+
+            annotate_pos:
+                Where to put the cluster number annotation.
+                Can be one of:
+
+                    * "mean", Use the cluster mean
+                    * "random", Use a random point of the cluster
+
+                Alternatively a list of x, y positions can be passed to
+                set a specific point for each cluster
+                (*Not yet implemented*)
+
+            annotate_props:
+                Dictionary of keyword arguments passed to
+                :func:`ax.annotate`.
+
+            ax_props:
+                Dictionary of `ax` properties to apply after
+                plotting via :func:`ax.set(**ax_props)`.  If `None`,
+                uses defaults that can be also defined in
+                the configuration file (*Note yet implemented*).
+
+            plot_props:
+                Dictionary of keyword arguments passed to various
+                functions (:func:`plot.plot_dots` etc.) with different
+                meaning to format cluster plotting.  If `None`, uses
+                defaults that can be also defined in
+                the configuration file (*Note yet implemented*).
+
+            plot_noise_props:
+                Like `plot_props` but for formatting noise point
+                plotting.
+
+            hist_props:
+               Dictionary of keyword arguments passed to functions that
+               involve the computing of a histogram via
+               `numpy.histogram2d`.
+
+            free_energy:
+                If `True`, converts computed histograms to pseudo free
+                energy surfaces.
+
+        Returns:
+            Figure, Axes and a list of plotted elements
+        """
+
+        if not MPL_FOUND:
+            raise ModuleNotFoundError("No module named 'matplotlib'")
+
+        if (self._input_data is None) or (
+                self._input_data.meta.get("kind", None) != "points"):
+            raise ValueError(
+                "No data points found to evaluate."
+            )
+
+        if dim is None:
+            dim = (0, 1)
+        elif dim[1] < dim[0]:
+            dim = dim[::-1]
+
+        if parts is not None:
+            by_parts = list(self._input_data.by_parts())[slice(*parts)]
+            data = np.vstack(by_parts)
+        else:
+            data = self._input_data.data
+
+        if points is None:
+            points = (None, None, None)
+
+        # Slicing without copying
+        data = data[
+            slice(*points),
+            slice(dim[0], dim[1] + 1, dim[1] - dim[0])
+            ]
+
+        if mask is not None:
+            data = data[mask]
+
+        # Plot original set or points per cluster?
+        cluster_map = None
+        if not original:
+            if self._labels is not None:
+                cluster_map = self._labels.mapping
+                if clusters is None:
+                    clusters = list(cluster_map.keys())
+            else:
+                original = True
+
+        ax_props_defaults = {
+            "xlabel": "$x$",
+            "ylabel": "$y$",
+        }
+
+        if ax_props is not None:
+            ax_props_defaults.update(ax_props)
+
+        annotate_props_defaults = {}
+
+        if annotate_props is not None:
+            annotate_props_defaults.update(annotate_props)
+
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.get_figure()
+
+        if plot_style == "dots":
+            plot_props_defaults = {
+                'lw': 0,
+                'marker': '.',
+                'markersize': 4,
+                'markeredgecolor': 'none',
+                }
+
+            if plot_props is not None:
+                plot_props_defaults.update(plot_props)
+
+            plot_noise_props_defaults = {
+                'color': 'none',
+                'lw': 0,
+                'marker': '.',
+                'markersize': 4,
+                'markerfacecolor': 'k',
+                'markeredgecolor': 'none',
+                'alpha': 0.3
+                }
+
+            if plot_noise_props is not None:
+                plot_noise_props_defaults.update(plot_noise_props)
+
+            plotted = plot.plot_dots(
+                ax=ax, data=data, original=original,
+                cluster_map=cluster_map,
+                clusters=clusters,
+                dot_props=plot_props_defaults,
+                dot_noise_props=plot_noise_props_defaults,
+                annotate=annotate, annotate_pos=annotate_pos,
+                annotate_props=annotate_props_defaults
+                )
+
+        elif plot_style == "scatter":
+            plot_props_defaults = {
+                's': 10,
+            }
+
+            if plot_props is not None:
+                plot_props_defaults.update(plot_props)
+
+            plot_noise_props_defaults = {
+                'color': 'k',
+                's': 10,
+                'alpha': 0.5
+            }
+
+            if plot_noise_props is not None:
+                plot_noise_props_defaults.update(plot_noise_props)
+
+            plotted = plot.plot_scatter(
+                ax=ax, data=data, original=original,
+                cluster_map=cluster_map,
+                clusters=clusters,
+                scatter_props=plot_props_defaults,
+                scatter_noise_props=plot_noise_props_defaults,
+                annotate=annotate, annotate_pos=annotate_pos,
+                annotate_props=annotate_props_defaults
+                )
+
+        if plot_style in ["contour", "contourf", "histogram"]:
+
+            hist_props_defaults = {
+                "avoid_zero_count": False,
+                "mass": True,
+                "mids": True
+            }
+
+            if hist_props is not None:
+                hist_props_defaults.update(hist_props)
+
+            if plot_style == "contour":
+
+                plot_props_defaults = {
+                    "cmap": mpl.cm.inferno,
+                }
+
+                if plot_props is not None:
+                    plot_props_defaults.update(plot_props)
+
+                plot_noise_props_defaults = {
+                    "cmap": mpl.cm.Greys,
+                }
+
+                if plot_noise_props is not None:
+                    plot_noise_props_defaults.update(plot_noise_props)
+
+                plotted = plot.plot_contour(
+                    ax=ax, data=data, original=original,
+                    cluster_map=cluster_map,
+                    clusters=clusters,
+                    contour_props=plot_props_defaults,
+                    contour_noise_props=plot_noise_props_defaults,
+                    hist_props=hist_props_defaults, free_energy=free_energy,
+                    annotate=annotate, annotate_pos=annotate_pos,
+                    annotate_props=annotate_props_defaults
+                    )
+
+            elif plot_style == "contourf":
+                plot_props_defaults = {
+                    "cmap": mpl.cm.inferno,
+                }
+
+                if plot_props is not None:
+                    plot_props_defaults.update(plot_props)
+
+                plot_noise_props_defaults = {
+                    "cmap": mpl.cm.Greys,
+                }
+
+                if plot_noise_props is not None:
+                    plot_noise_props_defaults.update(plot_noise_props)
+
+                plotted = plot.plot_contourf(
+                    ax=ax, data=data, original=original,
+                    cluster_map=cluster_map,
+                    clusters=clusters,
+                    contour_props=plot_props_defaults,
+                    contour_noise_props=plot_noise_props_defaults,
+                    hist_props=hist_props_defaults, free_energy=free_energy,
+                    annotate=annotate, annotate_pos=annotate_pos,
+                    annotate_props=annotate_props_defaults
+                    )
+
+            elif plot_style == "histogram":
+                plot_props_defaults = {
+                    "cmap": mpl.cm.inferno,
+                }
+
+                if plot_props is not None:
+                    plot_props_defaults.update(plot_props)
+
+                plot_noise_props_defaults = {
+                    "cmap": mpl.cm.Greys,
+                }
+
+                if plot_noise_props is not None:
+                    plot_noise_props_defaults.update(plot_noise_props)
+
+                plotted = plot.plot_histogram(
+                    ax=ax, data=data, original=original,
+                    cluster_map=cluster_map,
+                    clusters=clusters,
+                    contour_props=plot_props_defaults,
+                    contour_noise_props=plot_noise_props_defaults,
+                    hist_props=hist_props_defaults, free_energy=free_energy,
+                    annotate=annotate, annotate_pos=annotate_pos,
+                    annotate_props=annotate_props_defaults
+                    )
 
         ax.set(**ax_props_defaults)
 

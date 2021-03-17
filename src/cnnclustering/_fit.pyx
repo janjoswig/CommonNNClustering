@@ -332,7 +332,7 @@ class PredictorFirstmatch(Predictor):
         cdef AINDEX* _labels = &labels._labels[0]
         cdef AINDEX* _predictand_labels = &predictand_labels._labels[0]
         cdef ABOOL* _consider = &predictand_labels._consider[0]
-        cdef cppunordered_set[AINDEX] _consider_set = labels._consider_set
+        cdef cppunordered_set[AINDEX] _consider_set = predictand_labels._consider_set
 
         cluster_params.radius_cutoff = metric.adjust_radius(
             cluster_params.radius_cutoff
@@ -357,7 +357,7 @@ class PredictorFirstmatch(Predictor):
                 cluster_params
             )
 
-            if not neighbour_neighbours.enough(member_cutoff):
+            if not neighbours.enough(member_cutoff):
                 continue
 
             m = neighbours.n_points
@@ -385,8 +385,8 @@ class PredictorFirstmatch(Predictor):
                         neighbours,
                         neighbour_neighbours,
                         cluster_params):
-                    _consider[member] = 0
-                    _labels[member] = label
+                    _consider[point] = 0
+                    _predictand_labels[point] = label
                     break
 
         return
