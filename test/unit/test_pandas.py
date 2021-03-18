@@ -12,7 +12,7 @@ from cnnclustering import cluster
 pytestmark = pytest.mark.pandas
 
 
-def test_make_typed_DataFrame():
+def test_make_typed_DataFssrame():
     if not PANDAS_FOUND:
         pytest.skip("Test function requires pandas.")
 

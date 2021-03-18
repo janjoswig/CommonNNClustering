@@ -232,7 +232,7 @@ class InputDataNeighboursSequence(InputData):
         self._n_neighbours = [len(s) for s in self._data]
 
         _meta = {"kind": "neighbours"}
-        if meta is None:
+        if meta is not None:
             _meta.update(meta)
         self._meta = _meta
 
@@ -287,7 +287,7 @@ cdef class InputDataExtPointsMemoryview:
         self.n_dim = self._data.shape[1]
 
         _meta = {"kind": "points"}
-        if meta is None:
+        if meta is not None:
             _meta.update(meta)
         self.meta = _meta
 

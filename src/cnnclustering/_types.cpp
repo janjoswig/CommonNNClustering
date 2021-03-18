@@ -27,12 +27,12 @@
         "extra_compile_args": [
             "-g",
             "-Wall",
-            "-DNDEBUG",
             "-O3",
-            "-fwrapv",
+            "-Wsign-compare",
+            "-DNDEBUG",
             "-fno-var-tracking-assignments",
             "-Wno-unused-result",
-            "-Wsign-compare"
+            "-fwrapv"
         ],
         "include_dirs": [
             "/home/janjoswig/.pyenv/versions/cnnclustering38/lib/python3.8/site-packages/numpy/core/include"
@@ -9009,7 +9009,7 @@ static PyObject *__pyx_pf_13cnnclustering_6_types_27InputDataNeighboursSequence_
  *         self._n_neighbours = [len(s) for s in self._data]
  * 
  *         _meta = {"kind": "neighbours"}             # <<<<<<<<<<<<<<
- *         if meta is None:
+ *         if meta is not None:
  *             _meta.update(meta)
  */
   __Pyx_TraceLine(234,0,__PYX_ERR(0, 234, __pyx_L1_error))
@@ -9022,18 +9022,18 @@ static PyObject *__pyx_pf_13cnnclustering_6_types_27InputDataNeighboursSequence_
   /* "cnnclustering/_types.pyx":235
  * 
  *         _meta = {"kind": "neighbours"}
- *         if meta is None:             # <<<<<<<<<<<<<<
+ *         if meta is not None:             # <<<<<<<<<<<<<<
  *             _meta.update(meta)
  *         self._meta = _meta
  */
   __Pyx_TraceLine(235,0,__PYX_ERR(0, 235, __pyx_L1_error))
-  __pyx_t_7 = (__pyx_v_meta == Py_None);
+  __pyx_t_7 = (__pyx_v_meta != Py_None);
   __pyx_t_8 = (__pyx_t_7 != 0);
   if (__pyx_t_8) {
 
     /* "cnnclustering/_types.pyx":236
  *         _meta = {"kind": "neighbours"}
- *         if meta is None:
+ *         if meta is not None:
  *             _meta.update(meta)             # <<<<<<<<<<<<<<
  *         self._meta = _meta
  * 
@@ -9046,14 +9046,14 @@ static PyObject *__pyx_pf_13cnnclustering_6_types_27InputDataNeighboursSequence_
     /* "cnnclustering/_types.pyx":235
  * 
  *         _meta = {"kind": "neighbours"}
- *         if meta is None:             # <<<<<<<<<<<<<<
+ *         if meta is not None:             # <<<<<<<<<<<<<<
  *             _meta.update(meta)
  *         self._meta = _meta
  */
   }
 
   /* "cnnclustering/_types.pyx":237
- *         if meta is None:
+ *         if meta is not None:
  *             _meta.update(meta)
  *         self._meta = _meta             # <<<<<<<<<<<<<<
  * 
@@ -10334,7 +10334,7 @@ static int __pyx_pf_13cnnclustering_6_types_28InputDataExtPointsMemoryview___cin
  *         self.n_dim = self._data.shape[1]
  * 
  *         _meta = {"kind": "points"}             # <<<<<<<<<<<<<<
- *         if meta is None:
+ *         if meta is not None:
  *             _meta.update(meta)
  */
   __Pyx_TraceLine(289,0,__PYX_ERR(0, 289, __pyx_L1_error))
@@ -10347,18 +10347,18 @@ static int __pyx_pf_13cnnclustering_6_types_28InputDataExtPointsMemoryview___cin
   /* "cnnclustering/_types.pyx":290
  * 
  *         _meta = {"kind": "points"}
- *         if meta is None:             # <<<<<<<<<<<<<<
+ *         if meta is not None:             # <<<<<<<<<<<<<<
  *             _meta.update(meta)
  *         self.meta = _meta
  */
   __Pyx_TraceLine(290,0,__PYX_ERR(0, 290, __pyx_L1_error))
-  __pyx_t_2 = (__pyx_v_meta == Py_None);
+  __pyx_t_2 = (__pyx_v_meta != Py_None);
   __pyx_t_3 = (__pyx_t_2 != 0);
   if (__pyx_t_3) {
 
     /* "cnnclustering/_types.pyx":291
  *         _meta = {"kind": "points"}
- *         if meta is None:
+ *         if meta is not None:
  *             _meta.update(meta)             # <<<<<<<<<<<<<<
  *         self.meta = _meta
  * 
@@ -10371,14 +10371,14 @@ static int __pyx_pf_13cnnclustering_6_types_28InputDataExtPointsMemoryview___cin
     /* "cnnclustering/_types.pyx":290
  * 
  *         _meta = {"kind": "points"}
- *         if meta is None:             # <<<<<<<<<<<<<<
+ *         if meta is not None:             # <<<<<<<<<<<<<<
  *             _meta.update(meta)
  *         self.meta = _meta
  */
   }
 
   /* "cnnclustering/_types.pyx":292
- *         if meta is None:
+ *         if meta is not None:
  *             _meta.update(meta)
  *         self.meta = _meta             # <<<<<<<<<<<<<<
  * 

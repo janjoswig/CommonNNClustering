@@ -189,11 +189,24 @@ def test_fit_evaluate_regression(datadir, image_regression):
 
     data = np.load(datadir / "backbone_dihedrals.npy")
     clustering = cluster.prepare_clustering(data)
+
     fig, *_ = clustering.evaluate()
-    figname = datadir / "backbone_dihedrals.png"
-    fig.savefig(figname)
-    image_regression.check(figname.read_bytes())
-    clustering.fit(0.5, 5)
+    figname_original = datadir / "backbone_dihedrals_original.png"
+    fig.savefig(figname_original)
+    image_regression.check(
+        figname_original.read_bytes(),
+        basename="test_fit_evaluate_regression_backbone_dihedrals_original"
+        )
+
+    clustering.fit(10, 15, v=False)
+
+    fig, *_ = clustering.evaluate(annotate=False)
+    figname_clustered = datadir / "backbone_dihedrals_clustered.png"
+    fig.savefig(figname_clustered)
+    image_regression.check(
+        figname_clustered.read_bytes(),
+        basename="test_fit_evaluate_regression_backbone_dihedrals_clustered"
+        )
 
 
 @pytest.mark.parametrize(
@@ -201,7 +214,7 @@ def test_fit_evaluate_regression(datadir, image_regression):
         "components,other_components,converter"
     ),
     [
-        (
+        pytest.param(
             (
                 ("input_data", InputDataExtPointsMemoryview, (), {}),
                 ("predictor", PredictorFirstmatch, (), {})
@@ -214,7 +227,8 @@ def test_fit_evaluate_regression(datadir, image_regression):
                 ("metric", MetricExtEuclidean, (), {}),
                 ("similarity_checker", SimilarityCheckerExtContains, (), {}),
             ),
-            no_convert_other
+            no_convert_other,
+            marks=[pytest.mark.heavy]
         )
     ]
 )

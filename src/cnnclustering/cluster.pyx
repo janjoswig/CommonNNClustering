@@ -903,7 +903,7 @@ class Clustering:
             plot_props_defaults = {
                 'lw': 0,
                 'marker': '.',
-                'markersize': 4,
+                'markersize': 5,
                 'markeredgecolor': 'none',
                 }
 

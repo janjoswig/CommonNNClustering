@@ -25,14 +25,14 @@
             "/home/janjoswig/.pyenv/versions/cnnclustering38/lib/python3.8/site-packages/numpy/core/include/numpy/ufuncobject.h"
         ],
         "extra_compile_args": [
-            "-Wno-unused-result",
-            "-Wall",
-            "-fwrapv",
-            "-fno-var-tracking-assignments",
-            "-Wsign-compare",
-            "-g",
             "-O3",
-            "-DNDEBUG"
+            "-fwrapv",
+            "-Wall",
+            "-DNDEBUG",
+            "-fno-var-tracking-assignments",
+            "-g",
+            "-Wsign-compare",
+            "-Wno-unused-result"
         ],
         "include_dirs": [
             "/home/janjoswig/.pyenv/versions/cnnclustering38/lib/python3.8/site-packages/numpy/core/include"
@@ -4301,6 +4301,7 @@ static PyObject *__pyx_float_0_5;
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_4;
+static PyObject *__pyx_int_5;
 static PyObject *__pyx_int_10;
 static PyObject *__pyx_int_60;
 static PyObject *__pyx_int_3600;
@@ -14935,14 +14936,14 @@ static PyObject *__pyx_pf_13cnnclustering_7cluster_10Clustering_24evaluate(CYTHO
  *             plot_props_defaults = {
  *                 'lw': 0,             # <<<<<<<<<<<<<<
  *                 'marker': '.',
- *                 'markersize': 4,
+ *                 'markersize': 5,
  */
     __Pyx_TraceLine(904,0,__PYX_ERR(0, 904, __pyx_L1_error))
     __pyx_t_8 = __Pyx_PyDict_NewPresized(4); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 904, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_lw, __pyx_int_0) < 0) __PYX_ERR(0, 904, __pyx_L1_error)
     if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_marker, __pyx_kp_u__31) < 0) __PYX_ERR(0, 904, __pyx_L1_error)
-    if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_markersize, __pyx_int_4) < 0) __PYX_ERR(0, 904, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_markersize, __pyx_int_5) < 0) __PYX_ERR(0, 904, __pyx_L1_error)
     if (PyDict_SetItem(__pyx_t_8, __pyx_n_u_markeredgecolor, __pyx_n_u_none) < 0) __PYX_ERR(0, 904, __pyx_L1_error)
     __pyx_v_plot_props_defaults = ((PyObject*)__pyx_t_8);
     __pyx_t_8 = 0;
@@ -38122,6 +38123,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_4 = PyInt_FromLong(4); if (unlikely(!__pyx_int_4)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_5 = PyInt_FromLong(5); if (unlikely(!__pyx_int_5)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_10 = PyInt_FromLong(10); if (unlikely(!__pyx_int_10)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_60 = PyInt_FromLong(60); if (unlikely(!__pyx_int_60)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_3600 = PyInt_FromLong(3600); if (unlikely(!__pyx_int_3600)) __PYX_ERR(0, 1, __pyx_L1_error)
