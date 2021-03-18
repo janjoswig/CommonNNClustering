@@ -48,7 +48,7 @@ extensions = cythonize(extensions, compiler_directives=compiler_directives)
 with open("README.md", "r") as readme:
     desc = readme.read()
 
-sdesc = "A Python package for common-nearest neighbour (CNN) clustering"
+sdesc = "A Python package for common-nearest-neighbours clustering"
 
 requirements_map = {
     "mandatory": "",
@@ -66,13 +66,13 @@ for category, fname in requirements_map.items():
 setup(
     name="cnnclustering",
     version="0.3.11",
-    keywords=["Density-based-clustering"],
+    keywords=["Density-based clustering"],
     author="Jan-Oliver Joswig",
     author_email="jan.joswig@fu-berlin.de",
     description=sdesc,
     long_description=desc,
     long_description_content_type="text/markdown",
-    url="https://github.com/janjoswig/CNN",
+    url="https://github.com/janjoswig/CommonNNClustering",
     packages=find_packages("src"),
     package_dir={"": "src"},
     package_data={"cnnclustering": ["*.pxd"]},

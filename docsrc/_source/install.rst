@@ -4,21 +4,21 @@ Installation instructions
 Requirements
 ------------
 
-The :mod:`cnnclustering` package is developed and tested in Python 3.8. Earlier
-versions >=3.6 may work as well, though. The package has a few third
-party Python package dependencies. We recommend to install the latest
-version of:
+The :mod:`cnnclustering` package is developed and tested in Python >=3.6.
+At runtime the package has a few mandatory third party dependencies.
+We recommend to install the latest version of:
+
+   * :mod:`numpy`
+   * :mod:`PyYAML`
+   * :mod:`tqdm`
+
+Optionally, additional functionality is available when one of the following
+packages is installed as well:
 
    * :mod:`matplotlib`
-   * :mod:`numpy`
+   * :mod:`pandas`
    * :mod:`scipy`
-   * :mod:`pandas` (optional)
-   * :mod:`tqdm`
-   * :mod:`PyYAML`
-
-If you want to compile the Cython extensions yourself, you will need to
-install :mod:`Cython` as well. The tests can be run after installing
-:mod:`pytest` and require :mod:`scikit-learn`.
+   * :mod:`sklearn`
 
 PyPi
 ----
@@ -27,16 +27,21 @@ PyPi
 
    pip install cnnclustering
 
-Manual installation
--------------------
+Developement installation
+-------------------------
 
-Clone the source repository `https://github.com/janjoswig/CNN
-<https://github.com/janjoswig/CNN>`_ and use the package
-:mod:`cnnclustering` as you prefer it, e.g. install it via pip.
+Clone the source repository `https://github.com/janjoswig/CommonNNClustering
+<https://github.com/janjoswig/CommonNNClustering>`_ and use the package
+:mod:`cnnclustering` as you prefer it, e.g. install it via pip in editable mode.
 
 .. code-block:: bash
 
-   $ git clone https://github.com/janjoswig/CNN
-   $ cd CNN
-   $ pip install .
+   $ git clone https://github.com/janjoswig/CommonNNClustering
+   $ cd CommonNNClustering
+   $ pip install -e .
 
+To recompile the Cython-extensions (requires :mod:`cython` installed) use:
+
+.. code-block:: bash
+
+   $ python setup.py build_ext --inplace

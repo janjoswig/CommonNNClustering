@@ -3,8 +3,8 @@
    file completely to your liking, but it should at least contain the
    root `toctree` directive.
 
-CNN clustering
-==============
+Common-nearest-neighbours clustering
+====================================
 
 .. toctree::
    :maxdepth: 2

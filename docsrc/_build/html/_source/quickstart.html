@@ -6,16 +6,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quickstart &#8212; cnnclustering  documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Tutorials" href="tutorials.html" />
@@ -38,36 +35,28 @@
             
   <div class="section" id="quickstart">
 <h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cnnclustering</span> <span class="kn">import</span> <span class="n">cnn</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">cnnclustering.cluster</span> <span class="kn">import</span> <span class="n">prepare_clustering</span>
 
-<span class="c1"># 2D data points (list of lists, 12 points in 2 dimensions)</span>
-<span class="n">data_points</span> <span class="o">=</span> <span class="p">[</span>   <span class="c1"># point index</span>
-   <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>       <span class="c1"># 0</span>
-   <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>       <span class="c1"># 1</span>
-   <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>       <span class="c1"># 2</span>
-   <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>      <span class="c1"># 3</span>
-   <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span>  <span class="c1"># 4</span>
-   <span class="p">[</span><span class="mi">2</span><span class="p">,</span>  <span class="mf">1.5</span><span class="p">],</span>    <span class="c1"># 5</span>
-   <span class="p">[</span><span class="mf">2.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span>  <span class="c1"># 6</span>
-   <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>       <span class="c1"># 7</span>
-   <span class="p">[</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">],</span>   <span class="c1"># 8</span>
-   <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>      <span class="c1"># 9</span>
-   <span class="p">[</span><span class="mf">5.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span>  <span class="c1"># 10</span>
-   <span class="p">[</span><span class="mf">5.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">],</span>  <span class="c1"># 11</span>
-   <span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># 2D data points (list of lists, 12 points in 2 dimensions)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_points</span> <span class="o">=</span> <span class="p">[</span>   <span class="c1"># point index</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>       <span class="c1"># 0</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>       <span class="c1"># 1</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>       <span class="c1"># 2</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>      <span class="c1"># 3</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span>  <span class="c1"># 4</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">2</span><span class="p">,</span>  <span class="mf">1.5</span><span class="p">],</span>    <span class="c1"># 5</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mf">2.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span>  <span class="c1"># 6</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>       <span class="c1"># 7</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">],</span>   <span class="c1"># 8</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>      <span class="c1"># 9</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mf">5.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">],</span>  <span class="c1"># 10</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="mf">5.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">],</span>  <span class="c1"># 11</span>
+<span class="gp">... </span>    <span class="p">]</span>
 
-<span class="n">clustering</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">CNN</span><span class="p">(</span><span class="n">points</span><span class="o">=</span><span class="n">data_points</span><span class="p">)</span>
-<span class="n">clustering</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">clustering</span><span class="o">.</span><span class="n">labels</span>
-<span class="c1"># Labels([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])</span>
-
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;original&quot;</span><span class="p">)</span>
-<span class="n">clustering</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">original</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;clustered&quot;</span><span class="p">)</span>
-<span class="n">clustering</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering</span> <span class="o">=</span> <span class="n">prepare_clustering</span><span class="p">(</span><span class="n">data_points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering</span><span class="o">.</span><span class="n">labels</span>
+<span class="go">Labels([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])</span>
 </pre></div>
 </div>
 <img alt="../_images/tutorial_basic_usage_42_01.png" src="../_images/tutorial_basic_usage_42_01.png" />
@@ -84,13 +73,13 @@
 
 
 
-<p class="blurb">CNN clustering and csMSM estimation in Python</p>
+<p class="blurb">A Python package for common-nearest-neighbours clustering</p>
 
 
 
 
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=janjoswig&repo=CNN&type=watch&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=janjoswig&repo=CommonNNClustering&type=watch&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
 
@@ -141,7 +130,7 @@
       &copy;2020, Jan-Oliver Joswig.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

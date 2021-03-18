@@ -13,7 +13,7 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(".."))
+sys.path.insert(0, os.path.abspath("../src"))
 
 
 # -- Project information -----------------------------------------------------
@@ -34,6 +34,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.todo",
     "nbsphinx",
+    "IPython.sphinxext.ipython_console_highlighting"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -42,7 +43,7 @@ templates_path = ["_templates"]
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ["_build"]
+exclude_patterns = ["_build", '**.ipynb_checkpoints']
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -53,9 +54,9 @@ exclude_patterns = ["_build"]
 html_theme = "alabaster"
 
 html_theme_options = {
-    "description": "CNN clustering and csMSM estimation in Python",
+    "description": "A Python package for common-nearest-neighbours clustering",
     "github_user": "janjoswig",
-    "github_repo": "CNN",
+    "github_repo": "CommonNNClustering",
     "github_button": "true",
     "page_width": "90%",
 }

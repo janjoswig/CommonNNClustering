@@ -1,16 +1,16 @@
 [![image](https://img.shields.io/pypi/v/cnnclustering.svg)](https://pypi.org/project/cnnclustering/)
 [![image](https://img.shields.io/pypi/l/cnnclustering.svg)](https://pypi.org/project/cnnclustering/)
 [![image](https://img.shields.io/pypi/pyversions/cnnclustering.svg)](https://pypi.org/project/cnnclustering/)
-[![Build Status](https://travis-ci.com/janjoswig/CNN.svg?branch=master)](https://travis-ci.com/janjoswig/CNN)
-[![Coverage Status](https://coveralls.io/repos/github/janjoswig/CNN/badge.svg?branch=master)](https://coveralls.io/github/janjoswig/CNN?branch=master)
+[![Build Status](https://travis-ci.com/janjoswig/CommonNNClustering.svg?branch=master)](https://travis-ci.com/janjoswig/CommonNNClustering)
+[![Coverage Status](https://coveralls.io/repos/github/janjoswig/CommonNNClustering/badge.svg?branch=master)](https://coveralls.io/github/janjoswig/CommonNNClustering?branch=master)
 
-Common-nearest-neighbours (CNN) clustering
-==========================================
+Common-nearest-neighbours clustering
+====================================
 
 ***
 **NOTE**
 
-*This project is currently under development in the alpha state.*
+*This project is currently under development.*
 *The implementation may change in the future. Check the examples and the documentation for up-to-date information.*
 
 ***
@@ -23,13 +23,13 @@ The `cnnclustering` Python package provides a flexible interface to use the <b>c
 
 The package provides a main module:
 
-  - `cnnclustering`: (Hierarchical) common-nearest-neighbours clustering and analysis
+  - `cluster`: (Hierarchical) common-nearest-neighbours clustering and analysis
 
 Features:
 
   - Flexible: Clustering can be done for data sets in different input formats. Easy interfacing with external methods.
   - Convenient: Integration of functionality, handy in the context of Molecular Dynamics.
-  - Fast: Core functionalities use Cython.
+  - Fast: Core functionalities implemented in Cython.
 
 Please refer to the following papers for the scientific background (and consider citing if you find the method useful):
 
@@ -40,12 +40,12 @@ Please refer to the following papers for the scientific background (and consider
 Documentation
 -------------
 
-The package documentation (under developement) is available [here](https://janjoswig.github.io/CNN/).
+The package documentation (under developement) is available [here](https://janjoswig.github.io/CommonNNClustering/).
 
 Install
 -------
 
-Refer to the [documentation](https://janjoswig.github.io/CNN/_source/install.html) for more details. Install from PyPi
+Refer to the [documentation](https://janjoswig.github.io/CommonNNClustering/_source/install.html) for more details. Install from PyPi
 
 ```bash
 $ pip install cnnclustering
@@ -54,8 +54,8 @@ $ pip install cnnclustering
 or clone the development version and install from a local branch
 
 ```bash
-$ git clone https://github.com/janjoswig/CNN.git
-$ cd CNN
+$ git clone https://github.com/janjoswig/CommonNNClustering.git
+$ cd CommonNNClustering
 $ pip install .
 ```
 
