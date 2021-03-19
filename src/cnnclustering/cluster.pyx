@@ -29,15 +29,19 @@ from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
 from cnnclustering._types import (
     InputDataNeighboursSequence,
     InputDataExtPointsMemoryview,
+    InputDataExtNeighboursMemoryview,
     NeighboursGetterBruteForce,
     NeighboursGetterLookup,
+    NeighboursGetterExtLookup,
     NeighboursGetterExtBruteForce,
     NeighboursList,
     NeighboursSet,
     NeighboursExtVector,
     MetricDummy,
+    MetricPrecomputed,
     MetricEuclidean,
     MetricExtDummy,
+    MetricExtPrecomputed,
     MetricExtEuclidean,
     SimilarityCheckerContains,
     SimilarityCheckerExtContains,
@@ -49,15 +53,19 @@ from cnnclustering._fit import FitterExtBFS, FitterBFS
 
 COMPONENT_NAME_TYPE_MAP = {
     "input_data": {
-        "array2d": InputDataExtPointsMemoryview,
+        "points_array2d": InputDataExtPointsMemoryview,
+        "neighbourhoods_array2d": InputDataExtNeighboursMemoryview
     },
     "neighbours_getter": {
-        "brute_force": NeighboursGetterExtBruteForce
+        "brute_force": NeighboursGetterExtBruteForce,
+        "lookup": NeighboursGetterExtLookup,
     },
     "neighbours": {
         "vector": NeighboursExtVector,
     },
     "metric": {
+        "dummy": MetricExtDummy,
+        "precomputed": MetricExtPrecomputed,
         "euclidean": MetricExtEuclidean,
     },
     "similarity_checker": {
@@ -78,6 +86,29 @@ COMPONENT_KW_ALT = {
 }
 
 
+registered_recipies = {
+    "from_points_brute_force": {
+        "input_data": "points_array2d",
+        "neighbours_getter": "brute_force",
+        "neighbours": ("vector", (10,), {}),
+        "neighbour_neighbours": ("vector", (10,), {}),
+        "metric": "euclidean",
+        "similarity_checker": "contains",
+        "queue": "fifo",
+        "fitter": "bfs",
+    },
+    "from_neighbourhoods_lookup": {
+        "input_data": "neighbourhoods_array2d",
+        "neighbours_getter": "lookup",
+        "neighbours": ("vector", (10,), {}),
+        "neighbour_neighbours": ("vector", (10,), {}),
+        "metric": "dummy",
+        "similarity_checker": "contains",
+        "queue": "fifo",
+        "fitter": "bfs",
+    }
+}
+
 def prepare_clustering(data, preparation_hook=None, **recipe):
     """Initialise clustering with input data
 
@@ -97,23 +128,14 @@ def prepare_clustering(data, preparation_hook=None, **recipe):
     """
 
 
-    default_recipe = {
-        "input_data": "array2d",
-        "neighbours_getter": "brute_force",
-        "neighbours": ("vector", (10,), {}),
-        "neighbour_neighbours": ("vector", (10,), {}),
-        "metric": "euclidean",
-        "similarity_checker": "contains",
-        "queue": "fifo",
-        "fitter": "bfs",
-    }
+    default_recipe = registered_recipies["from_points_brute_force"]
 
     default_recipe.update(recipe)
 
     if preparation_hook is not None:
-        data, meta = preparation_hook(data)
+        data_args, data_kwargs = preparation_hook(data)
     else:
-        data, meta = prepare_points_from_parts(data)
+        data_args, data_kwargs = prepare_points_from_parts(data)
 
     components = {}
     for component_kw, component_details in default_recipe.items():
@@ -141,10 +163,10 @@ def prepare_clustering(data, preparation_hook=None, **recipe):
             component_type = component_details
 
         if _component_kw == "input_data":
-            args = (data, *args)
+            args = (*data_args, *args)
 
-            meta.update(kwargs.get("meta", {}))
-            kwargs["meta"] = meta
+            data_kwargs["meta"].update(kwargs.get("meta", {}))
+            kwargs.update(data_kwargs)
 
         if component_type is not None:
             components[component_kw] = component_type(
@@ -245,7 +267,32 @@ def prepare_points_from_parts(data):
 
     meta["edges"] = [x.shape[0] for x in data]
 
-    return np.asarray(np.vstack(data), order="C", dtype=P_AVALUE), meta
+    data_args = (np.asarray(np.vstack(data), order="C", dtype=P_AVALUE),)
+    data_kwargs = {"meta": meta}
+
+    return data_args, data_kwargs
+
+
+def prepare_neighbourhoods(data):
+
+    n_neighbours = [len(s) for s in data]
+    pad_to = max(n_neighbours)
+
+    data = [
+        np.pad(a, pad_to, mode="constant", constant_values=0)
+        for a in data
+        ]
+
+    meta = {}
+
+    data_args = (
+        np.asarray(data, order="C", dtype=P_AINDEX),
+        np.asarray(n_neighbours, dtype=P_AINDEX)
+        )
+
+    data_kwargs = {"meta": meta}
+
+    return data_args, data_kwargs
 
 
 class Clustering:
@@ -300,6 +347,12 @@ class Clustering:
         self._hierarchy_level = int(value)
 
     @property
+    def input_data(self):
+        if self._input_data is not None:
+            return self._input_data.data
+        return
+
+    @property
     def summary(self):
         return self._summary
 
@@ -330,7 +383,7 @@ class Clustering:
                 and valid clusters have at least one member.
             max_clusters: Keep only the largest `max_clusters` clusters.
                 Passed on to :meth:`Labels.sort_by_size` if
-                `sort_by_size` is `True.   Has no effect otherwise.
+                `sort_by_size` is `True`.  Has no effect otherwise.
             cnn_offset: Exists for compatibility reasons and is
                 substracted from `cnn_cutoff`.  If `cnn_offset = 0`, two
                 points need to share at least `cnn_cutoff` neighbours
@@ -408,7 +461,7 @@ class Clustering:
         if info:
             new_label_set = self._labels.to_set()
             params = {
-                k: (cluster_params.radius_cutoff, cluster_params.cnn_cutoff)
+                k: (radius_cutoff, cnn_cutoff - _cnn_offset)
                 for k in new_label_set - old_label_set
                 if k != 0
                 }
@@ -436,8 +489,8 @@ class Clustering:
 
             rec = Record(
                 self._input_data.n_points,
-                cluster_params.radius_cutoff,
-                cluster_params.cnn_cutoff,
+                radius_cutoff,
+                cnn_cutoff - _cnn_offset,
                 member_cutoff,
                 max_clusters,
                 len(self._labels.to_set() - {0}),
@@ -1162,14 +1215,14 @@ class Record:
         printable = (
             f'{"-" * 95}\n'
             f"#points   "
-            f"R         "
-            f"C         "
+            f"r         "
+            f"c         "
             f"min       "
             f"max       "
             f"#clusters "
             f"%largest  "
             f"%noise    "
-            f"t        \n"
+            f"time     \n"
             f"{attr_str}"
             f"{execution_time_str}\n"
             f'{"-" * 95}\n'
@@ -1242,14 +1295,14 @@ class Summary(MutableSequence):
             ]
 
         content = []
-        for field in Record._fields:
+        for field in Record.__slots__:
             content.append([
                 record.__getattribute__(field)
                 for record in self._list
                 ])
 
         return make_typed_DataFrame(
-            columns=Record._fields,
+            columns=Record.__slots__,
             dtypes=_record_dtypes,
             content=content,
             )

@@ -9,10 +9,12 @@ from cnnclustering._primitive_types cimport AINDEX, AVALUE, ABOOL
 
 ctypedef fused INPUT_DATA:
     InputDataExtPointsMemoryview
+    InputDataExtNeighboursMemoryview
     object
 
 ctypedef fused INPUT_DATA_EXT:
     InputDataExtPointsMemoryview
+    InputDataExtNeighboursMemoryview
 
 ctypedef fused NEIGHBOURS:
     NeighboursExtVector
@@ -35,7 +37,7 @@ ctypedef fused NEIGHBOURS_GETTER:
 
 ctypedef fused NEIGHBOURS_GETTER_EXT:
     NeighboursGetterExtBruteForce
-    # NeighboursGetterExtLookup
+    NeighboursGetterExtLookup
 
 ctypedef fused METRIC:
     MetricExtDummy
@@ -104,6 +106,22 @@ cdef class InputDataExtPointsMemoryview:
     cdef inline AINDEX _get_neighbour(self, AINDEX point, AINDEX member) nogil
 
 
+cdef class InputDataExtNeighboursMemoryview:
+    cdef public:
+        AINDEX n_points
+        AINDEX n_dim
+        dict meta
+
+    cdef:
+        AINDEX[:, ::1] _data
+        AINDEX[::1] _n_neighbours
+
+    cdef inline AVALUE _get_component(
+            self, AINDEX point, AINDEX dimension) nogil
+    cdef inline AINDEX _get_n_neighbours(self, AINDEX point) nogil
+    cdef inline AINDEX _get_neighbour(self, AINDEX point, AINDEX member) nogil
+
+
 cdef class NeighboursExtVector:
 
     cdef public:
@@ -143,7 +161,26 @@ cdef class NeighboursGetterExtBruteForce:
             ClusterParameters cluster_params) nogil
 
 cdef class NeighboursGetterExtLookup:
-    pass
+    cdef public:
+        bint is_selfcounting
+        bint is_sorted
+
+    cdef inline void _get(
+            self,
+            AINDEX index,
+            INPUT_DATA_EXT input_data,
+            NEIGHBOURS_EXT neighbours,
+            METRIC_EXT metric,
+            ClusterParameters cluster_params) nogil
+
+    cdef inline void _get_other(
+            self,
+            AINDEX index,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data,
+            NEIGHBOURS_EXT neighbours,
+            METRIC_EXT metric,
+            ClusterParameters cluster_params) nogil
 
 
 cdef class MetricExtDummy:

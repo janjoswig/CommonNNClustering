@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections import Counter, defaultdict, deque
 from itertools import count
 from typing import Any, Optional, Type
-from typing import Iterator, Sequence
+from typing import Container, Iterator, Sequence
 
 import numpy as np
 
@@ -158,7 +158,7 @@ cdef class Labels:
                 if cluster_count > _max_clusters:
                     reassign_map[old_label] = 0
                     continue
-                
+
                 if member_count >= _member_cutoff:
                     new_label = next(new_labels)
                     reassign_map[old_label] = new_label
@@ -215,7 +215,7 @@ class InputData(ABC):
         """Return a member for point"""
 
     @abstractmethod
-    def get_subset(self, indices: Sequence) -> Type['InputData']:
+    def get_subset(self, indices: Container) -> Type['InputData']:
         """Return input data subset"""
 
 
@@ -252,6 +252,10 @@ class InputDataNeighboursSequence(InputData):
     def data(self):
         return [np.asarray(list(s)) for s in self._data]
 
+    @property
+    def n_neighbours(self):
+        return np.asarray(self._n_neighbours)
+
     def get_component(self, point: int, dimension: int) -> float:
         """
 
@@ -267,7 +271,7 @@ class InputDataNeighboursSequence(InputData):
         """Return a member for point"""
         return self._data[point][member]
 
-    def get_subset(self, indices: Sequence) -> Type['InputDataNeighboursSequence']:
+    def get_subset(self, indices: Container) -> Type['InputDataNeighboursSequence']:
         """Return input data subset"""
         data_subset = [
             [m for m in s if m in indices]
@@ -276,6 +280,87 @@ class InputDataNeighboursSequence(InputData):
         ]
 
         return type(self)(data_subset)
+
+
+cdef class InputDataExtNeighboursMemoryview:
+    """Implements the input data interface
+
+    Neighbours of points stored as using a memoryview.
+    """
+
+    def __cinit__(
+            self,
+            AINDEX[:, ::1] data not None,
+            AINDEX[::1] n_neighbours not None, *, meta=None):
+
+        self._data = data
+        self.n_points = self._data.shape[0]
+        self.n_dim = 0
+        self._n_neighbours = n_neighbours
+
+        _meta = {"kind": "neighbours"}
+        if meta is not None:
+            _meta.update(meta)
+        self.meta = _meta
+
+    @property
+    def data(self):
+        cdef AINDEX i
+
+        return [
+            s[:self._n_neighbours[i]]
+            for i, s in enumerate(np.asarray(self._data))
+            ]
+
+    @property
+    def n_neighbours(self):
+        return np.asarray(self._n_neighbours)
+
+    cdef inline AVALUE _get_component(
+            self, AINDEX point, AINDEX dimension) nogil:
+        """
+
+        Method only present for consistency.
+        Returns no relevant information.
+        """
+        return 0
+
+    def get_component(
+            self, point: int, dimension: int) -> float:
+        return self._get_component(point, dimension)
+
+    cdef inline AINDEX _get_n_neighbours(self, AINDEX point) nogil:
+        return self._n_neighbours[point]
+
+    def get_n_neighbours(self, point: int) -> int:
+        return self._get_n_neighbours(point)
+
+    cdef inline AINDEX _get_neighbour(self, AINDEX point, AINDEX member) nogil:
+        """Return a member for point"""
+        return self._data[point, member]
+
+    def get_neighbour(self, point: int, member: int) -> int:
+        return self._get_neighbour(point, member)
+
+    def get_subset(self, indices: Sequence) -> Type['InputDataExtNeighboursMemoryview']:
+        """Return input data subset"""
+
+        cdef list lengths
+
+        data_subset = np.asarray(self._data)[indices]
+        data_subset = [
+            [m for m in a if m in indices]
+            for a in data_subset
+        ]
+
+        lengths = [len(a) for a in data_subset]
+        pad_to = max(lengths)
+
+        for i, a in enumerate(data_subset):
+            missing_elements = pad_to - lengths[i]
+            a.extend([0] * missing_elements)
+
+        return type(self)(np.asarray(data_subset, order="C", dtype=P_AINDEX))
 
 
 cdef class InputDataExtPointsMemoryview:
@@ -551,9 +636,9 @@ class NeighboursGetterLookup(NeighboursGetter):
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']) -> None:
 
-        neighbours.reset()
-
         cdef AINDEX i
+
+        neighbours.reset()
 
         for i in range(input_data.get_n_neighbours(index)):
             neighbours.assign(input_data.get_neighbour(index, i))
@@ -567,9 +652,9 @@ class NeighboursGetterLookup(NeighboursGetter):
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']):
 
-        neighbours.reset()
-
         cdef AINDEX i
+
+        neighbours.reset()
 
         for i in range(other_input_data.get_n_neighbours(index)):
             neighbours.assign(input_data.get_neighbour(index, i))
@@ -714,7 +799,75 @@ cdef class NeighboursGetterExtBruteForce:
 
 
 cdef class NeighboursGetterExtLookup:
-    pass
+
+    def __cinit__(self):
+        self.is_sorted = False
+        self.is_selfcounting = True
+
+    cdef inline void _get(
+            self,
+            AINDEX index,
+            INPUT_DATA_EXT input_data,
+            NEIGHBOURS_EXT neighbours,
+            METRIC_EXT metric,
+            ClusterParameters cluster_params) nogil:
+
+        cdef AINDEX i
+        neighbours._reset()
+
+        for i in range(input_data._get_n_neighbours(index)):
+            neighbours._assign(input_data._get_neighbour(index, i))
+
+    def get(
+            self,
+            AINDEX index,
+            INPUT_DATA_EXT input_data,
+            NEIGHBOURS_EXT neighbours,
+            METRIC_EXT metric,
+            ClusterParameters cluster_params):
+
+        self._get(
+            index,
+            input_data,
+            neighbours,
+            metric,
+            cluster_params,
+        )
+
+    cdef inline void _get_other(
+            self,
+            AINDEX index,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data,
+            NEIGHBOURS_EXT neighbours,
+            METRIC_EXT metric,
+            ClusterParameters cluster_params) nogil:
+
+        cdef AINDEX i
+
+        neighbours._reset()
+
+        for i in range(other_input_data._get_n_neighbours(index)):
+            neighbours._assign(input_data._get_neighbour(index, i))
+
+    def get_other(
+            self,
+            AINDEX index,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data,
+            NEIGHBOURS_EXT neighbours,
+            METRIC_EXT metric,
+            ClusterParameters cluster_params):
+
+        self._get_other(
+            index,
+            input_data,
+            other_input_data,
+            neighbours,
+            metric,
+            cluster_params,
+        )
+
 
 
 class Metric(ABC):

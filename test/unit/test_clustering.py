@@ -201,10 +201,10 @@ class TestPreparationHooks:
     )
     def test_prepare_points_from_parts(
             self, data, expected_data, expected_meta):
-        reformatted_data, meta = cluster.prepare_points_from_parts(data)
-        print(reformatted_data)
+        data_args, data_kwargs = cluster.prepare_points_from_parts(data)
+        reformatted_data = data_args[0]
         np.testing.assert_array_equal(
             expected_data,
             reformatted_data
             )
-        assert meta == expected_meta
+        assert data_kwargs["meta"] == expected_meta

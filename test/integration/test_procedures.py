@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib as mpl
 import pytest
 from sklearn import neighbors
 
@@ -187,10 +188,12 @@ def test_fit_toy_data_with_reference(
 
 def test_fit_evaluate_regression(datadir, image_regression):
 
+    mpl.use("agg")
     data = np.load(datadir / "backbone_dihedrals.npy")
     clustering = cluster.prepare_clustering(data)
 
     fig, *_ = clustering.evaluate()
+    fig.tight_layout()
     figname_original = datadir / "backbone_dihedrals_original.png"
     fig.savefig(figname_original)
     image_regression.check(
@@ -201,6 +204,7 @@ def test_fit_evaluate_regression(datadir, image_regression):
     clustering.fit(10, 15, v=False)
 
     fig, *_ = clustering.evaluate(annotate=False)
+    fig.tight_layout()
     figname_clustered = datadir / "backbone_dihedrals_clustered.png"
     fig.savefig(figname_clustered)
     image_regression.check(
