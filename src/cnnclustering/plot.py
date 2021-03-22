@@ -60,9 +60,9 @@ def getpieces(c, pieces=None, level=0, ref="0", total=None):
         # New level
         pieces[level] = {}
 
-    if c.labels.size > 0:
+    if c._labels is not None:
         # Build parts for current level
-        cluster_shares = {k: len(v) for k, v in c.labels.mapping.items()}
+        cluster_shares = {k: len(v) for k, v in c._labels.mapping.items()}
         if total is None:
             # Only for root
             total = sum(cluster_shares.values())
@@ -150,13 +150,20 @@ def pie(root, ax, pie_props=None):
     return plotted
 
 
-def plot_summary(ax, summary, quantity="time", treat_nan=None, contour_props=None):
+def plot_summary(
+        ax,
+        summary,
+        quantity="execution_time",
+        treat_nan=None,
+        contour_props=None):
     """Generate a 2D plot of record values"""
 
     if contour_props is None:
         contour_props = {}
 
-    pivot = summary.groupby(["r", "c"]).mean()[quantity].reset_index().pivot("r", "c")
+    pivot = summary.groupby(
+        ["radius_cutoff", "cnn_cutoff"]
+        ).mean()[quantity].reset_index().pivot("radius_cutoff", "cnn_cutoff")
 
     X_, Y_ = np.meshgrid(pivot.index.values, pivot.columns.levels[1].values)
 
@@ -588,7 +595,7 @@ def plot_contourf(
     return plotted
 
 
-def plot_histogram(
+def plot_histogram2d(
         ax,
         data,
         original=True,

@@ -48,7 +48,7 @@ from cnnclustering._types import (
     QueueFIFODeque,
     QueueExtFIFOQueue,
 )
-from cnnclustering._fit import FitterExtBFS, FitterBFS
+from cnnclustering._fit import FitterExtBFS, FitterBFS, PredictorFirstmatch
 
 
 COMPONENT_NAME_TYPE_MAP = {
@@ -358,7 +358,38 @@ class Clustering:
         return self._summary
 
     def __repr__(self):
-        return f"{type(self).__name__}()"
+        attr_repr = ", ".join([
+            f"input_data={self._input_data!r}",
+            f"neighbours_getter={self._neighbours_getter!r}",
+            f"neighbours={self._neighbours!r}",
+            f"neighbour_neighbours={self._neighbour_neighbours!r}",
+            f"metric={self._metric!r}",
+            f"similarity_checker={self._similarity_checker!r}",
+            f"queue={self._queue!r}",
+            f"fitter={self._fitter!r}",
+            f"predictor={self._predictor!r}",
+        ])
+
+        return f"{type(self).__name__}({attr_repr})"
+
+    def __str__(self):
+        try:
+            input_data_kind = self._input_data.meta["kind"]
+        except KeyError, AttributeError:
+            input_data_kind = "unknown"
+
+        n_points = self._input_data.n_points if self._input_data is not None else None
+        n_children = len(self._children) if self._children is not None else None
+
+        attr_str = "\n".join([
+            f"hierarchy_level: {self._hierarchy_level}",
+            f"input_data_kind: {input_data_kind}",
+            f"points: {n_points}",
+            f"children: {n_children}",
+        ])
+
+        return attr_str
+
 
     def fit(
             self,
@@ -579,22 +610,24 @@ class Clustering:
             if depth is not None:
                 depth -= 1
 
+            parent._labels.meta["origin"] = "reel"
             parent_labels = parent._labels.labels
+
             for label, child in parent._children.items():
                 if (depth is None) or (depth > 0):
                     _reel(child, depth)
 
-                n_clusters = max(parent_labels)
-
                 if child._labels is None:
                     continue
 
+                n_clusters = max(parent_labels)
+
                 child_labels = child._labels.labels
-                for index, label in enumerate(child_labels):
-                    if label == 0:
+                for index, old_label in enumerate(child_labels):
+                    if old_label == 0:
                         new_label = 0
                     else:
-                        new_label = label + n_clusters
+                        new_label = old_label + n_clusters
 
                     parent_index = child._parent_indices[index]
                     parent_labels[parent_index] = new_label
@@ -605,9 +638,9 @@ class Clustering:
                     pass
 
                 params = child._labels.meta.get("params", {})
-                for label, p in params.items():
-                    parent._labels.meta["params"][label] = p
- 
+                for old_label, p in params.items():
+                    parent._labels.meta["params"][old_label + n_clusters] = p
+
         if depth is not None:
             assert depth > 0
 
@@ -701,24 +734,26 @@ class Clustering:
 
         if info:
             params = {
-                k: (cluster_params.radius_cutoff, cluster_params.cnn_cutoff)
+                k: (radius_cutoff, cnn_cutoff - _cnn_offset)
                 for k in clusters
                 if k != 0
                 }
             meta = {
                 "params": params,
                 "reference": weakref.proxy(self),
-                "origin": "predict"
+                "origin": "predict",
             }
             old_params = other._labels.meta.get("params", {})
             old_params.update(meta["params"])
             meta["params"] = old_params
             other._labels.meta.update(meta)
 
+        other._labels.meta["frozen"] = True
+
     def summarize(
             self,
             ax=None,
-            quantity: str = "time",
+            quantity: str = "execution_time",
             treat_nan: Optional[Any] = None,
             ax_props: Optional[dict] = None,
             contour_props: Optional[dict] = None):
@@ -747,14 +782,14 @@ class Clustering:
         if not MPL_FOUND:
             raise ModuleNotFoundError("No module named 'matplotlib'")
 
-        if len(self._list) == 0:
+        if (self._summary is None) or (len(self._summary._list) == 0):
             raise LookupError(
-                "No cluster result records in summary"
+                "No records in summary"
                 )
 
         ax_props_defaults = {
-            "xlabel": "$R$",
-            "ylabel": "$C$",
+            "xlabel": "$r$",
+            "ylabel": "$c$",
         }
 
         if ax_props is not None:
@@ -773,13 +808,27 @@ class Clustering:
             fig = ax.get_figure()
 
         plotted = plot.plot_summary(
-            ax, self.to_DataFrame(),
+            ax, self._summary.to_DataFrame(),
             quantity=quantity,
             treat_nan=treat_nan,
             contour_props=contour_props_defaults
             )
 
         ax.set(**ax_props_defaults)
+
+        return fig, ax, plotted
+
+    def pie(self, ax=None, pie_props=None):
+
+        if not MPL_FOUND:
+            raise ModuleNotFoundError("No module named 'matplotlib'")
+
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.get_figure()
+
+        plotted = plot.pie(self, ax=ax, pie_props=pie_props)
 
         return fig, ax, plotted
 
@@ -1093,7 +1142,7 @@ class Clustering:
                 if plot_noise_props is not None:
                     plot_noise_props_defaults.update(plot_noise_props)
 
-                plotted = plot.plot_histogram(
+                plotted = plot.plot_histogram2d(
                     ax=ax, data=data, original=original,
                     cluster_map=cluster_map,
                     clusters=clusters,
