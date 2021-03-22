@@ -56,11 +56,13 @@ ctypedef fused METRIC_EXT:
 ctypedef fused SIMILARITY_CHECKER:
     SimilarityCheckerExtContains
     SimilarityCheckerExtSwitchContains
+    SimilarityCheckerExtScreensorted
     object
 
 ctypedef fused SIMILARITY_CHECKER_EXT:
     SimilarityCheckerExtContains
     SimilarityCheckerExtSwitchContains
+    SimilarityCheckerExtScreensorted
 
 ctypedef fused QUEUE:
     QueueExtLIFOVector
@@ -262,6 +264,15 @@ cdef class SimilarityCheckerExtSwitchContains:
             NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
             ClusterParameters cluster_params) nogil
 
+
+cdef class SimilarityCheckerExtScreensorted:
+    """Implements the similarity checker interface"""
+
+    cdef inline bint _check(
+            self,
+            NEIGHBOURS_EXT neighbours_a,
+            NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
+            ClusterParameters cluster_params) nogil
 
 cdef class QueueExtLIFOVector:
     """Implements the queue interface"""

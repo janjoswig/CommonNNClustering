@@ -127,8 +127,9 @@ def prepare_clustering(data, preparation_hook=None, **recipe):
             :obj:`cnnclustering.cluster.Clustering` instance.
     """
 
-
-    default_recipe = registered_recipies["from_points_brute_force"]
+    default_recipe = {
+        **registered_recipies["from_points_brute_force"]
+        }
 
     default_recipe.update(recipe)
 
@@ -279,8 +280,8 @@ def prepare_neighbourhoods(data):
     pad_to = max(n_neighbours)
 
     data = [
-        np.pad(a, pad_to, mode="constant", constant_values=0)
-        for a in data
+        np.pad(a, (0, pad_to - n_neighbours[i]), mode="constant", constant_values=0)
+        for i, a in enumerate(data)
         ]
 
     meta = {}
