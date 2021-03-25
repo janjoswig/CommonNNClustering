@@ -6,7 +6,7 @@ from typing import Container, Iterator, Sequence
 
 import numpy as np
 
-from libc.math cimport sqrt as csqrt, pow as cpow
+from libc.math cimport sqrt as csqrt, pow as cpow, fabs as cfabs
 
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
 
@@ -1166,6 +1166,85 @@ cdef class MetricExtEuclideanReduced:
         for i in range(n_dim):
             a = other_input_data._get_component(index_a, i)
             b = input_data._get_component(index_b, i)
+            total += cpow(a - b, 2)
+
+        return total
+
+    def calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) -> float:
+
+        return self._calc_distance_other(
+            index_a, index_b, input_data, other_input_data
+            )
+
+    cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
+        return cpow(radius_cutoff, 2)
+
+    def adjust_radius(self, radius_cutoff: float) -> float:
+       return self._adjust_radius(radius_cutoff)
+
+
+cdef class MetricExtEuclideanPeriodicReduced:
+
+    def __cinit__(self, bounds):
+        self._bounds = bounds
+
+    cdef inline AVALUE _calc_distance(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data) nogil:
+
+        cdef AVALUE total = 0
+        cdef AINDEX i, n_dim = input_data.n_dim
+        cdef AVALUE a, b, distance, bound
+
+        for i in range(n_dim):
+            a = input_data._get_component(index_a, i)
+            b = input_data._get_component(index_b, i)
+
+            bound = self._bounds[i]
+            distance = cfabs(a - b)
+
+            if bound > 0:
+                distance = distance % bound
+                if distance > (bound / 2):
+                    distance = bound - distance
+
+            total +=  cpow(distance, 2)
+
+        return total
+
+    def calc_distance(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data) -> float:
+        return self._calc_distance(index_a, index_b, input_data)
+
+    cdef inline AVALUE _calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) nogil:
+
+        cdef AVALUE total = 0
+        cdef AINDEX i, n_dim = input_data.n_dim
+        cdef AVALUE a, b, distance, bound
+
+        for i in range(n_dim):
+            a = other_input_data._get_component(index_a, i)
+            b = input_data._get_component(index_b, i)
+
+            bound = self._bounds[i]
+            distance = cfabs(a - b)
+
+            if bound > 0:
+                distance = distance % bound
+                if distance > (bound / 2):
+                    distance = bound - distance
+
             total += cpow(a - b, 2)
 
         return total

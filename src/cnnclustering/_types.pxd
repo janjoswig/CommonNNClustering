@@ -44,6 +44,7 @@ ctypedef fused METRIC:
     MetricExtPrecomputed
     MetricExtEuclidean
     MetricExtEuclideanReduced
+    MetricExtEuclideanPeriodicReduced
     object
 
 ctypedef fused METRIC_EXT:
@@ -51,6 +52,7 @@ ctypedef fused METRIC_EXT:
     MetricExtPrecomputed
     MetricExtEuclidean
     MetricExtEuclideanReduced
+    MetricExtEuclideanPeriodicReduced
 
 
 ctypedef fused SIMILARITY_CHECKER:
@@ -231,6 +233,24 @@ cdef class MetricExtEuclidean:
 
 
 cdef class MetricExtEuclideanReduced:
+    cdef inline AVALUE _calc_distance(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data) nogil
+
+    cdef inline AVALUE _calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data) nogil
+
+    cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil
+
+
+cdef class MetricExtEuclideanPeriodicReduced:
+    cdef:
+        AVALUE[::1] _bounds
+
     cdef inline AVALUE _calc_distance(
             self,
             AINDEX index_a, AINDEX index_b,

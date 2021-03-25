@@ -88,7 +88,7 @@ Labels([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])
 
 ```
 
-![quickstart](docs/_images/tutorial_basic_usage_42_0.png)
+![quickstart](docs/_images/tutorial_basic_usage_27_0.png)
 
 
 Alternative scikit-learn implementation

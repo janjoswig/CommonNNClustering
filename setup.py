@@ -21,6 +21,7 @@ if TRACE_CYTHON:
 extra_compile_args = set(sysconfig.get_config_var('CFLAGS').split())
 extra_compile_args.discard('-Wstrict-prototypes')
 extra_compile_args.add("-fno-var-tracking-assignments")
+extra_compile_args.add("-std=c++14")
 
 extensions = [
     Extension(

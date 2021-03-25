@@ -1,9 +1,10 @@
 from collections import Counter, defaultdict
 from collections.abc import MutableSequence
 import functools
+from operator import itemgetter
 import time
 from typing import Any, Optional, Type, Union
-from typing import Container, Tuple, Sequence
+from typing import Container, List, Tuple, Sequence
 import weakref
 
 import numpy as np
@@ -49,6 +50,8 @@ from cnnclustering._types import (
     QueueExtFIFOQueue,
 )
 from cnnclustering._fit import FitterExtBFS, FitterBFS, PredictorFirstmatch
+
+from libcpp.vector cimport vector as cppvector
 
 
 COMPONENT_NAME_TYPE_MAP = {
@@ -538,11 +541,166 @@ class Clustering:
 
         return
 
-    def isolate(self, bint purge: bool = True):
-        """Split input data into childs based on cluster labels"""
+    def fit_hierarchical(
+            self,
+            radius_cutoff: Union[float, List[float]],
+            cnn_cutoff: Union[int, List[int]],
+            member_cutoff: int = None,
+            max_clusters: int = None,
+            cnn_offset: int = None):
 
-        cdef AINDEX label
-        cdef list indices
+        cdef AINDEX member_count, _member_cutoff = member_cutoff
+
+        cdef cppvector[AVALUE] radius_cutoff_vector 
+        cdef cppvector[AINDEX] cnn_cutoff_vector
+
+        if isinstance(radius_cutoff, float):
+            radius_cutoff = [radius_cutoff]
+
+        if isinstance(cnn_cutoff, int):
+            cnn_cutoff = [cnn_cutoff]
+
+        if len(radius_cutoff) == 1:
+            radius_cutoff *= len(cnn_cutoff)
+
+        if len(cnn_cutoff) == 1:
+            cnn_cutoff *= len(radius_cutoff)
+
+        radius_cutoff_vector = radius_cutoff
+        cnn_cutoff_vector = cnn_cutoff
+
+        cdef ClusterParameters cluster_params
+        cdef AINDEX current_start = 1, _cnn_offset
+
+        if cnn_offset is None:
+            _cnn_offset = 0
+        else:
+            _cnn_offset = cnn_offset
+
+        cdef AINDEX step, index, n = self._input_data.n_points
+        cdef AINDEX cluster_label, parent_label
+        cdef AINDEX parent_root_ptr, child_root_index, current_max_label
+        cdef dict child_mapping
+
+        cdef Labels previous_labels = Labels(
+            np.ones(n, order="C", dtype=P_AINDEX)
+            )
+        cdef Labels current_labels
+
+        self._root_indices = np.arange(n)
+        self._parent_indices = np.arange(n)
+
+        cdef dict terminal_cluster_references = {1: self}
+        cdef dict new_terminal_cluster_references
+        cdef list child_indices, root_indices, parent_indices
+
+        for step in range(<AINDEX>radius_cutoff_vector.size()):
+
+            current_labels = Labels(
+                np.zeros(n, order="C", dtype=P_AINDEX)
+                )
+
+            cluster_params = ClusterParameters(
+                radius_cutoff_vector[step],
+                cnn_cutoff_vector[step] - _cnn_offset,
+                current_start
+                )
+
+            self._fitter.fit(
+                self._input_data,
+                self._neighbours_getter,
+                self._neighbours,
+                self._neighbour_neighbours,
+                self._metric,
+                self._similarity_checker,
+                self._queue,
+                current_labels,
+                cluster_params
+                )
+
+            current_clusters = defaultdict(lambda: defaultdict(list))
+            current_clusters_processed = defaultdict(lambda: defaultdict(list))
+            current_max_label = np.max(previous_labels.labels)
+
+            for index in range(n):
+                cluster_label = current_labels._labels[index]
+
+                if cluster_label == 0:
+                    continue
+
+                current_clusters[previous_labels._labels[index]][cluster_label].append(index)
+
+            for parent_label, child_mapping in current_clusters.items():
+                sorted_child_labels_and_membercount = sorted(
+                    {
+                        k: len(v)
+                        for k, v in child_mapping.items()
+                    }.items(), key=itemgetter(1), reverse=True
+                )
+
+                child_label, member_count = sorted_child_labels_and_membercount[0]
+                child_indices = child_mapping[child_label]
+                if member_count >= _member_cutoff:
+                    current_labels.labels[child_indices] = parent_label  # !
+                    current_clusters_processed[parent_label][parent_label] = child_indices
+                else:
+                    current_labels.labels[child_indices] = 0
+
+                for child_label, member_count in sorted_child_labels_and_membercount[1:]:
+                    child_indices = child_mapping[child_label]
+                    if member_count >= _member_cutoff:
+                        current_labels.labels[child_indices] = child_label + current_max_label
+                        current_clusters_processed[parent_label][child_label + current_max_label] = child_indices
+                    else:
+                        current_labels.labels[child_indices] = 0
+
+            new_terminal_cluster_references = {}
+            for parent_label, clustering_instance in terminal_cluster_references.items():
+                clustering_instance._labels = Labels.from_sequence(
+                    current_labels.labels[clustering_instance._root_indices]
+                    )
+                clustering_instance._children = defaultdict(
+                    lambda: ClusteringChild(parent=clustering_instance)
+                    )
+            
+                for child_label, root_indices in current_clusters_processed[parent_label].items():
+                    clustering_instance._children[child_label]._root_indices = np.asarray(root_indices)
+                    clustering_instance._children[child_label]._input_data = self._input_data.get_subset(root_indices)
+                    
+                    # Reconstruct parent indices
+                    parent_root_ptr = 0
+                    parent_indices = []
+                    for child_root_index in root_indices:
+                        while True:
+                            if child_root_index == clustering_instance._root_indices[parent_root_ptr]:
+                                parent_indices.append(parent_root_ptr)
+                                parent_root_ptr += 1
+                                break
+                            parent_root_ptr += 1
+                    
+                    clustering_instance._children[child_label]._parent_indices = np.asarray(parent_indices)
+                    new_terminal_cluster_references[child_label] = clustering_instance._children[child_label]
+
+            terminal_cluster_references = new_terminal_cluster_references
+            previous_labels = current_labels
+
+            return
+
+    def isolate(
+            self,
+            bint purge: bool = True,
+            bint isolate_input_data: bool = True):
+        """Create child clusterings from cluster labels
+
+        Args:
+            purge: If `True`, creates a new mapping for the children of this
+                clustering.
+            isolate_input_data: If `True`, attaches a subset of the input data
+                of this clustering to the child.
+        """
+
+        cdef AINDEX label, index
+        cdef list indices, root_indices, parent_indices
 
         if purge or (self._children is None):
             self._children = defaultdict(
@@ -557,9 +715,15 @@ class Clustering:
             else:
                 root_indices = self._root_indices[indices]
 
-            self._children[label]._input_data = self._input_data.get_subset(indices)
             self._children[label]._root_indices = np.asarray(root_indices)
             self._children[label]._parent_indices = np.asarray(parent_indices)
+
+            if not isolate_input_data:
+                continue
+
+            self._children[label]._input_data = self._input_data.get_subset(
+                indices
+                )
 
             edges = self._input_data.meta.get("edges", None)
             if edges is None:
