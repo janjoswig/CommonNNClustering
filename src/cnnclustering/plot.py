@@ -20,20 +20,27 @@ except ModuleNotFoundError as error:
 
 def getpieces(
         clustering):
-    """Return cluster hierarchy structure in dict view
+    """Transform cluster tree to layers of hierarchy levels
 
-    Used e.g. by :meth:`plot_pie`.
+    Each hierarchy level will be represented as a list of tuples holding
+    a cluster string identifier and the number of points in this cluster.
+
+    Used by :meth:`plot_pie`.
+
+    Args:
+        clustering: A root instance of :obj:`cnnclustering.cluster.Clustering`
     """
 
     if clustering._labels is None:
         raise LookupError(
-            "Clustering has no labels"
+            "Root clustering has no labels"
             )
 
-    pieces = [[("1", clustering._labels.n_points)], []]
-    expected_parent_pool = iter([(0, "1")])
-    next_parent_index, next_parent_label = next(expected_parent_pool)
+    pieces = [[("1", clustering._labels.n_points)]]
+    expected_parent_pool = iter(pieces[-1])
+    next_parent_label, next_parent_membercount = next(expected_parent_pool)
     expected_parent_found = False
+    pieces.append([])
 
     terminal_cluster_references = deque([("1", clustering)])
     new_terminal_cluster_references = deque()
@@ -43,16 +50,11 @@ def getpieces(
 
         while parent_label != next_parent_label:
             if not expected_parent_found:
-                pieces[-1].append(
-                    (
-                        f"{next_parent_label}.0",
-                        pieces[-2][next_parent_index][1]
-                    )
-                )
+                pieces[-1].append((f"{next_parent_label}.0", next_parent_membercount))
             else:
                 expected_parent_found = False
 
-            next_parent_index, next_parent_label = next(expected_parent_pool)
+            next_parent_label, next_parent_membercount = next(expected_parent_pool)
 
         expected_parent_found = True
 
@@ -77,24 +79,16 @@ def getpieces(
 
         if not terminal_cluster_references:
 
-            for next_parent_index, next_parent_label in expected_parent_pool:
-                pieces[-1].append(
-                    (
-                        f"{next_parent_label}.0",
-                        pieces[-2][next_parent_index][1]
-                    )
-                )
+            for next_parent_label, next_parent_membercount in expected_parent_pool:
+                pieces[-1].append((f"{next_parent_label}.0", next_parent_membercount))
 
             if not new_terminal_cluster_references:
                 break
 
             terminal_cluster_references = new_terminal_cluster_references
             new_terminal_cluster_references = deque()
-            expected_parent_pool = (
-                (i, label_length_tuple[0])
-                for i, label_length_tuple in enumerate(pieces[-1])
-                )
-            next_parent_index, next_parent_label = next(expected_parent_pool)
+            expected_parent_pool = iter(pieces[-1])
+            next_parent_label, next_parent_membercount = next(expected_parent_pool)
             expected_parent_found = False
             pieces.append([])
 
