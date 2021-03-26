@@ -311,7 +311,10 @@ class Clustering:
             queue=None,
             fitter=None,
             predictor=None,
-            labels=None):
+            labels=None,
+            alias: str = "root"):
+
+        self.alias = alias
 
         self.hierarchy_level = 0
 
@@ -341,6 +344,10 @@ class Clustering:
         if not isinstance(value, Labels):
             value = Labels(value)
         self._labels = value
+
+    @property
+    def children(self):
+        return self._children
 
     @property
     def hierarchy_level(self):
@@ -385,6 +392,7 @@ class Clustering:
         n_children = len(self._children) if self._children is not None else None
 
         attr_str = "\n".join([
+            f"alias: {self.alias!r}",
             f"hierarchy_level: {self._hierarchy_level}",
             f"input_data_kind: {input_data_kind}",
             f"points: {n_points}",
@@ -393,6 +401,23 @@ class Clustering:
 
         return attr_str
 
+    def get_child(self, label):
+        if self._children is None:
+            raise LookupError("Clustering has no children")
+
+        if isinstance(label, int):
+            if label in self._children:
+                return self._children[label]
+            raise KeyError(
+                f"Clustering {self.alias!r} has no child with label {label}"
+                )
+
+        next_label, *rest = label
+        if next_label in self._children:
+            return self._children[next_label].get_child(rest)
+        raise KeyError(
+            f"Clustering {self.alias!r} has no child with label {next_label}"
+            )
 
     def fit(
             self,
@@ -549,7 +574,11 @@ class Clustering:
             max_clusters: int = None,
             cnn_offset: int = None):
 
-        cdef AINDEX member_count, _member_cutoff = member_cutoff
+        cdef AINDEX member_count, _member_cutoff
+        
+        if member_cutoff is None:
+            member_cutoff = 2
+        _member_cutoff = member_cutoff
 
         cdef cppvector[AVALUE] radius_cutoff_vector 
         cdef cppvector[AINDEX] cnn_cutoff_vector
@@ -566,6 +595,9 @@ class Clustering:
         if len(cnn_cutoff) == 1:
             cnn_cutoff *= len(radius_cutoff)
 
+        cdef AINDEX step, n_steps = len(radius_cutoff)
+        assert n_steps == len(cnn_cutoff)
+
         radius_cutoff_vector = radius_cutoff
         cnn_cutoff_vector = cnn_cutoff
 
@@ -577,10 +609,9 @@ class Clustering:
         else:
             _cnn_offset = cnn_offset
 
-        cdef AINDEX step, index, n = self._input_data.n_points
+        cdef AINDEX index, n = self._input_data.n_points
         cdef AINDEX cluster_label, parent_label
         cdef AINDEX parent_root_ptr, child_root_index, current_max_label
-        cdef dict child_mapping
 
         cdef Labels previous_labels = Labels(
             np.ones(n, order="C", dtype=P_AINDEX)
@@ -594,7 +625,7 @@ class Clustering:
         cdef dict new_terminal_cluster_references
         cdef list child_indices, root_indices, parent_indices
 
-        for step in range(<AINDEX>radius_cutoff_vector.size()):
+        for step in range(n_steps):
 
             current_labels = Labels(
                 np.zeros(n, order="C", dtype=P_AINDEX)
@@ -684,7 +715,7 @@ class Clustering:
             terminal_cluster_references = new_terminal_cluster_references
             previous_labels = current_labels
 
-            return
+        return
 
     def isolate(
             self,
@@ -717,6 +748,7 @@ class Clustering:
 
             self._children[label]._root_indices = np.asarray(root_indices)
             self._children[label]._parent_indices = np.asarray(parent_indices)
+            self._children[label].alias = f'{self.alias} - {label}'
 
             if not isolate_input_data:
                 continue
@@ -1340,6 +1372,7 @@ class ClusteringChild(Clustering):
         "_similarity_checker",
         "_queue",
         "_fitter",
+        "alias"
         ]
 
     def __init__(self, parent, *args, **kwargs):

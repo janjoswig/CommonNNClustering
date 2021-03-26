@@ -82,12 +82,11 @@ class TestLabels:
         assert label_set == labels.set
         assert label_set == {0, 1, 2}
 
-
     @pytest.mark.parametrize(
         "kwargs,expected",
         [
-            ({}, [1, 1, 3, 3, 0, 1, 2, 2, 2, 1, 4]),
-            ({"member_cutoff": 2}, [1, 1, 3, 3, 0, 1, 2, 2, 2, 1, 0]),
+            ({"member_cutoff": 1}, [1, 1, 3, 3, 0, 1, 2, 2, 2, 1, 4]),
+            ({}, [1, 1, 3, 3, 0, 1, 2, 2, 2, 1, 0]),
             (
                 {"member_cutoff": 2, "max_clusters": 2},
                 [1, 1, 0, 0, 0, 1, 2, 2, 2, 1, 0]

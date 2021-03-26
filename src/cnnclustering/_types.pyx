@@ -135,9 +135,8 @@ cdef class Labels:
         cdef dict reassign_map, params
 
         if member_cutoff is None:
-            _member_cutoff = 1
-        else:
-            _member_cutoff = member_cutoff
+            member_cutoff = 2
+        _member_cutoff = member_cutoff
 
         frequencies = Counter(self._labels)
         if 0 in frequencies:

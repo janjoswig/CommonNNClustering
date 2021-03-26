@@ -17,7 +17,8 @@ except ModuleNotFoundError as error:
     SCIPY_FOUND = False
 
 
-def getpieces(c, pieces=None, level=0, ref="0", total=None):
+def getpieces(
+        clustering, pieces=None, level=0, ref="0"):
     """Return cluster hierarchy structure in dict view
 
     Used e.g. by :meth:`plot_pie`.
@@ -28,7 +29,7 @@ def getpieces(c, pieces=None, level=0, ref="0", total=None):
         pieces = {
             0: {  # Level
                 "0": {  # Reference
-                    0: {0.1, 1: 0.9}
+                    0: 0.1, 1: 0.9}
                 },
             1: {
                 "0.0": {
@@ -43,30 +44,28 @@ def getpieces(c, pieces=None, level=0, ref="0", total=None):
             }
 
     Args:
-        c: cluster object
-        pieces: current view
-        level: current hierarchy level
-        ref: child cluster reference string
-        total: number of point in root
+        clustering: :obj:`cnnclustering.cluster.Clustering` instance.
+        pieces: The pieces dictionary to be populated.
+        level: Current hierarchy level.
+        ref: Child cluster reference string (cluster label path to this
+            child from root trough the hierarchy tree).
+        total: number of points in root
 
     Returns:
         dict
     """
 
     if not pieces:
-        # Init
         pieces = {}
+
     if level not in pieces:
-        # New level
         pieces[level] = {}
 
-    if c._labels is not None:
-        # Build parts for current level
-        cluster_shares = {k: len(v) for k, v in c._labels.mapping.items()}
-        if total is None:
-            # Only for root
-            total = sum(cluster_shares.values())
-        cluster_shares = {k: v / total for k, v in cluster_shares.items()}
+    if clustering._labels is not None:
+
+        cluster_shares = {
+            k: len(v) for k, v in clustering._labels.mapping.items()
+            }
 
         pieces[level][ref] = cluster_shares
         if level > 0:
@@ -77,14 +76,13 @@ def getpieces(c, pieces=None, level=0, ref="0", total=None):
                     if entailed_ref not in pieces[level]:
                         pieces[level][entailed_ref] = {0: share}
 
-    if c._children:
-        for number, child in c._children.items():
+    if clustering._children:
+        for number, child in clustering._children.items():
             pieces = getpieces(
                 child,
                 pieces=pieces,
                 level=level + 1,
                 ref=".".join([ref, str(number)]),
-                total=total,
             )
 
     return pieces
@@ -101,9 +99,6 @@ def pie(root, ax, pie_props=None):
     Returns:
         List of plotted elements (pie rings)
     """
-
-    # TODO Make noise color configurable
-    # TODO Adapt the scheme for tree view
 
     if ax is None:
         ax = plt.gca()

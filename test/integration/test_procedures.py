@@ -28,6 +28,7 @@ from cnnclustering._types import (
     MetricExtDummy,
     MetricExtPrecomputed,
     MetricExtEuclidean,
+    MetricExtEuclideanPeriodicReduced,
     SimilarityCheckerContains,
     SimilarityCheckerExtContains,
     QueueFIFODeque,
@@ -192,6 +193,10 @@ def test_fit_evaluate_regression(datadir, image_regression):
     data = np.load(datadir / "backbone_dihedrals.npy")
     clustering = cluster.prepare_clustering(data)
 
+    clustering._metric = MetricExtEuclideanPeriodicReduced(
+        np.array([360, 360], dtype=float)
+    )
+
     fig, *_ = clustering.evaluate()
     fig.tight_layout()
     figname_original = datadir / "backbone_dihedrals_original.png"
@@ -201,7 +206,10 @@ def test_fit_evaluate_regression(datadir, image_regression):
         basename="test_fit_evaluate_regression_backbone_dihedrals_original"
         )
 
-    clustering.fit(10, 15, v=False)
+    clustering.fit(
+        10, 15, member_cutoff=50,
+        info=False, v=False, record=False, record_time=False
+        )
 
     fig, *_ = clustering.evaluate(annotate=False)
     fig.tight_layout()
