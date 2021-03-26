@@ -1031,9 +1031,9 @@ class Clustering:
         else:
             fig = ax.get_figure()
 
-        plotted = plot.pie(self, ax=ax, pie_props=pie_props)
+        plot.pie(self, ax=ax, pie_props=pie_props)
 
-        return fig, ax, plotted
+        return fig, ax
 
     def evaluate(
             self,

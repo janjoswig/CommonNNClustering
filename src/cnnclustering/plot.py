@@ -18,7 +18,7 @@ except ModuleNotFoundError as error:
     SCIPY_FOUND = False
 
 
-def getpieces(
+def get_pieces(
         clustering):
     """Transform cluster tree to layers of hierarchy levels
 
@@ -95,11 +95,12 @@ def getpieces(
     return pieces
 
 
-def pie(root, ax, pie_props=None):
+def pie(clustering, ax, pie_props=None):
     """Illustrate (hierarchichal) cluster result as pie diagram
 
     Args:
-        root: :obj:`cnnclustering.cnn.CNN` being the origin of the pie diagram.
+        clustering: Root instance of :obj:`cnnclustering.cluster.Clustering`
+            being the origin of the pie diagram.
         ax: Matplotlib `Axes` instance to plot on.
         pie_props: Dictionary passed to :func:`matplotlib.pyplot.pie`.
 
@@ -125,31 +126,28 @@ def pie(root, ax, pie_props=None):
     except KeyError:
         pass
 
-    p = getpieces(root)
+    pieces = get_pieces(clustering)
+    n_points = pieces[0][0][1]
 
-    plotted = []
-    for level, refs in sorted(p.items()):
+    for level, cluster_shares in enumerate(pieces[1:]):
         ax.set_prop_cycle(None)
         ringvalues = []
         colors = []
-        for ref, cluster_shares in sorted(refs.items()):
-            for cluster, share in sorted(cluster_shares.items()):
-                ringvalues.append(share)
-                if cluster == 0:
-                    colors.append("#262626")
-                else:
-                    colors.append(next(ax._get_lines.prop_cycler)["color"])
+        for label, member_count in cluster_shares:
+            ringvalues.append(member_count / n_points)
+            if label.rsplit(".", 1)[-1] == "0":
+                colors.append("#262626")
+            else:
+                colors.append(next(ax._get_lines.prop_cycler)["color"])
 
-        plotted.append(
-            ax.pie(
-                ringvalues,
-                radius=radius * (level + 1),
-                colors=colors,
-                **pie_props_defaults,
-            ),
-        )
+        ax.pie(
+            ringvalues,
+            radius=radius * (level + 1),
+            colors=colors,
+            **pie_props_defaults,
+            )
 
-    return plotted
+    return
 
 
 def plot_summary(
