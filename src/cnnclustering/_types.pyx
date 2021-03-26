@@ -45,6 +45,8 @@ cdef class Labels:
                     "'labels' and 'consider' must have the same length"
                     )
 
+        self.n_points = len(labels)
+
         if meta is None:
             meta = {}
         self.meta = meta
@@ -64,10 +66,6 @@ cdef class Labels:
     @property
     def consider(self):
         return np.asarray(self._consider)
-
-    @property
-    def shape(self):
-        return self._labels.shape
 
     @property
     def consider_set(self):

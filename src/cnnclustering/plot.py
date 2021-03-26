@@ -1,5 +1,6 @@
 """User module containing utilities for plotting"""
 
+from collections import deque
 import random
 from typing import Dict, Tuple
 from typing import Sequence
@@ -18,72 +19,84 @@ except ModuleNotFoundError as error:
 
 
 def getpieces(
-        clustering, pieces=None, level=0, ref="0"):
+        clustering):
     """Return cluster hierarchy structure in dict view
 
     Used e.g. by :meth:`plot_pie`.
-
-    Pieces is a dictionary of the form
-    dict[levels][clusterref] = {child: share}, e.g. :
-
-        pieces = {
-            0: {  # Level
-                "0": {  # Reference
-                    0: 0.1, 1: 0.9}
-                },
-            1: {
-                "0.0": {
-                    0: 0.1
-                    },
-                "0.1": {
-                    0: 0.5,
-                    1: 0.2,
-                    2: 0.2
-                    }
-                }
-            }
-
-    Args:
-        clustering: :obj:`cnnclustering.cluster.Clustering` instance.
-        pieces: The pieces dictionary to be populated.
-        level: Current hierarchy level.
-        ref: Child cluster reference string (cluster label path to this
-            child from root trough the hierarchy tree).
-        total: number of points in root
-
-    Returns:
-        dict
     """
 
-    if not pieces:
-        pieces = {}
-
-    if level not in pieces:
-        pieces[level] = {}
-
-    if clustering._labels is not None:
-
-        cluster_shares = {
-            k: len(v) for k, v in clustering._labels.mapping.items()
-            }
-
-        pieces[level][ref] = cluster_shares
-        if level > 0:
-            # Pad not reclustered clusters (as noise)
-            for higher_ref, higher_cluster_shares in pieces[level - 1].items():
-                for cluster, share in higher_cluster_shares.items():
-                    entailed_ref = ".".join([higher_ref, str(cluster)])
-                    if entailed_ref not in pieces[level]:
-                        pieces[level][entailed_ref] = {0: share}
-
-    if clustering._children:
-        for number, child in clustering._children.items():
-            pieces = getpieces(
-                child,
-                pieces=pieces,
-                level=level + 1,
-                ref=".".join([ref, str(number)]),
+    if clustering._labels is None:
+        raise LookupError(
+            "Clustering has no labels"
             )
+
+    pieces = [[("1", clustering._labels.n_points)], []]
+    expected_parent_pool = iter([(0, "1")])
+    next_parent_index, next_parent_label = next(expected_parent_pool)
+    expected_parent_found = False
+
+    terminal_cluster_references = deque([("1", clustering)])
+    new_terminal_cluster_references = deque()
+
+    while True:
+        parent_label, clustering_instance = terminal_cluster_references.popleft()
+
+        while parent_label != next_parent_label:
+            if not expected_parent_found:
+                pieces[-1].append(
+                    (
+                        f"{next_parent_label}.0",
+                        pieces[-2][next_parent_index][1]
+                    )
+                )
+            else:
+                expected_parent_found = False
+
+            next_parent_index, next_parent_label = next(expected_parent_pool)
+
+        expected_parent_found = True
+
+        cluster_shares = sorted([
+            (f"{'.'.join([parent_label, str(k)])}", len(v))
+            for k, v in clustering_instance._labels.mapping.items()
+            ])
+
+        pieces[-1].extend(cluster_shares)
+
+        if clustering_instance._children:
+            for child_label, child_clustering in clustering_instance._children.items():
+                if child_clustering._labels is None:
+                    continue
+
+                new_terminal_cluster_references.append(
+                    (
+                        f"{'.'.join([parent_label, str(child_label)])}",
+                        child_clustering
+                    )
+                )
+
+        if not terminal_cluster_references:
+
+            for next_parent_index, next_parent_label in expected_parent_pool:
+                pieces[-1].append(
+                    (
+                        f"{next_parent_label}.0",
+                        pieces[-2][next_parent_index][1]
+                    )
+                )
+
+            if not new_terminal_cluster_references:
+                break
+
+            terminal_cluster_references = new_terminal_cluster_references
+            new_terminal_cluster_references = deque()
+            expected_parent_pool = (
+                (i, label_length_tuple[0])
+                for i, label_length_tuple in enumerate(pieces[-1])
+                )
+            next_parent_index, next_parent_label = next(expected_parent_pool)
+            expected_parent_found = False
+            pieces.append([])
 
     return pieces
 

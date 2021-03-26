@@ -85,6 +85,7 @@ cdef class ClusterParameters:
 
 cdef class Labels:
     cdef public:
+        AINDEX n_points
         dict meta
 
     cdef:

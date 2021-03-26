@@ -1,5 +1,5 @@
 from collections import Counter, defaultdict
-from collections.abc import MutableSequence
+from collections.abc import MutableSequence, Iterable
 import functools
 from operator import itemgetter
 import time
@@ -405,6 +405,12 @@ class Clustering:
         if self._children is None:
             raise LookupError("Clustering has no children")
 
+        if isinstance(label, str):
+            label = [int(l) for l in label.split(".")]
+
+        if isinstance(label, Iterable) and (len(label) == 1):
+            label = label[0]
+
         if isinstance(label, int):
             if label in self._children:
                 return self._children[label]
@@ -697,7 +703,8 @@ class Clustering:
                 for child_label, root_indices in current_clusters_processed[parent_label].items():
                     clustering_instance._children[child_label]._root_indices = np.asarray(root_indices)
                     clustering_instance._children[child_label]._input_data = self._input_data.get_subset(root_indices)
-                    
+                    clustering_instance._children[child_label].alias += f" - {child_label}"
+
                     # Reconstruct parent indices
                     parent_root_ptr = 0
                     parent_indices = []
@@ -748,7 +755,7 @@ class Clustering:
 
             self._children[label]._root_indices = np.asarray(root_indices)
             self._children[label]._parent_indices = np.asarray(parent_indices)
-            self._children[label].alias = f'{self.alias} - {label}'
+            self._children[label].alias += f" - {label}"
 
             if not isolate_input_data:
                 continue
@@ -1372,7 +1379,6 @@ class ClusteringChild(Clustering):
         "_similarity_checker",
         "_queue",
         "_fitter",
-        "alias"
         ]
 
     def __init__(self, parent, *args, **kwargs):
@@ -1386,6 +1392,8 @@ class ClusteringChild(Clustering):
 
         self.hierarchy_level = parent.hierarchy_level + 1
 
+        if "alias" not in kwargs:
+            self.alias = self.parent.alias
 
 class Record:
     """Cluster result container
