@@ -51,7 +51,7 @@ def registered_clustering(request):
 
         clustering._children = {}
         for i in [0, 1, 2]:
-            clustering._children[i] = cluster.ClusteringChild(clustering)
+            clustering._children[i] = cluster.Clustering(parent=clustering)
 
         clustering._children[1]._labels = Labels(
             np.array([0, 1, 0, 2, 2, 2, 1], dtype=P_AINDEX)
@@ -60,7 +60,7 @@ def registered_clustering(request):
 
         clustering._children[1]._children = {}
         for i in [0, 1, 2]:
-            clustering._children[1]._children[i] = cluster.ClusteringChild(clustering)
+            clustering._children[1]._children[i] = cluster.Clustering(parent=clustering)
 
         clustering._children[1]._children[2]._labels = Labels(
             np.array([2, 1, 0], dtype=P_AINDEX)

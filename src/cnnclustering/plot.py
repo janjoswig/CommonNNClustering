@@ -7,6 +7,14 @@ from typing import Sequence
 from typing import Any, Optional
 
 import matplotlib.pyplot as plt
+
+try:
+    import networkx as nx
+    NX_FOUND = True
+except ModuleNotFoundError as error:
+    print("Optional dependency module not found: ", error)
+    NX_FOUND = False
+
 import numpy as np
 
 try:
@@ -17,6 +25,22 @@ except ModuleNotFoundError as error:
     print("Optional dependency module not found: ", error)
     SCIPY_FOUND = False
 
+
+def traverse_graph_dfs_children_first(graph, source):
+    """Yield nodes from networkx graph beginning with deeper nodes"""
+
+    stack = []
+    stack.append(source)
+    child_generators = {source: graph.neighbors(source)}
+
+    while stack:
+        try:
+            first_child = next(child_generators[stack[-1]])
+        except StopIteration:
+            yield stack.pop()
+        else:
+            stack.append(first_child)
+            child_generators[first_child] =  graph.neighbors(first_child)
 
 def get_pieces(
         clustering):

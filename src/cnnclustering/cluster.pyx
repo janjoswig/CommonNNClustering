@@ -7,9 +7,6 @@ from typing import Any, Optional, Type, Union
 from typing import Container, List, Tuple, Sequence
 import weakref
 
-import numpy as np
-cimport numpy as np
-
 try:
     import matplotlib as mpl
     import matplotlib.pyplot as plt
@@ -18,6 +15,16 @@ try:
 except ModuleNotFoundError as error:
     print("Optional dependency module not found: ", error)
     MPL_FOUND = False
+
+try:
+    import networkx as nx
+    NX_FOUND = True
+except ModuleNotFoundError as error:
+    print("Optional dependency module not found: ", error)
+    NX_FOUND = False
+
+import numpy as np
+cimport numpy as np
 
 try:
     import pandas as pd
@@ -300,6 +307,72 @@ def prepare_neighbourhoods(data):
 
 
 class Clustering:
+    """Represents a clustering endeavour
+
+    A clustering object is made by composition of all necessary parts to
+    carry out a clustering of input data points.
+
+    Note:
+        A clustering instance may also be created using the convenience
+        function
+        :func:`cnnclustering.cluster.prepare_clustering`
+
+    Args:
+        input_data: Any object implementing the input data interface.
+            Represents the data points to be clustered.
+        neighbours_getter: Any object implementing the neighbours
+            getter interface. Controls how neighbours are
+            retrieved/calculated from `input data`.
+        neighbours: Any object implementing the neighbours
+            interface.
+            Represents neighbours found by the `neighbours_getter`.
+        neighbour_neighbours: Same as `neighbours` but used for the
+            neighbours of the neighbours.
+        metric: Any object implementing the metric interface. Can be
+            used by `neighbours_getter` to retrieved/calculated
+            `neighbours` from `input data`.
+        similarity_checker: Any object implementing the similarity
+            checker interface. Evaluates if to points in `input_data`
+            are part of the same cluster based on their `neighbours`.
+        queue: Any object implementing the queue interface. May be
+            used during the clustering procedure.
+        fitter: Any object implementing the fitter interface. Executes
+            the clustering procedure.
+        predictor: Any object implementing the predictor interface.
+            Translates a clustering result to another
+            :obj:`cnnclustering.cluster.Clustering` object with different
+            `input_data`.
+        labels: An instance of :obj:`cnnclustering._types.Labels` holding
+            cluster label assignments for points in `input_data`.
+        alias: A descriptive string identifier associated with this
+            clustering.
+        parent: If not None, an instance of :obj:`cnnclustering.cluster.Clustering`
+            of which this clustering is a child of.
+
+    Attributes:
+        input_data: A representation of the input data, typically a
+            (list of) NumPy array(s). Shorthand for
+            :obj:`self._input_data.data
+        hierarchy_level: The level of this clustering in the hierarchical
+            tree of clusterings (0 for the root instance).
+        labels: An instance of :obj:`cnnclustering._types.Labels` holding
+            cluster label assignments for points in `input_data`.
+        children: A dictionary with child cluster labels as keys and
+            :obj:`cnnclustering.cluster.Clustering` instances as values.
+        summary: An instance of :obj:`cnnclustering.cluster.Summary`
+            collecting clustering results.
+    """
+
+    take_over_attrs = [
+        "_neighbours_getter",
+        "_neighbours",
+        "_neighbour_neighbours",
+        "_metric",
+        "_similarity_checker",
+        "_queue",
+        "_fitter",
+        ]
+
     def __init__(
             self,
             input_data=None,
@@ -312,11 +385,8 @@ class Clustering:
             fitter=None,
             predictor=None,
             labels=None,
-            alias: str = "root"):
-
-        self.alias = alias
-
-        self.hierarchy_level = 0
+            alias: str = "root",
+            parent=None):
 
         self._input_data = input_data
         self._neighbours_getter = neighbours_getter
@@ -334,6 +404,20 @@ class Clustering:
         self._parent_indices = None
 
         self._summary = Summary()
+
+        self.alias = alias
+
+        if parent is not None:
+            self.parent = weakref.proxy(parent)
+
+            for attr in self.take_over_attrs:
+                if getattr(self, attr) is None:
+                    setattr(self, attr, getattr(self.parent, attr))
+
+            self.hierarchy_level = parent.hierarchy_level + 1
+
+        else:
+            self.hierarchy_level = 0
 
     @property
     def labels(self):
@@ -581,12 +665,12 @@ class Clustering:
             cnn_offset: int = None):
 
         cdef AINDEX member_count, _member_cutoff
-        
+
         if member_cutoff is None:
             member_cutoff = 2
         _member_cutoff = member_cutoff
 
-        cdef cppvector[AVALUE] radius_cutoff_vector 
+        cdef cppvector[AVALUE] radius_cutoff_vector
         cdef cppvector[AINDEX] cnn_cutoff_vector
 
         if isinstance(radius_cutoff, float):
@@ -697,13 +781,14 @@ class Clustering:
                     current_labels.labels[clustering_instance._root_indices]
                     )
                 clustering_instance._children = defaultdict(
-                    lambda: ClusteringChild(parent=clustering_instance)
+                    lambda: Clustering(parent=clustering_instance)
                     )
-            
+
                 for child_label, root_indices in current_clusters_processed[parent_label].items():
                     clustering_instance._children[child_label]._root_indices = np.asarray(root_indices)
                     clustering_instance._children[child_label]._input_data = self._input_data.get_subset(root_indices)
-                    clustering_instance._children[child_label].alias += f" - {child_label}"
+                    parent_alias = clustering_instance.alias if clustering_instance.alias is not None else ""
+                    clustering_instance._children[child_label].alias += f"{parent_alias} - {child_label}"
 
                     # Reconstruct parent indices
                     parent_root_ptr = 0
@@ -715,7 +800,7 @@ class Clustering:
                                 parent_root_ptr += 1
                                 break
                             parent_root_ptr += 1
-                    
+
                     clustering_instance._children[child_label]._parent_indices = np.asarray(parent_indices)
                     new_terminal_cluster_references[child_label] = clustering_instance._children[child_label]
 
@@ -742,7 +827,7 @@ class Clustering:
 
         if purge or (self._children is None):
             self._children = defaultdict(
-                lambda: ClusteringChild(parent=self)
+                lambda: Clustering(parent=self)
                 )
 
         for label, indices in self.labels.mapping.items():
@@ -755,7 +840,8 @@ class Clustering:
 
             self._children[label]._root_indices = np.asarray(root_indices)
             self._children[label]._parent_indices = np.asarray(parent_indices)
-            self._children[label].alias += f" - {label}"
+            parent_alias = self.alias if self.alias is not None else ""
+            self._children[label].alias += f"{parent_alias} - {label}"
 
             if not isolate_input_data:
                 continue
@@ -1360,40 +1446,27 @@ class Clustering:
 
         return fig, ax, plotted
 
+    def to_nx_DiGraph(self):
+        """Convert cluster hierarchy to networkx DiGraph"""
 
-class ClusteringChild(Clustering):
-    """Clustering subclass.
+        if not NX_FOUND:
+            raise ModuleNotFoundError("No module named 'matplotlib'")
 
-    Increments the hierarchy level of
-    the parent object when instantiated.
+        def add_children(clustering_label, clustering, graph):
+            for child_label, child_clustering in clustering._children.items():
+                padded_child_label = ".".join([clustering_label, str(child_label)])
+                graph.add_node(padded_child_label, object=child_clustering)
+                graph.add_edge(clustering_label, padded_child_label)
 
-    Attributes:
-        parent: Weak reference to parent
-    """
+                if child_clustering._children is not None:
+                    add_children(padded_child_label, child_clustering, graph)
 
-    take_over_attrs = [
-        "_neighbours_getter",
-        "_neighbours",
-        "_neighbour_neighbours",
-        "_metric",
-        "_similarity_checker",
-        "_queue",
-        "_fitter",
-        ]
+        graph = networkx.DiGraph()
+        graph.add_node("1", object=clustering)
+        add_childs("1", clustering, graph)
 
-    def __init__(self, parent, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        return graph
 
-        self.parent = weakref.proxy(parent)
-
-        for attr in self.take_over_attrs:
-            if getattr(self, attr) is None:
-                setattr(self, attr, getattr(self.parent, attr))
-
-        self.hierarchy_level = parent.hierarchy_level + 1
-
-        if "alias" not in kwargs:
-            self.alias = self.parent.alias
 
 class Record:
     """Cluster result container
