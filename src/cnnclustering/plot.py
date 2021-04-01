@@ -174,28 +174,26 @@ def get_pieces(
 
     while True:
         parent_label, clustering_instance = terminal_cluster_references.popleft()
-        print("\nGot ", parent_label)
-        print("Expects ", next_parent_label)
 
         while parent_label != next_parent_label:
             if not expected_parent_found:
-                print("\nPadding...")
                 pieces[-1].append((f"{next_parent_label}.0", next_parent_membercount))
             else:
-                print("\nSkipping...")
                 expected_parent_found = False
 
             next_parent_label, next_parent_membercount = next(expected_parent_pool)
-            print("\nNow expects ", next_parent_label)
 
         expected_parent_found = True
 
-        cluster_shares = [
-            (f"{'.'.join([parent_label, str(k)])}", len(v))
+        cluster_shares = sorted([
+            (k, len(v))
             for k, v in clustering_instance._labels.mapping.items()
-            ]
+            ])
 
-        pieces[-1].extend(cluster_shares)
+        pieces[-1].extend(
+            (f"{'.'.join([parent_label, str(k)])}", v)
+            for k, v in cluster_shares
+            )
 
         if clustering_instance._children:
             for child_label, child_clustering in clustering_instance._children.items():
@@ -213,11 +211,6 @@ def get_pieces(
 
             for next_parent_label, next_parent_membercount in expected_parent_pool:
                 pieces[-1].append((f"{next_parent_label}.0", next_parent_membercount))
-
-            print()
-            for level, p in enumerate(pieces):
-                print(level, p)
-            print(sum(p[1] for p in pieces[-1]))
 
             if not new_terminal_cluster_references:
                 break
