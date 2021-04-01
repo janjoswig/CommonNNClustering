@@ -27,7 +27,29 @@ except ModuleNotFoundError as error:
 
 
 def traverse_graph_dfs_children_first(graph, source):
-    """Yield nodes from networkx graph beginning with deeper nodes"""
+    """Yield nodes from networkx graph beginning with deeper nodes
+
+    Example:
+
+        >>> import networkx
+        >>> g = networkx.DiGraph({0: [1, 2], 1: [3, 4], 2: [5, 6]})
+
+        >>> # Child nodes retrieved before their parents
+        >>> list(traverse_graph_dfs_like(g, 0))
+        [3, 4, 1, 5, 6, 2, 0]
+
+        >>> # As opposed to classic depth-first-search
+        >>> list(networkx.algorithms.dfs_tree(g, 0))
+        [0, 1, 3, 4, 2, 5, 6]
+
+    Args:
+        graph: A networkx graph.
+        source: The source node in `graph` from which to start the
+            traversal.
+
+    Yields:
+        Nodes
+    """
 
     stack = []
     stack.append(source)
@@ -35,12 +57,93 @@ def traverse_graph_dfs_children_first(graph, source):
 
     while stack:
         try:
-            first_child = next(child_generators[stack[-1]])
+            child = next(child_generators[stack[-1]])
         except StopIteration:
             yield stack.pop()
         else:
-            stack.append(first_child)
-            child_generators[first_child] =  graph.neighbors(first_child)
+            stack.append(child)
+            child_generators[child] = graph.neighbors(child)
+
+
+def find_node_positions_sugiyama_straight(
+        graph, source=None, x_spacing=0.1, y_spacing=0.1):
+    """Find suitable positions for plotting the nodes of a graph in 2D
+
+    Yields a layered graph (Sugiyama- or dot-like style) in which the
+    leaf nodes are separated in x-direction by `x_spacing`. Parent nodes
+    will be placed symmetrically above their child nodes.
+
+    Args:
+        graph: A networkx graph. The layout only makes sense for directed
+            graphs representing a hierarchical (rooted) tree (this is
+            not checked). Nodes are
+            assumed to be strings of integers (cluster labels) separated
+            by dots, e.g. "1" (tree root), "1.1", "1.2" (1st gen. childs)
+            etc.
+        source: The source node in `graph` from which to start the
+            traversal. If `None`, tries to find the root by picking a
+            random node and traversing upwards until a node with no
+            incoming edge is found.
+        x_spacing: Separation of leaf nodes in x-direction.
+        y_spacing: Separation of hierarchy layers in y-direction.
+
+    Returns:
+        Dictionary with nodes as keys and positions
+        (NumPy array(x, y)) as values.
+    """
+
+    if source is None:
+        root_candidate = next(iter(graph.nodes))
+        visited_nodes = {}
+
+        while graph.in_degree(root_candidate) != 0:
+            if root_candidate in visited_nodes:
+                raise RuntimeError(
+                    "can not find root node of cyclic graph"
+                    )
+            visited_nodes.add(root_candidate)
+            root_candidate = next(iter(graph.in_edges(root_candidate)))[0]
+
+        source = root_candidate
+
+    rightmost_x = 0
+    previous_level = 0
+    positions = {}
+
+    for node in traverse_graph_dfs_children_first(graph, source):
+        level = len(node.split(".")) - 1
+        if (level >= previous_level) or (graph.out_degree(node) == 0):
+            positions[node] = np.array([rightmost_x, -y_spacing * level])
+            rightmost_x += x_spacing
+        else:
+            mean_pos = np.mean([positions[n][0] for n in graph.neighbors(node)])
+            positions[node] = np.array([mean_pos, -y_spacing * level])
+
+        previous_level = level
+
+    return positions
+
+
+def plot_graph_sugiyama_straight(graph, ax, pos_props=None, draw_props=None):
+
+    if not NX_FOUND:
+        raise ModuleNotFoundError("No module named 'networkx'")
+
+    if pos_props is None:
+        pos_props = {}
+
+    if draw_props is None:
+        draw_props = {}
+
+    nx.draw(
+        graph,
+        pos=find_node_positions_sugiyama_straight(graph, **pos_props),
+        ax=ax,
+        **draw_props
+        )
+
+    return
+
 
 def get_pieces(
         clustering):

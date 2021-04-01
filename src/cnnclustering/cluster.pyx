@@ -1121,6 +1121,48 @@ class Clustering:
 
         return fig, ax
 
+    def tree(self, ax=None, pos_props=None, draw_props=None):
+
+        if not MPL_FOUND:
+            raise ModuleNotFoundError("No module named 'matplotlib'")
+
+        graph = self.to_nx_DiGraph()
+
+        if ax is None:
+            fig, ax = plt.subplots()
+        else:
+            fig = ax.get_figure()
+
+        pos_props_defaults = {
+            "source": "1",
+        }
+
+        if pos_props is not None:
+            pos_props_defaults.update(pos_props)
+
+        shortened_labels = {}
+        for key in graph.nodes.keys():
+            skey = key.rsplit(".", 1)
+            shortened_labels[key] = skey[len(skey) - 1]
+
+        draw_props_defaults = {
+            "labels": shortened_labels,
+            "with_labels": True,
+            "node_shape": "s",
+            "edgecolors": "k",
+        }
+
+        if draw_props is not None:
+            draw_props_defaults.update(draw_props)
+
+        plot.plot_graph_sugiyama_straight(
+            graph, ax=ax,
+            pos_props=pos_props_defaults,
+            draw_props=draw_props_defaults,
+            )
+
+        return fig, ax
+
     def evaluate(
             self,
             ax=None,
@@ -1444,13 +1486,13 @@ class Clustering:
 
         ax.set(**ax_props_defaults)
 
-        return fig, ax, plotted
+        return fig, ax
 
     def to_nx_DiGraph(self):
         """Convert cluster hierarchy to networkx DiGraph"""
 
         if not NX_FOUND:
-            raise ModuleNotFoundError("No module named 'matplotlib'")
+            raise ModuleNotFoundError("No module named 'networkx'")
 
         def add_children(clustering_label, clustering, graph):
             for child_label, child_clustering in clustering._children.items():
@@ -1461,9 +1503,9 @@ class Clustering:
                 if child_clustering._children is not None:
                     add_children(padded_child_label, child_clustering, graph)
 
-        graph = networkx.DiGraph()
-        graph.add_node("1", object=clustering)
-        add_childs("1", clustering, graph)
+        graph = nx.DiGraph()
+        graph.add_node("1", object=self)
+        add_children("1", self, graph)
 
         return graph
 
