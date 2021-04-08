@@ -187,6 +187,7 @@ def test_fit_toy_data_with_reference(
         )
 
 
+@pytest.mark.image_regression
 def test_fit_evaluate_regression(datadir, image_regression):
 
     mpl.use("agg")
@@ -203,7 +204,8 @@ def test_fit_evaluate_regression(datadir, image_regression):
     fig.savefig(figname_original)
     image_regression.check(
         figname_original.read_bytes(),
-        basename="test_fit_evaluate_regression_backbone_dihedrals_original"
+        basename="test_fit_evaluate_regression_backbone_dihedrals_original",
+        diff_threshold=0.2,
         )
 
     clustering.fit(
@@ -217,7 +219,8 @@ def test_fit_evaluate_regression(datadir, image_regression):
     fig.savefig(figname_clustered)
     image_regression.check(
         figname_clustered.read_bytes(),
-        basename="test_fit_evaluate_regression_backbone_dihedrals_clustered"
+        basename="test_fit_evaluate_regression_backbone_dihedrals_clustered",
+        diff_threshold=0.2,
         )
 
 
