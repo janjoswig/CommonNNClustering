@@ -317,6 +317,7 @@ class PredictorFirstmatch(Predictor):
             object input_data,
             object predictand_input_data,
             object neighbours_getter,
+            object predictand_neighbours_getter,
             object neighbours,
             object neighbour_neighbours,
             object metric,
@@ -348,7 +349,7 @@ class PredictorFirstmatch(Predictor):
             if _consider[point] == 0:
                 continue
 
-            neighbours_getter.get_other(
+            predictand_neighbours_getter.get_other(
                 point,
                 input_data,
                 predictand_input_data,

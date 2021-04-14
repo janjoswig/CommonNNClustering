@@ -997,6 +997,7 @@ class Clustering:
             _, execution_time = timed(self._predictor.predict)(
                 self._input_data,
                 other._input_data,
+                self._neighbours_getter,
                 other._neighbours_getter,
                 other._neighbours,
                 other._neighbour_neighbours,
@@ -1010,6 +1011,7 @@ class Clustering:
             self._predictor.predict(
                 self._input_data,
                 other._input_data,
+                self._neighbours_getter,
                 other._neighbours_getter,
                 other._neighbours,
                 other._neighbour_neighbours,

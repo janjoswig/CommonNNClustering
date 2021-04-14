@@ -271,11 +271,18 @@ def test_fit_evaluate_regression(datadir, image_regression):
         pytest.param(
             (
                 ("input_data", InputDataNeighboursSequence, (), {}),
+                (
+                    "neighbours_getter", NeighboursGetterLookup,
+                    (), {"is_selfcounting": True}
+                ),
                 ("predictor", PredictorFirstmatch, (), {})
             ),
             (
                 ("input_data", InputDataNeighboursSequence, (), {}),
-                ("neighbours_getter", NeighboursGetterLookup, (), {}),
+                (
+                    "neighbours_getter", NeighboursGetterLookup,
+                    (), {"is_selfcounting": True}
+                ),
                 ("neighbours", NeighboursList, (), {}),
                 ("neighbour_neighbours", NeighboursList, (), {}),
                 ("metric", MetricDummy, (), {}),
