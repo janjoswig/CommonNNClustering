@@ -293,6 +293,7 @@ def test_fit_evaluate_regression(datadir, image_regression):
         pytest.param(
             (
                 ("input_data", InputDataExtPointsMemoryview, (), {}),
+                ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
                 ("predictor", PredictorFirstmatch, (), {})
             ),
             (
