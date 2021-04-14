@@ -106,7 +106,10 @@ class TestLabels:
 
 class TestInputData:
     @pytest.mark.parametrize(
-        "input_data_type,data,n_points,n_dim,n_neighbours,neighbour_queries,component_queries",
+        (
+            "input_data_type,data,n_points,n_dim,n_neighbours,"
+            "neighbour_queries,component_queries"
+        ),
         [
             (
                 InputDataNeighboursSequence,

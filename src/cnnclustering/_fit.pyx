@@ -369,10 +369,9 @@ class PredictorFirstmatch(Predictor):
                 if _consider_set.find(label) == _consider_set.end():
                     continue
 
-                neighbours_getter.get_other(
-                    point,
+                neighbours_getter.get(
+                    member,
                     input_data,
-                    predictand_input_data,
                     neighbour_neighbours,
                     metric,
                     cluster_params

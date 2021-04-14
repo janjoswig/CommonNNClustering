@@ -26,6 +26,7 @@ def toy_data_points(request):
 
     generation_functions = {
         "moons": datasets.make_moons,
+        "blobs": datasets.make_blobs
     }
 
     points, reference_labels = generation_functions.get(gen_func)(

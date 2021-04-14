@@ -610,6 +610,16 @@ class NeighboursGetter(ABC):
             cluster_params: Type['ClusterParameters']) -> None:
         """Collect neighbours for point in input data"""
 
+    def get_other(
+            self,
+            index: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData'],
+            neighbours: Type['Neighbours'],
+            metric: Type['Metric'],
+            cluster_params: Type['ClusterParameters']) -> None:
+        """Collect neighbours in input data for point in other input data"""
+
 
 class NeighboursGetterLookup(NeighboursGetter):
 
@@ -654,7 +664,7 @@ class NeighboursGetterLookup(NeighboursGetter):
         neighbours.reset()
 
         for i in range(other_input_data.get_n_neighbours(index)):
-            neighbours.assign(input_data.get_neighbour(index, i))
+            neighbours.assign(other_input_data.get_neighbour(index, i))
 
 
 class NeighboursGetterBruteForce(NeighboursGetter):
@@ -845,7 +855,7 @@ cdef class NeighboursGetterExtLookup:
         neighbours._reset()
 
         for i in range(other_input_data._get_n_neighbours(index)):
-            neighbours._assign(input_data._get_neighbour(index, i))
+            neighbours._assign(other_input_data._get_neighbour(index, i))
 
     def get_other(
             self,
