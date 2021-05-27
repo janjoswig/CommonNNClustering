@@ -1,3 +1,5 @@
-sphinx
+ipython
 nbsphinx
 rstcheck
+sphinx
+sphinxcontrib-napoleon

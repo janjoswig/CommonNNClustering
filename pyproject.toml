@@ -8,6 +8,12 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
-norecursedirs = ".tox .git"
-addopts = "-v -p no:warnings --doctest-glob='README.md' --ignore=setup.py -x"
-testpaths = ["test"]
+norecursedirs = ".tox .git docs build htmlcov src"
+addopts = "-v -x -p no:warnings --doctest-glob='*.md' --ignore=setup.py"
+testpaths = ["test", "."]
+markers = [
+    "sklearn: requires scikit-learn install",
+    "pandas: requires pandas install",
+    "heavy: takes quite a long time (too long with TRACE_CYTHON=1)",
+    "image_regression: creates images for regression testing",
+    ]

@@ -13,7 +13,7 @@ body {
 
 
 div.document {
-    width: 90%;
+    width: 98%;
     margin: 30px auto 0 auto;
 }
 
@@ -43,11 +43,11 @@ div.body {
 }
 
 div.body > .section {
-    text-align: left;
+    text-align: justify;
 }
 
 div.footer {
-    width: 90%;
+    width: 98%;
     margin: 20px auto 30px auto;
     font-size: 14px;
     color: #888;
@@ -251,7 +251,7 @@ div.admonition p.last {
 }
 
 div.highlight {
-    background-color: #fff;
+    background-color: #282a36;
 }
 
 dt:target, .highlight {
@@ -439,7 +439,7 @@ ul, ol {
 }
 
 pre {
-    background: #EEE;
+    background: #282a36;
     padding: 7px 30px;
     margin: 15px 0px;
     line-height: 1.3em;

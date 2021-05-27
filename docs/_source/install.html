@@ -6,20 +6,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Installation instructions &#8212; cnnclustering  documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Quickstart" href="quickstart.html" />
-    <link rel="prev" title="CNN clustering" href="../index.html" />
+    <link rel="prev" title="Common-nearest-neighbours clustering" href="../index.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -40,23 +38,26 @@
 <h1>Installation instructions<a class="headerlink" href="#installation-instructions" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">cnnclustering</span></code> package is developed and tested in Python 3.8. Earlier
-versions &gt;=3.6 may work as well, though. The package has a few third
-party Python package dependencies. We recommend to install the latest
-version of:</p>
+<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">cnnclustering</span></code> package is developed and tested in Python &gt;=3.6.
+At runtime the package has a few mandatory third party dependencies.
+We recommend to install the latest version of:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">numpy</span></code></p></li>
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">PyYAML</span></code></p></li>
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">tqdm</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>Optionally, additional functionality is available when one of the following
+packages is installed as well:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code></p></li>
-<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">numpy</span></code></p></li>
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">pandas</span></code></p></li>
 <li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">scipy</span></code></p></li>
-<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">pandas</span></code> (optional)</p></li>
-<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">tqdm</span></code></p></li>
-<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">PyYAML</span></code></p></li>
+<li><p><code class="xref py py-mod docutils literal notranslate"><span class="pre">sklearn</span></code></p></li>
 </ul>
 </div></blockquote>
-<p>If you want to compile the Cython extensions yourself, you will need to
-install <code class="xref py py-mod docutils literal notranslate"><span class="pre">Cython</span></code> as well. The tests can be run after installing
-<code class="xref py py-mod docutils literal notranslate"><span class="pre">pytest</span></code> and require <code class="xref py py-mod docutils literal notranslate"><span class="pre">scikit-learn</span></code>.</p>
 </div>
 <div class="section" id="pypi">
 <h2>PyPi<a class="headerlink" href="#pypi" title="Permalink to this headline">¶</a></h2>
@@ -64,13 +65,17 @@ install <code class="xref py py-mod docutils literal notranslate"><span class="p
 </pre></div>
 </div>
 </div>
-<div class="section" id="manual-installation">
-<h2>Manual installation<a class="headerlink" href="#manual-installation" title="Permalink to this headline">¶</a></h2>
-<p>Clone the source repository <a class="reference external" href="https://github.com/janjoswig/CNN">https://github.com/janjoswig/CNN</a> and use the package
-<code class="xref py py-mod docutils literal notranslate"><span class="pre">cnnclustering</span></code> as you prefer it, e.g. install it via pip.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/janjoswig/CNN
-$ <span class="nb">cd</span> CNN
-$ pip install .
+<div class="section" id="developement-installation">
+<h2>Developement installation<a class="headerlink" href="#developement-installation" title="Permalink to this headline">¶</a></h2>
+<p>Clone the source repository <a class="reference external" href="https://github.com/janjoswig/CommonNNClustering">https://github.com/janjoswig/CommonNNClustering</a> and use the package
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">cnnclustering</span></code> as you prefer it, e.g. install it via pip in editable mode.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/janjoswig/CommonNNClustering
+$ <span class="nb">cd</span> CommonNNClustering
+$ pip install -e .
+</pre></div>
+</div>
+<p>To recompile the Cython-extensions (requires <code class="xref py py-mod docutils literal notranslate"><span class="pre">cython</span></code> installed) use:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python setup.py build_ext --inplace
 </pre></div>
 </div>
 </div>
@@ -87,13 +92,13 @@ $ pip install .
 
 
 
-<p class="blurb">CNN clustering and csMSM estimation in Python</p>
+<p class="blurb">A Python package for common-nearest-neighbours clustering</p>
 
 
 
 
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=janjoswig&repo=CNN&type=watch&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=janjoswig&repo=CommonNNClustering&type=watch&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
 
@@ -113,7 +118,7 @@ $ pip install .
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="../index.html" title="previous chapter">CNN clustering</a></li>
+      <li>Previous: <a href="../index.html" title="previous chapter">Common-nearest-neighbours clustering</a></li>
       <li>Next: <a href="quickstart.html" title="next chapter">Quickstart</a></li>
   </ul></li>
 </ul>
@@ -144,7 +149,7 @@ $ pip install .
       &copy;2020, Jan-Oliver Joswig.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

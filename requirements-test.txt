@@ -1,6 +1,7 @@
-coverage
+coverage==4.5
 coveralls
 flake8
 pytest
+pytest-mock
 pytest-raises
 pytest-regressions

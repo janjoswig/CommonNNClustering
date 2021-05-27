@@ -30,7 +30,7 @@ jobs:
       install:
         - pip install -e .
       script:
-        - coverage run -m pytest
+        - coverage run -m pytest -m "not (heavy or image_regression)"
       after_success:
         - coveralls
 

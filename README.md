@@ -1,16 +1,16 @@
 [![image](https://img.shields.io/pypi/v/cnnclustering.svg)](https://pypi.org/project/cnnclustering/)
 [![image](https://img.shields.io/pypi/l/cnnclustering.svg)](https://pypi.org/project/cnnclustering/)
 [![image](https://img.shields.io/pypi/pyversions/cnnclustering.svg)](https://pypi.org/project/cnnclustering/)
-[![Build Status](https://travis-ci.com/janjoswig/CNN.svg?branch=master)](https://travis-ci.com/janjoswig/CNN)
-[![Coverage Status](https://coveralls.io/repos/github/janjoswig/CNN/badge.svg?branch=master)](https://coveralls.io/github/janjoswig/CNN?branch=master)
+[![Build Status](https://travis-ci.com/janjoswig/CommonNNClustering.svg?branch=master)](https://travis-ci.com/janjoswig/CommonNNClustering)
+[![Coverage Status](https://coveralls.io/repos/github/janjoswig/CommonNNClustering/badge.svg?branch=master)](https://coveralls.io/github/janjoswig/CommonNNClustering?branch=master)
 
-Common-nearest-neighbours (CNN) clustering
-==========================================
+Common-nearest-neighbours clustering
+====================================
 
 ***
 **NOTE**
 
-*This project is currently under development in the alpha state.*
+*This project is currently under development.*
 *The implementation may change in the future. Check the examples and the documentation for up-to-date information.*
 
 ***
@@ -19,17 +19,17 @@ cnnclustering
 -------------
 
 
-The `cnnclustering` Python package provides a flexible interface to use the <b>c</b>ommon-<b>n</b>earest-<b>n</b>eighbours cluster algorithm. While the method can be applied to abitrary data, this implementation was made before the background of processing trajectories from Molecular Dynamics simulations. In this context the cluster result can serve as a suitable basis for the construction of a core-set Markov-state (cs-MSM) model to capture the essential dynamics of the underlying molecular processes. For a tool for cs-MSM estimation, refer to this separate [project](https://github.com/janjoswig/cs-MSM).
+The `cnnclustering` Python package provides a flexible interface to use the <b>c</b>ommon-<b>n</b>earest-<b>n</b>eighbours cluster algorithm. While the method can be applied to arbitrary data, this implementation was made before the background of processing trajectories from Molecular Dynamics simulations. In this context the cluster result can serve as a suitable basis for the construction of a core-set Markov-state (cs-MSM) model to capture the essential dynamics of the underlying molecular processes. For a tool for cs-MSM estimation, refer to this separate [project](https://github.com/janjoswig/cs-MSM).
 
 The package provides a main module:
 
-  - `cnnclustering`: (Hierarchical) common-nearest-neighbours clustering and analysis
+  - `cluster`: (Hierarchical) common-nearest-neighbours clustering and analysis
 
 Features:
 
   - Flexible: Clustering can be done for data sets in different input formats. Easy interfacing with external methods.
   - Convenient: Integration of functionality, handy in the context of Molecular Dynamics.
-  - Fast: Core functionalities use Cython.
+  - Fast: Core functionalities implemented in Cython.
 
 Please refer to the following papers for the scientific background (and consider citing if you find the method useful):
 
@@ -40,12 +40,12 @@ Please refer to the following papers for the scientific background (and consider
 Documentation
 -------------
 
-The package documentation (under developement) is available [here](https://janjoswig.github.io/CNN/).
+The package documentation (under developement) is available [here](https://janjoswig.github.io/CommonNNClustering/).
 
 Install
 -------
 
-Refer to the [documentation](https://janjoswig.github.io/CNN/_source/install.html) for more details. Install from PyPi
+Refer to the [documentation](https://janjoswig.github.io/CommonNNClustering/_source/install.html) for more details. Install from PyPi
 
 ```bash
 $ pip install cnnclustering
@@ -54,8 +54,8 @@ $ pip install cnnclustering
 or clone the development version and install from a local branch
 
 ```bash
-$ git clone https://github.com/janjoswig/CNN.git
-$ cd CNN
+$ git clone https://github.com/janjoswig/CommonNNClustering.git
+$ cd CommonNNClustering
 $ pip install .
 ```
 
@@ -63,39 +63,32 @@ Quickstart
 ----------
 
 ```python
-from cnnclustering import cnn
-import matplotlib.pyplot as plt
+>>> from cnnclustering.cluster import prepare_clustering
 
-# 2D data points (list of lists, 12 points in 2 dimensions)
-data_points = [   # point index
-    [0, 0],       # 0
-    [1, 1],       # 1
-    [1, 0],       # 2
-    [0, -1],      # 3
-    [0.5, -0.5],  # 4
-    [2,  1.5],    # 5
-    [2.5, -0.5],  # 6
-    [4, 2],       # 7
-    [4.5, 2.5],   # 8
-    [5, -1],      # 9
-    [5.5, -0.5],  # 10
-    [5.5, -1.5],  # 11
-    ]
+>>> # 2D data points (list of lists, 12 points in 2 dimensions)
+>>> data_points = [   # point index
+...     [0, 0],       # 0
+...     [1, 1],       # 1
+...     [1, 0],       # 2
+...     [0, -1],      # 3
+...     [0.5, -0.5],  # 4
+...     [2,  1.5],    # 5
+...     [2.5, -0.5],  # 6
+...     [4, 2],       # 7
+...     [4.5, 2.5],   # 8
+...     [5, -1],      # 9
+...     [5.5, -0.5],  # 10
+...     [5.5, -1.5],  # 11
+...     ]
 
-clustering = cnn.CNN(points=data_points)
-clustering.fit(radius_cutoff=1.5, cnn_cutoff=1)
-clustering.labels
-# Labels([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])
+>>> clustering = prepare_clustering(data_points)
+>>> clustering.fit(radius_cutoff=1.5, cnn_cutoff=1, v=False)
+>>> clustering.labels
+Labels([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])
 
-fig, ax = plt.subplots(1, 2)
-ax[0].set_title("original")
-clustering.evaluate(ax=ax[0], original=True)
-
-ax[1].set_title("clustered")
-clustering.evaluate(ax=ax[1])
 ```
 
-![quickstart](docs/_images/tutorial_basic_usage_42_0.png)
+![quickstart](docs/_images/tutorial_basic_usage_27_0.png)
 
 
 Alternative scikit-learn implementation

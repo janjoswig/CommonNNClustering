@@ -1,92 +1,235 @@
 """User module containing utilities for plotting"""
 
+from collections import deque
 import random
 from typing import Dict, Tuple
 from typing import Sequence
 from typing import Any, Optional
 
 import matplotlib.pyplot as plt
+
+try:
+    import networkx as nx
+    NX_FOUND = True
+except ModuleNotFoundError as error:
+    print("Optional dependency module not found: ", error)
+    NX_FOUND = False
+
 import numpy as np
 
+try:
+    import scipy.signal
+    import scipy.interpolate
+    SCIPY_FOUND = True
+except ModuleNotFoundError as error:
+    print("Optional dependency module not found: ", error)
+    SCIPY_FOUND = False
 
-def getpieces(c, pieces=None, level=0, ref="0", total=None):
-    """Return cluster hierarchy structure in dict view
 
-    Used e.g. by :meth:`plot_pie`.
+def traverse_graph_dfs_children_first(graph, source):
+    """Yield nodes from networkx graph beginning with deeper nodes
 
-    Pieces is a dictionary of the form
-    dict[levels][clusterref] = {child: share}, e.g. :
+    Example:
 
-        pieces = {
-            0: {  # Level
-                "0": {  # Reference
-                    0: {0.1, 1: 0.9}
-                },
-            1: {
-                "0.0": {
-                    0: 0.1
-                    },
-                "0.1": {
-                    0: 0.5,
-                    1: 0.2,
-                    2: 0.2
-                    }
-                }
-            }
+        >>> import networkx
+        >>> g = networkx.DiGraph({0: [1, 2], 1: [3, 4], 2: [5, 6]})
+
+        >>> # Child nodes retrieved before their parents
+        >>> list(traverse_graph_dfs_like(g, 0))
+        [3, 4, 1, 5, 6, 2, 0]
+
+        >>> # As opposed to classic depth-first-search
+        >>> list(networkx.algorithms.dfs_tree(g, 0))
+        [0, 1, 3, 4, 2, 5, 6]
 
     Args:
-        c: cluster object
-        pieces: current view
-        level: current hierarchy level
-        ref: child cluster reference string
-        total: number of point in root
+        graph: A networkx graph.
+        source: The source node in `graph` from which to start the
+            traversal.
 
-    Returns:
-        dict
+    Yields:
+        Nodes
     """
 
-    if not pieces:
-        # Init
-        pieces = {}
-    if level not in pieces:
-        # New level
-        pieces[level] = {}
+    stack = []
+    stack.append(source)
+    child_generators = {source: graph.neighbors(source)}
 
-    if c.labels.size > 0:
-        # Build parts for current level
-        cluster_shares = {k: len(v) for k, v in c.labels.clusterdict.items()}
-        if total is None:
-            # Only for root
-            total = sum(cluster_shares.values())
-        cluster_shares = {k: v / total for k, v in cluster_shares.items()}
+    while stack:
+        try:
+            child = next(child_generators[stack[-1]])
+        except StopIteration:
+            yield stack.pop()
+        else:
+            stack.append(child)
+            child_generators[child] = graph.neighbors(child)
 
-        pieces[level][ref] = cluster_shares
-        if level > 0:
-            # Pad not reclustered clusters (as noise)
-            for higher_ref, higher_cluster_shares in pieces[level - 1].items():
-                for cluster, share in higher_cluster_shares.items():
-                    entailed_ref = ".".join([higher_ref, str(cluster)])
-                    if entailed_ref not in pieces[level]:
-                        pieces[level][entailed_ref] = {0: share}
 
-    if c._children:
-        for number, child in c._children.items():
-            pieces = getpieces(
-                child,
-                pieces=pieces,
-                level=level + 1,
-                ref=".".join([ref, str(number)]),
-                total=total
+def find_node_positions_sugiyama_straight(
+        graph, source=None, x_spacing=0.1, y_spacing=0.1):
+    """Find suitable positions for plotting the nodes of a graph in 2D
+
+    Yields a layered graph (Sugiyama- or dot-like style) in which the
+    leaf nodes are separated in x-direction by `x_spacing`. Parent nodes
+    will be placed symmetrically above their child nodes.
+
+    Args:
+        graph: A networkx graph. The layout only makes sense for directed
+            graphs representing a hierarchical (rooted) tree (this is
+            not checked). Nodes are
+            assumed to be strings of integers (cluster labels) separated
+            by dots, e.g. "1" (tree root), "1.1", "1.2" (1st gen. childs)
+            etc.
+        source: The source node in `graph` from which to start the
+            traversal. If `None`, tries to find the root by picking a
+            random node and traversing upwards until a node with no
+            incoming edge is found.
+        x_spacing: Separation of leaf nodes in x-direction.
+        y_spacing: Separation of hierarchy layers in y-direction.
+
+    Returns:
+        Dictionary with nodes as keys and positions
+        (NumPy array(x, y)) as values.
+    """
+
+    if source is None:
+        root_candidate = next(iter(graph.nodes))
+        visited_nodes = {}
+
+        while graph.in_degree(root_candidate) != 0:
+            if root_candidate in visited_nodes:
+                raise RuntimeError(
+                    "can not find root node of cyclic graph"
+                    )
+            visited_nodes.add(root_candidate)
+            root_candidate = next(iter(graph.in_edges(root_candidate)))[0]
+
+        source = root_candidate
+
+    rightmost_x = 0
+    previous_level = 0
+    positions = {}
+
+    for node in traverse_graph_dfs_children_first(graph, source):
+        level = len(node.split(".")) - 1
+        if (level >= previous_level) or (graph.out_degree(node) == 0):
+            positions[node] = np.array([rightmost_x, -y_spacing * level])
+            rightmost_x += x_spacing
+        else:
+            mean_pos = np.mean([positions[n][0] for n in graph.neighbors(node)])
+            positions[node] = np.array([mean_pos, -y_spacing * level])
+
+        previous_level = level
+
+    return positions
+
+
+def plot_graph_sugiyama_straight(graph, ax, pos_props=None, draw_props=None):
+
+    if not NX_FOUND:
+        raise ModuleNotFoundError("No module named 'networkx'")
+
+    if pos_props is None:
+        pos_props = {}
+
+    if draw_props is None:
+        draw_props = {}
+
+    nx.draw(
+        graph,
+        pos=find_node_positions_sugiyama_straight(graph, **pos_props),
+        ax=ax,
+        **draw_props
+        )
+
+    return
+
+
+def get_pieces(
+        clustering):
+    """Transform cluster tree to layers of hierarchy levels
+
+    Each hierarchy level will be represented as a list of tuples holding
+    a cluster string identifier and the number of points in this cluster.
+
+    Used by :meth:`plot_pie`.
+
+    Args:
+        clustering: A root instance of :obj:`cnnclustering.cluster.Clustering`
+    """
+
+    if clustering._labels is None:
+        raise LookupError(
+            "Root clustering has no labels"
             )
+
+    pieces = [[("1", clustering._labels.n_points)]]
+    expected_parent_pool = iter(pieces[-1])
+    next_parent_label, next_parent_membercount = next(expected_parent_pool)
+    expected_parent_found = False
+    pieces.append([])
+
+    terminal_cluster_references = deque([("1", clustering)])
+    new_terminal_cluster_references = deque()
+
+    while True:
+        parent_label, clustering_instance = terminal_cluster_references.popleft()
+
+        while parent_label != next_parent_label:
+            if not expected_parent_found:
+                pieces[-1].append((f"{next_parent_label}.0", next_parent_membercount))
+            else:
+                expected_parent_found = False
+
+            next_parent_label, next_parent_membercount = next(expected_parent_pool)
+
+        expected_parent_found = True
+
+        cluster_shares = [
+            (f"{'.'.join([parent_label, str(k)])}", len(v))
+            for k, v in clustering_instance._labels.mapping.items()
+            ]
+
+        pieces[-1].extend(cluster_shares)
+
+        if clustering_instance._children:
+            for child_label, child_clustering in clustering_instance._children.items():
+                if child_clustering._labels is None:
+                    continue
+
+                new_terminal_cluster_references.append(
+                    (
+                        f"{'.'.join([parent_label, str(child_label)])}",
+                        child_clustering
+                    )
+                )
+
+        if not terminal_cluster_references:
+
+            for next_parent_label, next_parent_membercount in expected_parent_pool:
+                pieces[-1].append((f"{next_parent_label}.0", next_parent_membercount))
+
+            print(sum(p[1] for p in pieces[-1]))
+
+            if not new_terminal_cluster_references:
+                break
+
+            terminal_cluster_references = new_terminal_cluster_references
+            new_terminal_cluster_references = deque()
+            expected_parent_pool = iter(pieces[-1])
+            next_parent_label, next_parent_membercount = next(expected_parent_pool)
+            expected_parent_found = False
+            pieces.append([])
 
     return pieces
 
 
-def pie(root, ax, pie_props=None):
+def pie(clustering, ax, pie_props=None):
     """Illustrate (hierarchichal) cluster result as pie diagram
 
     Args:
-        root: :obj:`cnnclustering.cnn.CNN` being the origin of the pie diagram.
+        clustering: Root instance of :obj:`cnnclustering.cluster.Clustering`
+            being the origin of the pie diagram.
         ax: Matplotlib `Axes` instance to plot on.
         pie_props: Dictionary passed to :func:`matplotlib.pyplot.pie`.
 
@@ -94,17 +237,14 @@ def pie(root, ax, pie_props=None):
         List of plotted elements (pie rings)
     """
 
-    # TODO Make noise color configurable
-    # TODO Adapt the scheme for tree view
-
     if ax is None:
         ax = plt.gca()
 
     pie_props_defaults = {
         "normalize": False,
         "radius": 0.5,
-        "wedgeprops": dict(width=0.5, edgecolor='w')
-        }
+        "wedgeprops": dict(width=0.5, edgecolor="w"),
+    }
 
     if pie_props is not None:
         pie_props_defaults.update(pie_props)
@@ -115,31 +255,35 @@ def pie(root, ax, pie_props=None):
     except KeyError:
         pass
 
-    p = getpieces(root)
+    pieces = get_pieces(clustering)
+    n_points = pieces[0][0][1]
 
-    plotted = []
-    for level, refs in sorted(p.items()):
+    for level, cluster_shares in enumerate(pieces[1:]):
         ax.set_prop_cycle(None)
         ringvalues = []
         colors = []
-        for ref, cluster_shares in sorted(refs.items()):
-            for cluster, share in sorted(cluster_shares.items()):
-                ringvalues.append(share)
-                if cluster == 0:
-                    colors.append("#262626")
-                else:
-                    colors.append(next(ax._get_lines.prop_cycler)["color"])
+        for label, member_count in cluster_shares:
+            ringvalues.append(member_count / n_points)
+            if label.rsplit(".", 1)[-1] == "0":
+                colors.append("#262626")
+            else:
+                colors.append(next(ax._get_lines.prop_cycler)["color"])
 
-        plotted.append(
-            ax.pie(ringvalues, radius=radius * (level + 1),
-                   colors=colors, **pie_props_defaults),
+        ax.pie(
+            ringvalues,
+            radius=radius * (level + 1),
+            colors=colors,
+            **pie_props_defaults,
             )
 
-    return plotted
+    return
 
 
 def plot_summary(
-        ax, summary, quant="time", treat_nan=None,
+        ax,
+        summary,
+        quantity="execution_time",
+        treat_nan=None,
         contour_props=None):
     """Generate a 2D plot of record values"""
 
@@ -147,14 +291,10 @@ def plot_summary(
         contour_props = {}
 
     pivot = summary.groupby(
-        ["r", "c"]
-        ).mean()[quant].reset_index().pivot(
-            "r", "c"
-            )
+        ["radius_cutoff", "cnn_cutoff"]
+        ).mean()[quantity].reset_index().pivot("radius_cutoff", "cnn_cutoff")
 
-    X_, Y_ = np.meshgrid(
-        pivot.index.values, pivot.columns.levels[1].values
-        )
+    X_, Y_ = np.meshgrid(pivot.index.values, pivot.columns.levels[1].values)
 
     values_ = pivot.values.T
 
@@ -163,17 +303,151 @@ def plot_summary(
 
     plotted = []
 
-    plotted.append(
-        ax.contourf(X_, Y_, values_, **contour_props)
-        )
+    plotted.append(ax.contourf(X_, Y_, values_, **contour_props))
 
     return plotted
 
 
+def plot_histogram(
+        ax,
+        x,
+        maxima: bool = False,
+        maxima_props: dict = None,
+        hist_props: dict = None,
+        ax_props: dict = None,
+        plot_props: dict = None,
+        inter_props: dict = None):
+    """Plot a histogram from 1D data
+
+    Args:
+        ax: Matplotlib Axes to plot on.
+        maxima: Whether to mark the maxima of the
+            distribution. Uses `scipy.signal.argrelextrema`_.
+        maxima_props: Keyword arguments passed to
+            `scipy.signal.argrelextrema`_ if `maxima` is set
+            to True.
+        hist_props: Keyword arguments passed to
+            `numpy.histogram`_ to compute the histogram.
+        ax_props: Keyword arguments for Matplotlib Axes styling.
+        plot_props: Keyword arguments used when plotting histogram line.
+        inter_props: Keyword arguments passed on to
+        `scipy.interpolate.interp1d`_
+
+    .. _scipy.signal.argrelextrema:
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.argrelextrema.html
+    .. _scipy.interpolate.interp1d:
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html
+    .. _numpy.histogram:
+        https://numpy.org/doc/stable/reference/generated/numpy.histogram.html
+    """
+
+    if not SCIPY_FOUND:
+        raise ModuleNotFoundError("No module named 'scipy'")
+
+    hist_props_defaults = {
+        "bins": 100,
+        "density": True,
+    }
+
+    if hist_props is not None:
+        hist_props_defaults.update(hist_props)
+
+    histogram, bins = np.histogram(
+        x,
+        **hist_props_defaults
+        )
+
+    binmids = 0.5 * (bins[:-1] + bins[1:])
+
+    if inter_props is not None:
+        inter_props_defaults = {
+            "ifactor": 0.5,
+            "kind": 'linear',
+        }
+
+        inter_props_defaults.update(inter_props)
+
+        ifactor = inter_props_defaults.pop("ifactor")
+
+        ipoints = int(
+            np.ceil(len(binmids) * ifactor)
+            )
+        ibinmids = np.linspace(binmids[0], binmids[-1], ipoints)
+        histogram = scipy.interpolate.interp1d(
+            binmids,
+            histogram,
+            **inter_props_defaults
+            )(ibinmids)
+
+        binmids = ibinmids
+
+    ylimit = np.max(histogram) * 1.1
+
+    ax_props_defaults = {
+        "xlabel": "d / au",
+        "ylabel": '',
+        "yticks": (),
+        "xlim": (np.min(binmids), np.max(binmids)),
+        "ylim": (0, ylimit),
+    }
+
+    if ax_props is not None:
+        ax_props_defaults.update(ax_props)
+
+    plot_props_defaults = {}
+
+    if plot_props is not None:
+        plot_props_defaults.update(plot_props)
+
+    if ax is None:
+        fig, ax = plt.subplots()
+    else:
+        fig = ax.get_figure()
+
+    line = ax.plot(binmids, histogram, **plot_props_defaults)
+
+    if maxima:
+        maxima_props_ = {
+            "order": 2,
+            "mode": "clip"
+            }
+
+        if maxima_props is not None:
+            maxima_props_.update(maxima_props)
+
+        found = scipy.signal.argrelextrema(
+            histogram, np.greater, **maxima_props_
+            )[0]
+
+        annotations = []
+        for candidate in found:
+            annotations.append(
+                ax.annotate(
+                    f"{binmids[candidate]:.2f}",
+                    xy=(binmids[candidate], histogram[candidate]),
+                    xytext=(binmids[candidate],
+                            histogram[candidate] + (ylimit / 100))
+                    )
+                )
+    else:
+        annotations = None
+
+    ax.set(**ax_props_defaults)
+
+    return fig, ax, line, annotations
+
+
 def plot_dots(
-        ax, data, original=True, clusterdict=None, clusters=None,
-        dot_props=None, dot_noise_props=None,
-        annotate=False, annotate_pos="mean", annotate_props=None):
+        ax,
+        data,
+        original=True,
+        cluster_map=None,
+        clusters=None,
+        dot_props=None,
+        dot_noise_props=None,
+        annotate=False,
+        annotate_pos="mean",
+        annotate_props=None):
 
     if dot_props is None:
         dot_props = {}
@@ -185,50 +459,53 @@ def plot_dots(
 
     if original:
         # Plot the original data
-        plotted.append(
-            ax.plot(
-                data[:, 0],
-                data[:, 1],
-                **dot_props
-                )
-            )
+        plotted.append(ax.plot(data[:, 0], data[:, 1], **dot_props))
 
     else:
         # Loop through the cluster result
-        for cluster, cpoints in sorted(clusterdict.items()):
+        for cluster, cpoints in sorted(cluster_map.items()):
             # plot if cluster is in the list of considered clusters
             if cluster in clusters:
                 cpoints = list(cpoints)
 
                 # treat noise differently
                 if cluster == 0:
-                    plotted.append(ax.plot(
-                        data[cpoints, 0],
-                        data[cpoints, 1],
-                        **dot_noise_props
-                        ))
+                    plotted.append(
+                        ax.plot(
+                            data[cpoints, 0], data[cpoints, 1],
+                            **dot_noise_props
+                        )
+                    )
 
                 else:
-                    plotted.append(ax.plot(
-                        data[cpoints, 0],
-                        data[cpoints, 1],
-                        **dot_props
-                        ))
+                    plotted.append(
+                        ax.plot(
+                            data[cpoints, 0], data[cpoints, 1],
+                            **dot_props
+                        )
+                    )
 
                     if annotate:
                         plotted.append(
                             annotate_points(
                                 ax, annotate_pos, data, cpoints, cluster,
                                 annotate_props
-                                )
                             )
+                        )
     return plotted
 
 
 def plot_scatter(
-        ax, data, original=True, clusterdict=None, clusters=None,
-        scatter_props=None, scatter_noise_props=None,
-        annotate=False, annotate_pos="mean", annotate_props=None):
+        ax,
+        data,
+        original=True,
+        cluster_map=None,
+        clusters=None,
+        scatter_props=None,
+        scatter_noise_props=None,
+        annotate=False,
+        annotate_pos="mean",
+        annotate_props=None):
 
     if scatter_props is None:
         scatter_props = {}
@@ -239,16 +516,10 @@ def plot_scatter(
     plotted = []
 
     if original:
-        plotted.append(
-            ax.scatter(
-                data[:, 0],
-                data[:, 1],
-                **scatter_props
-                )
-            )
+        plotted.append(ax.scatter(data[:, 0], data[:, 1], **scatter_props))
 
     else:
-        for cluster, cpoints in sorted(clusterdict.items()):
+        for cluster, cpoints in sorted(cluster_map.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 
@@ -256,36 +527,42 @@ def plot_scatter(
                 if cluster == 0:
                     plotted.append(
                         ax.scatter(
-                            data[cpoints, 0],
-                            data[cpoints, 1],
+                            data[cpoints, 0], data[cpoints, 1],
                             **scatter_noise_props
-                            )
                         )
+                    )
 
                 else:
                     plotted.append(
                         ax.scatter(
-                            data[cpoints, 0],
-                            data[cpoints, 1],
+                            data[cpoints, 0], data[cpoints, 1],
                             **scatter_props
                             )
-                        )
+                    )
 
                     if annotate:
                         plotted.append(
                             annotate_points(
                                 ax, annotate_pos, data, cpoints, cluster,
                                 annotate_props
-                                )
                             )
+                        )
     return plotted
 
 
 def plot_contour(
-        ax, data, original=True, clusterdict=None, clusters=None,
-        contour_props=None, contour_noise_props=None,
-        hist_props=None, free_energy=True,
-        annotate=False, annotate_pos="mean", annotate_props=None):
+        ax,
+        data,
+        original=True,
+        cluster_map=None,
+        clusters=None,
+        contour_props=None,
+        contour_noise_props=None,
+        hist_props=None,
+        free_energy=True,
+        annotate=False,
+        annotate_pos="mean",
+        annotate_props=None):
 
     if contour_props is None:
         contour_props = {}
@@ -296,47 +573,47 @@ def plot_contour(
     if hist_props is None:
         hist_props = {}
 
-    if 'avoid_zero_count' in hist_props:
-        avoid_zero_count = hist_props['avoid_zero_count']
-        del hist_props['avoid_zero_count']
+    if "avoid_zero_count" in hist_props:
+        avoid_zero_count = hist_props["avoid_zero_count"]
+        del hist_props["avoid_zero_count"]
 
-    if 'mass' in hist_props:
-        mass = hist_props['mass']
-        del hist_props['mass']
+    if "mass" in hist_props:
+        mass = hist_props["mass"]
+        del hist_props["mass"]
 
-    if 'mids' in hist_props:
-        mids = hist_props['mids']
-        del hist_props['mids']
+    if "mids" in hist_props:
+        mids = hist_props["mids"]
+        del hist_props["mids"]
 
     plotted = []
 
     if original:
-        x_, y_, H = get_histogram(
-            data[:, 0], data[:, 1],
+        x_, y_, H = get_histogram2d(
+            data[:, 0],
+            data[:, 1],
             mids=mids,
             mass=mass,
             avoid_zero_count=avoid_zero_count,
-            hist_props=hist_props
+            hist_props=hist_props,
         )
 
         if free_energy:
             H = get_free_energy(H)
 
         X, Y = np.meshgrid(x_, y_)
-        plotted.append(
-            ax.contour(X, Y, H, **contour_props)
-            )
+        plotted.append(ax.contour(X, Y, H, **contour_props))
     else:
-        for cluster, cpoints in sorted(clusterdict.items()):
+        for cluster, cpoints in sorted(cluster_map.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 
-                x_, y_, H = get_histogram(
-                    data[cpoints, 0], data[cpoints, 1],
+                x_, y_, H = get_histogram2d(
+                    data[cpoints, 0],
+                    data[cpoints, 1],
                     mids=mids,
                     mass=mass,
                     avoid_zero_count=avoid_zero_count,
-                    hist_props=hist_props
+                    hist_props=hist_props,
                 )
 
                 if free_energy:
@@ -344,31 +621,35 @@ def plot_contour(
 
                 if cluster == 0:
                     X, Y = np.meshgrid(x_, y_)
-                    plotted.append(
-                        ax.contour(X, Y, H, **contour_noise_props)
-                        )
+                    plotted.append(ax.contour(X, Y, H, **contour_noise_props))
                 else:
                     X, Y = np.meshgrid(x_, y_)
-                    plotted.append(
-                        ax.contour(X, Y, H, **contour_props)
-                        )
+                    plotted.append(ax.contour(X, Y, H, **contour_props))
 
                 if annotate:
                     plotted.append(
                         annotate_points(
                             ax, annotate_pos, data, cpoints, cluster,
                             annotate_props
-                            )
                         )
+                    )
 
     return plotted
 
 
 def plot_contourf(
-        ax, data, original=True, clusterdict=None, clusters=None,
-        contour_props=None, contour_noise_props=None,
-        hist_props=None, free_energy=True,
-        annotate=False, annotate_pos="mean", annotate_props=None):
+        ax,
+        data,
+        original=True,
+        cluster_map=None,
+        clusters=None,
+        contour_props=None,
+        contour_noise_props=None,
+        hist_props=None,
+        free_energy=True,
+        annotate=False,
+        annotate_pos="mean",
+        annotate_props=None):
 
     if contour_props is None:
         contour_props = {}
@@ -379,47 +660,47 @@ def plot_contourf(
     if hist_props is None:
         hist_props = {}
 
-    if 'avoid_zero_count' in hist_props:
-        avoid_zero_count = hist_props['avoid_zero_count']
-        del hist_props['avoid_zero_count']
+    if "avoid_zero_count" in hist_props:
+        avoid_zero_count = hist_props["avoid_zero_count"]
+        del hist_props["avoid_zero_count"]
 
-    if 'mass' in hist_props:
-        mass = hist_props['mass']
-        del hist_props['mass']
+    if "mass" in hist_props:
+        mass = hist_props["mass"]
+        del hist_props["mass"]
 
-    if 'mids' in hist_props:
-        mids = hist_props['mids']
-        del hist_props['mids']
+    if "mids" in hist_props:
+        mids = hist_props["mids"]
+        del hist_props["mids"]
 
     plotted = []
 
     if original:
-        x_, y_, H = get_histogram(
-            data[:, 0], data[:, 1],
+        x_, y_, H = get_histogram2d(
+            data[:, 0],
+            data[:, 1],
             mids=mids,
             mass=mass,
             avoid_zero_count=avoid_zero_count,
-            hist_props=hist_props
+            hist_props=hist_props,
         )
 
         if free_energy:
             H = get_free_energy(H)
 
         X, Y = np.meshgrid(x_, y_)
-        plotted.append(
-            ax.contourf(X, Y, H, **contour_props)
-            )
+        plotted.append(ax.contourf(X, Y, H, **contour_props))
     else:
-        for cluster, cpoints in sorted(clusterdict.items()):
+        for cluster, cpoints in sorted(cluster_map.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 
-                x_, y_, H = get_histogram(
-                    data[cpoints, 0], data[cpoints, 1],
+                x_, y_, H = get_histogram2d(
+                    data[cpoints, 0],
+                    data[cpoints, 1],
                     mids=mids,
                     mass=mass,
                     avoid_zero_count=avoid_zero_count,
-                    hist_props=hist_props
+                    hist_props=hist_props,
                 )
 
                 if free_energy:
@@ -427,31 +708,35 @@ def plot_contourf(
 
                 if cluster == 0:
                     X, Y = np.meshgrid(x_, y_)
-                    plotted.append(
-                        ax.contourf(X, Y, H, **contour_noise_props)
-                        )
+                    plotted.append(ax.contourf(X, Y, H, **contour_noise_props))
                 else:
                     X, Y = np.meshgrid(x_, y_)
-                    plotted.append(
-                        ax.contourf(X, Y, H, **contour_props)
-                        )
+                    plotted.append(ax.contourf(X, Y, H, **contour_props))
 
                 if annotate:
                     plotted.append(
                         annotate_points(
                             ax, annotate_pos, data, cpoints, cluster,
                             annotate_props
-                            )
                         )
+                    )
 
     return plotted
 
 
-def plot_histogram(
-        ax, data, original=True, clusterdict=None, clusters=None,
-        show_props=None, show_noise_props=None,
-        hist_props=None, free_energy=True,
-        annotate=False, annotate_pos="mean", annotate_props=None):
+def plot_histogram2d(
+        ax,
+        data,
+        original=True,
+        cluster_map=None,
+        clusters=None,
+        show_props=None,
+        show_noise_props=None,
+        hist_props=None,
+        free_energy=True,
+        annotate=False,
+        annotate_pos="mean",
+        annotate_props=None):
 
     if show_props is None:
         show_props = {}
@@ -459,52 +744,52 @@ def plot_histogram(
     if show_noise_props is None:
         show_noise_props = {}
 
-    if 'extent' in show_props:
-        del show_props['extent']
+    if "extent" in show_props:
+        del show_props["extent"]
 
     if hist_props is None:
         hist_props = {}
 
-    if 'avoid_zero_count' in hist_props:
-        avoid_zero_count = hist_props['avoid_zero_count']
-        del hist_props['avoid_zero_count']
+    if "avoid_zero_count" in hist_props:
+        avoid_zero_count = hist_props["avoid_zero_count"]
+        del hist_props["avoid_zero_count"]
 
-    if 'mass' in hist_props:
-        mass = hist_props['mass']
-        del hist_props['mass']
+    if "mass" in hist_props:
+        mass = hist_props["mass"]
+        del hist_props["mass"]
 
-    if 'mids' in hist_props:
-        mids = hist_props['mids']
-        del hist_props['mids']
+    if "mids" in hist_props:
+        mids = hist_props["mids"]
+        del hist_props["mids"]
 
     plotted = []
 
     if original:
-        x_, y_, H = get_histogram(
-            data[:, 0], data[:, 1],
+        x_, y_, H = get_histogram2d(
+            data[:, 0],
+            data[:, 1],
             mids=mids,
             mass=mass,
             avoid_zero_count=avoid_zero_count,
-            hist_props=hist_props
+            hist_props=hist_props,
         )
 
         if free_energy:
             H = get_free_energy(H)
 
-        plotted.append(
-            ax.imshow(H, extent=(x_, y_), **show_props)
-            )
+        plotted.append(ax.imshow(H, extent=(x_, y_), **show_props))
     else:
-        for cluster, cpoints in sorted(clusterdict.items()):
+        for cluster, cpoints in sorted(cluster_map.items()):
             if cluster in clusters:
                 cpoints = list(cpoints)
 
-                x_, y_, H = get_histogram(
-                    data[cpoints, 0], data[cpoints, 1],
+                x_, y_, H = get_histogram2d(
+                    data[cpoints, 0],
+                    data[cpoints, 1],
                     mids=mids,
                     mass=mass,
                     avoid_zero_count=avoid_zero_count,
-                    hist_props=hist_props
+                    hist_props=hist_props,
                 )
 
                 if free_energy:
@@ -513,19 +798,17 @@ def plot_histogram(
                 if cluster == 0:
                     plotted.append(
                         ax.imshow(H, extent=(x_, y_), **show_noise_props)
-                        )
+                    )
                 else:
-                    plotted.append(
-                        ax.imshow(H, extent=(x_, y_), **show_props)
-                        )
+                    plotted.append(ax.imshow(H, extent=(x_, y_), **show_props))
 
                 if annotate:
                     plotted.append(
                         annotate_points(
                             ax, annotate_pos, data, cpoints, cluster,
                             annotate_props
-                            )
                         )
+                    )
     return plotted
 
 
@@ -538,23 +821,16 @@ def annotate_points(ax, pos, data, points, text, annotate_props=None):
         ypos = np.mean(data[points, 1])
 
     elif pos == "random":
-        choosen = random.sample(
-            points, 1
-            )
+        choosen = random.sample(points, 1)
         xpos = data[choosen, 0]
         ypos = data[choosen, 1]
 
     else:
         raise ValueError(
-            'Keyword argument `annotate_pos` must be '
-            'one of "mean", "random"'
-            )
-
-    return ax.annotate(
-        f"{text}",
-        xy=(xpos, ypos),
-        **annotate_props
+            "Keyword argument `annotate_pos` must be " 'one of "mean", "random"'
         )
+
+    return ax.annotate(f"{text}", xy=(xpos, ypos), **annotate_props)
 
 
 def get_free_energy(H):
@@ -567,12 +843,13 @@ def get_free_energy(H):
     return dG
 
 
-def get_histogram(
-        x: Sequence[float], y: Sequence[float],
-        mids: bool = True, mass: bool = True,
+def get_histogram2d(
+        x: Sequence[float],
+        y: Sequence[float],
+        mids: bool = True,
+        mass: bool = True,
         avoid_zero_count: bool = True,
-        hist_props: Optional[Dict['str', Any]] = None
-        ) -> Tuple[np.ndarray, ...]:
+        hist_props: Optional[Dict[str, Any]] = None) -> Tuple[np.ndarray, ...]:
     """Compute a two-dimensional histogram.
 
     Taken and modified from :module:`pyemma.plots.`
@@ -599,15 +876,13 @@ def get_histogram(
     """
 
     hist_props_defaults = {
-        'bins': 100,
+        "bins": 100,
     }
 
     if hist_props is not None:
         hist_props_defaults.update(hist_props)
 
-    z, x_, y_ = np.histogram2d(
-        x, y, **hist_props_defaults
-        )
+    z, x_, y_ = np.histogram2d(x, y, **hist_props_defaults)
 
     if mids:
         x_ = 0.5 * (x_[:-1] + x_[1:])
