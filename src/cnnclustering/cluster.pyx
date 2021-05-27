@@ -96,7 +96,7 @@ COMPONENT_KW_ALT = {
 }
 
 
-registered_recipies = {
+registered_recipes = {
     "from_points_brute_force": {
         "input_data": "points_array2d",
         "neighbours_getter": "brute_force",
@@ -129,16 +129,18 @@ def prepare_clustering(data, preparation_hook=None, **recipe):
             compatibility.
 
     Keyword args:
-        preparation_hook: A function that takes `input_data` as a
-            single argument and returns it (optionally) re-formatted.
-            May return meta-information as a second return value (None
-            otherwise).  If `None` uses :meth:`prepare_points_from_parts`.
+        preparation_hook: A function that takes input data as a
+            single argument and returns the (optionally) reformatted data
+            plus additional information (e.g. "meta") in form of
+            an argument tuple and a keyword argument dictionary that can
+            be used to initialise an input data type.
+            If `None` uses :meth:`prepare_points_from_parts`.
         recipe: Building instructions for a
             :obj:`cnnclustering.cluster.Clustering` instance.
     """
 
     default_recipe = {
-        **registered_recipies["from_points_brute_force"]
+        **registered_recipes["from_points_brute_force"]
         }
 
     default_recipe.update(recipe)
@@ -147,6 +149,12 @@ def prepare_clustering(data, preparation_hook=None, **recipe):
         data_args, data_kwargs = preparation_hook(data)
     else:
         data_args, data_kwargs = prepare_points_from_parts(data)
+
+    if data_args is None:
+        data_args = (data,)
+
+    if data_kwargs is None:
+        data_kwargs = {"meta": {}}
 
     components = {}
     for component_kw, component_details in default_recipe.items():
@@ -185,6 +193,21 @@ def prepare_clustering(data, preparation_hook=None, **recipe):
             )
 
     return Clustering(**components)
+
+
+def prepare_pass(data):
+    """Dummy preparation hook
+
+    Use if not preparation of input data is desired.
+
+    Args:
+        data: Input data that should be prepared.
+
+    Returns:
+        None, None
+    """
+
+    return None, None
 
 
 def prepare_points_from_parts(data):
@@ -508,6 +531,20 @@ class Clustering:
         raise KeyError(
             f"Clustering {self.alias!r} has no child with label {next_label}"
             )
+
+    def _fit(self, cluster_params: Type["ClusterParameters"]) -> None:
+
+        self._fitter.fit(
+                self._input_data,
+                self._neighbours_getter,
+                self._neighbours,
+                self._neighbour_neighbours,
+                self._metric,
+                self._similarity_checker,
+                self._queue,
+                self._labels,
+                cluster_params
+                )
 
     def fit(
             self,

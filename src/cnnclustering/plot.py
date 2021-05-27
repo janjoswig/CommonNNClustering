@@ -797,8 +797,7 @@ def plot_histogram2d(
 
                 if cluster == 0:
                     plotted.append(
-                        ax.imshow(H, extent=(x_, y_), **show_noise_props
-                        )
+                        ax.imshow(H, extent=(x_, y_), **show_noise_props)
                     )
                 else:
                     plotted.append(ax.imshow(H, extent=(x_, y_), **show_props))

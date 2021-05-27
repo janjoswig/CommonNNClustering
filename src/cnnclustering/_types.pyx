@@ -473,7 +473,7 @@ class NeighboursList(Neighbours):
         self._neighbours = []
         self._n_points = 0
 
-    def enough(self, member_cutoff: int):
+    def enough(self, member_cutoff: int) -> bool:
         if self._n_points > member_cutoff:
             return True
         return False
@@ -886,6 +886,14 @@ class Metric(ABC):
             index_a: int, index_b: int,
             input_data: Type['InputData']) -> float:
         """Return distance between two points in input data"""
+
+    @abstractmethod
+    def calc_distance_other(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData']) -> float:
+        """Return distance between two points in input data and other input data"""
 
 
 class MetricDummy(Metric):
