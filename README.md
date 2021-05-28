@@ -2,7 +2,7 @@
 [![image](https://img.shields.io/pypi/l/cnnclustering.svg)](https://pypi.org/project/cnnclustering/)
 [![image](https://img.shields.io/pypi/pyversions/cnnclustering.svg)](https://pypi.org/project/cnnclustering/)
 [![Build Status](https://travis-ci.com/janjoswig/CommonNNClustering.svg?branch=master)](https://travis-ci.com/janjoswig/CommonNNClustering)
-[![Coverage Status](https://coveralls.io/repos/github/janjoswig/CommonNNClustering/badge.svg?branch=master)](https://coveralls.io/github/janjoswig/CommonNNClustering?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/janjoswig/CommonNNClustering/badge.svg)](https://coveralls.io/github/janjoswig/CommonNNClustering)
 
 Common-nearest-neighbours clustering
 ====================================
