@@ -8,7 +8,7 @@ python:
 branches:
   only:
   - master
-  - /^v.*$/
+  - /^v*$/
 
 before_install:
   - pip install --upgrade pip
