@@ -11,6 +11,7 @@ from cnnclustering._types import (
     NeighboursList,
     NeighboursExtVector,
     NeighboursGetterLookup,
+    SimilarityCheckerExtScreensorted,
     QueueFIFODeque,
     QueueExtFIFOQueue,
     QueueExtLIFOVector,
@@ -65,10 +66,21 @@ class TestLabels:
 
         assert isinstance(_labels.labels, np.ndarray)
         assert isinstance(_labels.consider, np.ndarray)
+        assert isinstance(_labels.meta, dict)
 
         repr_ = f"{_labels!r}"
         str_ = f"{_labels!s}"
         file_regression.check(f"{repr_}\n{str_}")
+
+    def test_attribute_access(self):
+        _labels = Labels.from_sequence([])
+
+        assert _labels.set == set()
+        assert _labels.mapping == {}
+
+        assert _labels.consider_set == set()
+        _labels.consider_set = {1}
+        assert _labels.consider_set == {1}
 
     def test_to_mapping(self):
         labels = Labels(np.array([1, 1, 2, 2, 0, 1], dtype=P_AINDEX, order="C"))

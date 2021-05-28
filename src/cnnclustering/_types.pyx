@@ -32,6 +32,39 @@ cdef class ClusterParameters:
 
 
 cdef class Labels:
+    """Represents cluster label assignments
+
+    Args:
+        labels: A container of integer cluster labels
+            supporting the buffer protocol
+
+    Keyword args:
+        consider: A boolean (uint8) container of same length as `labels`
+            indicating if a cluster label shoud be considered for assignment
+            during clustering.  If `None`, will be created as all true.
+        meta: Meta information.  If `None`, will be created as empty
+            dictionary.
+
+    Attributes:
+        n_points: The length of the labels container
+        meta: The meta information dictionary
+        labels: The labels container converted to a NumPy ndarray
+        consider: The consider container converted to a NumPy ndarray
+        mapping: A mapping of cluster labels to indices in `labels`
+        set: The set of cluster labels
+        consider_set: A set of cluster labels to consider for cluster
+            label assignments
+
+    Methods:
+        from_sequence: Alternative to construct from a labels sequence
+            (not supporting the buffer protocol)
+        to_mapping: Convert labels to `mapping`
+        to_set: Convert labels to `set`
+        sort_by_size: Sort cluster labels by member count (1 being
+            the largest cluster)
+
+    """
+
     def __cinit__(self, labels, *, consider=None, meta=None):
 
         self._labels = labels
@@ -1108,6 +1141,7 @@ cdef class MetricExtEuclidean:
 
 
 class MetricEuclideanReduced(Metric):
+
     def calc_distance(
             self,
             index_a: int, index_b: int,
@@ -1146,6 +1180,7 @@ class MetricEuclideanReduced(Metric):
 
 
 cdef class MetricExtEuclideanReduced:
+
     cdef inline AVALUE _calc_distance(
             self,
             AINDEX index_a, AINDEX index_b,
@@ -1408,14 +1443,14 @@ cdef class SimilarityCheckerExtContains:
             NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
             ClusterParameters cluster_params) nogil:
 
-        cdef AINDEX na = neighbours_a.n_points
-
         cdef AINDEX c = cluster_params.cnn_cutoff
-        cdef AINDEX member_a, member_index_a
-        cdef AINDEX common = 0
 
         if c == 0:
             return True
+
+        cdef AINDEX na = neighbours_a.n_points
+        cdef AINDEX member_a, member_index_a
+        cdef AINDEX common = 0
 
         for member_index_a in range(na):
             member_a = neighbours_a._get_member(member_index_a)
@@ -1459,15 +1494,17 @@ cdef class SimilarityCheckerExtSwitchContains:
             NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
             ClusterParameters cluster_params) nogil:
 
-        cdef AINDEX na = neighbours_a.n_points
-        cdef AINDEX nb = neighbours_b.n_points
 
         cdef AINDEX c = cluster_params.cnn_cutoff
-        cdef AINDEX member_a, member_index_a
-        cdef AINDEX common = 0
 
         if c == 0:
             return True
+
+        cdef AINDEX na = neighbours_a.n_points
+        cdef AINDEX nb = neighbours_b.n_points
+
+        cdef AINDEX member_a, member_index_a
+        cdef AINDEX common = 0
 
         if nb < na:
             with gil:
@@ -1500,10 +1537,17 @@ cdef class SimilarityCheckerExtScreensorted:
             NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
             ClusterParameters cluster_params) nogil:
 
+        cdef AINDEX c = cluster_params.cnn_cutoff
+
+        if c == 0:
+            return True
+
         cdef AINDEX na = neighbours_a.n_points
         cdef AINDEX nb = neighbours_b.n_points
 
-        cdef AINDEX c = cluster_params.cnn_cutoff
+        if (na == 0) or (nb == 0):
+            return False
+
         cdef AINDEX member_index_a = 0, member_index_b = 0
         cdef AINDEX member_a, member_b, k
         cdef AINDEX common = 0

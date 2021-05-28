@@ -10,6 +10,7 @@ from cnnclustering._types import (
     MetricEuclideanReduced,
     MetricExtEuclidean,
     MetricExtEuclideanReduced,
+    MetricExtEuclideanPeriodicReduced
 )
 
 
@@ -29,28 +30,28 @@ def test_ref_distance_euclidean():
 
 class TestMetric:
     @pytest.mark.parametrize(
-        "metric,ref_func",
+        "metric,metric_args,metric_is_ext,ref_func",
         [
             (
-                MetricEuclidean,
+                MetricEuclidean, (), False,
                 lambda a, b: ref_distance_euclidean(a, b),
             ),
             (
-                MetricEuclideanReduced,
+                MetricEuclideanReduced, (), False,
                 lambda a, b: ref_distance_euclidean(a, b) ** 2,
             ),
             (
-                MetricExtEuclidean,
+                MetricExtEuclidean, (), True,
                 lambda a, b: ref_distance_euclidean(a, b),
             ),
             (
-                MetricExtEuclideanReduced,
+                MetricExtEuclideanReduced, (), True,
                 lambda a, b: ref_distance_euclidean(a, b) ** 2,
             ),
         ]
     )
     @pytest.mark.parametrize(
-        "input_data_type,data",
+        "input_data_type,data,other_data,input_is_ext",
         [
             (
                 InputDataExtPointsMemoryview,
@@ -59,11 +60,27 @@ class TestMetric:
                     [1, 1, 1],
                     [1.2, 1.5, 1.3],
                     ], order="C", dtype=P_AVALUE
-                )
+                ),
+                np.array([
+                    [0, 0, 0],
+                    [1, 1, 1],
+                    [2, 2, 2],
+                    [1.2, 1.5, 1.3],
+                    [4.3, 2.5, 0.7],
+                    ], order="C", dtype=P_AVALUE
+                ),
+                True
             ),
         ],
     )
-    def test_calc_distance_ext(self, metric, input_data_type, data, ref_func):
+    def test_calc_distance(
+            self, metric, metric_args, metric_is_ext,
+            input_data_type, data, other_data, input_is_ext, ref_func):
+
+        if metric_is_ext and (not input_is_ext):
+            # pytest.skip("Bad combination of component types.")
+            return
+
         _metric = metric()
 
         input_data = input_data_type(data)
@@ -82,6 +99,27 @@ class TestMetric:
                 ref_distance = ref_func(a, b)
 
                 distance = _metric.calc_distance(i, j, input_data)
+
+                np.testing.assert_approx_equal(
+                    distance, ref_distance, significant=12
+                    )
+
+        other_input_data = input_data_type(other_data)
+
+        for i in range(other_input_data.n_points):
+            for j in range(input_data.n_points):
+                a, b = zip(
+                    *(
+                        (
+                            other_input_data.get_component(i, d),
+                            input_data.get_component(j, d),
+                        )
+                        for d in range(input_data.n_dim)
+                    )
+                )
+                ref_distance = ref_func(a, b)
+
+                distance = _metric.calc_distance_other(i, j, input_data, other_input_data)
 
                 np.testing.assert_approx_equal(
                     distance, ref_distance, significant=12

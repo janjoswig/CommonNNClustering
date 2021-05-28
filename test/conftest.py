@@ -42,7 +42,10 @@ def toy_data_points(request):
 def registered_clustering(request):
     key = request.node.funcargs.get("case_key")
 
-    if key == "hierarchical_a":
+    if key == "empty":
+        clustering = cluster.Clustering()
+
+    elif key == "hierarchical_a":
         labels = Labels(
             np.array([0, 0, 1, 1, 0, 0, 1, 2, 1, 1, 1, 2, 2, 1, 0], dtype=P_AINDEX)
         )
@@ -67,5 +70,7 @@ def registered_clustering(request):
             np.array([2, 1, 0], dtype=P_AINDEX)
             )
         clustering._children[1]._children[2]._parent_indices = np.array([3, 4, 5])
+    else:
+        raise KeyError("Case key is not registered")
 
-        return clustering
+    return clustering
