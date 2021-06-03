@@ -840,9 +840,9 @@ cdef class NeighboursGetterExtBruteForce:
 
 cdef class NeighboursGetterExtLookup:
 
-    def __cinit__(self):
-        self.is_sorted = False
-        self.is_selfcounting = True
+    def __cinit__(self, is_sorted=False, is_selfcounting=True):
+        self.is_sorted = is_sorted
+        self.is_selfcounting = is_selfcounting
 
     cdef inline void _get(
             self,
