@@ -860,7 +860,7 @@ class Clustering:
         """
 
         cdef AINDEX label, index
-        cdef list indices, root_indices, parent_indices
+        cdef list indices
 
         if purge or (self._children is None):
             self._children = defaultdict(
@@ -869,14 +869,14 @@ class Clustering:
 
         for label, indices in self.labels.mapping.items():
             # Assume indices to be sorted
-            parent_indices = indices
+            parent_indices = np.array(indices, dtype=np.intp)
             if self._root_indices is None:
-                root_indices = indices
+                root_indices = parent_indices
             else:
-                root_indices = self._root_indices[indices]
+                root_indices = self._root_indices[parent_indices]
 
-            self._children[label]._root_indices = np.asarray(root_indices)
-            self._children[label]._parent_indices = np.asarray(parent_indices)
+            self._children[label]._root_indices = root_indices
+            self._children[label]._parent_indices = parent_indices
             parent_alias = self.alias if self.alias is not None else ""
             self._children[label].alias += f"{parent_alias} - {label}"
 
@@ -900,12 +900,12 @@ class Clustering:
             index_part_end = next(edges_iter)
             child_index_part_end = 0
 
-            for index in parent_indices:
-                if index < index_part_end:
+            for index in range(parent_indices.shape[0]):
+                if parent_indices[index] < index_part_end:
                     child_index_part_end += 1
                     continue
 
-                while index >= index_part_end:
+                while parent_indices[index] >= index_part_end:
                     child_edges.append(child_index_part_end)
                     index_part_end += next(edges_iter)
                     child_index_part_end = 0
@@ -1642,15 +1642,15 @@ class Record:
 
     def to_dict(self):
         return {
-            "n_points": obj.n_points,
-            "radius_cutoff": obj.radius_cutoff,
-            "cnn_cutoff": obj.cnn_cutoff,
-            "member_cutoff": obj.member_cutoff,
-            "max_clusters": obj.max_clusters,
-            "n_clusters": obj.n_clusters,
-            "ratio_largest": obj.ratio_largest,
-            "ratio_noise": obj.ratio_noise,
-            "execution_time": obj.execution_time,
+            "n_points": self.n_points,
+            "radius_cutoff":  self.radius_cutoff,
+            "cnn_cutoff":  self.cnn_cutoff,
+            "member_cutoff":  self.member_cutoff,
+            "max_clusters":  self.max_clusters,
+            "n_clusters":  self.n_clusters,
+            "ratio_largest":  self.ratio_largest,
+            "ratio_noise":  self.ratio_noise,
+            "execution_time":  self.execution_time,
             }
 
 
