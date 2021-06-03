@@ -119,7 +119,9 @@ class TestMetric:
                 )
                 ref_distance = ref_func(a, b)
 
-                distance = _metric.calc_distance_other(i, j, input_data, other_input_data)
+                distance = _metric.calc_distance_other(
+                    i, j, input_data, other_input_data
+                    )
 
                 np.testing.assert_approx_equal(
                     distance, ref_distance, significant=12

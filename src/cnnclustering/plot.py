@@ -209,7 +209,8 @@ def get_pieces(
             for next_parent_label, next_parent_membercount in expected_parent_pool:
                 pieces[-1].append((f"{next_parent_label}.0", next_parent_membercount))
 
-            print(sum(p[1] for p in pieces[-1]))
+            # DEBUG
+            # print(sum(p[1] for p in pieces[-1]))
 
             if not new_terminal_cluster_references:
                 break
@@ -284,6 +285,7 @@ def plot_summary(
         summary,
         quantity="execution_time",
         treat_nan=None,
+        convert=None,
         contour_props=None):
     """Generate a 2D plot of record values"""
 
@@ -300,6 +302,9 @@ def plot_summary(
 
     if treat_nan is not None:
         values_[np.isnan(values_)] == treat_nan
+
+    if convert is not None:
+        values_ = np.apply_along_axis(convert, 0, values_)
 
     plotted = []
 
