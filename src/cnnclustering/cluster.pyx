@@ -1083,6 +1083,7 @@ class Clustering:
             ax=None,
             quantity: str = "execution_time",
             treat_nan: Optional[Any] = None,
+            convert: Optional[Any] = None,
             ax_props: Optional[dict] = None,
             contour_props: Optional[dict] = None):
         """Generate a 2D plot of record values
@@ -1139,6 +1140,7 @@ class Clustering:
             ax, self._summary.to_DataFrame(),
             quantity=quantity,
             treat_nan=treat_nan,
+            convert=convert,
             contour_props=contour_props_defaults
             )
 
@@ -1637,6 +1639,19 @@ class Record:
             f'{"-" * 95}\n'
         )
         return printable
+
+    def to_dict(self):
+        return {
+            "n_points": obj.n_points,
+            "radius_cutoff": obj.radius_cutoff,
+            "cnn_cutoff": obj.cnn_cutoff,
+            "member_cutoff": obj.member_cutoff,
+            "max_clusters": obj.max_clusters,
+            "n_clusters": obj.n_clusters,
+            "ratio_largest": obj.ratio_largest,
+            "ratio_noise": obj.ratio_noise,
+            "execution_time": obj.execution_time,
+            }
 
 
 class Summary(MutableSequence):
