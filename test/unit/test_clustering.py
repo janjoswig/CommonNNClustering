@@ -84,7 +84,7 @@ class TestClustering:
         predictor.predict.assert_called_once()
 
     @pytest.mark.parametrize(
-        "input_data_type,data,meta,labels",
+        "input_data_type,data,meta,labels,root_indices,parent_indices",
         [
             (
                 InputDataExtPointsMemoryview,
@@ -94,7 +94,9 @@ class TestClustering:
                     order="C", dtype=P_AVALUE
                 ),
                 None,
-                np.array([1, 2], dtype=P_AINDEX)
+                np.array([1, 2], dtype=P_AINDEX),
+                None,
+                None
             ),
             (
                 InputDataExtPointsMemoryview,
@@ -106,17 +108,48 @@ class TestClustering:
                     order="C", dtype=P_AVALUE
                 ),
                 {"edges": [2, 2]},
-                np.array([1, 2, 1, 2], dtype=P_AINDEX)
+                np.array([1, 2, 1, 2], dtype=P_AINDEX),
+                None,
+                None
+            ),
+            (
+                InputDataExtPointsMemoryview,
+                np.array(
+                    [[1, 1, 1],
+                     [2, 2, 2],
+                     [3, 3, 3],
+                     [4, 4, 4]],
+                    order="C", dtype=P_AVALUE
+                ),
+                {"edges": [4]},
+                np.array([1, 2, 1, 2], dtype=P_AINDEX),
+                np.array([1, 2, 3, 4], dtype=P_AINDEX),
+                np.array([1, 2, 3, 4], dtype=P_AINDEX),
+            ),
+            (
+                InputDataExtPointsMemoryview,
+                np.array(
+                    [[1, 1, 1],
+                     [4, 4, 4]],
+                    order="C", dtype=P_AVALUE
+                ),
+                {"edges": [4]},
+                np.array([1, 2], dtype=P_AINDEX),
+                np.array([1, 3], dtype=P_AINDEX),
+                np.array([0, 2], dtype=P_AINDEX),
             ),
         ]
     )
     def test_isolate(
             self, input_data_type, data, meta, labels,
+            root_indices, parent_indices,
             file_regression):
         clustering = cluster.Clustering(
             input_data=input_data_type(data, meta=meta),
             labels=Labels(labels)
         )
+        clustering._root_indices = root_indices
+        clustering._parent_indices = parent_indices
         clustering.isolate()
         label_set = set(labels)
         label_counter = Counter(labels)

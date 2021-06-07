@@ -1162,12 +1162,12 @@ class Clustering:
 
         return fig, ax
 
-    def tree(self, ax=None, pos_props=None, draw_props=None):
+    def tree(self, ax=None, ignore=None, pos_props=None, draw_props=None):
 
         if not MPL_FOUND:
             raise ModuleNotFoundError("No module named 'matplotlib'")
 
-        graph = self.to_nx_DiGraph()
+        graph = self.to_nx_DiGraph(ignore=ignore)
 
         if ax is None:
             fig, ax = plt.subplots()
@@ -1529,20 +1529,35 @@ class Clustering:
 
         return fig, ax
 
-    def to_nx_DiGraph(self):
-        """Convert cluster hierarchy to networkx DiGraph"""
+    def to_nx_DiGraph(self, ignore=None):
+        """Convert cluster hierarchy to networkx DiGraph
+
+        Keyword args:
+            ignore: A set of label not to include into the graph.  Use
+                for example to exclude noise (label 0).
+        """
 
         if not NX_FOUND:
             raise ModuleNotFoundError("No module named 'networkx'")
 
         def add_children(clustering_label, clustering, graph):
-            for child_label, child_clustering in clustering._children.items():
+            for child_label, child_clustering in sorted(clustering._children.items()):
+
+                if child_label in ignore:
+                    continue
+
                 padded_child_label = ".".join([clustering_label, str(child_label)])
                 graph.add_node(padded_child_label, object=child_clustering)
                 graph.add_edge(clustering_label, padded_child_label)
 
                 if child_clustering._children is not None:
                     add_children(padded_child_label, child_clustering, graph)
+
+        if ignore is None:
+            ignore = {}
+
+        if not isinstance(ignore, set):
+            ignore = set(ignore)
 
         graph = nx.DiGraph()
         graph.add_node("1", object=self)
