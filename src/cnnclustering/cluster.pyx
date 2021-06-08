@@ -927,6 +927,23 @@ class Clustering:
 
         return
 
+    def trim_trivial(self):
+
+        def _trim_trivial(clustering):
+            if clustering._labels is None:
+                return
+
+            if len(clustering._labels.mapping) == 1:
+                clustering._labels = None
+                return
+
+            for child in clustering._children.values():
+                _trim_trivial(child)
+
+        _trim_trivial(self)
+
+        return
+
     def reel(self, depth: Optional[int] = None) -> None:
         """Wrap up label assignments of lower hierarchy levels
 
@@ -948,11 +965,11 @@ class Clustering:
             parent_labels = parent._labels.labels
 
             for label, child in parent._children.items():
-                if (depth is None) or (depth > 0):
-                    _reel(child, depth)
-
                 if child._labels is None:
                     continue
+
+                if (depth is None) or (depth > 0):
+                    _reel(child, depth)
 
                 n_clusters = max(parent_labels)
 
@@ -1562,7 +1579,7 @@ class Clustering:
                     add_children(padded_child_label, child_clustering, graph)
 
         if ignore is None:
-            ignore = {}
+            ignore = set()
 
         if not isinstance(ignore, set):
             ignore = set(ignore)
