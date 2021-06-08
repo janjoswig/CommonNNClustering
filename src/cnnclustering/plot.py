@@ -187,13 +187,15 @@ def get_pieces(
 
         cluster_shares = [
             (f"{'.'.join([parent_label, str(k)])}", len(v))
-            for k, v in clustering_instance._labels.mapping.items()
+            for k, v in sorted(clustering_instance._labels.mapping.items())
             ]
 
         pieces[-1].extend(cluster_shares)
 
         if clustering_instance._children:
-            for child_label, child_clustering in clustering_instance._children.items():
+            for child_label, child_clustering in sorted(
+                    clustering_instance._children.items()):
+
                 if child_clustering._labels is None:
                     continue
 
@@ -210,7 +212,7 @@ def get_pieces(
                 pieces[-1].append((f"{next_parent_label}.0", next_parent_membercount))
 
             # DEBUG
-            # print(sum(p[1] for p in pieces[-1]))
+            assert sum(p[1] for p in pieces[-1]) == clustering._labels.n_points
 
             if not new_terminal_cluster_references:
                 break

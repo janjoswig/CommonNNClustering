@@ -101,8 +101,6 @@ cdef class InputDataExtPointsMemoryview:
         AINDEX n_points
         AINDEX n_dim
         dict meta
-
-    cdef:
         AVALUE[:, ::1] _data
 
     cdef inline AVALUE _get_component(
@@ -164,6 +162,7 @@ cdef class NeighboursGetterExtBruteForce:
             NEIGHBOURS_EXT neighbours,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil
+
 
 cdef class NeighboursGetterExtLookup:
     cdef public:

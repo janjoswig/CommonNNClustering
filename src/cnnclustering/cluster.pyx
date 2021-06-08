@@ -533,6 +533,11 @@ class Clustering:
             )
 
     def _fit(self, cluster_params: Type["ClusterParameters"]) -> None:
+        """Execute clustering procedure
+
+        Low-level alternative to
+        :meth:`cnnclustering.cluster.Clustering.fit`.
+        """
 
         self._fitter.fit(
                 self._input_data,
@@ -588,7 +593,7 @@ class Clustering:
                 :obj:`Summary`.
             record_time: Wether to time clustering execution.
             v: Be chatty.
-            purge: If True, force reinitialisation of cluster label
+            purge: If True, force re-initialisation of cluster label
                 assignments.
         """
 
@@ -610,7 +615,7 @@ class Clustering:
             old_label_set = set()
             current_start = 1
         else:
-            old_label_set =self._labels.to_set()
+            old_label_set = self._labels.to_set()
             current_start = max(old_label_set) + 1
 
         cluster_params = ClusterParameters(
@@ -700,6 +705,9 @@ class Clustering:
             member_cutoff: int = None,
             max_clusters: int = None,
             cnn_offset: int = None):
+        """Execute hierarchical clustering procedure
+
+        """
 
         cdef AINDEX member_count, _member_cutoff
 

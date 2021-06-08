@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib as mpl
 import pytest
-from sklearn import neighbors
 
 try:
     from sklearn.neighbors import KDTree

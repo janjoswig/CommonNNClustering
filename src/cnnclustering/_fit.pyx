@@ -300,6 +300,7 @@ class Predictor(ABC):
             input_data: Type['InputData'],
             predictand_input_data: Type['InputData'],
             neighbours_getter: Type['NeighboursGetter'],
+            predictand_neighbours_getter: Type['NeighboursGetter'],
             neighbours: Type['Neighbours'],
             neighbour_neighbours: Type['Neighbours'],
             metric: Type['Metric'],

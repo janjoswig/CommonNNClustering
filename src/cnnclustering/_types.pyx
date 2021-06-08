@@ -6,6 +6,12 @@ from typing import Container, Iterator, Sequence
 
 import numpy as np
 
+try:
+    import sklearn.neighbors
+    SKLEARN_FOUND = True
+except ModuleNotFoundError:
+    SKLEARN_FOUND = False
+
 from libc.math cimport sqrt as csqrt, pow as cpow, fabs as cfabs
 
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
@@ -908,6 +914,79 @@ cdef class NeighboursGetterExtLookup:
             cluster_params,
         )
 
+
+class NeighboursGetterSklearnKDTree(NeighboursGetter):
+
+    def __init__(self, is_sorted=False):
+        self._is_sorted = is_sorted
+        self._is_selfcounting = True
+        self.tree = None
+        self.neighbourhoods = None
+        self.radius = None
+
+    @property
+    def is_sorted(self) -> bool:
+        return self._is_sorted
+
+    @property
+    def is_selfcounting(self) -> bool:
+        return self._is_selfcounting
+
+    def build_tree(self, input_data: Type['InputData'], **kwargs):
+        self.tree = sklearn.neighbors.KDTree(input_data.data, **kwargs)
+
+    def compute_neighbourhoods(self, input_data: Type['InputData'], radius: float):
+        self.neighbourhoods = self.tree.query_radius(
+            input_data.data, r=radius,
+            return_distance=False,
+            )
+        self.radius = radius
+
+        if self.is_sorted:
+            for n in self.neighbourhoods:
+                n.sort()
+
+    def get(
+            self,
+            index: int,
+            input_data: Type['InputData'],
+            neighbours: Type['Neighbours'],
+            metric: Type['Metric'],
+            cluster_params: Type['ClusterParameters']) -> None:
+
+        cdef AINDEX i
+        neighbours.reset()
+
+        if self.radius != cluster_params.radius_cutoff:
+            self.compute_neighbourhoods(
+                input_data,
+                cluster_params.radius_cutoff
+                )
+
+        for i in range(self.neighbourhoods[index].shape[0]):
+            neighbours.assign(self.neighbourhoods[index][i])
+
+    def get_other(
+            self,
+            index: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData'],
+            neighbours: Type['Neighbours'],
+            metric: Type['Metric'],
+            cluster_params: Type['ClusterParameters']):
+
+        cdef AINDEX i
+
+        neighbours.reset()
+
+        if self.radius != cluster_params.radius_cutoff:
+            self.compute_neighbourhoods(
+                input_data,
+                cluster_params.radius_cutoff
+                )
+
+        for i in range(self.neighbourhoods[index].shape[0]):
+            neighbours.assign(self.neighbourhoods[index][i])
 
 
 class Metric(ABC):
