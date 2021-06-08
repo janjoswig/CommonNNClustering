@@ -927,7 +927,7 @@ class Clustering:
 
         return
 
-    def trim_trivial(self):
+    def trim_trivial_leafs(self):
 
         def _trim_trivial(clustering):
             if clustering._labels is None:
