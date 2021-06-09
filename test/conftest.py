@@ -38,39 +38,58 @@ def toy_data_points(request):
     return points, reference_labels
 
 
+def make_empty_clustering():
+    return cluster.Clustering()
+
+
+def make_hierarchical_clustering_a():
+    labels = Labels(
+        np.array([0, 0, 1, 1, 0, 0, 1, 2, 1, 1, 1, 2, 2, 1, 0], dtype=P_AINDEX)
+    )
+    clustering = cluster.Clustering(
+        labels=labels
+    )
+
+    clustering._children = {}
+    for i in [0, 1, 2]:
+        clustering._children[i] = cluster.Clustering(parent=clustering)
+
+    clustering._children[1]._labels = Labels(
+        np.array([0, 1, 0, 2, 2, 2, 1], dtype=P_AINDEX)
+        )
+    clustering._children[1]._parent_indices = np.array([2, 3, 6, 8, 9, 10, 13])
+
+    clustering._children[1]._children = {}
+    for i in [0, 1, 2]:
+        clustering._children[1]._children[i] = cluster.Clustering(parent=clustering)
+
+    clustering._children[1]._children[2]._labels = Labels(
+        np.array([2, 1, 0], dtype=P_AINDEX)
+        )
+    clustering._children[1]._children[2]._parent_indices = np.array([3, 4, 5])
+
+    return clustering
+
+
+def make_trivial_clustering():
+    labels = Labels(
+        np.array([0, 0, 0, 0, 0, 0, 0, 0], dtype=P_AINDEX)
+    )
+    clustering = cluster.Clustering(
+        labels=labels
+    )
+
+    return clustering
+
+
+registered_clustering_map = {
+    "empty": make_empty_clustering,
+    "hierarchical_a": make_hierarchical_clustering_a,
+    "trivial": make_trivial_clustering,
+}
+
+
 @pytest.fixture
 def registered_clustering(request):
     key = request.node.funcargs.get("case_key")
-
-    if key == "empty":
-        clustering = cluster.Clustering()
-
-    elif key == "hierarchical_a":
-        labels = Labels(
-            np.array([0, 0, 1, 1, 0, 0, 1, 2, 1, 1, 1, 2, 2, 1, 0], dtype=P_AINDEX)
-        )
-        clustering = cluster.Clustering(
-            labels=labels
-        )
-
-        clustering._children = {}
-        for i in [0, 1, 2]:
-            clustering._children[i] = cluster.Clustering(parent=clustering)
-
-        clustering._children[1]._labels = Labels(
-            np.array([0, 1, 0, 2, 2, 2, 1], dtype=P_AINDEX)
-            )
-        clustering._children[1]._parent_indices = np.array([2, 3, 6, 8, 9, 10, 13])
-
-        clustering._children[1]._children = {}
-        for i in [0, 1, 2]:
-            clustering._children[1]._children[i] = cluster.Clustering(parent=clustering)
-
-        clustering._children[1]._children[2]._labels = Labels(
-            np.array([2, 1, 0], dtype=P_AINDEX)
-            )
-        clustering._children[1]._children[2]._parent_indices = np.array([3, 4, 5])
-    else:
-        raise KeyError("Case key is not registered")
-
-    return clustering
+    return registered_clustering_map[key]()
