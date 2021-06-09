@@ -927,8 +927,47 @@ class Clustering:
 
         return
 
+    def trim_shrinking_leafs(self):
+
+        def _trim_shrinking(clustering, new=True):
+
+            if clustering._children is None:
+                splits = will_split = False
+            else:
+                label_set = clustering._labels.set
+                label_set.discard(0)
+
+                if len(label_set) <= 1:
+                    splits = False
+                else:
+                    splits = True
+
+                will_split = []
+                for child in clustering._children.values():
+                    will_split.append(
+                        _trim_shrinking(child, new=splits)
+                        )
+
+                will_split = any(will_split)
+
+            keep = new or will_split or splits
+            if not keep:
+                clustering._labels = None
+                clustering._children = None
+
+            return keep
+
+        _trim_shrinking(self)
+
+        return
+
     def trim_trivial_leafs(self):
-        """Remove cluster label assignments where all points are noise"""
+        """Scan cluster hierarchy for removable nodes
+
+        If the cluster label assignments on a clustering are all zero
+        (noise), the clustering is considered trivial.  In this case,
+        the labels and children are reset to `None`.
+        """
 
         def _trim_trivial(clustering):
             if clustering._labels is None:
@@ -937,6 +976,9 @@ class Clustering:
             if clustering._labels.set == {0}:
                 clustering._labels = None
                 clustering._children = None
+                return
+
+            if clustering._children is None:
                 return
 
             for child in clustering._children.values():
