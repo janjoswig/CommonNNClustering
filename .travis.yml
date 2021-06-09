@@ -34,7 +34,7 @@ deploy:
   provider: pypi
   username: __token__
   on:
-    tags: true
+    tags: false
     python: '3.8'
   skip_existing: true
   password:

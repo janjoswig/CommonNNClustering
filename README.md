@@ -23,7 +23,13 @@ The `cnnclustering` Python package provides a flexible interface to use the <b>c
 
 The package provides a main module:
 
-  - `cluster`: (Hierarchical) common-nearest-neighbours clustering and analysis
+  - `cluster`: User interface to (hierarchical) common-nearest-neighbours clustering
+
+Further, it contains the modules:
+
+  - `plot`: Convenience functions to evaluate cluster results
+  - `_types`: Direct access to generic types representing needed cluster components
+  - `_fit`: Direct access to generic clustering procedures
 
 Features:
 

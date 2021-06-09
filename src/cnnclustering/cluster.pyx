@@ -928,13 +928,15 @@ class Clustering:
         return
 
     def trim_trivial_leafs(self):
+        """Remove cluster label assignments where all points are noise"""
 
         def _trim_trivial(clustering):
             if clustering._labels is None:
                 return
 
-            if len(clustering._labels.mapping) == 1:
+            if clustering._labels.set == {0}:
                 clustering._labels = None
+                clustering._children = None
                 return
 
             for child in clustering._children.values():
