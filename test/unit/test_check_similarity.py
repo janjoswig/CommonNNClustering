@@ -2,6 +2,9 @@ import pytest
 
 from cnnclustering._types import (
     NeighboursExtVector,
+    NeighboursExtVectorCPPUnorderedSet,
+    NeighboursExtCPPSet,
+    NeighboursExtCPPUnorderedSet,
     NeighboursList,
     SimilarityCheckerContains,
     SimilarityCheckerExtContains,
@@ -24,10 +27,13 @@ class TestSimilarityChecker:
         ]
     )
     @pytest.mark.parametrize(
-        "neighbours_type,args,kwargs,neighbours_is_ext",
+        "neighbours_type,args,kwargs,neighbours_is_ext,allows_sorted",
         [
-            (NeighboursList, (), {}, False),
-            (NeighboursExtVector, (10,), {}, True),
+            (NeighboursList, (), {}, False, True),
+            (NeighboursExtVector, (10,), {}, True, True),
+            (NeighboursExtVectorCPPUnorderedSet, (10,), {}, True, True),
+            (NeighboursExtCPPSet, (), {}, True, True),
+            (NeighboursExtCPPUnorderedSet, (), {}, True, False),
         ],
     )
     @pytest.mark.parametrize(
@@ -45,11 +51,13 @@ class TestSimilarityChecker:
             self,
             checker_type, checker_is_ext, needs_sorted,
             neighbours_type, args, kwargs, neighbours_is_ext,
-            members_a, members_b, c, is_sorted, expected):
+            members_a, members_b, c, is_sorted, allows_sorted, expected):
 
         if checker_is_ext and (not neighbours_is_ext):
             # pytest.skip("Bad combination of component types.")
             return
+
+        is_sorted *= allows_sorted
 
         if not is_sorted == needs_sorted:
             return

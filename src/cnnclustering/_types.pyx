@@ -13,11 +13,27 @@ except ModuleNotFoundError:
     SKLEARN_FOUND = False
 
 from libc.math cimport sqrt as csqrt, pow as cpow, fabs as cfabs
+from cython.operator cimport dereference, preincrement
 
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
 
 
+cdef extern from "<algorithm>" namespace "std":
+    Iter find[Iter, T](Iter first, Iter last, const T& value) nogil
+
+
 cdef class ClusterParameters:
+    """Input parameters for clustering procedure
+
+    Args:
+        radius_cutoff: Neighbour search radius :math:`r`.
+        cnn_cutoff: Common-nearest-neighbours requirement :math:`c`
+            (similarity criterion).
+
+    Keyword args:
+        current_start: Use this as the first label for identified clusters.
+    """
+
     def __cinit__(self, radius_cutoff, cnn_cutoff, current_start=1):
         self.radius_cutoff = radius_cutoff
         self.cnn_cutoff = cnn_cutoff
@@ -231,16 +247,16 @@ class InputData(ABC):
     @property
     @abstractmethod
     def n_points(self) -> int:
-       """Return total number of points"""
+        """Return total number of points"""
 
     @property
     @abstractmethod
     def n_dim(self) -> int:
-       """Return total number of dimensions"""
+        """Return total number of dimensions"""
 
     @abstractmethod
     def get_component(self, point: int, dimension: int) -> float:
-       """Return one component of point coordinates"""
+        """Return one component of point coordinates"""
 
     @abstractmethod
     def get_n_neighbours(self, point: int) -> int:
@@ -267,7 +283,7 @@ class InputDataNeighboursSequence(InputData):
         self._n_dim = 0
         self._n_neighbours = [len(s) for s in self._data]
 
-        _meta = {"kind": "neighbours"}
+        _meta = {"access_neighbours": True}
         if meta is not None:
             _meta.update(meta)
         self._meta = _meta
@@ -286,14 +302,17 @@ class InputDataNeighboursSequence(InputData):
 
     @property
     def data(self):
-        return [np.asarray(list(s)) for s in self._data]
+        return self._to_array()
 
     @property
     def n_neighbours(self):
         return np.asarray(self._n_neighbours)
 
+    def _to_array(self):
+        return [np.asarray(list(s)) for s in self._data]
+
     def get_component(self, point: int, dimension: int) -> float:
-        """
+        """Not applicable
 
         Method only present for consistency.
         Returns no relevant information.
@@ -318,6 +337,102 @@ class InputDataNeighboursSequence(InputData):
         return type(self)(data_subset)
 
 
+class InputDataPointsSklearnKDTree(InputData):
+    """Implements the input data interface
+
+    Points stored as a NumPy array.  Neighbour queries delicated
+    to pre-build KDTree.
+    """
+
+    def __init__(self, data: Type[np.ndarray], *, meta=None, **kwargs):
+        self._data = data
+        self._n_points = self._data.shape[0]
+        self._n_dim = self._data.shape[1]
+
+        self.build_tree(**kwargs)
+        self.clear_cached()
+
+        _meta = {
+            "access_points": True,
+            "access_neighbours": True
+            }
+        if meta is not None:
+            _meta.update(meta)
+        self._meta = _meta
+
+    @property
+    def meta(self):
+        return self._meta
+
+    @property
+    def n_points(self):
+        return self._n_points
+
+    @property
+    def n_dim(self):
+        return self._n_dim
+
+    @property
+    def data(self):
+        return self._to_array()
+
+    @property
+    def n_neighbours(self):
+        return np.asarray(self._n_neighbours)
+
+    def _to_array(self):
+        return self._data
+
+    def get_component(self, point: int, dimension: int) -> float:
+        return self._data[point, dimension]
+
+    def get_n_neighbours(self, point: int) -> int:
+        return self._n_neighbours[point]
+
+    def get_neighbour(self, point: int, member: int) -> int:
+        """Return a member for point"""
+        return self._cached_neighbourhoods[point][member]
+
+    def get_subset(self, indices: Container) -> Type['InputDataNeighboursSequence']:
+        """Return input data subset"""
+        data_subset = [
+            [m for m in s if m in indices]
+            for i, s in enumerate(self._data)
+            if i in indices
+        ]
+
+        return type(self)(data_subset)
+
+    def build_tree(self, **kwargs):
+        self._tree = sklearn.neighbors.KDTree(self._data, **kwargs)
+
+    def compute_neighbourhoods(
+            self,
+            input_data: Type["InputData"],
+            radius: float,
+            is_sorted: bool = False,
+            is_selfcounting: bool = False):
+
+        self._cached_neighbourhoods = self._tree.query_radius(
+            input_data._to_array(), r=radius,
+            return_distance=False,
+            )
+        self._radius = radius
+
+        if is_sorted:
+            for n in self._cached_neighbourhoods:
+                n.sort()
+
+        if is_selfcounting:
+            pass
+
+        self._n_neighbours = [len(s) for s in self._cached_neighbourhoods]
+
+    def clear_cached(self):
+        self._cached_neighbourhoods = None
+        self._n_neighbours = None
+        self._radius = None
+
 cdef class InputDataExtNeighboursMemoryview:
     """Implements the input data interface
 
@@ -334,13 +449,20 @@ cdef class InputDataExtNeighboursMemoryview:
         self.n_dim = 0
         self._n_neighbours = n_neighbours
 
-        _meta = {"kind": "neighbours"}
+        _meta = {"access_neighbours": True}
         if meta is not None:
             _meta.update(meta)
         self.meta = _meta
 
     @property
     def data(self):
+        return self._to_array()
+
+    @property
+    def n_neighbours(self):
+        return np.asarray(self._n_neighbours)
+
+    def _to_array(self):
         cdef AINDEX i
 
         return [
@@ -348,13 +470,9 @@ cdef class InputDataExtNeighboursMemoryview:
             for i, s in enumerate(np.asarray(self._data))
             ]
 
-    @property
-    def n_neighbours(self):
-        return np.asarray(self._n_neighbours)
-
     cdef inline AVALUE _get_component(
             self, AINDEX point, AINDEX dimension) nogil:
-        """
+        """Not applicable
 
         Method only present for consistency.
         Returns no relevant information.
@@ -407,14 +525,17 @@ cdef class InputDataExtPointsMemoryview:
         self.n_points = self._data.shape[0]
         self.n_dim = self._data.shape[1]
 
-        _meta = {"kind": "points"}
+        _meta = {"access_points": True}
         if meta is not None:
             _meta.update(meta)
         self.meta = _meta
 
     @property
     def data(self):
-       return np.asarray(self._data)
+        return self._to_array()
+
+    def _to_array(self):
+        return np.asarray(self._data)
 
     cdef inline AVALUE _get_component(
             self, AINDEX point, AINDEX dimension) nogil:
@@ -462,6 +583,10 @@ cdef class InputDataExtPointsMemoryview:
 
         else:
             yield from ()
+
+
+InputData.register(InputDataExtPointsMemoryview)
+
 
 class Neighbours(ABC):
     """Defines the neighbours interface"""
@@ -573,14 +698,23 @@ class NeighboursSet(Neighbours):
 
 
 cdef class NeighboursExtVector:
-    """Implements the neighbours interface"""
+    """Implements the neighbours interface
 
-    def __cinit__(self, AINDEX initial_size, neighbours=None):
+    Uses an underlying C++ std:vector.
+
+    Args:
+        initial_size: Number of elements reserved for the size of vector.
+
+    Keyword args:
+        neighbours: A sequence of labels suitable to be cast to a vector.
+    """
+
+    def __cinit__(self, AINDEX initial_size=1, neighbours=None):
         self._initial_size = initial_size
 
         if neighbours is not None:
             self._neighbours = neighbours
-            self.n_points = len(self._neighbours)
+            self.n_points = self._neighbours.size()
             self._neighbours.reserve(self._initial_size)
         else:
             self._reset()
@@ -615,12 +749,195 @@ cdef class NeighboursExtVector:
         return self._get_member(index)
 
     cdef inline bint _contains(self, AINDEX member) nogil:
-        cdef AINDEX index
 
-        for index in range(self.n_points):
-            if self._neighbours[index] == member:
-                return True
+        if find(self._neighbours.begin(), self._neighbours.end(), member) == self._neighbours.end():
+            return False
+        return True
+
+    def contains(self, member: int):
+        return self._contains(member)
+
+
+cdef class NeighboursExtCPPSet:
+    """Implements the neighbours interface
+
+    Uses an underlying C++ std:set.
+
+    Keyword args:
+        neighbours: A sequence of labels suitable to be cast to a C++ set.
+    """
+
+    def __cinit__(self, neighbours=None):
+
+        if neighbours is not None:
+            self._neighbours = neighbours
+            self.n_points = self._neighbours.size()
+        else:
+            self._reset()
+
+    cdef inline void _assign(self, AINDEX member) nogil:
+        self._neighbours.insert(member)
+        self.n_points += 1
+
+    def assign(self, member: int):
+        self._assign(member)
+
+    cdef inline void _reset(self) nogil:
+        self._neighbours.clear()
+        self.n_points = 0
+
+    def reset(self):
+        self._reset()
+
+    cdef inline bint _enough(self, AINDEX member_cutoff) nogil:
+        if self.n_points > member_cutoff:
+            return True
         return False
+
+    def enough(self, member_cutoff: int):
+        return self._enough(member_cutoff)
+
+    cdef inline AINDEX _get_member(self, AINDEX index) nogil:
+        cdef cppset[AINDEX].iterator it = self._neighbours.begin()
+        cdef AINDEX i
+
+        for i in range(index):
+            preincrement(it)
+
+        return dereference(it)
+
+    def get_member(self, index: int):
+        return self._get_member(index)
+
+    cdef inline bint _contains(self, AINDEX member) nogil:
+        if self._neighbours.find(member) == self._neighbours.end():
+            return False
+        return True
+
+    def contains(self, member: int):
+        return self._contains(member)
+
+
+cdef class NeighboursExtCPPUnorderedSet:
+    """Implements the neighbours interface
+
+    Uses an underlying C++ std:unordered_set.
+
+    Keyword args:
+        neighbours: A sequence of labels suitable to be cast to a C++ set.
+    """
+
+    def __cinit__(self, neighbours=None):
+
+        if neighbours is not None:
+            self._neighbours = neighbours
+            self.n_points = self._neighbours.size()
+        else:
+            self._reset()
+
+    cdef inline void _assign(self, AINDEX member) nogil:
+        self._neighbours.insert(member)
+        self.n_points += 1
+
+    def assign(self, member: int):
+        self._assign(member)
+
+    cdef inline void _reset(self) nogil:
+        self._neighbours.clear()
+        self.n_points = 0
+
+    def reset(self):
+        self._reset()
+
+    cdef inline bint _enough(self, AINDEX member_cutoff) nogil:
+        if self.n_points > member_cutoff:
+            return True
+        return False
+
+    def enough(self, member_cutoff: int):
+        return self._enough(member_cutoff)
+
+    cdef inline AINDEX _get_member(self, AINDEX index) nogil:
+        cdef cppunordered_set[AINDEX].iterator it = self._neighbours.begin()
+        cdef AINDEX i
+
+        for i in range(index):
+            preincrement(it)
+
+        return dereference(it)
+
+    def get_member(self, index: int):
+        return self._get_member(index)
+
+    cdef inline bint _contains(self, AINDEX member) nogil:
+        if self._neighbours.find(member) == self._neighbours.end():
+            return False
+        return True
+
+    def contains(self, member: int):
+        return self._contains(member)
+
+
+cdef class NeighboursExtVectorCPPUnorderedSet:
+    """Implements the neighbours interface
+
+    Uses a compination of an underlying C++ std:vector and a std:unordered_set.
+
+    Keyword args:
+        neighbours: A sequence of labels suitable to be cast to a C++ vector.
+    """
+
+    def __cinit__(self, initial_size=1, neighbours=None):
+        cdef AINDEX member
+
+        self._initial_size = initial_size
+
+
+        if neighbours is not None:
+            self._neighbours = neighbours
+            self.n_points = self._neighbours.size()
+            self._neighbours.reserve(self._initial_size)
+
+            for member in self._neighbours:
+                self._neighbours_view.insert(member)
+        else:
+            self._reset()
+
+    cdef inline void _assign(self, AINDEX member) nogil:
+        self._neighbours.push_back(member)
+        self._neighbours_view.insert(member)
+        self.n_points += 1
+
+    def assign(self, member: int):
+        self._assign(member)
+
+    cdef inline void _reset(self) nogil:
+        self._neighbours.resize(0)
+        self._neighbours.reserve(self._initial_size)
+        self._neighbours_view.clear()
+        self.n_points = 0
+
+    def reset(self):
+        self._reset()
+
+    cdef inline bint _enough(self, AINDEX member_cutoff) nogil:
+        if self.n_points > member_cutoff:
+            return True
+        return False
+
+    def enough(self, member_cutoff: int):
+        return self._enough(member_cutoff)
+
+    cdef inline AINDEX _get_member(self, AINDEX index) nogil:
+        return self._neighbours[index]
+
+    def get_member(self, index: int):
+        return self._get_member(index)
+
+    cdef inline bint _contains(self, AINDEX member) nogil:
+        if self._neighbours_view.find(member) == self._neighbours_view.end():
+            return False
+        return True
 
     def contains(self, member: int):
         return self._contains(member)
@@ -658,52 +975,6 @@ class NeighboursGetter(ABC):
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']) -> None:
         """Collect neighbours in input data for point in other input data"""
-
-
-class NeighboursGetterLookup(NeighboursGetter):
-
-    def __init__(self, is_sorted=False, is_selfcounting=False):
-        self._is_sorted = is_sorted
-        self._is_selfcounting = is_selfcounting
-
-    @property
-    def is_sorted(self) -> bool:
-        return self._is_sorted
-
-    @property
-    def is_selfcounting(self) -> bool:
-        return self._is_selfcounting
-
-    def get(
-            self,
-            index: int,
-            input_data: Type['InputData'],
-            neighbours: Type['Neighbours'],
-            metric: Type['Metric'],
-            cluster_params: Type['ClusterParameters']) -> None:
-
-        cdef AINDEX i
-
-        neighbours.reset()
-
-        for i in range(input_data.get_n_neighbours(index)):
-            neighbours.assign(input_data.get_neighbour(index, i))
-
-    def get_other(
-            self,
-            index: int,
-            input_data: Type['InputData'],
-            other_input_data: Type['InputData'],
-            neighbours: Type['Neighbours'],
-            metric: Type['Metric'],
-            cluster_params: Type['ClusterParameters']):
-
-        cdef AINDEX i
-
-        neighbours.reset()
-
-        for i in range(other_input_data.get_n_neighbours(index)):
-            neighbours.assign(other_input_data.get_neighbour(index, i))
 
 
 class NeighboursGetterBruteForce(NeighboursGetter):
@@ -844,6 +1115,52 @@ cdef class NeighboursGetterExtBruteForce:
         )
 
 
+class NeighboursGetterLookup(NeighboursGetter):
+
+    def __init__(self, is_sorted=False, is_selfcounting=False):
+        self._is_sorted = is_sorted
+        self._is_selfcounting = is_selfcounting
+
+    @property
+    def is_sorted(self) -> bool:
+        return self._is_sorted
+
+    @property
+    def is_selfcounting(self) -> bool:
+        return self._is_selfcounting
+
+    def get(
+            self,
+            index: int,
+            input_data: Type['InputData'],
+            neighbours: Type['Neighbours'],
+            metric: Type['Metric'],
+            cluster_params: Type['ClusterParameters']) -> None:
+
+        cdef AINDEX i
+
+        neighbours.reset()
+
+        for i in range(input_data.get_n_neighbours(index)):
+            neighbours.assign(input_data.get_neighbour(index, i))
+
+    def get_other(
+            self,
+            index: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData'],
+            neighbours: Type['Neighbours'],
+            metric: Type['Metric'],
+            cluster_params: Type['ClusterParameters']):
+
+        cdef AINDEX i
+
+        neighbours.reset()
+
+        for i in range(other_input_data.get_n_neighbours(index)):
+            neighbours.assign(other_input_data.get_neighbour(index, i))
+
+
 cdef class NeighboursGetterExtLookup:
 
     def __cinit__(self, is_sorted=False, is_selfcounting=True):
@@ -915,14 +1232,11 @@ cdef class NeighboursGetterExtLookup:
         )
 
 
-class NeighboursGetterSklearnKDTree(NeighboursGetter):
+class NeighboursGetterRecomputeLookup(NeighboursGetter):
 
-    def __init__(self, is_sorted=False):
+    def __init__(self, is_sorted=False, is_selfcounting=False):
         self._is_sorted = is_sorted
-        self._is_selfcounting = True
-        self.tree = None
-        self.neighbourhoods = None
-        self.radius = None
+        self._is_selfcounting = is_selfcounting
 
     @property
     def is_sorted(self) -> bool:
@@ -931,20 +1245,6 @@ class NeighboursGetterSklearnKDTree(NeighboursGetter):
     @property
     def is_selfcounting(self) -> bool:
         return self._is_selfcounting
-
-    def build_tree(self, input_data: Type['InputData'], **kwargs):
-        self.tree = sklearn.neighbors.KDTree(input_data.data, **kwargs)
-
-    def compute_neighbourhoods(self, input_data: Type['InputData'], radius: float):
-        self.neighbourhoods = self.tree.query_radius(
-            input_data.data, r=radius,
-            return_distance=False,
-            )
-        self.radius = radius
-
-        if self.is_sorted:
-            for n in self.neighbourhoods:
-                n.sort()
 
     def get(
             self,
@@ -955,16 +1255,19 @@ class NeighboursGetterSklearnKDTree(NeighboursGetter):
             cluster_params: Type['ClusterParameters']) -> None:
 
         cdef AINDEX i
-        neighbours.reset()
 
-        if self.radius != cluster_params.radius_cutoff:
-            self.compute_neighbourhoods(
+        if input_data._radius != cluster_params.radius_cutoff:
+            input_data.compute_neighbourhoods(
                 input_data,
-                cluster_params.radius_cutoff
+                cluster_params.radius_cutoff,
+                self._is_sorted,
+                self._is_selfcounting
                 )
 
-        for i in range(self.neighbourhoods[index].shape[0]):
-            neighbours.assign(self.neighbourhoods[index][i])
+        neighbours.reset()
+
+        for i in range(input_data.get_n_neighbours(index)):
+            neighbours.assign(input_data.get_neighbour(index, i))
 
     def get_other(
             self,
@@ -977,16 +1280,18 @@ class NeighboursGetterSklearnKDTree(NeighboursGetter):
 
         cdef AINDEX i
 
-        neighbours.reset()
-
-        if self.radius != cluster_params.radius_cutoff:
-            self.compute_neighbourhoods(
+        if other_input_data._radius != cluster_params.radius_cutoff:
+            other_input_data.compute_neighbourhoods(
                 input_data,
-                cluster_params.radius_cutoff
+                cluster_params.radius_cutoff,
+                self._is_sorted,
+                self._is_selfcounting
                 )
 
-        for i in range(self.neighbourhoods[index].shape[0]):
-            neighbours.assign(self.neighbourhoods[index][i])
+        neighbours.reset()
+
+        for i in range(other_input_data.get_n_neighbours(index)):
+            neighbours.assign(other_input_data.get_neighbour(index, i))
 
 
 class Metric(ABC):
@@ -1413,7 +1718,9 @@ class SimilarityCheckerContains(SimilarityChecker):
     Strategy:
         Loops over members of one neighbours container and checks
         if they are contained in the other neighbours container.  Breaks
-        early when similarity criterion is reached.  Worst case time
+        early when similarity criterion is reached.
+        The performance and time-complexity of the check depends on the
+        used neighbour containers.  Worst case time
         complexity is :math:`\mathcal{O}(n * m)` with :math:`n` and
         :math:`m` being the lengths of the neighbours containers if the
         containment check is performed by iteration.  Worst
@@ -1456,12 +1763,14 @@ class SimilarityCheckerSwitchContains(SimilarityChecker):
     Strategy:
         Loops over members of one neighbours container and checks
         if they are contained in the other neighbours container.  Breaks
-        early when similarity criterion is reached.  Worst case time
+        early when similarity criterion is reached.  The performance
+        and time-complexity of the check depends on the
+        used neighbour containers.  Worst case time
         complexity is :math:`\mathcal{O}(n * m)` with :math:`n` and
         :math:`m` being the lengths of the neighbours containers if the
         containment check is performed by iteration.  Worst
         case time complexity is :math:`\mathcal{O}(n)` if containment
-        check can be performed as lookup in linear time.  Note that
+        check can be performed as lookup in linear time.  Note that a
         switching of the neighbours containers is done to ensure
         that the first container is the one with the shorter length
         (compare
@@ -1504,7 +1813,10 @@ cdef class SimilarityCheckerExtContains:
     Strategy:
         Loops over members of one neighbours container and checks
         if they are contained in the other neighbours container.  Breaks
-        early when similarity criterion is reached.  Worst case time
+        early when similarity criterion is reached.
+        The performance and time-complexity of the check depends on the
+        used neighbour containers.
+        Worst case time
         complexity is :math:`\mathcal{O}(n * m)` with :math:`n` and
         :math:`m` being the lengths of the neighbours containers if the
         containment check is performed by iteration.  Worst
@@ -1555,7 +1867,10 @@ cdef class SimilarityCheckerExtSwitchContains:
     Strategy:
         Loops over members of one neighbours container and checks
         if they are contained in the other neighbours container.  Breaks
-        early when similarity criterion is reached.  Worst case time
+        early when similarity criterion is reached.
+        The performance and time-complexity of the check depends on the
+        used neighbour containers.
+        Worst case time
         complexity is :math:`\mathcal{O}(n * m)` with :math:`n` and
         :math:`m` being the lengths of the neighbours containers if the
         containment check is performed by iteration.  Worst
@@ -1609,6 +1924,21 @@ cdef class SimilarityCheckerExtSwitchContains:
 
 
 cdef class SimilarityCheckerExtScreensorted:
+    r"""Implements the similarity checker interface
+
+    Strategy:
+        Loops over members of two neighbour containers alternatingly
+        and checks if neighbours are contained in both containers.
+        Requires that the containers are sorted ascendingly to return
+        the correct result. Sorting will neither be checked nor enforced.
+        Breaks
+        early when similarity criterion is reached.
+        The performance of the check depends on the
+        used neighbour containers.
+        Worst case time
+        complexity is :math:`\mathcal{O}(n + m)` with :math:`n` and
+        :math:`m` being the lengths of the neighbours containers.
+    """
 
     cdef inline bint _check(
             self,

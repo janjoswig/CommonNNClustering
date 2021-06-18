@@ -40,6 +40,7 @@ from cnnclustering._types import (
     InputDataExtNeighboursMemoryview,
     NeighboursGetterBruteForce,
     NeighboursGetterLookup,
+    NeighboursGetterRecomputeLookup,
     NeighboursGetterExtLookup,
     NeighboursGetterExtBruteForce,
     NeighboursList,
@@ -490,10 +491,19 @@ class Clustering:
         return f"{type(self).__name__}({attr_repr})"
 
     def __str__(self):
-        try:
-            input_data_kind = self._input_data.meta["kind"]
-        except KeyError, AttributeError:
-            input_data_kind = "unknown"
+
+        access = []
+        if self._input_data is not None:
+            for kind, check in (
+                    ("points", "access_points"),
+                    ("distances", "access_distances"),
+                    ("neighbours", "access_neighbours")):
+
+                if self._input_data.meta.get(check, False):
+                    access.append(kind)
+
+        if not access:
+            access = ["unknown"]
 
         n_points = self._input_data.n_points if self._input_data is not None else None
         n_children = len(self._children) if self._children is not None else None
@@ -501,7 +511,7 @@ class Clustering:
         attr_str = "\n".join([
             f"alias: {self.alias!r}",
             f"hierarchy_level: {self._hierarchy_level}",
-            f"input_data_kind: {input_data_kind}",
+            f"access: {', '.join(access)}",
             f"points: {n_points}",
             f"children: {n_children}",
         ])
@@ -1154,7 +1164,8 @@ class Clustering:
             treat_nan: Optional[Any] = None,
             convert: Optional[Any] = None,
             ax_props: Optional[dict] = None,
-            contour_props: Optional[dict] = None):
+            contour_props: Optional[dict] = None,
+            plot_style: str = "contourf"):
         """Generate a 2D plot of record values
 
         Record values ("time", "clusters", "largest", "noise") are
@@ -1210,7 +1221,8 @@ class Clustering:
             quantity=quantity,
             treat_nan=treat_nan,
             convert=convert,
-            contour_props=contour_props_defaults
+            contour_props=contour_props_defaults,
+            plot_style=plot_style,
             )
 
         ax.set(**ax_props_defaults)
@@ -1387,7 +1399,7 @@ class Clustering:
             raise ModuleNotFoundError("No module named 'matplotlib'")
 
         if (self._input_data is None) or (
-                self._input_data.meta.get("kind", None) != "points"):
+                not self._input_data.meta.get("access_points", False)):
             raise ValueError(
                 "No data points found to evaluate."
             )

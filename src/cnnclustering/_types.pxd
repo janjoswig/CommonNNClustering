@@ -1,6 +1,7 @@
 cimport numpy as np
 
 from libcpp.vector cimport vector as cppvector
+from libcpp.set cimport set as cppset
 from libcpp.queue cimport queue as cppqueue
 from libcpp.unordered_set cimport unordered_set as cppunordered_set
 
@@ -18,17 +19,29 @@ ctypedef fused INPUT_DATA_EXT:
 
 ctypedef fused NEIGHBOURS:
     NeighboursExtVector
+    NeighboursExtVectorCPPUnorderedSet
+    NeighboursExtCPPSet
+    NeighboursExtCPPUnorderedSet
     object
 
 ctypedef fused NEIGHBOURS_EXT:
     NeighboursExtVector
+    NeighboursExtVectorCPPUnorderedSet
+    NeighboursExtCPPSet
+    NeighboursExtCPPUnorderedSet
 
 ctypedef fused NEIGHBOUR_NEIGHBOURS:
     NeighboursExtVector
+    NeighboursExtVectorCPPUnorderedSet
+    NeighboursExtCPPSet
+    NeighboursExtCPPUnorderedSet
     object
 
 ctypedef fused NEIGHBOUR_NEIGHBOURS_EXT:
     NeighboursExtVector
+    NeighboursExtVectorCPPUnorderedSet
+    NeighboursExtCPPSet
+    NeighboursExtCPPUnorderedSet
 
 ctypedef fused NEIGHBOURS_GETTER:
     NeighboursGetterExtBruteForce
@@ -133,6 +146,55 @@ cdef class NeighboursExtVector:
     cdef:
         AINDEX _initial_size
         cppvector[AINDEX] _neighbours
+
+    cdef inline void _assign(self, AINDEX member) nogil
+    cdef inline void _reset(self) nogil
+    cdef inline bint _enough(self, AINDEX member_cutoff) nogil
+    cdef inline AINDEX _get_member(self, AINDEX index) nogil
+    cdef inline bint _contains(self, AINDEX member) nogil
+
+
+cdef class NeighboursExtCPPSet:
+
+    cdef public:
+        AINDEX n_points
+
+    cdef:
+        AINDEX _initial_size
+        cppset[AINDEX] _neighbours
+
+    cdef inline void _assign(self, AINDEX member) nogil
+    cdef inline void _reset(self) nogil
+    cdef inline bint _enough(self, AINDEX member_cutoff) nogil
+    cdef inline AINDEX _get_member(self, AINDEX index) nogil
+    cdef inline bint _contains(self, AINDEX member) nogil
+
+
+cdef class NeighboursExtCPPUnorderedSet:
+
+    cdef public:
+        AINDEX n_points
+
+    cdef:
+        AINDEX _initial_size
+        cppunordered_set[AINDEX] _neighbours
+
+    cdef inline void _assign(self, AINDEX member) nogil
+    cdef inline void _reset(self) nogil
+    cdef inline bint _enough(self, AINDEX member_cutoff) nogil
+    cdef inline AINDEX _get_member(self, AINDEX index) nogil
+    cdef inline bint _contains(self, AINDEX member) nogil
+
+
+cdef class NeighboursExtVectorCPPUnorderedSet:
+
+    cdef public:
+        AINDEX n_points
+
+    cdef:
+        AINDEX _initial_size
+        cppvector[AINDEX] _neighbours
+        cppunordered_set[AINDEX] _neighbours_view
 
     cdef inline void _assign(self, AINDEX member) nogil
     cdef inline void _reset(self) nogil

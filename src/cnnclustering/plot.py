@@ -288,8 +288,14 @@ def plot_summary(
         quantity="execution_time",
         treat_nan=None,
         convert=None,
-        contour_props=None):
+        contour_props=None,
+        plot_style="contourf"):
     """Generate a 2D plot of record values"""
+
+    if plot_style not in {"contour", "contourf"}:
+        raise ValueError(
+            'Keyword argument `plot_style` must be one of ["contour", "contourf"]'
+        )
 
     if contour_props is None:
         contour_props = {}
@@ -310,7 +316,10 @@ def plot_summary(
 
     plotted = []
 
-    plotted.append(ax.contourf(X_, Y_, values_, **contour_props))
+    if plot_style == "contourf":
+        plotted.append(ax.contourf(X_, Y_, values_, **contour_props))
+    elif plot_style == "contour":
+        plotted.append(ax.contour(X_, Y_, values_, **contour_props))
 
     return plotted
 
@@ -320,6 +329,7 @@ def plot_histogram(
         x,
         maxima: bool = False,
         maxima_props: dict = None,
+        annotate_props: dict = None,
         hist_props: dict = None,
         ax_props: dict = None,
         plot_props: dict = None,
@@ -332,6 +342,9 @@ def plot_histogram(
             distribution. Uses `scipy.signal.argrelextrema`_.
         maxima_props: Keyword arguments passed to
             `scipy.signal.argrelextrema`_ if `maxima` is set
+            to True.
+        annotate_props: Keyword arguments passed to
+            `ax.annotate` to draw text if `maxima` is set
             to True.
         hist_props: Keyword arguments passed to
             `numpy.histogram`_ to compute the histogram.
@@ -422,6 +435,12 @@ def plot_histogram(
         if maxima_props is not None:
             maxima_props_.update(maxima_props)
 
+        annotate_props_ = {
+            }
+
+        if annotate_props is not None:
+            annotate_props_.update(annotate_props)
+
         found = scipy.signal.argrelextrema(
             histogram, np.greater, **maxima_props_
             )[0]
@@ -433,7 +452,8 @@ def plot_histogram(
                     f"{binmids[candidate]:.2f}",
                     xy=(binmids[candidate], histogram[candidate]),
                     xytext=(binmids[candidate],
-                            histogram[candidate] + (ylimit / 100))
+                            histogram[candidate] + (ylimit / 100)),
+                    **annotate_props_
                     )
                 )
     else:
