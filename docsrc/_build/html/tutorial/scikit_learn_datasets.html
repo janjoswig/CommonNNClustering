@@ -287,7 +287,14 @@ div.rendered_html tbody tr:hover {
     .nboutput .prompt {
         display: none;
     }
-</style><div class="section" id="Clustering-of-scikit-learn-Toy-data-sets">
+</style><h1><p>Contents</p>
+</h1><div class="toc"><ul class="toc-item"><li><p>1  Notebook configuration</p>
+</li><li><p>2  Data set generation</p>
+</li><li><p>3  Common-nearest-neighbours clustering on data points as input</p>
+</li><li><p>4  Common-nearest-neighbours clustering with pre-computed distances</p>
+</li><li><p>5  Common-nearest-neighbours clustering with pre-computed neighbourhoods</p>
+</li><li><p>6  Common-nearest-neighbours clustering with pre-computed sorted neighbourhoods</p>
+</li></ul></div><div class="section" id="Clustering-of-scikit-learn-Toy-data-sets">
 <h1>Clustering of scikit-learn Toy data sets<a class="headerlink" href="#Clustering-of-scikit-learn-Toy-data-sets" title="Permalink to this headline">¶</a></h1>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -507,7 +514,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_scikit_learn_datasets_12_0.png" src="../_images/tutorial_scikit_learn_datasets_12_0.png" />
+<img alt="../_images/tutorial_scikit_learn_datasets_13_0.png" src="../_images/tutorial_scikit_learn_datasets_13_0.png" />
 </div>
 </div>
 </div>
@@ -589,7 +596,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_scikit_learn_datasets_14_1.png" src="../_images/tutorial_scikit_learn_datasets_14_1.png" />
+<img alt="../_images/tutorial_scikit_learn_datasets_15_1.png" src="../_images/tutorial_scikit_learn_datasets_15_1.png" />
 </div>
 </div>
 </div>
@@ -677,7 +684,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_scikit_learn_datasets_16_1.png" src="../_images/tutorial_scikit_learn_datasets_16_1.png" />
+<img alt="../_images/tutorial_scikit_learn_datasets_17_1.png" src="../_images/tutorial_scikit_learn_datasets_17_1.png" />
 </div>
 </div>
 </div>
@@ -706,7 +713,7 @@ div.rendered_html tbody tr:hover {
     <span class="n">clustering_neighbourhoods</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">prepare_clustering</span><span class="p">(</span>
         <span class="n">neighbourhoods</span><span class="p">,</span>
         <span class="n">preparation_hook</span><span class="o">=</span><span class="n">cluster</span><span class="o">.</span><span class="n">prepare_neighbourhoods</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">cluster</span><span class="o">.</span><span class="n">registered_recipies</span><span class="p">[</span><span class="s2">&quot;from_neighbourhoods_lookup&quot;</span><span class="p">]</span>
+        <span class="o">**</span><span class="n">cluster</span><span class="o">.</span><span class="n">registered_recipes</span><span class="p">[</span><span class="s2">&quot;from_neighbourhoods_lookup&quot;</span><span class="p">]</span>
     <span class="p">)</span>
 
     <span class="c1"># Use pre-computed neighbourhoods</span>
@@ -771,7 +778,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_scikit_learn_datasets_18_1.png" src="../_images/tutorial_scikit_learn_datasets_18_1.png" />
+<img alt="../_images/tutorial_scikit_learn_datasets_19_1.png" src="../_images/tutorial_scikit_learn_datasets_19_1.png" />
 </div>
 </div>
 </div>
@@ -804,7 +811,7 @@ div.rendered_html tbody tr:hover {
     <span class="n">clustering_neighbourhoods</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">prepare_clustering</span><span class="p">(</span>
         <span class="n">neighbourhoods</span><span class="p">,</span>
         <span class="n">preparation_hook</span><span class="o">=</span><span class="n">cluster</span><span class="o">.</span><span class="n">prepare_neighbourhoods</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">cluster</span><span class="o">.</span><span class="n">registered_recipies</span><span class="p">[</span><span class="s2">&quot;from_neighbourhoods_lookup&quot;</span><span class="p">]</span>
+        <span class="o">**</span><span class="n">cluster</span><span class="o">.</span><span class="n">registered_recipes</span><span class="p">[</span><span class="s2">&quot;from_neighbourhoods_lookup&quot;</span><span class="p">]</span>
     <span class="p">)</span>
 
     <span class="n">clustering_neighbourhoods</span><span class="o">.</span><span class="n">_similarity_checker</span> <span class="o">=</span> <span class="n">_types</span><span class="o">.</span><span class="n">SimilarityCheckerExtScreensorted</span><span class="p">()</span>
@@ -871,7 +878,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_scikit_learn_datasets_20_1.png" src="../_images/tutorial_scikit_learn_datasets_20_1.png" />
+<img alt="../_images/tutorial_scikit_learn_datasets_21_1.png" src="../_images/tutorial_scikit_learn_datasets_21_1.png" />
 </div>
 </div>
 </div>
@@ -910,7 +917,7 @@ div.rendered_html tbody tr:hover {
 <li class="toctree-l2"><a class="reference internal" href="basic_usage.html">Basic usage of the cnnclustering module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Clustering of scikit-learn Toy data sets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hierarchical_clustering_basics.html">Hierarchical clustering basics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_input_formats.html">Data input formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_input_formats.html">Usage of different data input formats and clustering recipes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="algorithm_explained.html">Density based clustering explained</a></li>
 <li class="toctree-l2"><a class="reference internal" href="md_example.html">Molecular dynamics application example</a></li>
 </ul>

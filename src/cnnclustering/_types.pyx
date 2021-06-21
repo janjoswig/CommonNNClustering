@@ -1958,41 +1958,42 @@ cdef class SimilarityCheckerExtScreensorted:
             return False
 
         cdef AINDEX member_index_a = 0, member_index_b = 0
-        cdef AINDEX member_a, member_b, k
+        cdef AINDEX member_a, member_b
         cdef AINDEX common = 0
 
         member_a = neighbours_a._get_member(member_index_a)
         member_b = neighbours_b._get_member(member_index_b)
-        k = -1
+
         while True:
+            if member_a == member_b:
+                common += 1
+                if common == c:
+                    return True
+
+                member_index_a += 1
+                member_index_b += 1
+
+                if (member_index_a == na) or (member_index_b == nb):
+                    break
+
+                member_a = neighbours_a._get_member(member_index_a)
+                member_b = neighbours_b._get_member(member_index_b)
+                continue
+
             if member_a < member_b:
-                if member_a == k:
-                    common += 1
-                    if common == c:
-                        return True
-                k = member_a
                 member_index_a += 1
                 if (member_index_a == na):
-                    if member_b == k:
-                        common += 1
-                        if common == c:
-                            return True
-                    return False
+                    break
                 member_a = neighbours_a._get_member(member_index_a)
-            else:
-                if member_b == k:
-                    common += 1
-                    if common == c:
-                        return True
-                k = member_b
-                member_index_b += 1
-                if (member_index_b == nb):
-                    if member_a == k:
-                        common += 1
-                        if common == c:
-                            return True
-                    return False
-                member_b = neighbours_b._get_member(member_index_b)
+                continue
+
+            member_index_b += 1
+            if (member_index_b == nb):
+                break
+            member_b = neighbours_b._get_member(member_index_b)
+
+        return False
+
 
     def check(
             self,

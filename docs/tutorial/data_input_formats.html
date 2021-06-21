@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Data input formats &#8212; cnnclustering  documentation</title>
+    <title>Usage of different data input formats and clustering recipes &#8212; cnnclustering  documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
@@ -14,8 +14,6 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Density based clustering explained" href="algorithm_explained.html" />
@@ -289,25 +287,10 @@ div.rendered_html tbody tr:hover {
     .nboutput .prompt {
         display: none;
     }
-</style><div class="section" id="Data-input-formats">
-<h1>Data input formats<a class="headerlink" href="#Data-input-formats" title="Permalink to this headline">¶</a></h1>
-<h1><p>Contents</p>
-</h1><div class="toc"><ul class="toc-item"><li><p>1  Pre-requirements</p>
-<ul class="toc-item"><li><p>1.1  Import dependencies</p>
-</li><li><p>1.2  Notebook configuration</p>
-</li></ul></li><li><p>2  Overview</p>
-</li><li><p>3  Points</p>
-<ul class="toc-item"><li><p>3.1  2D NumPy array of shape (n, d)</p>
-</li></ul></li><li><p>4  Distances</p>
-<ul class="toc-item"><li><p>4.1  2D NumPy array of shape (n, n)</p>
-</li></ul></li><li><p>5  Neighbourhoods</p>
-</li><li><p>6  Densitygraph</p>
-</li></ul></div><div class="section" id="Pre-requirements">
-<h2>Pre-requirements<a class="headerlink" href="#Pre-requirements" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="Import-dependencies">
-<h3>Import dependencies<a class="headerlink" href="#Import-dependencies" title="Permalink to this headline">¶</a></h3>
+</style><div class="section" id="Usage-of-different-data-input-formats-and-clustering-recipes">
+<h1>Usage of different data input formats and clustering recipes<a class="headerlink" href="#Usage-of-different-data-input-formats-and-clustering-recipes" title="Permalink to this headline">¶</a></h1>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -315,7 +298,8 @@ div.rendered_html tbody tr:hover {
 
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
 
-<span class="kn">import</span> <span class="nn">cnnclustering.cnn</span> <span class="k">as</span> <span class="nn">cnn</span>  <span class="c1"># CNN clustering</span>
+<span class="kn">from</span> <span class="nn">cnnclustering</span> <span class="kn">import</span> <span class="n">cluster</span>
+<span class="kn">from</span> <span class="nn">cnnclustering</span> <span class="kn">import</span> <span class="n">_types</span><span class="p">,</span> <span class="n">_fit</span>
 </pre></div>
 </div>
 </div>
@@ -324,8 +308,7 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Version information</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+<span></span><span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -334,28 +317,27 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-3.8.3 (default, May 15 2020, 15:24:35)
+3.8.8 (default, Mar 11 2021, 08:58:19)
 [GCC 8.3.0]
 </pre></div></div>
 </div>
-</div>
 <div class="section" id="Notebook-configuration">
-<h3>Notebook configuration<a class="headerlink" href="#Notebook-configuration" title="Permalink to this headline">¶</a></h3>
+<h2>Notebook configuration<a class="headerlink" href="#Notebook-configuration" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Matplotlib configuration</span>
 <span class="n">mpl</span><span class="o">.</span><span class="n">rc_file</span><span class="p">(</span>
-    <span class="s2">&quot;matplotlibrc&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;../../matplotlibrc&quot;</span><span class="p">,</span>
     <span class="n">use_default_template</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -379,196 +361,56 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 </div>
-</div>
 <div class="section" id="Overview">
 <h2>Overview<a class="headerlink" href="#Overview" title="Permalink to this headline">¶</a></h2>
-<p>A data set of <span class="math notranslate nohighlight">\(n\)</span> points can primarily be represented through point coordinates in a <span class="math notranslate nohighlight">\(d\)</span>-dimensional space, or in terms of a pairwise distance matrix (of arbitrary metric). Secondarily, the data set can be described by neighbourhoods (in a graph structure) with respect to a specific radius cutoff. Furthermore, it is possible to trim the neighbourhoods into a density graph containing density connected points rather then neighbours for each point. The memory demand of the input forms
-and the speed at which they can be clustered varies. Currently the <code class="docutils literal notranslate"><span class="pre">cnnclustering.cnn</span></code> module can deal with the following data structures (<span class="math notranslate nohighlight">\(n\)</span>: number of points, <span class="math notranslate nohighlight">\(d\)</span>: number of dimensions).</p>
-<p><strong>Points</strong></p>
-<ul class="simple">
-<li><p>2D NumPy array of shape (<em>n</em>, <em>d</em>), holding point coordinates</p></li>
-</ul>
-<p><strong>Distances</strong></p>
-<ul class="simple">
-<li><p>2D NumPy array of shape (<em>n</em>, <em>n</em>), holding pairwise distances</p></li>
-</ul>
-<p><strong>Neighbourhoods</strong></p>
-<ul class="simple">
-<li><p>1D Numpy array of shape (<em>n</em>,) of 1D Numpy arrays of shape (&lt;= <em>n</em>,), holding point indices</p></li>
-<li><p>Python list of length (<em>n</em>) of Python sets of length (&lt;= <em>n</em>), holding point indices</p></li>
-<li><p>Sparse graph with 1D NumPy array of shape (&lt;= <em>n²</em>), holding point indices, and 1D NumPy array of shape (<em>n</em>,), holding neighbourhood start indices</p></li>
-</ul>
-<p><strong>Density graph</strong></p>
-<ul class="simple">
-<li><p>1D Numpy array of shape (<em>n</em>,) of 1D Numpy arrays of shape (&lt;= <em>n</em>,), holding point indices</p></li>
-<li><p>Python list of length (<em>n</em>) of Python sets of length (&lt;= <em>n</em>), holding point indices</p></li>
-<li><p>Sparse graph with 1D NumPy array of shape (&lt;= <em>n²</em>), holding point indices, and 1D NumPy array of shape (<em>n</em>,), holding connectivity start indices</p></li>
-</ul>
-<p>The different input structures are wrapped by corresponding classes to be handled as attributes of a <code class="docutils literal notranslate"><span class="pre">CNN</span></code> cluster object. Different kinds of input formats corresponding to the same data set are bundled in an <code class="docutils literal notranslate"><span class="pre">Data</span></code> object.</p>
+<p>Common-nearest-neighbours clustering can be done on data in a variety of different input formats with variations in the actual execution of the procedure. A typical case for example, would be to use the coordinates of a number of points in some data-space. These coordinates may be stored in a 2-dimensional (NumPy-)array but they could be also held in a database. Maybe instead of point coordinates, we can also begin the clustering with pre-computed pairwise distances between the points. The
+present implementation in the <code class="docutils literal notranslate"><span class="pre">cnnclustering</span></code> package is aimed to be generic and widely agnostic about the source of input data (see also the explanation of the algorithm in reference). This is achieved by wrapping the input data structure into an <code class="docutils literal notranslate"><span class="pre">InputData</span></code> object that complies with a universal <em>input data interface</em>. Similarly, the way how neighbourhoods are calculated and represented during the clustering is not hard-coded in the implementation. It can be modified with the choice of
+<code class="docutils literal notranslate"><span class="pre">Neighbours</span></code> and <code class="docutils literal notranslate"><span class="pre">NeighboursGetter</span></code> objects with a matching interface. The following sections will describe the types of objects used and how to compose them in a <code class="docutils literal notranslate"><span class="pre">Clustering</span></code> object. The described components can be found in the <code class="docutils literal notranslate"><span class="pre">_types</span></code> submodule.</p>
+<p>The individual component object may be instances of regular Python classes (inheriting from a corresponding abstract base class). Alternatively, they may be instantiated from Cython extension types.</p>
 </div>
-<div class="section" id="Points">
-<h2>Points<a class="headerlink" href="#Points" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="2D-NumPy-array-of-shape-(n,-d)">
-<h3>2D NumPy array of shape (<em>n</em>, <em>d</em>)<a class="headerlink" href="#2D-NumPy-array-of-shape-(n,-d)" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">cnn</span></code> module provides the class <code class="docutils literal notranslate"><span class="pre">Points</span></code> to handle data set point coordinates. Instances of type <code class="docutils literal notranslate"><span class="pre">Points</span></code> behave essentially like NumPy arrays.</p>
+<div class="section" id="The-input-data-interface">
+<h2>The input data interface<a class="headerlink" href="#The-input-data-interface" title="Permalink to this headline">¶</a></h2>
+<p>Input data objects should expose the following (typed) attributes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">n_points</span></code> (<code class="docutils literal notranslate"><span class="pre">int</span></code>): The total number of points in the data set.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_dim</span></code> (<code class="docutils literal notranslate"><span class="pre">int</span></code>): The number of dimensions per data point.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data</span></code> (any): If applicable, a representation of the underlying data, preferably as NumPy array. Can be omitted.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">meta</span></code> (<code class="docutils literal notranslate"><span class="pre">dict</span></code>): A Python dictionary storing meta-information about the data. Used keys are for example:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;kind&quot;</span></code>: One of <code class="docutils literal notranslate"><span class="pre">[&quot;points&quot;,</span> <span class="pre">&quot;distances&quot;,</span> <span class="pre">&quot;neighbours&quot;]</span></code>, revealing the kind of input data stored.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;edges&quot;</span></code>: If stored input data points are actually belonging to more than one data source, a list of integers can state the number of points per parts.</p></li>
+</ul>
+</li>
+</ul>
+<p>Additional object specific attributes may be present. Interaction with the input data object (e.g. from a <code class="docutils literal notranslate"><span class="pre">NeighboursGetter</span></code> should go through one of the following methods:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">float</span> <span class="pre">get_component(int,</span> <span class="pre">int)</span></code>: Takes a point and a dimension index and returns the corresponding value (float).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">get_n_neighbours(int)</span></code>: Takes a point index and returns the total number of neighbours for this point.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">get_neighbour(int,</span> <span class="pre">int)</span></code>: Takes a point and a member index and returns the index of the corresponding member in the data set.</p></li>
+</ul>
+<p>Not all of the above may be meaningful depending on the nature of the stored data. If an attribute or method is not not applicable, it should be present but return 0 for consistency.</p>
+<p>Currently supported realisations of the input data interface are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">InputData</span></code>: A Python abstract base class definining the input data interface.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">InputDataNeighbours</span></code>: Neighbours of points stored as sequences (not type inference).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">InputDataExtNeighboursMemoryview</span></code>: Neighbours of points exposed in a 0 padded 2-dimensional memoryview.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">InputDataExtPointsMemoryview</span></code>: Point coordinates exposed in a 2-dimensional memoryview.</p></li>
+</ul>
+<div class="section" id="Examples">
+<h3>Examples<a class="headerlink" href="#Examples" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Representation of points: &quot;</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">points</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Points are Numpy arrays:  &quot;</span><span class="p">,</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Representation of points:  Points([], dtype=float64)
-Points are Numpy arrays:   True
-</pre></div></div>
-</div>
-<p>If you have your data points already in the format of a 2D NumPy array, the conversion into <code class="docutils literal notranslate"><span class="pre">Points</span></code> is straightforward and does not require any copying. Note that the dtype of <code class="docutils literal notranslate"><span class="pre">Points</span></code> is for now fixed to <code class="docutils literal notranslate"><span class="pre">np.float_</span></code>.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">original_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-                            <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float_</span><span class="p">)</span>
-<span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="p">(</span><span class="n">original_points</span><span class="p">)</span>
-<span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">points</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Points([[1., 0., 0.],
-        [1., 1., 1.]])
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[43]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">original_points</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[43]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-array([[1., 0., 0.],
-       [1., 1., 1.]])
-</pre></div></div>
-</div>
-<p>1D sequences are interpreted as a single point on initialisation.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[45]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]))</span>
-<span class="n">points</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[45]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Points([[0., 0., 0.]])
-</pre></div></div>
-</div>
-<p>Other sequences like lists do work as input, too but consider that this requires a copy.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[47]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">original_points</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-                   <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
-<span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="p">(</span><span class="n">original_points</span><span class="p">)</span>
-<span class="n">points</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[47]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Points([[0., 0., 0.],
-        [1., 1., 1.]])
-</pre></div></div>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">Points</span></code> can be used to represent data sets distributed over multiple parts. Parts could constitute independent measurements that should be clustered together but remain separated for later analyses. Internally <code class="docutils literal notranslate"><span class="pre">Points</span></code> stores the underlying point coordinates always as a (vertically stacked) 2D array. <code class="docutils literal notranslate"><span class="pre">Points.edges</span></code> is used to track the number of points belonging to each part. The alternative constructor <code class="docutils literal notranslate"><span class="pre">Points.from_parts</span></code> can be used to deduce <code class="docutils literal notranslate"><span class="pre">edges</span></code> from parts of points passed as a
-sequence of 2D sequences.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[64]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">points</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Points</span><span class="o">.</span><span class="n">from_parts</span><span class="p">([[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-                                 <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span>
-                                <span class="p">[[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
-                                 <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]])</span>
-<span class="n">points</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[64]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Points([[0., 0., 0.],
-        [1., 1., 1.],
-        [2., 2., 2.],
-        [3., 3., 3.]])
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[65]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">points</span><span class="o">.</span><span class="n">edges</span>  <span class="c1"># 2 parts, 2 points each</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[65]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-array([2, 2])
-</pre></div></div>
-</div>
-<p>Trying to set <code class="docutils literal notranslate"><span class="pre">edges</span></code> manually to a sequence not consistent with the total number of points, will raise an error. Setting the <code class="docutils literal notranslate"><span class="pre">edges</span></code> of an empty <code class="docutils literal notranslate"><span class="pre">Points</span></code> object is, however, allowed and can be used to store part information even when no points are loaded.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[66]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">points</span><span class="o">.</span><span class="n">edges</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+                            <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">input_data</span> <span class="o">=</span> <span class="n">_types</span><span class="o">.</span><span class="n">InputDataExtPointsMemoryview</span><span class="p">(</span><span class="n">original_points</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">&quot;data:</span><span class="se">\n</span><span class="si">{</span><span class="n">input_data</span><span class="o">.</span><span class="n">data</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="sa">f</span><span class="s2">&quot;n_points:</span><span class="se">\n</span><span class="si">{</span><span class="n">input_data</span><span class="o">.</span><span class="n">n_points</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="sa">f</span><span class="s2">&quot;component (1, 2):</span><span class="se">\n</span><span class="si">{</span><span class="n">input_data</span><span class="o">.</span><span class="n">get_component</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -577,102 +419,17 @@ array([2, 2])
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
-<span class="ansi-red-intense-fg ansi-bold">ValueError</span>                                Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-66-4bd144cf309c&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
-<span class="ansi-green-intense-fg ansi-bold">----&gt; 1</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>points<span class="ansi-yellow-intense-fg ansi-bold">.</span>edges <span class="ansi-yellow-intense-fg ansi-bold">=</span> <span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-cyan-intense-fg ansi-bold">2</span><span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-cyan-intense-fg ansi-bold">3</span><span class="ansi-yellow-intense-fg ansi-bold">]</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/CNN/cnnclustering/cnn.py</span> in <span class="ansi-cyan-fg">edges</span><span class="ansi-blue-intense-fg ansi-bold">(self, x)</span>
-<span class="ansi-green-fg">    810</span>
-<span class="ansi-green-fg">    811</span>         <span class="ansi-green-intense-fg ansi-bold">if</span> <span class="ansi-yellow-intense-fg ansi-bold">(</span>n <span class="ansi-yellow-intense-fg ansi-bold">!=</span> <span class="ansi-cyan-intense-fg ansi-bold">0</span><span class="ansi-yellow-intense-fg ansi-bold">)</span> <span class="ansi-green-intense-fg ansi-bold">and</span> <span class="ansi-yellow-intense-fg ansi-bold">(</span>sum_edges <span class="ansi-yellow-intense-fg ansi-bold">!=</span> n<span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 812</span><span class="ansi-yellow-intense-fg ansi-bold">             raise ValueError(
-</span><span class="ansi-green-fg">    813</span>                 <span class="ansi-blue-intense-fg ansi-bold">f&#34;Part edges ({sum_edges} points) do not match data points &#34;</span>
-<span class="ansi-green-fg">    814</span>                 <span class="ansi-blue-intense-fg ansi-bold">f&#34;({n} points)&#34;</span>
-
-<span class="ansi-red-intense-fg ansi-bold">ValueError</span>: Part edges (5 points) do not match data points (4 points)
-</pre></div></div>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">Points.by_parts</span></code> can be used to retrieve the parts again one by one.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[70]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">points</span><span class="o">.</span><span class="n">by_parts</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">part</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
+data:
 [[0. 0. 0.]
  [1. 1. 1.]]
+n_points:
+2
+component (1, 2):
+1.0
 
-[[2. 2. 2.]
- [3. 3. 3.]]
-
-</pre></div></div>
-</div>
-<p>To provide one possible way to calculate neighbourhoods from points, <code class="docutils literal notranslate"><span class="pre">Points</span></code> has a thin method wrapper for <code class="docutils literal notranslate"><span class="pre">scipy.spatial.cKDTree</span></code>. This will set <code class="docutils literal notranslate"><span class="pre">Points.tree</span></code> which is used by <code class="docutils literal notranslate"><span class="pre">CNN.calc_neighbours_from_cKDTree</span></code>. The user is encouraged to use any other external method instead.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[75]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">points</span><span class="o">.</span><span class="n">cKDTree</span><span class="p">()</span>
-<span class="n">points</span><span class="o">.</span><span class="n">tree</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[75]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-&lt;scipy.spatial.ckdtree.cKDTree at 0x7f0f6d3f3900&gt;
 </pre></div></div>
 </div>
 </div>
-</div>
-<div class="section" id="Distances">
-<h2>Distances<a class="headerlink" href="#Distances" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="2D-NumPy-array-of-shape-(n,-n)">
-<h3>2D NumPy array of shape (<em>n</em>, <em>n</em>)<a class="headerlink" href="#2D-NumPy-array-of-shape-(n,-n)" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">cnn</span></code> module provides the class <code class="docutils literal notranslate"><span class="pre">Distances</span></code> to handle data set pairwise distances as a dense matrix. Instances of type <code class="docutils literal notranslate"><span class="pre">Distances</span></code> behave (like <code class="docutils literal notranslate"><span class="pre">Points</span></code>) much like NumPy arrays.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[79]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">distances</span> <span class="o">=</span> <span class="n">cnn</span><span class="o">.</span><span class="n">Distances</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
-<span class="n">distances</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[79]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Distances([[0., 1.],
-           [1., 0.]])
-</pre></div></div>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">Distances</span></code> do not support an <code class="docutils literal notranslate"><span class="pre">edges</span></code> attribute, i.e. can not represent part information. Use the <code class="docutils literal notranslate"><span class="pre">edges</span></code> of an associated <code class="docutils literal notranslate"><span class="pre">Points</span></code> instance instead.</p>
-<p>Pairwise <code class="docutils literal notranslate"><span class="pre">Distances</span></code> can be calculated for <span class="math notranslate nohighlight">\(n\)</span> points within a data set from a <code class="docutils literal notranslate"><span class="pre">Points</span></code> instance for example with <code class="docutils literal notranslate"><span class="pre">CNN.calc_dist</span></code>, resulting in a matrix of shape (<span class="math notranslate nohighlight">\(n\)</span>, <span class="math notranslate nohighlight">\(n\)</span>). They can be also calculated between <span class="math notranslate nohighlight">\(n\)</span> points in one and <span class="math notranslate nohighlight">\(m\)</span> points in another data set, resulting in a relative distance matrix (map matrix) of shape (<span class="math notranslate nohighlight">\(n\)</span>, <span class="math notranslate nohighlight">\(m\)</span>). In the later case <code class="docutils literal notranslate"><span class="pre">Distances.reference</span></code> should be used to keep track of the <code class="docutils literal notranslate"><span class="pre">CNN</span></code> object carrying the second
-data set. Such a map matrix can be used to predict cluster labels for a data set based on the fitted cluster labels of another set.</p>
-</div>
-</div>
-<div class="section" id="Neighbourhoods">
-<h2>Neighbourhoods<a class="headerlink" href="#Neighbourhoods" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="Densitygraph">
-<h2>Densitygraph<a class="headerlink" href="#Densitygraph" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -709,7 +466,7 @@ data set. Such a map matrix can be used to predict cluster labels for a data set
 <li class="toctree-l2"><a class="reference internal" href="basic_usage.html">Basic usage of the cnnclustering module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scikit_learn_datasets.html">Clustering of scikit-learn Toy data sets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hierarchical_clustering_basics.html">Hierarchical clustering basics</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Data input formats</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Usage of different data input formats and clustering recipes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="algorithm_explained.html">Density based clustering explained</a></li>
 <li class="toctree-l2"><a class="reference internal" href="md_example.html">Molecular dynamics application example</a></li>
 </ul>

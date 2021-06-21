@@ -19,7 +19,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Molecular dynamics application example" href="md_example.html" />
-    <link rel="prev" title="Data input formats" href="data_input_formats.html" />
+    <link rel="prev" title="Usage of different data input formats and clustering recipes" href="data_input_formats.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -297,7 +297,7 @@ div.rendered_html tbody tr:hover {
 <div class="section" id="Import-dependencies">
 <h3>Import dependencies<a class="headerlink" href="#Import-dependencies" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -321,7 +321,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>This notebook was created using Python 3.8.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -335,18 +335,18 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-3.8.5 | packaged by conda-forge | (default, Aug 21 2020, 18:21:27)
-[GCC 7.5.0]
+3.8.8 | packaged by conda-forge | (default, Feb 20 2021, 16:22:27)
+[GCC 9.3.0]
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Matplotlib configuration</span>
 <span class="n">mpl</span><span class="o">.</span><span class="n">rc_file</span><span class="p">(</span>
-    <span class="s2">&quot;../matplotlibrc&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;../../matplotlibrc&quot;</span><span class="p">,</span>
     <span class="n">use_default_template</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 </pre></div>
@@ -356,7 +356,7 @@ div.rendered_html tbody tr:hover {
 <div class="section" id="Helper-functions">
 <h3>Helper functions<a class="headerlink" href="#Helper-functions" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -376,7 +376,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -409,7 +409,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -433,7 +433,7 @@ div.rendered_html tbody tr:hover {
 <p>Density-based clustering defines clusters as <em>dense</em> regions in space, separated by <em>sparse</em> regions. But what is dense and what is sparse? This is commonly defined by a threshold, that is a density criterion that determines the clustering. In the case where we have a density function defined on a continuous coordinate, the density criterion manifests itself as a density iso-surface. Regions in which the density is higher than a cutoff set as density criterion qualify as <em>dense</em>, and therefore
 represent a cluster. On the other hand, regions in which the density falls below the density criterion are considered <em>sparse</em> and do not constitute a part of a cluster. We can illustrate this on the example of a bimodal gaussian distribution in one dimension.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -460,7 +460,7 @@ represent a cluster. On the other hand, regions in which the density falls below
 </div>
 <p>We have two maxima in the distribution. An intuitive classification in clusters would separate the two peaks into two different clusters. In density based clustering we define the two clusters as the regions of high density where we have low density in between. By applying an iso-value cutoff on the density, we can specify what should be considered high or low density. In a dense region, the density is at least as high as the density criterion requires.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -524,7 +524,7 @@ represent a cluster. On the other hand, regions in which the density falls below
 <p>Choosing the density criterion in this way, defines the two clusters exactly as we would have expected. We can label the regions, i.e. we can assign a number to them, that denotes their cluster membership. We use 0 to indicate that a region is not part of any cluster and positive integers as cluster numbers. When we vary the density criterion, we can influence the outcome of the clustering by changing the definition of what is dense enough to be a cluster. This could leave us with both density
 maxima in one cluster, clusters of different broadness, or not cluster at all.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -546,7 +546,13 @@ maxima in one cluster, clusters of different broadness, or not cluster at all.</
     <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">density_criterion_</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
     <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">density_criterion_</span><span class="p">,</span> <span class="n">dense</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">cut</span> <span class="ow">in</span> <span class="n">cuts</span><span class="p">:</span>
-        <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">cut</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span>
+            <span class="n">cut</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span>
+            <span class="p">)</span>
 
 
     <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="p">{</span>
@@ -3186,7 +3192,7 @@ qXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNTguMjAuMTAw
 <li class="toctree-l2"><a class="reference internal" href="basic_usage.html">Basic usage of the cnnclustering module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scikit_learn_datasets.html">Clustering of scikit-learn Toy data sets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hierarchical_clustering_basics.html">Hierarchical clustering basics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_input_formats.html">Data input formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_input_formats.html">Usage of different data input formats and clustering recipes</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Density based clustering explained</a></li>
 <li class="toctree-l2"><a class="reference internal" href="md_example.html">Molecular dynamics application example</a></li>
 </ul>
@@ -3199,7 +3205,7 @@ qXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNTguMjAuMTAw
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="../_source/tutorials.html">Tutorials</a><ul>
-      <li>Previous: <a href="data_input_formats.html" title="previous chapter">Data input formats</a></li>
+      <li>Previous: <a href="data_input_formats.html" title="previous chapter">Usage of different data input formats and clustering recipes</a></li>
       <li>Next: <a href="md_example.html" title="next chapter">Molecular dynamics application example</a></li>
   </ul></li>
   </ul></li>
