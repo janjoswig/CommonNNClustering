@@ -340,7 +340,7 @@ class InputDataNeighboursSequence(InputData):
 class InputDataPointsSklearnKDTree(InputData):
     """Implements the input data interface
 
-    Points stored as a NumPy array.  Neighbour queries delicated
+    Points stored as a NumPy array.  Neighbour queries delegated
     to pre-build KDTree.
     """
 
@@ -395,13 +395,8 @@ class InputDataPointsSklearnKDTree(InputData):
 
     def get_subset(self, indices: Container) -> Type['InputDataNeighboursSequence']:
         """Return input data subset"""
-        data_subset = [
-            [m for m in s if m in indices]
-            for i, s in enumerate(self._data)
-            if i in indices
-        ]
 
-        return type(self)(data_subset)
+        return type(self)(self._data[indices])
 
     def build_tree(self, **kwargs):
         self._tree = sklearn.neighbors.KDTree(self._data, **kwargs)
@@ -432,6 +427,7 @@ class InputDataPointsSklearnKDTree(InputData):
         self._cached_neighbourhoods = None
         self._n_neighbours = None
         self._radius = None
+
 
 cdef class InputDataExtNeighboursMemoryview:
     """Implements the input data interface
@@ -515,6 +511,9 @@ cdef class InputDataExtNeighboursMemoryview:
             a.extend([0] * missing_elements)
 
         return type(self)(np.asarray(data_subset, order="C", dtype=P_AINDEX))
+
+
+InputData.register(InputDataExtNeighboursMemoryview)
 
 
 cdef class InputDataExtPointsMemoryview:
