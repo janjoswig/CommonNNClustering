@@ -90,7 +90,7 @@ Quickstart
 >>> clustering = prepare_clustering(data_points)
 >>> clustering.fit(radius_cutoff=1.5, cnn_cutoff=1, v=False)
 >>> clustering.labels
-Labels([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])
+array([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])
 
 ```
 

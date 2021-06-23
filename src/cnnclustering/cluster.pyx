@@ -882,7 +882,7 @@ class Clustering:
                 lambda: Clustering(parent=self)
                 )
 
-        for label, indices in self.labels.mapping.items():
+        for label, indices in self._labels.mapping.items():
             # Assume indices to be sorted
             parent_indices = np.array(indices, dtype=np.intp)
             if self._root_indices is None:
