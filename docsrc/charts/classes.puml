@@ -1,0 +1,189 @@
+@startuml
+
+class Clustering {
+    + hierarchy_level: int
+    + children: dict
+    + _input_data: InputData
+    + _neighbours_getter: NeighboursGetter
+    + _neighbours: Neighbours
+    + _neighbour_neighbours: Neighbours
+    + _metric: Metric
+    + _similarity_checker: SimilarityChecker
+    + _queue: Queue
+    + _fitter: Fitter
+    + _predictor: Predictor
+    + _labels: Labels
+    + _summary: Summary
+    + Clustering get_child(label)
+    + _fit(cluster_params: ClusterParameters)
+    + fit(radius_cutoff: int, ...)
+    + fit_hierarchical(radius_cutoff: int, ...)
+    + isolate()
+    + reel()
+    + predict()
+}
+
+class Summary {
+    + _list : list
+    + DataFrame to_DataFrame()
+}
+
+class Record {
+    + n_points: int
+    + radius_cutoff: float
+    + cnn_cutoff: int
+    + member_cutoff: int
+    + max_clusters: int
+    + n_clusters: int
+    + ratio_largest: float
+    + ratio_noise: float
+    + execution_time: float
+}
+
+class ClusterParameters {
+    + radius_cutoff: float
+    + cnn_cutoff: int
+    + current_start: int
+    + dict to_dict()
+}
+
+class Labels {
+    + labels
+    + consider
+    + consider_set
+    + meta: dict
+    + dict to_mapping()
+    + set to_set()
+    + sort_by_size()
+}
+
+abstract class Neighbours {
+  + n_points: int
+  + {abstract} assgin(member: int)
+  + {abstract} reset()
+  + {abstract} bool enough(member_cutoff: int)
+  + {abstract} int get_member(index: int)
+  + {abstract} bool contains(member: int)
+}
+
+class NeighboursExtVector
+
+Neighbours <|.. NeighboursExtVector
+
+abstract class InputData {
+  + n_points : int
+  + data
+  + meta: dict
+  + {abstract} get_subset(indices: Container)
+}
+
+abstract class InputDataComponents {
+  + n_dim: int
+  + {abstract} get_component(point: int, dim: int)
+}
+
+abstract class InputDataPairwiseDistances {
+  + n_dim: int
+  + {abstract} get_distance(point_a: int, point_b: int)
+}
+
+abstract class InputDataPairwiseDistancesComputer {
+  + {abstract} compute_distances()
+}
+
+abstract class InputDataNeighbourhoods {
+  + {abstract} get_n_neighbours(point: int)
+  + {abstract} get_neighbour(point: int, member: int)
+}
+
+abstract class InputDataNeighbourhoodsComputer {
+  + {abstract} compute_neighbourhoods()
+}
+
+InputData <|-- InputDataComponents
+InputData <|-- InputDataPairwiseDistances
+InputData <|-- InputDataNeighbourhoods
+InputDataNeighbourhoods <|-- InputDataNeighbourhoodsComputer
+InputDataPairwiseDistances <|-- InputDataPairwiseDistancesComputer
+
+abstract class Metric {
+  + {abstract} calc_distance(index_a: int, index_b: int, ...)
+  + {abstract} calc_distance_other(index_a: int, index_b: int, ...)
+}
+
+abstract class NeighboursGetter {
+  + is_sorted: bool
+  + is_selfcounting: bool
+  + {abstract} get(index: int, ...)
+  + {abstract} get_other(index: int, ...)
+}
+
+abstract class DistanceGetter {
+  + {abstract} float get_single(index_a: int, index_b: int ...)
+  + {abstract} float get_single_other(index: int, index_b: int, ...)
+}
+
+abstract class SimilarityChecker {
+  + {abstract} check(neighbours_a: Neighbours, neighbours_b: Neighbours, ...)
+}
+
+abstract class Queue {
+  + {abstract} push()
+  + {abstract} pop()
+  + {abstract} is_empty()
+}
+
+abstract class Fitter {
+}
+
+abstract class Predictor {
+}
+
+Clustering "*" o-- "1" InputData
+Clustering "*" o-- "1" DistanceGetter
+Clustering "*" o-- "1" NeighboursGetter
+Clustering "*" o-- "0..2" Neighbours
+Clustering "*" o-- "1" Metric
+Clustering "*" o-- "1" SimilarityChecker
+Clustering "*" o-- "1" Queue
+Clustering "*" o-- "1" Fitter
+Clustering "*" o-- "1" Predictor
+Clustering "*" o-- "1" Labels
+Clustering "*" o-- "1" Summary
+
+Clustering --> Record : creates
+Clustering --> Fitter : uses
+
+NeighboursGetter --> Neighbours : assigns
+NeighboursGetter --> InputData : queries
+NeighboursGetter --> DistanceGetter : uses
+NeighboursGetter --> ClusterParameters : uses
+
+DistanceGetter --> InputData : queries
+DistanceGetter --> Metric : uses
+
+SimilarityChecker --> Neighbours : checks
+SimilarityChecker --> DistanceGetter : uses
+SimilarityChecker --> ClusterParameters : uses
+
+Metric --> InputData : queries
+
+Fitter --> InputData : uses
+Fitter --> NeighboursGetter : uses
+Fitter --> Neighbours : uses
+Fitter --> DistanceGetter : uses
+Fitter --> SimilarityChecker : uses
+Fitter --> Queue : uses
+Fitter --> Labels : manipulates
+
+Predictor --> InputData : uses
+Predictor --> NeighboursGetter : uses
+Predictor --> Neighbours : uses
+Predictor --> DistanceGetter : uses
+Predictor --> SimilarityChecker : uses
+Predictor --> Queue : uses
+Predictor --> Labels : manipulates
+
+Summary "*" -- "*" Record
+
+@enduml

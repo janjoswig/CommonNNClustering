@@ -2029,7 +2029,7 @@ class Queue(ABC):
         """Retrieve value from the queue"""
 
     @abstractmethod
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Return True if there are no values in the queue"""
 
 
@@ -2047,7 +2047,7 @@ class QueueFIFODeque(Queue):
         """Retrieve value from front/left end"""
         return self._queue.popleft()
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Return True if there are no values in the queue"""
         if self._queue:
             return False
