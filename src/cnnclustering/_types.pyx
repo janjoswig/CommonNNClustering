@@ -62,7 +62,7 @@ cdef class Labels:
 
     Keyword args:
         consider: A boolean (uint8) container of same length as `labels`
-            indicating if a cluster label shoud be considered for assignment
+            indicating if a cluster label should be considered for assignment
             during clustering.  If `None`, will be created as all true.
         meta: Meta information.  If `None`, will be created as empty
             dictionary.
@@ -76,20 +76,12 @@ cdef class Labels:
         set: The set of cluster labels
         consider_set: A set of cluster labels to consider for cluster
             label assignments
-
-    Methods:
-        from_sequence: Alternative to construct from a labels sequence
-            (not supporting the buffer protocol)
-        to_mapping: Convert labels to `mapping`
-        to_set: Convert labels to `set`
-        sort_by_size: Sort cluster labels by member count (1 being
-            the largest cluster)
-
     """
 
     def __cinit__(self, labels, *, consider=None, meta=None):
 
         self._labels = labels
+
         if consider is None:
             self._consider = np.ones_like(self._labels, dtype=P_ABOOL)
         else:
@@ -99,8 +91,6 @@ cdef class Labels:
                 raise ValueError(
                     "'labels' and 'consider' must have the same length"
                     )
-
-        self.n_points = len(labels)
 
         if meta is None:
             meta = {}
@@ -126,6 +116,10 @@ cdef class Labels:
     def consider_set(self):
         return self._consider_set
 
+    @property
+    def n_points(self):
+        return self._labels.shape[0]
+
     @consider_set.setter
     def consider_set(self, value):
         self._consider_set = value
@@ -137,7 +131,9 @@ cdef class Labels:
         return f"{self.labels!s}"
 
     @classmethod
-    def from_sequence(cls, labels, *, consider=None, meta=None):
+    def from_sequence(cls, labels, *, consider=None, meta=None) -> Type[Labels]:
+        """Construct :obj:`Labels` from any sequence (not supporting the buffer protocol)"""
+
         labels = np.array(labels, order="C", dtype=P_AINDEX)
 
         if consider is not None:
@@ -146,6 +142,8 @@ cdef class Labels:
         return cls(labels, consider=consider, meta=meta)
 
     def to_mapping(self):
+        """Convert labels container to `mapping` of labels to lists of point indices"""
+
         cdef AINDEX index, label
 
         mapping = defaultdict(list)
@@ -157,6 +155,8 @@ cdef class Labels:
         return mapping
 
     def to_set(self):
+        """Convert labels container to `set` of unique labels"""
+
         cdef AINDEX index, label
         cdef set label_set = set()
 
@@ -173,8 +173,9 @@ cdef class Labels:
         """Sort labels by clustersize in-place
 
         Re-assigns cluster numbers so that the biggest cluster (that is
-        not noise) is cluster 1.  Also filters clusters out, that have
-        not at least `member_cutoff` members.  Optionally, does only
+        not noise) is cluster 1.  Also filters out clusters, that have
+        not at least `member_cutoff` members (default 2).
+        Optionally, does only
         keep the `max_clusters` largest clusters.
 
         Args:
@@ -230,6 +231,7 @@ cdef class Labels:
                 }
 
         return
+
 
 class InputData(ABC):
     """Defines the input data interface"""
@@ -467,7 +469,7 @@ cdef class InputDataExtNeighboursMemoryview:
             ]
 
     cdef inline AVALUE _get_component(
-            self, AINDEX point, AINDEX dimension) nogil:
+            self, const AINDEX point, const AINDEX dimension) nogil:
         """Not applicable
 
         Method only present for consistency.
@@ -479,13 +481,13 @@ cdef class InputDataExtNeighboursMemoryview:
             self, point: int, dimension: int) -> float:
         return self._get_component(point, dimension)
 
-    cdef inline AINDEX _get_n_neighbours(self, AINDEX point) nogil:
+    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil:
         return self._n_neighbours[point]
 
     def get_n_neighbours(self, point: int) -> int:
         return self._get_n_neighbours(point)
 
-    cdef inline AINDEX _get_neighbour(self, AINDEX point, AINDEX member) nogil:
+    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil:
         """Return a member for point"""
         return self._data[point, member]
 
@@ -537,20 +539,20 @@ cdef class InputDataExtPointsMemoryview:
         return np.asarray(self._data)
 
     cdef inline AVALUE _get_component(
-            self, AINDEX point, AINDEX dimension) nogil:
+            self, const AINDEX point, const AINDEX dimension) nogil:
         return self._data[point, dimension]
 
     def get_component(
             self, point: int, dimension: int) -> float:
         return self._get_component(point, dimension)
 
-    cdef inline AINDEX _get_n_neighbours(self, AINDEX point) nogil:
+    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil:
         return 0
 
     def get_n_neighbours(self, point: int):
         return self._get_n_neighbours(point)
 
-    cdef inline AINDEX _get_neighbour(self, AINDEX point, AINDEX member) nogil:
+    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil:
         return 0
 
     def get_neighbour(self, point: int, member: int):
@@ -718,7 +720,7 @@ cdef class NeighboursExtVector:
         else:
             self._reset()
 
-    cdef inline void _assign(self, AINDEX member) nogil:
+    cdef inline void _assign(self, const AINDEX member) nogil:
         self._neighbours.push_back(member)
         self.n_points += 1
 
@@ -733,7 +735,7 @@ cdef class NeighboursExtVector:
     def reset(self):
         self._reset()
 
-    cdef inline bint _enough(self, AINDEX member_cutoff) nogil:
+    cdef inline bint _enough(self, const AINDEX member_cutoff) nogil:
         if self.n_points > member_cutoff:
             return True
         return False
@@ -741,13 +743,13 @@ cdef class NeighboursExtVector:
     def enough(self, member_cutoff: int):
         return self._enough(member_cutoff)
 
-    cdef inline AINDEX _get_member(self, AINDEX index) nogil:
+    cdef inline AINDEX _get_member(self, const AINDEX index) nogil:
         return self._neighbours[index]
 
     def get_member(self, index: int):
         return self._get_member(index)
 
-    cdef inline bint _contains(self, AINDEX member) nogil:
+    cdef inline bint _contains(self, const AINDEX member) nogil:
 
         if find(self._neighbours.begin(), self._neighbours.end(), member) == self._neighbours.end():
             return False
@@ -755,6 +757,9 @@ cdef class NeighboursExtVector:
 
     def contains(self, member: int):
         return self._contains(member)
+
+
+Neighbours.register(NeighboursExtVector)
 
 
 cdef class NeighboursExtCPPSet:
@@ -774,7 +779,7 @@ cdef class NeighboursExtCPPSet:
         else:
             self._reset()
 
-    cdef inline void _assign(self, AINDEX member) nogil:
+    cdef inline void _assign(self, const AINDEX member) nogil:
         self._neighbours.insert(member)
         self.n_points += 1
 
@@ -788,7 +793,7 @@ cdef class NeighboursExtCPPSet:
     def reset(self):
         self._reset()
 
-    cdef inline bint _enough(self, AINDEX member_cutoff) nogil:
+    cdef inline bint _enough(self, const AINDEX member_cutoff) nogil:
         if self.n_points > member_cutoff:
             return True
         return False
@@ -796,7 +801,7 @@ cdef class NeighboursExtCPPSet:
     def enough(self, member_cutoff: int):
         return self._enough(member_cutoff)
 
-    cdef inline AINDEX _get_member(self, AINDEX index) nogil:
+    cdef inline AINDEX _get_member(self, const AINDEX index) nogil:
         cdef cppset[AINDEX].iterator it = self._neighbours.begin()
         cdef AINDEX i
 
@@ -808,13 +813,16 @@ cdef class NeighboursExtCPPSet:
     def get_member(self, index: int):
         return self._get_member(index)
 
-    cdef inline bint _contains(self, AINDEX member) nogil:
+    cdef inline bint _contains(self, const AINDEX member) nogil:
         if self._neighbours.find(member) == self._neighbours.end():
             return False
         return True
 
     def contains(self, member: int):
         return self._contains(member)
+
+
+Neighbours.register(NeighboursExtCPPSet)
 
 
 cdef class NeighboursExtCPPUnorderedSet:
@@ -834,7 +842,7 @@ cdef class NeighboursExtCPPUnorderedSet:
         else:
             self._reset()
 
-    cdef inline void _assign(self, AINDEX member) nogil:
+    cdef inline void _assign(self, const AINDEX member) nogil:
         self._neighbours.insert(member)
         self.n_points += 1
 
@@ -848,7 +856,7 @@ cdef class NeighboursExtCPPUnorderedSet:
     def reset(self):
         self._reset()
 
-    cdef inline bint _enough(self, AINDEX member_cutoff) nogil:
+    cdef inline bint _enough(self, const AINDEX member_cutoff) nogil:
         if self.n_points > member_cutoff:
             return True
         return False
@@ -856,7 +864,7 @@ cdef class NeighboursExtCPPUnorderedSet:
     def enough(self, member_cutoff: int):
         return self._enough(member_cutoff)
 
-    cdef inline AINDEX _get_member(self, AINDEX index) nogil:
+    cdef inline AINDEX _get_member(self, const AINDEX index) nogil:
         cdef cppunordered_set[AINDEX].iterator it = self._neighbours.begin()
         cdef AINDEX i
 
@@ -868,13 +876,16 @@ cdef class NeighboursExtCPPUnorderedSet:
     def get_member(self, index: int):
         return self._get_member(index)
 
-    cdef inline bint _contains(self, AINDEX member) nogil:
+    cdef inline bint _contains(self, const AINDEX member) nogil:
         if self._neighbours.find(member) == self._neighbours.end():
             return False
         return True
 
     def contains(self, member: int):
         return self._contains(member)
+
+
+Neighbours.register(NeighboursExtCPPUnorderedSet)
 
 
 cdef class NeighboursExtVectorCPPUnorderedSet:
@@ -902,7 +913,7 @@ cdef class NeighboursExtVectorCPPUnorderedSet:
         else:
             self._reset()
 
-    cdef inline void _assign(self, AINDEX member) nogil:
+    cdef inline void _assign(self, const AINDEX member) nogil:
         self._neighbours.push_back(member)
         self._neighbours_view.insert(member)
         self.n_points += 1
@@ -919,7 +930,7 @@ cdef class NeighboursExtVectorCPPUnorderedSet:
     def reset(self):
         self._reset()
 
-    cdef inline bint _enough(self, AINDEX member_cutoff) nogil:
+    cdef inline bint _enough(self, const AINDEX member_cutoff) nogil:
         if self.n_points > member_cutoff:
             return True
         return False
@@ -927,19 +938,22 @@ cdef class NeighboursExtVectorCPPUnorderedSet:
     def enough(self, member_cutoff: int):
         return self._enough(member_cutoff)
 
-    cdef inline AINDEX _get_member(self, AINDEX index) nogil:
+    cdef inline AINDEX _get_member(self, const AINDEX index) nogil:
         return self._neighbours[index]
 
     def get_member(self, index: int):
         return self._get_member(index)
 
-    cdef inline bint _contains(self, AINDEX member) nogil:
+    cdef inline bint _contains(self, const AINDEX member) nogil:
         if self._neighbours_view.find(member) == self._neighbours_view.end():
             return False
         return True
 
     def contains(self, member: int):
         return self._contains(member)
+
+
+Neighbours.register(NeighboursExtVectorCPPUnorderedSet)
 
 
 class NeighboursGetter(ABC):
@@ -1040,7 +1054,7 @@ cdef class NeighboursGetterExtBruteForce:
 
     cdef inline void _get(
             self,
-            AINDEX index,
+            const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
             METRIC_EXT metric,
@@ -1075,7 +1089,7 @@ cdef class NeighboursGetterExtBruteForce:
 
     cdef inline void _get_other(
             self,
-            AINDEX index,
+            const AINDEX index,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
@@ -1168,7 +1182,7 @@ cdef class NeighboursGetterExtLookup:
 
     cdef inline void _get(
             self,
-            AINDEX index,
+            const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
             METRIC_EXT metric,
@@ -1182,7 +1196,7 @@ cdef class NeighboursGetterExtLookup:
 
     def get(
             self,
-            AINDEX index,
+            const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
             METRIC_EXT metric,
@@ -1198,7 +1212,7 @@ cdef class NeighboursGetterExtLookup:
 
     cdef inline void _get_other(
             self,
-            AINDEX index,
+            const AINDEX index,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
@@ -1333,7 +1347,7 @@ class MetricDummy(Metric):
 cdef class MetricExtDummy:
     cdef inline AVALUE _calc_distance(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil:
 
         return 0.
@@ -1346,7 +1360,7 @@ cdef class MetricExtDummy:
 
     cdef inline AVALUE _calc_distance_other(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data) nogil:
 
@@ -1392,7 +1406,7 @@ class MetricPrecomputed(Metric):
 cdef class MetricExtPrecomputed:
     cdef inline AVALUE _calc_distance(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil:
 
         return input_data._get_component(index_a, index_b)
@@ -1405,7 +1419,7 @@ cdef class MetricExtPrecomputed:
 
     cdef inline AVALUE _calc_distance_other(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data) nogil:
 
@@ -1469,7 +1483,7 @@ class MetricEuclidean(Metric):
 cdef class MetricExtEuclidean:
     cdef inline AVALUE _calc_distance(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil:
 
         cdef AVALUE total = 0
@@ -1491,7 +1505,7 @@ cdef class MetricExtEuclidean:
 
     cdef inline AVALUE _calc_distance_other(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data) nogil:
 
@@ -1566,7 +1580,7 @@ cdef class MetricExtEuclideanReduced:
 
     cdef inline AVALUE _calc_distance(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil:
 
         cdef AVALUE total = 0
@@ -1588,7 +1602,7 @@ cdef class MetricExtEuclideanReduced:
 
     cdef inline AVALUE _calc_distance_other(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data) nogil:
 
@@ -1627,7 +1641,7 @@ cdef class MetricExtEuclideanPeriodicReduced:
 
     cdef inline AVALUE _calc_distance(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil:
 
         cdef AVALUE total = 0
@@ -1658,7 +1672,7 @@ cdef class MetricExtEuclideanPeriodicReduced:
 
     cdef inline AVALUE _calc_distance_other(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data) nogil:
 
@@ -2043,7 +2057,7 @@ class QueueFIFODeque(Queue):
 cdef class QueueExtLIFOVector:
     """Implements the queue interface"""
 
-    cdef inline void _push(self, AINDEX value) nogil:
+    cdef inline void _push(self, const AINDEX value) nogil:
         """Append value to back/right end"""
         self._queue.push_back(value)
 
@@ -2072,7 +2086,7 @@ cdef class QueueExtLIFOVector:
 cdef class QueueExtFIFOQueue:
     """Implements the queue interface"""
 
-    cdef inline void _push(self, AINDEX value) nogil:
+    cdef inline void _push(self, const AINDEX value) nogil:
         """Append value to back/right end"""
         self._queue.push(value)
 

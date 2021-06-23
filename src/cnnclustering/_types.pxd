@@ -98,14 +98,12 @@ cdef class ClusterParameters:
 
 cdef class Labels:
     cdef public:
-        AINDEX n_points
         dict meta
 
     cdef:
         AINDEX[::1] _labels
         ABOOL[::1] _consider
-        AINDEX[::1] _root_indices
-        AINDEX[::1] _parent_indices
+
         cppunordered_set[AINDEX] _consider_set
 
 
@@ -114,12 +112,14 @@ cdef class InputDataExtPointsMemoryview:
         AINDEX n_points
         AINDEX n_dim
         dict meta
+
+    cdef:
         AVALUE[:, ::1] _data
 
     cdef inline AVALUE _get_component(
-            self, AINDEX point, AINDEX dimension) nogil
-    cdef inline AINDEX _get_n_neighbours(self, AINDEX point) nogil
-    cdef inline AINDEX _get_neighbour(self, AINDEX point, AINDEX member) nogil
+            self, const AINDEX point, const AINDEX dimension) nogil
+    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil
+    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
 
 
 cdef class InputDataExtNeighboursMemoryview:
@@ -133,9 +133,9 @@ cdef class InputDataExtNeighboursMemoryview:
         AINDEX[::1] _n_neighbours
 
     cdef inline AVALUE _get_component(
-            self, AINDEX point, AINDEX dimension) nogil
-    cdef inline AINDEX _get_n_neighbours(self, AINDEX point) nogil
-    cdef inline AINDEX _get_neighbour(self, AINDEX point, AINDEX member) nogil
+            self, const AINDEX point, const AINDEX dimension) nogil
+    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil
+    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
 
 
 cdef class NeighboursExtVector:
@@ -147,11 +147,11 @@ cdef class NeighboursExtVector:
         AINDEX _initial_size
         cppvector[AINDEX] _neighbours
 
-    cdef inline void _assign(self, AINDEX member) nogil
+    cdef inline void _assign(self, const AINDEX member) nogil
     cdef inline void _reset(self) nogil
-    cdef inline bint _enough(self, AINDEX member_cutoff) nogil
+    cdef inline bint _enough(self, const AINDEX member_cutoff) nogil
     cdef inline AINDEX _get_member(self, AINDEX index) nogil
-    cdef inline bint _contains(self, AINDEX member) nogil
+    cdef inline bint _contains(self, const AINDEX member) nogil
 
 
 cdef class NeighboursExtCPPSet:
@@ -163,11 +163,11 @@ cdef class NeighboursExtCPPSet:
         AINDEX _initial_size
         cppset[AINDEX] _neighbours
 
-    cdef inline void _assign(self, AINDEX member) nogil
+    cdef inline void _assign(self, const AINDEX member) nogil
     cdef inline void _reset(self) nogil
-    cdef inline bint _enough(self, AINDEX member_cutoff) nogil
-    cdef inline AINDEX _get_member(self, AINDEX index) nogil
-    cdef inline bint _contains(self, AINDEX member) nogil
+    cdef inline bint _enough(self, const AINDEX member_cutoff) nogil
+    cdef inline AINDEX _get_member(self, const AINDEX index) nogil
+    cdef inline bint _contains(self, const AINDEX member) nogil
 
 
 cdef class NeighboursExtCPPUnorderedSet:
@@ -179,11 +179,11 @@ cdef class NeighboursExtCPPUnorderedSet:
         AINDEX _initial_size
         cppunordered_set[AINDEX] _neighbours
 
-    cdef inline void _assign(self, AINDEX member) nogil
+    cdef inline void _assign(self, const AINDEX member) nogil
     cdef inline void _reset(self) nogil
-    cdef inline bint _enough(self, AINDEX member_cutoff) nogil
-    cdef inline AINDEX _get_member(self, AINDEX index) nogil
-    cdef inline bint _contains(self, AINDEX member) nogil
+    cdef inline bint _enough(self, const AINDEX member_cutoff) nogil
+    cdef inline AINDEX _get_member(self, const AINDEX index) nogil
+    cdef inline bint _contains(self, const AINDEX member) nogil
 
 
 cdef class NeighboursExtVectorCPPUnorderedSet:
@@ -196,11 +196,11 @@ cdef class NeighboursExtVectorCPPUnorderedSet:
         cppvector[AINDEX] _neighbours
         cppunordered_set[AINDEX] _neighbours_view
 
-    cdef inline void _assign(self, AINDEX member) nogil
+    cdef inline void _assign(self, const AINDEX member) nogil
     cdef inline void _reset(self) nogil
-    cdef inline bint _enough(self, AINDEX member_cutoff) nogil
-    cdef inline AINDEX _get_member(self, AINDEX index) nogil
-    cdef inline bint _contains(self, AINDEX member) nogil
+    cdef inline bint _enough(self, const AINDEX member_cutoff) nogil
+    cdef inline AINDEX _get_member(self, const AINDEX index) nogil
+    cdef inline bint _contains(self, const AINDEX member) nogil
 
 
 cdef class NeighboursGetterExtBruteForce:
@@ -210,7 +210,7 @@ cdef class NeighboursGetterExtBruteForce:
 
     cdef inline void _get(
             self,
-            AINDEX index,
+            const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
             METRIC_EXT metric,
@@ -218,7 +218,7 @@ cdef class NeighboursGetterExtBruteForce:
 
     cdef inline void _get_other(
             self,
-            AINDEX index,
+            const AINDEX index,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
@@ -233,7 +233,7 @@ cdef class NeighboursGetterExtLookup:
 
     cdef inline void _get(
             self,
-            AINDEX index,
+            const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
             METRIC_EXT metric,
@@ -241,7 +241,7 @@ cdef class NeighboursGetterExtLookup:
 
     cdef inline void _get_other(
             self,
-            AINDEX index,
+            const AINDEX index,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
@@ -252,12 +252,12 @@ cdef class NeighboursGetterExtLookup:
 cdef class MetricExtDummy:
     cdef inline AVALUE _calc_distance(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil
 
     cdef inline AVALUE _calc_distance_other(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data) nogil
 
@@ -267,12 +267,12 @@ cdef class MetricExtDummy:
 cdef class MetricExtPrecomputed:
     cdef inline AVALUE _calc_distance(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil
 
     cdef inline AVALUE _calc_distance_other(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data) nogil
 
@@ -282,12 +282,12 @@ cdef class MetricExtPrecomputed:
 cdef class MetricExtEuclidean:
     cdef inline AVALUE _calc_distance(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil
 
     cdef inline AVALUE _calc_distance_other(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data) nogil
 
@@ -297,12 +297,12 @@ cdef class MetricExtEuclidean:
 cdef class MetricExtEuclideanReduced:
     cdef inline AVALUE _calc_distance(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil
 
     cdef inline AVALUE _calc_distance_other(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data) nogil
 
@@ -315,12 +315,12 @@ cdef class MetricExtEuclideanPeriodicReduced:
 
     cdef inline AVALUE _calc_distance(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data) nogil
 
     cdef inline AVALUE _calc_distance_other(
             self,
-            AINDEX index_a, AINDEX index_b,
+            const AINDEX index_a, const AINDEX index_b,
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data) nogil
 
@@ -362,7 +362,7 @@ cdef class QueueExtLIFOVector:
     cdef:
         cppvector[AINDEX] _queue
 
-    cdef inline void _push(self, AINDEX value) nogil
+    cdef inline void _push(self, const AINDEX value) nogil
     cdef inline AINDEX _pop(self) nogil
     cdef inline bint _is_empty(self) nogil
 
@@ -373,6 +373,6 @@ cdef class QueueExtFIFOQueue:
     cdef:
         cppqueue[AINDEX] _queue
 
-    cdef inline void _push(self, AINDEX value) nogil
+    cdef inline void _push(self, const AINDEX value) nogil
     cdef inline AINDEX _pop(self) nogil
     cdef inline bint _is_empty(self) nogil

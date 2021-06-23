@@ -333,7 +333,7 @@ def prepare_neighbourhoods(data):
 class Clustering:
     """Represents a clustering endeavour
 
-    A clustering object is made by composition of all necessary parts to
+    A clustering object is made by aggregation of all necessary parts to
     carry out a clustering of input data points.
 
     Note:
@@ -379,7 +379,8 @@ class Clustering:
             :obj:`self._input_data.data
         hierarchy_level: The level of this clustering in the hierarchical
             tree of clusterings (0 for the root instance).
-        labels: An instance of :obj:`cnnclustering._types.Labels` holding
+        labels: Direct access to :obj:`cnnclustering._types.Labels.labels`
+            holding
             cluster label assignments for points in `input_data`.
         children: A dictionary with child cluster labels as keys and
             :obj:`cnnclustering.cluster.Clustering` instances as values.
@@ -445,7 +446,9 @@ class Clustering:
 
     @property
     def labels(self):
-        return self._labels
+        if self._labels is not None:
+            return self._labels.labels
+        return None
 
     @labels.setter
     def labels(self, value):
@@ -464,12 +467,6 @@ class Clustering:
     @hierarchy_level.setter
     def hierarchy_level(self, value):
         self._hierarchy_level = int(value)
-
-    @property
-    def input_data(self):
-        if self._input_data is not None:
-            return self._input_data.data
-        return
 
     @property
     def summary(self):
