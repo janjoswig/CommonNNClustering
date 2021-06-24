@@ -251,6 +251,14 @@ class InputData(ABC):
     def n_points(self) -> int:
         """Return total number of points"""
 
+    @abstractmethod
+    def get_subset(self, indices: Container) -> Type['InputData']:
+        """Return input data subset"""
+
+
+class InputDataComponents(InputData):
+    """Extends the input data interface"""
+
     @property
     @abstractmethod
     def n_dim(self) -> int:
@@ -261,6 +269,30 @@ class InputData(ABC):
         """Return one component of point coordinates"""
 
     @abstractmethod
+    def to_components_array(self):
+        """return input data as NumPy array of shape (#points, #components)"""
+
+
+class InputDataPairwiseDistances(InputData):
+    """Extends the input data interface"""
+
+    @abstractmethod
+    def get_distance(self, point_a: int, point_b: int) -> float:
+        """Return the pairwise distance between two points"""
+
+
+class InputDataPairwiseDistancesComputer(InputDataPairwiseDistances):
+    """Extends the input data interface"""
+
+    @abstractmethod
+    def compute_distances(self, input_data: Type["InputData"]) -> None:
+        """Pre-compute pairwise distances"""
+
+
+class InputDataNeighbourhoods(InputData):
+    """Extends the input data interface"""
+
+    @abstractmethod
     def get_n_neighbours(self, point: int) -> int:
         """Return number of neighbours for point"""
 
@@ -268,21 +300,33 @@ class InputData(ABC):
     def get_neighbour(self, point: int, member: int) -> int:
         """Return a member for point"""
 
+
+class InputDataNeighbourhoodsComputer(InputDataNeighbourhoods):
+    """Extends the input data interface"""
+
     @abstractmethod
-    def get_subset(self, indices: Container) -> Type['InputData']:
-        """Return input data subset"""
+    def compute_neighbourhoods(
+            self,
+            input_data: Type["InputData"], r: float,
+            is_sorted: bool = False, is_selfcounting: bool = True) -> None:
+        """Pre-compute neighbourhoods at radius"""
 
 
-class InputDataNeighboursSequence(InputData):
+class InputDataNeighbourhoodsSequence(InputDataNeighbourhoods):
     """Implements the input data interface
 
     Neighbours of points stored as a sequence.
+
+    Args:
+        data: Any sequence of neighbour index sequences (need to be
+            sized, indexable, and iterable)
+
+    Keyword args:
+        meta: Meta-information dictionary.
     """
 
     def __init__(self, data: Sequence, *, meta=None):
         self._data = data
-        self._n_points = len(data)
-        self._n_dim = 0
         self._n_neighbours = [len(s) for s in self._data]
 
         _meta = {"access_neighbours": True}
@@ -299,37 +343,20 @@ class InputDataNeighboursSequence(InputData):
         return len(self._data)
 
     @property
-    def n_dim(self):
-        return self._n_dim
-
-    @property
     def data(self):
-        return self._to_array()
+        return [np.asarray(list(s)) for s in self._data]
 
     @property
     def n_neighbours(self):
         return np.asarray(self._n_neighbours)
 
-    def _to_array(self):
-        return [np.asarray(list(s)) for s in self._data]
-
-    def get_component(self, point: int, dimension: int) -> float:
-        """Not applicable
-
-        Method only present for consistency.
-        Returns no relevant information.
-        """
-        return 0
-
     def get_n_neighbours(self, point: int) -> int:
         return self._n_neighbours[point]
 
     def get_neighbour(self, point: int, member: int) -> int:
-        """Return a member for point"""
         return self._data[point][member]
 
-    def get_subset(self, indices: Container) -> Type['InputDataNeighboursSequence']:
-        """Return input data subset"""
+    def get_subset(self, indices: Container) -> Type['InputDataNeighbourhoodsSequence']:
         data_subset = [
             [m for m in s if m in indices]
             for i, s in enumerate(self._data)
@@ -339,10 +366,10 @@ class InputDataNeighboursSequence(InputData):
         return type(self)(data_subset)
 
 
-class InputDataPointsSklearnKDTree(InputData):
+class InputDataSklearnKDTree(InputDataComponents, InputDataNeighbourhoodsComputer):
     """Implements the input data interface
 
-    Points stored as a NumPy array.  Neighbour queries delegated
+    Components stored as a NumPy array.  Neighbour queries delegated
     to pre-build KDTree.
     """
 
@@ -376,13 +403,13 @@ class InputDataPointsSklearnKDTree(InputData):
 
     @property
     def data(self):
-        return self._to_array()
+        return self.to_components_array()
 
     @property
     def n_neighbours(self):
         return np.asarray(self._n_neighbours)
 
-    def _to_array(self):
+    def to_components_array(self):
         return self._data
 
     def get_component(self, point: int, dimension: int) -> float:
@@ -395,7 +422,7 @@ class InputDataPointsSklearnKDTree(InputData):
         """Return a member for point"""
         return self._cached_neighbourhoods[point][member]
 
-    def get_subset(self, indices: Container) -> Type['InputDataNeighboursSequence']:
+    def get_subset(self, indices: Container) -> Type['InputDataSklearnKDTree']:
         """Return input data subset"""
 
         return type(self)(self._data[indices])
@@ -408,10 +435,10 @@ class InputDataPointsSklearnKDTree(InputData):
             input_data: Type["InputData"],
             radius: float,
             is_sorted: bool = False,
-            is_selfcounting: bool = False):
+            is_selfcounting: bool = True):
 
         self._cached_neighbourhoods = self._tree.query_radius(
-            input_data._to_array(), r=radius,
+            input_data.to_components_array(), r=radius,
             return_distance=False,
             )
         self._radius = radius
@@ -420,10 +447,10 @@ class InputDataPointsSklearnKDTree(InputData):
             for n in self._cached_neighbourhoods:
                 n.sort()
 
-        if is_selfcounting:
-            pass
+        if is_selfcounting is False:
+            raise NotImplementedError()
 
-        self._n_neighbours = [len(s) for s in self._cached_neighbourhoods]
+        self._n_neighbours = [s.shape[0] for s in self._cached_neighbourhoods]
 
     def clear_cached(self):
         self._cached_neighbourhoods = None
@@ -431,10 +458,56 @@ class InputDataPointsSklearnKDTree(InputData):
         self._radius = None
 
 
-cdef class InputDataExtNeighboursMemoryview:
+cdef class InputDataExtInterfaceDummy:
+
+    cdef AVALUE _get_component(
+            self, const AINDEX point, const AINDEX dimension) nogil:
+        return 0
+
+    def get_component(self, point: int, dimension: int) -> int:
+        return self._get_component(point, dimension)
+
+    cdef AINDEX _get_n_neighbours(self, const AINDEX point) nogil:
+        return 0
+
+    def get_n_neighbours(self, point: int) -> int:
+        return self._get_n_neighbours(point)
+
+    cdef AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil:
+        return 0
+
+    def get_neighbour(self, point: int, member: int) -> int:
+        return self._get_neighbour(point, member)
+
+    cdef AVALUE _get_distance(self, const AINDEX point_a, const AINDEX point_b) nogil:
+        return 0
+
+    def get_distance(self, point_a: int, point_b: int) -> int:
+        return self._get_distance(point_a, point_b)
+
+    cdef void _compute_distances(self, INPUT_DATA_EXT input_data) nogil:
+        ...
+
+    def compute_distances(self, INPUT_DATA_EXT input_data):
+        self._compute_distances(input_data)
+
+    cdef void _compute_neighbourhoods(
+            self,
+            INPUT_DATA_EXT input_data, AVALUE r,
+            ABOOL is_sorted, ABOOL is_selfcounting) nogil:
+        ...
+
+    def compute_neighbourhoods(
+            self,
+            INPUT_DATA_EXT input_data, AVALUE r,
+            ABOOL is_sorted, ABOOL is_selfcounting):
+        self._compute_neighbourhoods(input_data, r, is_sorted, is_selfcounting)
+
+
+cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterfaceDummy):
     """Implements the input data interface
 
-    Neighbours of points stored as using a memoryview.
+    Neighbours of points stored using a cython memoryview.
     """
 
     def __cinit__(
@@ -444,7 +517,6 @@ cdef class InputDataExtNeighboursMemoryview:
 
         self._data = data
         self.n_points = self._data.shape[0]
-        self.n_dim = 0
         self._n_neighbours = n_neighbours
 
         _meta = {"access_neighbours": True}
@@ -454,13 +526,6 @@ cdef class InputDataExtNeighboursMemoryview:
 
     @property
     def data(self):
-        return self._to_array()
-
-    @property
-    def n_neighbours(self):
-        return np.asarray(self._n_neighbours)
-
-    def _to_array(self):
         cdef AINDEX i
 
         return [
@@ -468,33 +533,18 @@ cdef class InputDataExtNeighboursMemoryview:
             for i, s in enumerate(np.asarray(self._data))
             ]
 
-    cdef inline AVALUE _get_component(
-            self, const AINDEX point, const AINDEX dimension) nogil:
-        """Not applicable
+    @property
+    def n_neighbours(self):
+        return np.asarray(self._n_neighbours)
 
-        Method only present for consistency.
-        Returns no relevant information.
-        """
-        return 0
-
-    def get_component(
-            self, point: int, dimension: int) -> float:
-        return self._get_component(point, dimension)
-
-    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil:
+    cdef AINDEX _get_n_neighbours(self, const AINDEX point) nogil:
         return self._n_neighbours[point]
 
-    def get_n_neighbours(self, point: int) -> int:
-        return self._get_n_neighbours(point)
-
-    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil:
+    cdef AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil:
         """Return a member for point"""
         return self._data[point, member]
 
-    def get_neighbour(self, point: int, member: int) -> int:
-        return self._get_neighbour(point, member)
-
-    def get_subset(self, indices: Sequence) -> Type['InputDataExtNeighboursMemoryview']:
+    def get_subset(self, indices: Sequence) -> Type['InputDataExtNeighbourhoodsMemoryview']:
         """Return input data subset"""
 
         cdef list lengths
@@ -515,11 +565,14 @@ cdef class InputDataExtNeighboursMemoryview:
         return type(self)(np.asarray(data_subset, order="C", dtype=P_AINDEX))
 
 
-InputData.register(InputDataExtNeighboursMemoryview)
+InputDataNeighbourhoods.register(InputDataExtNeighbourhoodsMemoryview)
 
 
-cdef class InputDataExtPointsMemoryview:
-    """Implements the input data interface"""
+cdef class InputDataExtComponentsMemoryview(InputDataExtInterfaceDummy):
+    """Implements the input data interface
+
+    Stores compenents as cython memoryview.
+    """
 
     def __cinit__(self, AVALUE[:, ::1] data not None, *, meta=None):
         self._data = data
@@ -533,34 +586,20 @@ cdef class InputDataExtPointsMemoryview:
 
     @property
     def data(self):
-        return self._to_array()
+        return self.to_components_array()
 
-    def _to_array(self):
+    def to_components_array(self):
         return np.asarray(self._data)
 
-    cdef inline AVALUE _get_component(
+    cdef AVALUE _get_component(
             self, const AINDEX point, const AINDEX dimension) nogil:
         return self._data[point, dimension]
 
-    def get_component(
-            self, point: int, dimension: int) -> float:
-        return self._get_component(point, dimension)
+    def get_subset(
+            self,
+            object indices: Sequence) -> Type['InputDataExtComponentsMemoryview']:
 
-    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil:
-        return 0
-
-    def get_n_neighbours(self, point: int):
-        return self._get_n_neighbours(point)
-
-    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil:
-        return 0
-
-    def get_neighbour(self, point: int, member: int):
-        return self._get_neighbour(point, member)
-
-    def get_subset(self, object indices: Sequence) -> Type['InputDataExtPointsMemoryview']:
-        """Return input data subset"""
-        return type(self)(self.data[indices])
+        return type(self)(self.to_components_array()[indices])
         # Slow because it goes via numpy array
 
     def by_parts(self) -> Iterator:
@@ -586,7 +625,7 @@ cdef class InputDataExtPointsMemoryview:
             yield from ()
 
 
-InputData.register(InputDataExtPointsMemoryview)
+InputDataComponents.register(InputDataExtComponentsMemoryview)
 
 
 class Neighbours(ABC):
@@ -975,6 +1014,7 @@ class NeighboursGetter(ABC):
             index: int,
             input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
+            distance_getter: Type['DistanceGetter'],
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']) -> None:
         """Collect neighbours for point in input data"""
@@ -985,6 +1025,7 @@ class NeighboursGetter(ABC):
             input_data: Type['InputData'],
             other_input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
+            distance_getter: Type['DistanceGetter'],
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']) -> None:
         """Collect neighbours in input data for point in other input data"""
@@ -1009,6 +1050,7 @@ class NeighboursGetterBruteForce(NeighboursGetter):
             index: int,
             input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
+            distance_getter: Type['DistanceGetter'],
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']):
 
@@ -1018,7 +1060,7 @@ class NeighboursGetterBruteForce(NeighboursGetter):
         neighbours.reset()
 
         for i in range(input_data.n_points):
-            distance = metric.calc_distance(index, i, input_data)
+            distance = distance_getter.get_single(index, i, input_data, metric)
 
             if distance <= cluster_params.radius_cutoff:
                 neighbours.assign(i)
@@ -1029,6 +1071,7 @@ class NeighboursGetterBruteForce(NeighboursGetter):
             input_data: Type['InputData'],
             other_input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
+            distance_getter: Type['DistanceGetter'],
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']):
 
@@ -1038,8 +1081,8 @@ class NeighboursGetterBruteForce(NeighboursGetter):
         neighbours.reset()
 
         for i in range(input_data.n_points):
-            distance = metric.calc_distance_other(
-                index, i, input_data, other_input_data
+            distance = distance_getter.get_single_other(
+                index, i, input_data, other_input_data, metric
                 )
 
             if distance <= cluster_params.radius_cutoff:
@@ -1057,6 +1100,7 @@ cdef class NeighboursGetterExtBruteForce:
             const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
+            DISTANCE_GETTER distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil:
 
@@ -1066,7 +1110,7 @@ cdef class NeighboursGetterExtBruteForce:
         neighbours._reset()
 
         for i in range(input_data.n_points):
-            distance = metric._calc_distance(index, i, input_data)
+            distance = distance_getter.get_single(index, i, input_data, metric)
 
             if distance <= cluster_params.radius_cutoff:
                 neighbours._assign(i)
@@ -1076,6 +1120,7 @@ cdef class NeighboursGetterExtBruteForce:
             AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
+            DISTANCE_GETTER distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params):
 
@@ -1083,6 +1128,7 @@ cdef class NeighboursGetterExtBruteForce:
             index,
             input_data,
             neighbours,
+            distance_getter,
             metric,
             cluster_params,
         )
@@ -1093,6 +1139,7 @@ cdef class NeighboursGetterExtBruteForce:
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
+            DISTANCE_GETTER distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil:
 
@@ -1102,8 +1149,8 @@ cdef class NeighboursGetterExtBruteForce:
         neighbours._reset()
 
         for i in range(input_data.n_points):
-            distance = metric._calc_distance_other(
-                index, i, input_data, other_input_data
+            distance = distance_getter.get_single_other(
+                index, i, input_data, other_input_data, metric
                 )
 
             if distance <= cluster_params.radius_cutoff:
@@ -1115,6 +1162,7 @@ cdef class NeighboursGetterExtBruteForce:
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
+            DISTANCE_GETTER distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params):
 
@@ -1123,6 +1171,7 @@ cdef class NeighboursGetterExtBruteForce:
             input_data,
             other_input_data,
             neighbours,
+            distance_getter,
             metric,
             cluster_params,
         )
@@ -1147,6 +1196,7 @@ class NeighboursGetterLookup(NeighboursGetter):
             index: int,
             input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
+            distance_getter: Type['DistanceGetter'],
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']) -> None:
 
@@ -1163,6 +1213,7 @@ class NeighboursGetterLookup(NeighboursGetter):
             input_data: Type['InputData'],
             other_input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
+            distance_getter: Type['DistanceGetter'],
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']):
 
@@ -1185,6 +1236,7 @@ cdef class NeighboursGetterExtLookup:
             const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
+            DISTANCE_GETTER distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil:
 
@@ -1199,6 +1251,7 @@ cdef class NeighboursGetterExtLookup:
             const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
+            DISTANCE_GETTER distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params):
 
@@ -1206,6 +1259,7 @@ cdef class NeighboursGetterExtLookup:
             index,
             input_data,
             neighbours,
+            distance_getter,
             metric,
             cluster_params,
         )
@@ -1216,6 +1270,7 @@ cdef class NeighboursGetterExtLookup:
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
+            DISTANCE_GETTER distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil:
 
@@ -1232,6 +1287,7 @@ cdef class NeighboursGetterExtLookup:
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
+            DISTANCE_GETTER distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params):
 
@@ -1240,9 +1296,13 @@ cdef class NeighboursGetterExtLookup:
             input_data,
             other_input_data,
             neighbours,
+            distance_getter,
             metric,
             cluster_params,
         )
+
+
+NeighboursGetter.register(NeighboursGetterExtLookup)
 
 
 class NeighboursGetterRecomputeLookup(NeighboursGetter):
@@ -1264,6 +1324,7 @@ class NeighboursGetterRecomputeLookup(NeighboursGetter):
             index: int,
             input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
+            distance_getter: Type['DistanceGetter'],
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']) -> None:
 
@@ -1288,6 +1349,7 @@ class NeighboursGetterRecomputeLookup(NeighboursGetter):
             input_data: Type['InputData'],
             other_input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
+            distance_getter: Type['DistanceGetter'],
             metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']):
 
@@ -1305,6 +1367,148 @@ class NeighboursGetterRecomputeLookup(NeighboursGetter):
 
         for i in range(other_input_data.get_n_neighbours(index)):
             neighbours.assign(other_input_data.get_neighbour(index, i))
+
+
+class DistanceGetter(ABC):
+    """Defines the distance getter interface"""
+
+    def get_single(
+            self,
+            point_a: int, point_b: int,
+            input_data: Type['InputData'],
+            metric: Type["Metric"]) -> float:
+        """Get distance between two points in input data"""
+
+    def get_single_other(
+            self,
+            point_a: int, point_b: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData'],
+            metric: Type["Metric"]) -> float:
+        """Get distance between two points in input data and other input data"""
+
+
+class DistanceGetterExtMetric(DistanceGetter):
+
+    def  get_single(
+            self,
+            point_a: int,
+            point_b: int,
+            input_data: Type["InputData"],
+            metric: Type["Metric"]):
+
+        return metric.calc_distance(point_a, point_b, input_data)
+
+    def get_single_other(
+            self,
+            point_a: int,
+            point_b: int,
+            input_data: Type["InputData"],
+            other_input_data: Type["InputData"],
+            metric: Type["Metric"]):
+
+        return metric._calc_distance_other(
+            point_a, point_b, input_data, other_input_data
+            )
+
+
+DistanceGetter.register(DistanceGetterExtMetric)
+
+
+class DistanceGetterExtLookup(DistanceGetter):
+
+    def get_single(
+            self,
+            const AINDEX point_a,
+            const AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            METRIC_EXT metric):
+
+        return input_data.get_distance(point_a, point_b)
+
+    def get_single_other(
+            self,
+            const AINDEX point_a,
+            const AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data,
+            METRIC_EXT metric):
+
+        return other_input_data.get_distance(point_a, point_b)
+
+
+DistanceGetter.register(DistanceGetterExtLookup)
+
+
+cdef class DistanceGetterExtMetric:
+
+    cdef inline AVALUE _get_single(
+            self,
+            const AINDEX point_a,
+            const AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            METRIC_EXT metric) nogil:
+
+        return metric._calc_distance(point_a, point_b, input_data)
+
+    def get_single(
+            self,
+            AINDEX point_a,
+            AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            METRIC_EXT metric):
+
+        return self._get_single(point_a, point_b, input_data, metric)
+
+    cdef inline AVALUE _get_single_other(
+            self,
+            const AINDEX point_a,
+            const AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data,
+            METRIC_EXT metric) nogil:
+
+        return metric._calc_distance_other(
+            point_a, point_b, input_data, other_input_data
+            )
+
+    def get_single(
+            self,
+            AINDEX point_a,
+            AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data,
+            METRIC_EXT metric):
+
+        return self._get_single(point_a, point_b, input_data, other_input_data, metric)
+
+
+DistanceGetter.register(DistanceGetterExtMetric)
+
+
+cdef class DistanceGetterExtLookup:
+
+    cdef inline AVALUE _get_single(
+            self,
+            const AINDEX point_a,
+            const AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            METRIC_EXT metric) nogil:
+
+        return input_data._get_distance(point_a, point_b)
+
+    cdef inline AVALUE _get_single_other(
+            self,
+            const AINDEX point_a,
+            const AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data,
+            METRIC_EXT metric) nogil:
+
+        return other_input_data._get_distance(point_a, point_b)
+
+
+DistanceGetter.register(DistanceGetterExtLookup)
 
 
 class Metric(ABC):

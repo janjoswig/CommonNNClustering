@@ -4,14 +4,13 @@ import pytest
 from cnnclustering._primitive_types import P_AVALUE, P_AINDEX, P_ABOOL
 from cnnclustering._types import (
     ClusterParameters,
-    InputDataExtPointsMemoryview,
-    InputDataNeighboursSequence,
+    InputDataExtComponentsMemoryview,
+    InputDataNeighbourhoodsSequence,
     Labels,
     NeighboursSet,
     NeighboursList,
     NeighboursExtVector,
     NeighboursGetterLookup,
-    SimilarityCheckerExtScreensorted,
     QueueFIFODeque,
     QueueExtFIFOQueue,
     QueueExtLIFOVector,
@@ -124,12 +123,12 @@ class TestInputData:
         ),
         [
             (
-                InputDataNeighboursSequence,
-                [[0, 1], [0, 1]], 2, 0, (2, 2), [(0, 0, 0)], [(1, 1, 0)]
+                InputDataNeighbourhoodsSequence,
+                [[0, 1], [0, 1]], 2, None, (2, 2), [(0, 0, 0)], []
 
             ),
             (
-                InputDataExtPointsMemoryview,
+                InputDataExtComponentsMemoryview,
                 np.array([[0, 1], [0, 1]], order="C", dtype=P_AVALUE),
                 2, 2, (0, 0), [(0, 0, 0)], [(1, 1, 1)]
             ),
@@ -147,7 +146,8 @@ class TestInputData:
         input_data = input_data_type(data)
 
         assert input_data.n_points == n_points
-        assert input_data.n_dim == n_dim
+        if n_dim is not None:
+            assert input_data.n_dim == n_dim
 
         for c, n in enumerate(n_neighbours):
             assert n == input_data.get_n_neighbours(c)
@@ -164,7 +164,7 @@ class TestInputData:
         "input_data_type,data,indices,expected",
         [
             (
-                InputDataExtPointsMemoryview,
+                InputDataExtComponentsMemoryview,
                 np.array([[0, 1, 2],
                           [3, 4, 5],
                           [6, 7, 8],
@@ -174,7 +174,7 @@ class TestInputData:
                           [6, 7, 8]])
             ),
             (
-                InputDataNeighboursSequence,
+                InputDataNeighbourhoodsSequence,
                 [[1, 2, 3], [0, 2, 4], [0, 1, 4], [0], [1, 2]],
                 [1, 2],
                 [[2], [1]]
@@ -219,7 +219,7 @@ class TestNeighbours:
 
 class TestNeighboursGetter:
     def test_get(self):
-        input_data = InputDataNeighboursSequence([[1, 2, 3], [0, 2, 3, 4]])
+        input_data = InputDataNeighbourhoodsSequence([[1, 2, 3], [0, 2, 3, 4]])
         neighbours = NeighboursList()
         neighbours_getter = NeighboursGetterLookup()
         cluster_params = ClusterParameters(

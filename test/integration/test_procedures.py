@@ -13,8 +13,8 @@ from cnnclustering import cluster
 from cnnclustering._primitive_types import P_AVALUE
 from cnnclustering._types import (
     Labels,
-    InputDataNeighboursSequence,
-    InputDataExtPointsMemoryview,
+    InputDataNeighbourhoodsSequence,
+    InputDataExtComponentsMemoryview,
     NeighboursGetterBruteForce,
     NeighboursGetterLookup,
     NeighboursGetterExtBruteForce,
@@ -104,7 +104,7 @@ def no_convert_other(points, other_points, r, c):
     [
         (
             (
-                ("input_data", InputDataNeighboursSequence, (), {}),
+                ("input_data", InputDataNeighbourhoodsSequence, (), {}),
                 (
                     "neighbours_getter", NeighboursGetterLookup,
                     (), {"is_selfcounting": True}
@@ -120,7 +120,7 @@ def no_convert_other(points, other_points, r, c):
         ),
         pytest.param(
             (
-                ("input_data", InputDataExtPointsMemoryview, (), {}),
+                ("input_data", InputDataExtComponentsMemoryview, (), {}),
                 ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
                 ("neighbours", NeighboursExtVector, (250,), {}),
                 ("neighbour_neighbours", NeighboursExtVector, (250,), {}),
@@ -134,7 +134,7 @@ def no_convert_other(points, other_points, r, c):
         ),
         pytest.param(
             (
-                ("input_data", InputDataExtPointsMemoryview, (), {}),
+                ("input_data", InputDataExtComponentsMemoryview, (), {}),
                 ("neighbours_getter", NeighboursGetterBruteForce, (), {}),
                 ("neighbours", NeighboursExtVector, (500,), {}),
                 ("neighbour_neighbours", NeighboursExtVector, (500,), {}),
@@ -148,7 +148,7 @@ def no_convert_other(points, other_points, r, c):
         ),
         pytest.param(
             (
-                ("input_data", InputDataExtPointsMemoryview, (), {}),
+                ("input_data", InputDataExtComponentsMemoryview, (), {}),
                 ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
                 ("neighbours", NeighboursExtVector, (500,), {}),
                 ("neighbour_neighbours", NeighboursExtVector, (500,), {}),
@@ -269,7 +269,7 @@ def test_fit_evaluate_regression(datadir, image_regression):
     [
         pytest.param(
             (
-                ("input_data", InputDataNeighboursSequence, (), {}),
+                ("input_data", InputDataNeighbourhoodsSequence, (), {}),
                 (
                     "neighbours_getter", NeighboursGetterLookup,
                     (), {"is_selfcounting": True}
@@ -277,7 +277,7 @@ def test_fit_evaluate_regression(datadir, image_regression):
                 ("predictor", PredictorFirstmatch, (), {})
             ),
             (
-                ("input_data", InputDataNeighboursSequence, (), {}),
+                ("input_data", InputDataNeighbourhoodsSequence, (), {}),
                 (
                     "neighbours_getter", NeighboursGetterLookup,
                     (), {"is_selfcounting": True}
@@ -291,12 +291,12 @@ def test_fit_evaluate_regression(datadir, image_regression):
         ),
         pytest.param(
             (
-                ("input_data", InputDataExtPointsMemoryview, (), {}),
+                ("input_data", InputDataExtComponentsMemoryview, (), {}),
                 ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
                 ("predictor", PredictorFirstmatch, (), {})
             ),
             (
-                ("input_data", InputDataExtPointsMemoryview, (), {}),
+                ("input_data", InputDataExtComponentsMemoryview, (), {}),
                 ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
                 ("neighbours", NeighboursExtVector, (500,), {}),
                 ("neighbour_neighbours", NeighboursExtVector, (500,), {}),

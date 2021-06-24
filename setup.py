@@ -4,8 +4,10 @@ from setuptools import Extension, find_packages, setup
 from typing import List, Optional, Tuple
 
 from Cython.Build import cythonize
+from Cython.Compiler import Options
 import numpy as np
 
+Options.fast_fail = True
 
 PYTHON_REQUIRES = ">=3.6"
 TRACE_CYTHON = bool(int(os.getenv("TRACE_CYTHON", 0)))
@@ -20,6 +22,7 @@ if TRACE_CYTHON:
 
 extra_compile_args = set(sysconfig.get_config_var('CFLAGS').split())
 extra_compile_args.discard('-Wstrict-prototypes')
+extra_compile_args.add('-Wno-misleading-indentation')
 extra_compile_args.add("-fno-var-tracking-assignments")
 extra_compile_args.add("-std=c++14")
 

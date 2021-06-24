@@ -11,6 +11,9 @@ Handling of meta information mappings
 
   - Labels
 
+
+Cleanup `get_subset` methods
+
 DBSCAN clustering
 -----------------
 

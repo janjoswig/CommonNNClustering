@@ -5,17 +5,8 @@ import pytest
 
 from cnnclustering import cluster
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE
-from cnnclustering._types import (
-    Labels,
-    InputData,
-    InputDataExtPointsMemoryview,
-    NeighboursGetter,
-    Neighbours,
-    Metric,
-    SimilarityChecker,
-    Queue,
-)
-from cnnclustering._fit import Fitter, Predictor
+from cnnclustering import _types
+from cnnclustering import _fit
 
 
 class TestClustering:
@@ -24,13 +15,13 @@ class TestClustering:
         assert clustering
 
     def test_fit_fully_mocked(self, mocker):
-        input_data = mocker.Mock(InputData)
-        neighbours_getter = mocker.Mock(NeighboursGetter)
-        neighbours = mocker.Mock(Neighbours)
-        similarity_checker = mocker.Mock(SimilarityChecker)
-        metric = mocker.Mock(Metric)
-        queue = mocker.Mock(Queue)
-        fitter = mocker.Mock(Fitter)
+        input_data = mocker.Mock(_types.InputData)
+        neighbours_getter = mocker.Mock(_types.NeighboursGetter)
+        neighbours = mocker.Mock(_types.Neighbours)
+        similarity_checker = mocker.Mock(_types.SimilarityChecker)
+        metric = mocker.Mock(_types.Metric)
+        queue = mocker.Mock(_types.Queue)
+        fitter = mocker.Mock(_fit.Fitter)
 
         type(input_data).n_points = mocker.PropertyMock(return_value=5)
 
@@ -49,13 +40,13 @@ class TestClustering:
         fitter.fit.assert_called_once()
 
     def test_predict_fully_mocked(self, mocker):
-        input_data = mocker.Mock(InputData)
-        neighbours_getter = mocker.Mock(NeighboursGetter)
-        neighbours = mocker.Mock(Neighbours)
-        similarity_checker = mocker.Mock(SimilarityChecker)
-        metric = mocker.Mock(Metric)
-        predictor = mocker.Mock(Predictor)
-        labels = mocker.Mock(Labels)
+        input_data = mocker.Mock(_types.InputData)
+        neighbours_getter = mocker.Mock(_types.NeighboursGetter)
+        neighbours = mocker.Mock(_types.Neighbours)
+        similarity_checker = mocker.Mock(_types.SimilarityChecker)
+        metric = mocker.Mock(_types.Metric)
+        predictor = mocker.Mock(_fit.Predictor)
+        labels = mocker.Mock(_types.Labels)
 
         type(input_data).n_points = mocker.PropertyMock(return_value=5)
 
@@ -87,7 +78,7 @@ class TestClustering:
         "input_data_type,data,meta,labels,root_indices,parent_indices",
         [
             (
-                InputDataExtPointsMemoryview,
+                _types.InputDataExtComponentsMemoryview,
                 np.array(
                     [[0, 0, 0],
                      [1, 1, 1]],
@@ -99,7 +90,7 @@ class TestClustering:
                 None
             ),
             (
-                InputDataExtPointsMemoryview,
+                _types.InputDataExtComponentsMemoryview,
                 np.array(
                     [[0, 0, 0],
                      [1, 1, 1],
@@ -113,7 +104,7 @@ class TestClustering:
                 None
             ),
             (
-                InputDataExtPointsMemoryview,
+                _types.InputDataExtComponentsMemoryview,
                 np.array(
                     [[1, 1, 1],
                      [2, 2, 2],
@@ -127,7 +118,7 @@ class TestClustering:
                 np.array([1, 2, 3, 4], dtype=P_AINDEX),
             ),
             (
-                InputDataExtPointsMemoryview,
+                _types.InputDataExtComponentsMemoryview,
                 np.array(
                     [[1, 1, 1],
                      [4, 4, 4]],
@@ -146,7 +137,7 @@ class TestClustering:
             file_regression):
         clustering = cluster.Clustering(
             input_data=input_data_type(data, meta=meta),
-            labels=Labels(labels)
+            labels=_types.Labels(labels)
         )
         clustering._root_indices = root_indices
         clustering._parent_indices = parent_indices

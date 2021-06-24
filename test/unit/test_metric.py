@@ -5,7 +5,7 @@ import pytest
 
 from cnnclustering._primitive_types import P_AVALUE
 from cnnclustering._types import (
-    InputDataExtPointsMemoryview,
+    InputDataExtComponentsMemoryview,
     MetricEuclidean,
     MetricEuclideanReduced,
     MetricExtEuclidean,
@@ -54,7 +54,7 @@ class TestMetric:
         "input_data_type,data,other_data,input_is_ext",
         [
             (
-                InputDataExtPointsMemoryview,
+                InputDataExtComponentsMemoryview,
                 np.array([
                     [0, 0, 0],
                     [1, 1, 1],

@@ -79,12 +79,11 @@ abstract class InputData {
 
 abstract class InputDataComponents {
   + n_dim: int
-  + {abstract} get_component(point: int, dim: int)
+  + {abstract} float get_component(point: int, dim: int)
 }
 
 abstract class InputDataPairwiseDistances {
-  + n_dim: int
-  + {abstract} get_distance(point_a: int, point_b: int)
+  + {abstract} float get_distance(point_a: int, point_b: int)
 }
 
 abstract class InputDataPairwiseDistancesComputer {
@@ -92,8 +91,8 @@ abstract class InputDataPairwiseDistancesComputer {
 }
 
 abstract class InputDataNeighbourhoods {
-  + {abstract} get_n_neighbours(point: int)
-  + {abstract} get_neighbour(point: int, member: int)
+  + {abstract} int get_n_neighbours(point: int)
+  + {abstract} int get_neighbour(point: int, member: int)
 }
 
 abstract class InputDataNeighbourhoodsComputer {

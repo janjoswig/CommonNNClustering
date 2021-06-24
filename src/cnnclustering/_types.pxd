@@ -9,13 +9,27 @@ from cnnclustering._primitive_types cimport AINDEX, AVALUE, ABOOL
 
 
 ctypedef fused INPUT_DATA:
-    InputDataExtPointsMemoryview
-    InputDataExtNeighboursMemoryview
+    InputDataExtComponentsMemoryview
+    InputDataExtNeighbourhoodsMemoryview
     object
 
 ctypedef fused INPUT_DATA_EXT:
-    InputDataExtPointsMemoryview
-    InputDataExtNeighboursMemoryview
+    InputDataExtComponentsMemoryview
+    InputDataExtNeighbourhoodsMemoryview
+
+ctypedef fused INPUT_DATA_COMPONENTS:
+    InputDataExtComponentsMemoryview
+    object
+
+ctypedef fused INPUT_DATA_EXT_COMPONENTS:
+    InputDataExtComponentsMemoryview
+
+ctypedef fused INPUT_DATA_NEIGHBOURHOODS:
+    InputDataExtNeighbourhoodsMemoryview
+    object
+
+ctypedef fused INPUT_DATA_EXT_NEIGHBOURHOODS:
+    InputDataExtNeighbourhoodsMemoryview
 
 ctypedef fused NEIGHBOURS:
     NeighboursExtVector
@@ -51,6 +65,15 @@ ctypedef fused NEIGHBOURS_GETTER:
 ctypedef fused NEIGHBOURS_GETTER_EXT:
     NeighboursGetterExtBruteForce
     NeighboursGetterExtLookup
+
+ctypedef fused DISTANCE_GETTER:
+    DistanceGetterExtMetric
+    DistanceGetterExtLookup
+    object
+
+ctypedef fused DISTANCE_GETTER_EXT:
+    DistanceGetterExtMetric
+    DistanceGetterExtLookup
 
 ctypedef fused METRIC:
     MetricExtDummy
@@ -107,36 +130,38 @@ cdef class Labels:
         cppunordered_set[AINDEX] _consider_set
 
 
-cdef class InputDataExtPointsMemoryview:
+cdef class InputDataExtInterfaceDummy:
     cdef public:
         AINDEX n_points
         AINDEX n_dim
         dict meta
 
+    cdef AVALUE _get_component(
+            self, const AINDEX point, const AINDEX dimension) nogil
+    cdef AINDEX _get_n_neighbours(self, const AINDEX point) nogil
+    cdef AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
+    cdef AVALUE _get_distance(self, const AINDEX point_a, const AINDEX point_b) nogil
+    cdef void _compute_distances(self, INPUT_DATA_EXT input_data) nogil
+    cdef void _compute_neighbourhoods(
+            self,
+            INPUT_DATA_EXT input_data, AVALUE r,
+            ABOOL is_sorted, ABOOL is_selfcounting) nogil
+
+
+cdef class InputDataExtComponentsMemoryview(InputDataExtInterfaceDummy):
     cdef:
         AVALUE[:, ::1] _data
 
-    cdef inline AVALUE _get_component(
+    cdef AVALUE _get_component(
             self, const AINDEX point, const AINDEX dimension) nogil
-    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil
-    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
 
-
-cdef class InputDataExtNeighboursMemoryview:
-    cdef public:
-        AINDEX n_points
-        AINDEX n_dim
-        dict meta
-
+cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterfaceDummy):
     cdef:
         AINDEX[:, ::1] _data
         AINDEX[::1] _n_neighbours
 
-    cdef inline AVALUE _get_component(
-            self, const AINDEX point, const AINDEX dimension) nogil
-    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil
-    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
-
+    cdef AINDEX _get_n_neighbours(self, const AINDEX point) nogil
+    cdef AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
 
 cdef class NeighboursExtVector:
 
@@ -213,6 +238,7 @@ cdef class NeighboursGetterExtBruteForce:
             const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
+            DISTANCE_GETTER distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil
 
@@ -222,6 +248,7 @@ cdef class NeighboursGetterExtBruteForce:
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
+            DISTANCE_GETTER distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil
 
@@ -236,6 +263,7 @@ cdef class NeighboursGetterExtLookup:
             const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
+            DISTANCE_GETTER distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil
 
@@ -245,8 +273,45 @@ cdef class NeighboursGetterExtLookup:
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
+            DISTANCE_GETTER distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil
+
+
+cdef class DistanceGetterExtMetric:
+
+    cdef inline AVALUE _get_single(
+            self,
+            const AINDEX point_a,
+            const AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            METRIC_EXT metric) nogil
+
+    cdef inline AVALUE _get_single_other(
+            self,
+            const AINDEX point_a,
+            const AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data,
+            METRIC_EXT metric) nogil
+
+
+cdef class DistanceGetterExtLookup:
+
+    cdef inline AVALUE _get_single(
+            self,
+            const AINDEX point_a,
+            const AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            METRIC_EXT metric) nogil
+
+    cdef inline AVALUE _get_single_other(
+            self,
+            const AINDEX point_a,
+            const AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data,
+            METRIC_EXT metric) nogil
 
 
 cdef class MetricExtDummy:

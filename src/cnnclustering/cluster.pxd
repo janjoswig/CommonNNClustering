@@ -3,6 +3,7 @@ from cnnclustering._types cimport ClusterParameters, Labels
 from cnnclustering._types cimport (
     INPUT_DATA,
     NEIGHBOURS_GETTER,
+    DISTANCE_GETTER,
     NEIGHBOURS,
     NEIGHBOUR_NEIGHBOURS,
     METRIC,
@@ -12,6 +13,7 @@ from cnnclustering._types cimport (
 from cnnclustering._types cimport (
     INPUT_DATA_EXT,
     NEIGHBOURS_GETTER_EXT,
+    DISTANCE_GETTER_EXT,
     NEIGHBOURS_EXT,
     NEIGHBOUR_NEIGHBOURS_EXT,
     METRIC_EXT,

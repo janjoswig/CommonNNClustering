@@ -20,6 +20,7 @@ class Fitter(ABC):
             self,
             input_data: Type['InputData'],
             neighbours_getter: Type['NeighboursGetter'],
+            distance_getter: Type['DistanceGetter'],
             neighbours: Type['Neighbours'],
             neighbour_neighbours: Type['Neighbours'],
             metric: Type['Metric'],
@@ -37,6 +38,7 @@ class FitterBFS(Fitter):
             self,
             object input_data,
             object neighbours_getter,
+            object distance_getter,
             object neighbours,
             object neighbour_neighbours,
             object metric,
@@ -53,6 +55,8 @@ class FitterBFS(Fitter):
                 interface.
             neighbours_getter: Calculator implementing the
                 neighbours-getter interface.
+            distance_getter: Calculator implementing the
+                distance-getter interface.
             neighbours: Neighbours container implementing the
                 neighbours interface.
             neighbour_neighbours: Neighbours container implementing the
@@ -95,6 +99,7 @@ class FitterBFS(Fitter):
                 init_point,
                 input_data,
                 neighbours,
+                distance_getter,
                 metric,
                 cluster_params
                 )
@@ -118,6 +123,7 @@ class FitterBFS(Fitter):
                         member,
                         input_data,
                         neighbour_neighbours,
+                        distance_getter,
                         metric,
                         cluster_params
                         )
@@ -142,6 +148,7 @@ class FitterBFS(Fitter):
                     point,
                     input_data,
                     neighbours,
+                    distance_getter,
                     metric,
                     cluster_params
                     )
@@ -156,6 +163,7 @@ cdef class FitterExtBFS:
             self,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_GETTER_EXT neighbours_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             NEIGHBOURS_EXT neighbours,
             NEIGHBOUR_NEIGHBOURS_EXT neighbour_neighbours,
             METRIC_EXT metric,
@@ -172,6 +180,8 @@ cdef class FitterExtBFS:
                 interface.
             neighbours_getter: Calculator implementing the
                 neighbours-getter interface.
+            distance_getter: Calculator implementing the
+                distance-getter interface.
             neighbours: Neighbours container implementing the
                 neighbours interface.
             neighbour_neighbours: Neighbours container implementing the
@@ -213,6 +223,7 @@ cdef class FitterExtBFS:
                 init_point,
                 input_data,
                 neighbours,
+                distance_getter,
                 metric,
                 cluster_params
                 )
@@ -236,6 +247,7 @@ cdef class FitterExtBFS:
                         member,
                         input_data,
                         neighbour_neighbours,
+                        distance_getter,
                         metric,
                         cluster_params
                         )
@@ -260,6 +272,7 @@ cdef class FitterExtBFS:
                     point,
                     input_data,
                     neighbours,
+                    distance_getter,
                     metric,
                     cluster_params
                     )
@@ -270,6 +283,7 @@ cdef class FitterExtBFS:
             self,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_GETTER_EXT neighbours_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             NEIGHBOURS_EXT neighbours,
             NEIGHBOUR_NEIGHBOURS_EXT neighbour_neighbours,
             METRIC_EXT metric,
@@ -281,6 +295,7 @@ cdef class FitterExtBFS:
         self._fit(
             input_data,
             neighbours_getter,
+            distance_getter,
             neighbours,
             neighbour_neighbours,
             metric,
@@ -301,6 +316,8 @@ class Predictor(ABC):
             predictand_input_data: Type['InputData'],
             neighbours_getter: Type['NeighboursGetter'],
             predictand_neighbours_getter: Type['NeighboursGetter'],
+            distance_getter: Type['DistanceGetter'],
+            predictand_distance_getter: Type['DistanceGetter'],
             neighbours: Type['Neighbours'],
             neighbour_neighbours: Type['Neighbours'],
             metric: Type['Metric'],
@@ -319,6 +336,8 @@ class PredictorFirstmatch(Predictor):
             object predictand_input_data,
             object neighbours_getter,
             object predictand_neighbours_getter,
+            object distance_getter,
+            object predictand_distance_getter,
             object neighbours,
             object neighbour_neighbours,
             object metric,
@@ -355,6 +374,7 @@ class PredictorFirstmatch(Predictor):
                 input_data,
                 predictand_input_data,
                 neighbours,
+                predictand_distance_getter,
                 metric,
                 cluster_params
             )
@@ -375,6 +395,7 @@ class PredictorFirstmatch(Predictor):
                     member,
                     input_data,
                     neighbour_neighbours,
+                    distance_getter,
                     metric,
                     cluster_params
                     )

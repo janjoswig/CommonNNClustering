@@ -34,59 +34,47 @@ except ModuleNotFoundError as error:
     PANDAS_FOUND = False
 
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
-from cnnclustering._types import (
-    InputDataNeighboursSequence,
-    InputDataExtPointsMemoryview,
-    InputDataExtNeighboursMemoryview,
-    NeighboursGetterBruteForce,
-    NeighboursGetterLookup,
-    NeighboursGetterRecomputeLookup,
-    NeighboursGetterExtLookup,
-    NeighboursGetterExtBruteForce,
-    NeighboursList,
-    NeighboursSet,
-    NeighboursExtVector,
-    MetricDummy,
-    MetricPrecomputed,
-    MetricEuclidean,
-    MetricExtDummy,
-    MetricExtPrecomputed,
-    MetricExtEuclidean,
-    SimilarityCheckerContains,
-    SimilarityCheckerExtContains,
-    QueueFIFODeque,
-    QueueExtFIFOQueue,
-)
-from cnnclustering._fit import FitterExtBFS, FitterBFS, PredictorFirstmatch
+from cnnclustering import _types
+from cnnclustering import _fit
 
 from libcpp.vector cimport vector as cppvector
 
 
 COMPONENT_NAME_TYPE_MAP = {
     "input_data": {
-        "points_array2d": InputDataExtPointsMemoryview,
-        "neighbourhoods_array2d": InputDataExtNeighboursMemoryview
+        "components_mview": _types.InputDataExtComponentsMemoryview,
+        "neighbourhoods_mview": _types.InputDataExtNeighbourhoodsMemoryview
     },
     "neighbours_getter": {
-        "brute_force": NeighboursGetterExtBruteForce,
-        "lookup": NeighboursGetterExtLookup,
+        "brute_force": _types.NeighboursGetterExtBruteForce,
+        "lookup": _types.NeighboursGetterExtLookup,
+    },
+    "distance_getter": {
+        "metric": _types.DistanceGetterExtMetric,
+        "lookup": _types.DistanceGetterExtLookup,
     },
     "neighbours": {
-        "vector": NeighboursExtVector,
+        "vector": _types.NeighboursExtVector,
+        "uset": _types.NeighboursExtCPPUnorderedSet,
+        "vuset": _types.NeighboursExtVectorCPPUnorderedSet,
     },
     "metric": {
-        "dummy": MetricExtDummy,
-        "precomputed": MetricExtPrecomputed,
-        "euclidean": MetricExtEuclidean,
+        "dummy": _types.MetricExtDummy,
+        "precomputed": _types.MetricExtPrecomputed,
+        "euclidean": _types.MetricExtEuclidean,
+        "euclidean_r": _types.MetricExtEuclideanReduced,
+        "euclidean_periodic_r": _types.MetricExtEuclideanPeriodicReduced,
     },
     "similarity_checker": {
-        "contains": SimilarityCheckerExtContains,
+        "contains": _types.SimilarityCheckerExtContains,
+        "switch": _types.SimilarityCheckerExtSwitchContains,
+        "screen": _types.SimilarityCheckerExtScreensorted,
     },
     "queue": {
-        "fifo": QueueExtFIFOQueue
+        "fifo": _types.QueueExtFIFOQueue
     },
     "fitter": {
-        "bfs": FitterExtBFS
+        "bfs": _fit.FitterExtBFS
     }
 }
 
@@ -99,22 +87,32 @@ COMPONENT_KW_ALT = {
 
 registered_recipes = {
     "from_points_brute_force": {
-        "input_data": "points_array2d",
+        "input_data": "components_mview",
         "neighbours_getter": "brute_force",
-        "neighbours": ("vector", (10,), {}),
-        "neighbour_neighbours": ("vector", (10,), {}),
-        "metric": "euclidean",
-        "similarity_checker": "contains",
+        "neighbours": ("vuset", (10,), {}),
+        "neighbour_neighbours": ("vuset", (10,), {}),
+        "metric": "euclidean_r",
+        "similarity_checker": "switch",
         "queue": "fifo",
         "fitter": "bfs",
     },
     "from_neighbourhoods_lookup": {
-        "input_data": "neighbourhoods_array2d",
+        "input_data": "neighbourhoods_mview",
+        "neighbours_getter": "lookup",
+        "neighbours": ("vuset", (10,), {}),
+        "neighbour_neighbours": ("vuset", (10,), {}),
+        "metric": "dummy",
+        "similarity_checker": "switch",
+        "queue": "fifo",
+        "fitter": "bfs",
+    },
+    "from_sorted_neighbourhoods_lookup": {
+        "input_data": "neighbourhoods_mview",
         "neighbours_getter": "lookup",
         "neighbours": ("vector", (10,), {}),
         "neighbour_neighbours": ("vector", (10,), {}),
         "metric": "dummy",
-        "similarity_checker": "contains",
+        "similarity_checker": "screen",
         "queue": "fifo",
         "fitter": "bfs",
     }
@@ -347,6 +345,9 @@ class Clustering:
         neighbours_getter: Any object implementing the neighbours
             getter interface. Controls how neighbours are
             retrieved/calculated from `input data`.
+        distance_getter: Any object implementing the distance
+            getter interface. Controls how distances are
+            retrieved/calculated from `input data`.
         neighbours: Any object implementing the neighbours
             interface.
             Represents neighbours found by the `neighbours_getter`.
@@ -390,6 +391,7 @@ class Clustering:
 
     take_over_attrs = [
         "_neighbours_getter",
+        "_distance_getter",
         "_neighbours",
         "_neighbour_neighbours",
         "_metric",
@@ -402,6 +404,7 @@ class Clustering:
             self,
             input_data=None,
             neighbours_getter=None,
+            distance_getter=None,
             neighbours=None,
             neighbour_neighbours=None,
             metric=None,
@@ -415,6 +418,7 @@ class Clustering:
 
         self._input_data = input_data
         self._neighbours_getter = neighbours_getter
+        self._distance_getter = distance_getter
         self._neighbours = neighbours
         self._neighbour_neighbours = neighbour_neighbours
         self._metric = metric
@@ -476,6 +480,7 @@ class Clustering:
         attr_repr = ", ".join([
             f"input_data={self._input_data!r}",
             f"neighbours_getter={self._neighbours_getter!r}",
+            f"distance_getter={self._distance_getter!r}",
             f"neighbours={self._neighbours!r}",
             f"neighbour_neighbours={self._neighbour_neighbours!r}",
             f"metric={self._metric!r}",
@@ -549,6 +554,7 @@ class Clustering:
         self._fitter.fit(
                 self._input_data,
                 self._neighbours_getter,
+                self._distance_getter,
                 self._neighbours,
                 self._neighbour_neighbours,
                 self._metric,
@@ -647,6 +653,7 @@ class Clustering:
             self._fitter.fit(
                 self._input_data,
                 self._neighbours_getter,
+                self._distance_getter,
                 self._neighbours,
                 self._neighbour_neighbours,
                 self._metric,
@@ -782,6 +789,7 @@ class Clustering:
             self._fitter.fit(
                 self._input_data,
                 self._neighbours_getter,
+                self._distance_getter,
                 self._neighbours,
                 self._neighbour_neighbours,
                 self._metric,
@@ -1111,7 +1119,9 @@ class Clustering:
                 self._input_data,
                 other._input_data,
                 self._neighbours_getter,
+                self._distance_getter,
                 other._neighbours_getter,
+                other._distance_getter,
                 other._neighbours,
                 other._neighbour_neighbours,
                 other._metric,
@@ -1125,7 +1135,9 @@ class Clustering:
                 self._input_data,
                 other._input_data,
                 self._neighbours_getter,
+                self._distance_getter,
                 other._neighbours_getter,
+                other._distance_getter,
                 other._neighbours,
                 other._neighbour_neighbours,
                 other._metric,
