@@ -1100,7 +1100,7 @@ cdef class NeighboursGetterExtBruteForce:
             const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER distance_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil:
 
@@ -1110,7 +1110,7 @@ cdef class NeighboursGetterExtBruteForce:
         neighbours._reset()
 
         for i in range(input_data.n_points):
-            distance = distance_getter.get_single(index, i, input_data, metric)
+            distance = distance_getter._get_single(index, i, input_data, metric)
 
             if distance <= cluster_params.radius_cutoff:
                 neighbours._assign(i)
@@ -1120,7 +1120,7 @@ cdef class NeighboursGetterExtBruteForce:
             AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER distance_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params):
 
@@ -1139,7 +1139,7 @@ cdef class NeighboursGetterExtBruteForce:
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER distance_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil:
 
@@ -1149,7 +1149,7 @@ cdef class NeighboursGetterExtBruteForce:
         neighbours._reset()
 
         for i in range(input_data.n_points):
-            distance = distance_getter.get_single_other(
+            distance = distance_getter._get_single_other(
                 index, i, input_data, other_input_data, metric
                 )
 
@@ -1162,7 +1162,7 @@ cdef class NeighboursGetterExtBruteForce:
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER distance_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params):
 
@@ -1236,7 +1236,7 @@ cdef class NeighboursGetterExtLookup:
             const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER distance_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil:
 
@@ -1251,7 +1251,7 @@ cdef class NeighboursGetterExtLookup:
             const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER distance_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params):
 
@@ -1270,7 +1270,7 @@ cdef class NeighboursGetterExtLookup:
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER distance_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil:
 
@@ -1287,7 +1287,7 @@ cdef class NeighboursGetterExtLookup:
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER distance_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params):
 
@@ -1372,6 +1372,7 @@ class NeighboursGetterRecomputeLookup(NeighboursGetter):
 class DistanceGetter(ABC):
     """Defines the distance getter interface"""
 
+    @abstractmethod
     def get_single(
             self,
             point_a: int, point_b: int,
@@ -1379,6 +1380,7 @@ class DistanceGetter(ABC):
             metric: Type["Metric"]) -> float:
         """Get distance between two points in input data"""
 
+    @abstractmethod
     def get_single_other(
             self,
             point_a: int, point_b: int,
@@ -1388,7 +1390,7 @@ class DistanceGetter(ABC):
         """Get distance between two points in input data and other input data"""
 
 
-class DistanceGetterExtMetric(DistanceGetter):
+class DistanceGetterMetric(DistanceGetter):
 
     def  get_single(
             self,
@@ -1415,7 +1417,7 @@ class DistanceGetterExtMetric(DistanceGetter):
 DistanceGetter.register(DistanceGetterExtMetric)
 
 
-class DistanceGetterExtLookup(DistanceGetter):
+class DistanceGetterLookup(DistanceGetter):
 
     def get_single(
             self,
@@ -1472,7 +1474,7 @@ cdef class DistanceGetterExtMetric:
             point_a, point_b, input_data, other_input_data
             )
 
-    def get_single(
+    def get_single_other(
             self,
             AINDEX point_a,
             AINDEX point_b,
@@ -1480,7 +1482,7 @@ cdef class DistanceGetterExtMetric:
             INPUT_DATA_EXT other_input_data,
             METRIC_EXT metric):
 
-        return self._get_single(point_a, point_b, input_data, other_input_data, metric)
+        return self._get_single_other(point_a, point_b, input_data, other_input_data, metric)
 
 
 DistanceGetter.register(DistanceGetterExtMetric)
@@ -1497,6 +1499,15 @@ cdef class DistanceGetterExtLookup:
 
         return input_data._get_distance(point_a, point_b)
 
+    def get_single(
+            self,
+            AINDEX point_a,
+            AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            METRIC_EXT metric):
+
+        return self._get_single(point_a, point_b, input_data, metric)
+
     cdef inline AVALUE _get_single_other(
             self,
             const AINDEX point_a,
@@ -1506,6 +1517,16 @@ cdef class DistanceGetterExtLookup:
             METRIC_EXT metric) nogil:
 
         return other_input_data._get_distance(point_a, point_b)
+
+    def get_single_other(
+            self,
+            AINDEX point_a,
+            AINDEX point_b,
+            INPUT_DATA_EXT input_data,
+            INPUT_DATA_EXT other_input_data,
+            METRIC_EXT metric):
+
+        return self._get_single_other(point_a, point_b, input_data, other_input_data, metric)
 
 
 DistanceGetter.register(DistanceGetterExtLookup)

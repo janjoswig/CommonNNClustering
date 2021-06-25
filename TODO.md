@@ -11,8 +11,16 @@ Handling of meta information mappings
 
   - Labels
 
+Provide sanity checks for component combinations
+------------------------------------------------
 
 Cleanup `get_subset` methods
+----------------------------
+
+Increase test coverage
+----------------------
+
+  - NeighboursGetter
 
 DBSCAN clustering
 -----------------

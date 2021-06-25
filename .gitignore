@@ -3,6 +3,7 @@
 
 # Editor
 .vscode/
+.nfs*
 
 # Big temporary files
 docsrc/tutorial/md_example/*.npy

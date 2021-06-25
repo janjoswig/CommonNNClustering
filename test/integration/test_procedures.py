@@ -18,6 +18,10 @@ from cnnclustering._types import (
     NeighboursGetterBruteForce,
     NeighboursGetterLookup,
     NeighboursGetterExtBruteForce,
+    DistanceGetterMetric,
+    DistanceGetterLookup,
+    DistanceGetterExtMetric,
+    DistanceGetterExtLookup,
     NeighboursList,
     NeighboursSet,
     NeighboursExtVector,
@@ -109,6 +113,7 @@ def no_convert_other(points, other_points, r, c):
                     "neighbours_getter", NeighboursGetterLookup,
                     (), {"is_selfcounting": True}
                 ),
+                ("distance_getter", DistanceGetterMetric, (), {}),
                 ("neighbours", NeighboursList, (), {}),
                 ("neighbour_neighbours", NeighboursList, (), {}),
                 ("metric", MetricDummy, (), {}),
@@ -122,6 +127,7 @@ def no_convert_other(points, other_points, r, c):
             (
                 ("input_data", InputDataExtComponentsMemoryview, (), {}),
                 ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
+                ("distance_getter", DistanceGetterExtMetric, (), {}),
                 ("neighbours", NeighboursExtVector, (250,), {}),
                 ("neighbour_neighbours", NeighboursExtVector, (250,), {}),
                 ("metric", MetricExtPrecomputed, (), {}),
@@ -136,6 +142,7 @@ def no_convert_other(points, other_points, r, c):
             (
                 ("input_data", InputDataExtComponentsMemoryview, (), {}),
                 ("neighbours_getter", NeighboursGetterBruteForce, (), {}),
+                ("distance_getter", DistanceGetterMetric, (), {}),
                 ("neighbours", NeighboursExtVector, (500,), {}),
                 ("neighbour_neighbours", NeighboursExtVector, (500,), {}),
                 ("metric", MetricEuclidean, (), {}),
@@ -150,6 +157,7 @@ def no_convert_other(points, other_points, r, c):
             (
                 ("input_data", InputDataExtComponentsMemoryview, (), {}),
                 ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
+                ("distance_getter", DistanceGetterExtMetric, (), {}),
                 ("neighbours", NeighboursExtVector, (500,), {}),
                 ("neighbour_neighbours", NeighboursExtVector, (500,), {}),
                 ("metric", MetricExtEuclidean, (), {}),
@@ -274,6 +282,7 @@ def test_fit_evaluate_regression(datadir, image_regression):
                     "neighbours_getter", NeighboursGetterLookup,
                     (), {"is_selfcounting": True}
                 ),
+                ("distance_getter", DistanceGetterMetric, (), {}),
                 ("predictor", PredictorFirstmatch, (), {})
             ),
             (
@@ -282,6 +291,7 @@ def test_fit_evaluate_regression(datadir, image_regression):
                     "neighbours_getter", NeighboursGetterLookup,
                     (), {"is_selfcounting": True}
                 ),
+                ("distance_getter", DistanceGetterMetric, (), {}),
                 ("neighbours", NeighboursList, (), {}),
                 ("neighbour_neighbours", NeighboursList, (), {}),
                 ("metric", MetricDummy, (), {}),
@@ -293,11 +303,13 @@ def test_fit_evaluate_regression(datadir, image_regression):
             (
                 ("input_data", InputDataExtComponentsMemoryview, (), {}),
                 ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
+                ("distance_getter", DistanceGetterExtMetric, (), {}),
                 ("predictor", PredictorFirstmatch, (), {})
             ),
             (
                 ("input_data", InputDataExtComponentsMemoryview, (), {}),
                 ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
+                ("distance_getter", DistanceGetterExtMetric, (), {}),
                 ("neighbours", NeighboursExtVector, (500,), {}),
                 ("neighbour_neighbours", NeighboursExtVector, (500,), {}),
                 ("metric", MetricExtEuclidean, (), {}),
@@ -325,6 +337,8 @@ def test_predict_for_toy_data_from_reference(
 
     points, other_points = converter(points, other_points, r, c)
 
+    print(components)
+
     prepared_components = {}
     for component_kw, component_type, args, kwargs in components:
         if component_kw == "input_data":
@@ -335,6 +349,8 @@ def test_predict_for_toy_data_from_reference(
                 *args, **kwargs
             )
     prepared_components["labels"] = Labels.from_sequence(reference_labels)
+
+    print(prepared_components)
 
     other_prepared_components = {}
     for component_kw, component_type, args, kwargs in other_components:

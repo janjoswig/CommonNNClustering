@@ -81,6 +81,8 @@ COMPONENT_NAME_TYPE_MAP = {
 COMPONENT_KW_ALT = {
     "neighbour_neighbours": "neighbours",
     "getter": "neighbours_getter",
+    "ngetter": "neighbours_getter",
+    "dgetter": "distance_getter",
     "checker": "similarity_checker",
 }
 
@@ -89,6 +91,7 @@ registered_recipes = {
     "from_points_brute_force": {
         "input_data": "components_mview",
         "neighbours_getter": "brute_force",
+        "distance_getter": "metric",
         "neighbours": ("vuset", (10,), {}),
         "neighbour_neighbours": ("vuset", (10,), {}),
         "metric": "euclidean_r",
@@ -99,6 +102,7 @@ registered_recipes = {
     "from_neighbourhoods_lookup": {
         "input_data": "neighbourhoods_mview",
         "neighbours_getter": "lookup",
+        "distance_getter": "metric",
         "neighbours": ("vuset", (10,), {}),
         "neighbour_neighbours": ("vuset", (10,), {}),
         "metric": "dummy",
@@ -109,6 +113,7 @@ registered_recipes = {
     "from_sorted_neighbourhoods_lookup": {
         "input_data": "neighbourhoods_mview",
         "neighbours_getter": "lookup",
+        "distance_getter": "metric",
         "neighbours": ("vector", (10,), {}),
         "neighbour_neighbours": ("vector", (10,), {}),
         "metric": "dummy",
@@ -641,6 +646,7 @@ class Clustering:
             _, execution_time = timed(self._fitter.fit)(
                 self._input_data,
                 self._neighbours_getter,
+                self._distance_getter,
                 self._neighbours,
                 self._neighbour_neighbours,
                 self._metric,
@@ -1119,8 +1125,8 @@ class Clustering:
                 self._input_data,
                 other._input_data,
                 self._neighbours_getter,
-                self._distance_getter,
                 other._neighbours_getter,
+                self._distance_getter,
                 other._distance_getter,
                 other._neighbours,
                 other._neighbour_neighbours,
@@ -1135,8 +1141,8 @@ class Clustering:
                 self._input_data,
                 other._input_data,
                 self._neighbours_getter,
-                self._distance_getter,
                 other._neighbours_getter,
+                self._distance_getter,
                 other._distance_getter,
                 other._neighbours,
                 other._neighbour_neighbours,

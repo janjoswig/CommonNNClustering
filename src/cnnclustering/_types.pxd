@@ -238,7 +238,7 @@ cdef class NeighboursGetterExtBruteForce:
             const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER distance_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil
 
@@ -248,7 +248,7 @@ cdef class NeighboursGetterExtBruteForce:
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER distance_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil
 
@@ -263,7 +263,7 @@ cdef class NeighboursGetterExtLookup:
             const AINDEX index,
             INPUT_DATA_EXT input_data,
             NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER distance_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil
 
@@ -273,7 +273,7 @@ cdef class NeighboursGetterExtLookup:
             INPUT_DATA_EXT input_data,
             INPUT_DATA_EXT other_input_data,
             NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER distance_getter,
+            DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
             ClusterParameters cluster_params) nogil
 
