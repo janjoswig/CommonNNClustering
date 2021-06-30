@@ -148,20 +148,50 @@ cdef class InputDataExtInterfaceDummy:
             ABOOL is_sorted, ABOOL is_selfcounting) nogil
 
 
-cdef class InputDataExtComponentsMemoryview(InputDataExtInterfaceDummy):
+cdef class InputDataExtComponentsMemoryview:
+    cdef public:
+        AINDEX n_points
+        AINDEX n_dim
+        dict meta
+
     cdef:
         AVALUE[:, ::1] _data
 
-    cdef AVALUE _get_component(
+    cdef inline AVALUE _get_component(
             self, const AINDEX point, const AINDEX dimension) nogil
 
-cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterfaceDummy):
+    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil
+    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
+    cdef inline AVALUE _get_distance(self, const AINDEX point_a, const AINDEX point_b) nogil
+    cdef void _compute_distances(self, INPUT_DATA_EXT input_data) nogil
+    cdef void _compute_neighbourhoods(
+            self,
+            INPUT_DATA_EXT input_data, AVALUE r,
+            ABOOL is_sorted, ABOOL is_selfcounting) nogil
+
+
+cdef class InputDataExtNeighbourhoodsMemoryview:
+    cdef public:
+        AINDEX n_points
+        AINDEX n_dim
+        dict meta
+
     cdef:
         AINDEX[:, ::1] _data
         AINDEX[::1] _n_neighbours
 
-    cdef AINDEX _get_n_neighbours(self, const AINDEX point) nogil
-    cdef AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
+    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil
+    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
+
+    cdef inline AVALUE _get_component(
+            self, const AINDEX point, const AINDEX dimension) nogil
+    cdef inline AVALUE _get_distance(self, const AINDEX point_a, const AINDEX point_b) nogil
+    cdef void _compute_distances(self, INPUT_DATA_EXT input_data) nogil
+    cdef void _compute_neighbourhoods(
+            self,
+            INPUT_DATA_EXT input_data, AVALUE r,
+            ABOOL is_sorted, ABOOL is_selfcounting) nogil
+
 
 cdef class NeighboursExtVector:
 

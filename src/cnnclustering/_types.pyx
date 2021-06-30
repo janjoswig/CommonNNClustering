@@ -504,7 +504,7 @@ cdef class InputDataExtInterfaceDummy:
         self._compute_neighbourhoods(input_data, r, is_sorted, is_selfcounting)
 
 
-cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterfaceDummy):
+cdef class InputDataExtNeighbourhoodsMemoryview:
     """Implements the input data interface
 
     Neighbours of points stored using a cython memoryview.
@@ -537,12 +537,18 @@ cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterfaceDummy):
     def n_neighbours(self):
         return np.asarray(self._n_neighbours)
 
-    cdef AINDEX _get_n_neighbours(self, const AINDEX point) nogil:
+    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil:
         return self._n_neighbours[point]
 
-    cdef AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil:
+    def get_n_neighbours(self, point: int) -> int:
+        return self._get_n_neighbours(point)
+
+    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil:
         """Return a member for point"""
         return self._data[point, member]
+
+    def get_neighbour(self, point: int, member: int) -> int:
+        return self._get_neighbour(point, member)
 
     def get_subset(self, indices: Sequence) -> Type['InputDataExtNeighbourhoodsMemoryview']:
         """Return input data subset"""
@@ -564,11 +570,43 @@ cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterfaceDummy):
 
         return type(self)(np.asarray(data_subset, order="C", dtype=P_AINDEX))
 
+    cdef AVALUE _get_component(
+            self, const AINDEX point, const AINDEX dimension) nogil:
+        return 0
+
+    def get_component(self, point: int, dimension: int) -> int:
+        return self._get_component(point, dimension)
+
+    cdef inline inline AVALUE _get_distance(self, const AINDEX point_a, const AINDEX point_b) nogil:
+        return 0
+
+    def get_distance(self, point_a: int, point_b: int) -> int:
+        return self._get_distance(point_a, point_b)
+
+    cdef void _compute_distances(self, INPUT_DATA_EXT input_data) nogil:
+        ...
+
+    def compute_distances(self, INPUT_DATA_EXT input_data):
+        self._compute_distances(input_data)
+
+    cdef void _compute_neighbourhoods(
+            self,
+            INPUT_DATA_EXT input_data, AVALUE r,
+            ABOOL is_sorted, ABOOL is_selfcounting) nogil:
+        ...
+
+    def compute_neighbourhoods(
+            self,
+            INPUT_DATA_EXT input_data, AVALUE r,
+            ABOOL is_sorted, ABOOL is_selfcounting):
+        self._compute_neighbourhoods(input_data, r, is_sorted, is_selfcounting)
+
+
 
 InputDataNeighbourhoods.register(InputDataExtNeighbourhoodsMemoryview)
 
 
-cdef class InputDataExtComponentsMemoryview(InputDataExtInterfaceDummy):
+cdef class InputDataExtComponentsMemoryview:
     """Implements the input data interface
 
     Stores compenents as cython memoryview.
@@ -591,9 +629,12 @@ cdef class InputDataExtComponentsMemoryview(InputDataExtInterfaceDummy):
     def to_components_array(self):
         return np.asarray(self._data)
 
-    cdef AVALUE _get_component(
+    cdef inline AVALUE _get_component(
             self, const AINDEX point, const AINDEX dimension) nogil:
         return self._data[point, dimension]
+
+    def get_component(self, point: int, dimension: int) -> int:
+        return self._get_component(point, dimension)
 
     def get_subset(
             self,
@@ -623,6 +664,42 @@ cdef class InputDataExtComponentsMemoryview(InputDataExtInterfaceDummy):
 
         else:
             yield from ()
+
+    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil:
+        return 0
+
+    def get_n_neighbours(self, point: int) -> int:
+        return self._get_n_neighbours(point)
+
+    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil:
+        return 0
+
+    def get_neighbour(self, point: int, member: int) -> int:
+        return self._get_neighbour(point, member)
+
+    cdef AVALUE _get_distance(self, const AINDEX point_a, const AINDEX point_b) nogil:
+        return 0
+
+    def get_distance(self, point_a: int, point_b: int) -> int:
+        return self._get_distance(point_a, point_b)
+
+    cdef inline void _compute_distances(self, INPUT_DATA_EXT input_data) nogil:
+        ...
+
+    def compute_distances(self, INPUT_DATA_EXT input_data):
+        self._compute_distances(input_data)
+
+    cdef void _compute_neighbourhoods(
+            self,
+            INPUT_DATA_EXT input_data, AVALUE r,
+            ABOOL is_sorted, ABOOL is_selfcounting) nogil:
+        ...
+
+    def compute_neighbourhoods(
+            self,
+            INPUT_DATA_EXT input_data, AVALUE r,
+            ABOOL is_sorted, ABOOL is_selfcounting):
+        self._compute_neighbourhoods(input_data, r, is_sorted, is_selfcounting)
 
 
 InputDataComponents.register(InputDataExtComponentsMemoryview)

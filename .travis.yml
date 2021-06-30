@@ -39,9 +39,8 @@ deploy:
   provider: pypi
   username: __token__
   on:
-    tags: true
     all_branches: true
-    python: '3.8'
+    python: '3.9'
   skip_existing: true
   password:
     secure: bnC7Txm3jVG1OTagLTmfBDWps/7V568vT+KuY//qZkHKV7XLaJTy7MvIMXT8lbFQXO+XtxVOy0NGG8jzmIApskhDYpoy4qcyqvakBZZGq1qho9zrw4Xylb5PHbbJ8MSY7VufKKcsBX7/XVeEaFObHbJEyGdmzKsPqn1ZznDWjQE0bwpsm0/q1q/1f3mApF24KMT+QI4RVQH0UD0QluZ/87A7DoPwUPxwTRkH4g0PX+VKY4/m3l6krAOnwWVaa41zj0jDQJFAFNM+t7YdDBnvtwBbHsSbxb25TuccHQEmxpwBoXcby5jxT8LDrCNoi2MtYmBmiUhyBde0dGN5nuXyAx+Ss06hjA5sIfXp/XmU2QcTJGUjb/Nc84Nt2VzkI7jBl6AcMZffvJFCx9iSuhnjoXmWorYO12X7leVdj+EsfxxlJhHHmrDXFavEaTXhd9EJDcIZ1xqr53e4R4WmuVRJoPHxQ9Chl9ora7JE9wky8CZNYpwnH8mdA9goI4DC4EIQN2TYwAspWNAucjSbEYWCW6uTn3Q4xfVKVZZZlQVnWJVwdxCvuFLDtdaOfK9uiD22f8g1dzD71d7LFRmBAhX7x9MON+4ug3u0LiiFs4TJM9e393P8XqtHpHlNvMVKehxj6OJgTx+1czpFt6UtWR9pEf3yMr6XS1nqwQmSc3gwk/Y=
