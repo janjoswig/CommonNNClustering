@@ -6,7 +6,7 @@ from libcpp.queue cimport queue as cppqueue
 from libcpp.unordered_set cimport unordered_set as cppunordered_set
 
 from cnnclustering._primitive_types cimport AINDEX, AVALUE, ABOOL
-
+from cnnclustering._interfaces cimport InputDataExtInterface
 
 ctypedef fused INPUT_DATA:
     InputDataExtComponentsMemoryview
@@ -130,67 +130,23 @@ cdef class Labels:
         cppunordered_set[AINDEX] _consider_set
 
 
-cdef class InputDataExtInterfaceDummy:
-    cdef public:
-        AINDEX n_points
-        AINDEX n_dim
-        dict meta
-
-    cdef AVALUE _get_component(
-            self, const AINDEX point, const AINDEX dimension) nogil
-    cdef AINDEX _get_n_neighbours(self, const AINDEX point) nogil
-    cdef AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
-    cdef AVALUE _get_distance(self, const AINDEX point_a, const AINDEX point_b) nogil
-    cdef void _compute_distances(self, INPUT_DATA_EXT input_data) nogil
-    cdef void _compute_neighbourhoods(
-            self,
-            INPUT_DATA_EXT input_data, AVALUE r,
-            ABOOL is_sorted, ABOOL is_selfcounting) nogil
-
-
-cdef class InputDataExtComponentsMemoryview:
-    cdef public:
-        AINDEX n_points
-        AINDEX n_dim
-        dict meta
+cdef class InputDataExtComponentsMemoryview(InputDataExtInterface):
 
     cdef:
         AVALUE[:, ::1] _data
 
-    cdef inline AVALUE _get_component(
+    cdef AVALUE _get_component(
             self, const AINDEX point, const AINDEX dimension) nogil
 
-    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil
-    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
-    cdef inline AVALUE _get_distance(self, const AINDEX point_a, const AINDEX point_b) nogil
-    cdef void _compute_distances(self, INPUT_DATA_EXT input_data) nogil
-    cdef void _compute_neighbourhoods(
-            self,
-            INPUT_DATA_EXT input_data, AVALUE r,
-            ABOOL is_sorted, ABOOL is_selfcounting) nogil
 
-
-cdef class InputDataExtNeighbourhoodsMemoryview:
-    cdef public:
-        AINDEX n_points
-        AINDEX n_dim
-        dict meta
+cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterface):
 
     cdef:
         AINDEX[:, ::1] _data
         AINDEX[::1] _n_neighbours
 
-    cdef inline AINDEX _get_n_neighbours(self, const AINDEX point) nogil
-    cdef inline AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
-
-    cdef inline AVALUE _get_component(
-            self, const AINDEX point, const AINDEX dimension) nogil
-    cdef inline AVALUE _get_distance(self, const AINDEX point_a, const AINDEX point_b) nogil
-    cdef void _compute_distances(self, INPUT_DATA_EXT input_data) nogil
-    cdef void _compute_neighbourhoods(
-            self,
-            INPUT_DATA_EXT input_data, AVALUE r,
-            ABOOL is_sorted, ABOOL is_selfcounting) nogil
+    cdef AINDEX _get_n_neighbours(self, const AINDEX point) nogil
+    cdef AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
 
 
 cdef class NeighboursExtVector:
@@ -266,7 +222,7 @@ cdef class NeighboursGetterExtBruteForce:
     cdef inline void _get(
             self,
             const AINDEX index,
-            INPUT_DATA_EXT input_data,
+            InputDataExtInterface input_data,
             NEIGHBOURS_EXT neighbours,
             DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
@@ -275,8 +231,8 @@ cdef class NeighboursGetterExtBruteForce:
     cdef inline void _get_other(
             self,
             const AINDEX index,
-            INPUT_DATA_EXT input_data,
-            INPUT_DATA_EXT other_input_data,
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data,
             NEIGHBOURS_EXT neighbours,
             DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
@@ -291,7 +247,7 @@ cdef class NeighboursGetterExtLookup:
     cdef inline void _get(
             self,
             const AINDEX index,
-            INPUT_DATA_EXT input_data,
+            InputDataExtInterface input_data,
             NEIGHBOURS_EXT neighbours,
             DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
@@ -300,8 +256,8 @@ cdef class NeighboursGetterExtLookup:
     cdef inline void _get_other(
             self,
             const AINDEX index,
-            INPUT_DATA_EXT input_data,
-            INPUT_DATA_EXT other_input_data,
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data,
             NEIGHBOURS_EXT neighbours,
             DISTANCE_GETTER_EXT distance_getter,
             METRIC_EXT metric,
@@ -314,15 +270,15 @@ cdef class DistanceGetterExtMetric:
             self,
             const AINDEX point_a,
             const AINDEX point_b,
-            INPUT_DATA_EXT input_data,
+            InputDataExtInterface input_data,
             METRIC_EXT metric) nogil
 
     cdef inline AVALUE _get_single_other(
             self,
             const AINDEX point_a,
             const AINDEX point_b,
-            INPUT_DATA_EXT input_data,
-            INPUT_DATA_EXT other_input_data,
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data,
             METRIC_EXT metric) nogil
 
 
@@ -332,15 +288,15 @@ cdef class DistanceGetterExtLookup:
             self,
             const AINDEX point_a,
             const AINDEX point_b,
-            INPUT_DATA_EXT input_data,
+            InputDataExtInterface input_data,
             METRIC_EXT metric) nogil
 
     cdef inline AVALUE _get_single_other(
             self,
             const AINDEX point_a,
             const AINDEX point_b,
-            INPUT_DATA_EXT input_data,
-            INPUT_DATA_EXT other_input_data,
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data,
             METRIC_EXT metric) nogil
 
 
@@ -348,13 +304,13 @@ cdef class MetricExtDummy:
     cdef inline AVALUE _calc_distance(
             self,
             const AINDEX index_a, const AINDEX index_b,
-            INPUT_DATA_EXT input_data) nogil
+            InputDataExtInterface input_data) nogil
 
     cdef inline AVALUE _calc_distance_other(
             self,
             const AINDEX index_a, const AINDEX index_b,
-            INPUT_DATA_EXT input_data,
-            INPUT_DATA_EXT other_input_data) nogil
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data) nogil
 
     cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil
 
@@ -363,13 +319,13 @@ cdef class MetricExtPrecomputed:
     cdef inline AVALUE _calc_distance(
             self,
             const AINDEX index_a, const AINDEX index_b,
-            INPUT_DATA_EXT input_data) nogil
+            InputDataExtInterface input_data) nogil
 
     cdef inline AVALUE _calc_distance_other(
             self,
             const AINDEX index_a, const AINDEX index_b,
-            INPUT_DATA_EXT input_data,
-            INPUT_DATA_EXT other_input_data) nogil
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data) nogil
 
     cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil
 
@@ -378,13 +334,13 @@ cdef class MetricExtEuclidean:
     cdef inline AVALUE _calc_distance(
             self,
             const AINDEX index_a, const AINDEX index_b,
-            INPUT_DATA_EXT input_data) nogil
+            InputDataExtInterface input_data) nogil
 
     cdef inline AVALUE _calc_distance_other(
             self,
             const AINDEX index_a, const AINDEX index_b,
-            INPUT_DATA_EXT input_data,
-            INPUT_DATA_EXT other_input_data) nogil
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data) nogil
 
     cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil
 
@@ -393,13 +349,13 @@ cdef class MetricExtEuclideanReduced:
     cdef inline AVALUE _calc_distance(
             self,
             const AINDEX index_a, const AINDEX index_b,
-            INPUT_DATA_EXT input_data) nogil
+            InputDataExtInterface input_data) nogil
 
     cdef inline AVALUE _calc_distance_other(
             self,
             const AINDEX index_a, const AINDEX index_b,
-            INPUT_DATA_EXT input_data,
-            INPUT_DATA_EXT other_input_data) nogil
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data) nogil
 
     cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil
 
@@ -411,13 +367,13 @@ cdef class MetricExtEuclideanPeriodicReduced:
     cdef inline AVALUE _calc_distance(
             self,
             const AINDEX index_a, const AINDEX index_b,
-            INPUT_DATA_EXT input_data) nogil
+            InputDataExtInterface input_data) nogil
 
     cdef inline AVALUE _calc_distance_other(
             self,
             const AINDEX index_a, const AINDEX index_b,
-            INPUT_DATA_EXT input_data,
-            INPUT_DATA_EXT other_input_data) nogil
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data) nogil
 
     cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil
 

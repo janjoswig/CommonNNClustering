@@ -3,32 +3,22 @@ from collections import deque
 from typing import Type
 
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
-from cnnclustering._types import (
+from cnnclustering._interfaces import (
     InputData,
+    InputDataComponents,
+    InputDataPairwiseDistances,
+    InputDataPairwiseDistancesComputer,
+    InputDataNeighbourhoods,
+    InputDataNeighbourhoodsComputer,
     NeighboursGetter,
     Neighbours,
+    DistanceGetter,
     Metric,
     SimilarityChecker,
     Queue,
-)
-
-class Fitter(ABC):
-    """Defines the fitter interface"""
-
-    @abstractmethod
-    def fit(
-            self,
-            input_data: Type['InputData'],
-            neighbours_getter: Type['NeighboursGetter'],
-            distance_getter: Type['DistanceGetter'],
-            neighbours: Type['Neighbours'],
-            neighbour_neighbours: Type['Neighbours'],
-            metric: Type['Metric'],
-            similarity_checker: Type['SimilarityChecker'],
-            queue: Type['Queue'],
-            labels: Type['Labels'],
-            cluster_params: Type['ClusterParameters']):
-        """Generic clustering"""
+    Fitter,
+    Predictor
+    )
 
 
 class FitterBFS(Fitter):
@@ -161,7 +151,7 @@ cdef class FitterExtBFS:
 
     cdef void _fit(
             self,
-            INPUT_DATA_EXT input_data,
+            InputDataExtInterface input_data,
             NEIGHBOURS_GETTER_EXT neighbours_getter,
             DISTANCE_GETTER_EXT distance_getter,
             NEIGHBOURS_EXT neighbours,
@@ -281,7 +271,7 @@ cdef class FitterExtBFS:
 
     def fit(
             self,
-            INPUT_DATA_EXT input_data,
+            InputDataExtInterface input_data,
             NEIGHBOURS_GETTER_EXT neighbours_getter,
             DISTANCE_GETTER_EXT distance_getter,
             NEIGHBOURS_EXT neighbours,
@@ -304,28 +294,6 @@ cdef class FitterExtBFS:
             labels,
             cluster_params,
         )
-
-
-class Predictor(ABC):
-    """Defines the predictor interface"""
-
-    @abstractmethod
-    def predict(
-            self,
-            input_data: Type['InputData'],
-            predictand_input_data: Type['InputData'],
-            neighbours_getter: Type['NeighboursGetter'],
-            predictand_neighbours_getter: Type['NeighboursGetter'],
-            distance_getter: Type['DistanceGetter'],
-            predictand_distance_getter: Type['DistanceGetter'],
-            neighbours: Type['Neighbours'],
-            neighbour_neighbours: Type['Neighbours'],
-            metric: Type['Metric'],
-            similarity_checker: Type['SimilarityChecker'],
-            labels: Type['Labels'],
-            predictand_labels: Type['Labels'],
-            cluster_params: Type['ClusterParameters']):
-        """Generic cluster label prediction"""
 
 
 class PredictorFirstmatch(Predictor):

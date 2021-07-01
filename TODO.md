@@ -54,3 +54,9 @@ Special similarity checker:
 
   - Restricted to euclidean distances metrics
   - Input data needs to allow retrieval of neighbours and components
+
+Get rid of fused types?
+-----------------------
+
+  - Use specialised extension types as attributes to the used components
+    e.g. a _distance_getter attribute on a NeighboursGetter

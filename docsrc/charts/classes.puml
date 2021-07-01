@@ -4,12 +4,6 @@ class Clustering {
     + hierarchy_level: int
     + children: dict
     + _input_data: InputData
-    + _neighbours_getter: NeighboursGetter
-    + _neighbours: Neighbours
-    + _neighbour_neighbours: Neighbours
-    + _metric: Metric
-    + _similarity_checker: SimilarityChecker
-    + _queue: Queue
     + _fitter: Fitter
     + _predictor: Predictor
     + _labels: Labels
@@ -113,6 +107,8 @@ abstract class Metric {
 abstract class NeighboursGetter {
   + is_sorted: bool
   + is_selfcounting: bool
+  + _distance_getter: DistanceGetter
+  + _metric: Metric
   + {abstract} get(index: int, ...)
   + {abstract} get_other(index: int, ...)
 }
@@ -123,6 +119,8 @@ abstract class DistanceGetter {
 }
 
 abstract class SimilarityChecker {
+  + _distance_getter: DistanceGetter
+  + _metric: Metric
   + {abstract} check(neighbours_a: Neighbours, neighbours_b: Neighbours, ...)
 }
 
@@ -133,56 +131,57 @@ abstract class Queue {
 }
 
 abstract class Fitter {
+  + _neighbours_getter: NeighboursGetter
+  + _neighbours: Neighbours
+  + _neighbour_neighbours: Neighbours
+  + _similarity_checker: SimilarityChecker
+  + _queue: Queue
+  + {abstract} fit(input_data: InputData, labels: Labels, cluster_params: ClusterParameters)
 }
 
 abstract class Predictor {
+  + _neighbours_getter: NeighboursGetter
+  + _neighbours: Neighbours
+  + _neighbour_neighbours: Neighbours
+  + _similarity_checker: SimilarityChecker
+  + _queue: Queue
+  + {abstract} predict(input_data: InputData, other: InputData, ...)
 }
 
 Clustering "*" o-- "1" InputData
-Clustering "*" o-- "1" DistanceGetter
-Clustering "*" o-- "1" NeighboursGetter
-Clustering "*" o-- "0..2" Neighbours
-Clustering "*" o-- "1" Metric
-Clustering "*" o-- "1" SimilarityChecker
-Clustering "*" o-- "1" Queue
 Clustering "*" o-- "1" Fitter
 Clustering "*" o-- "1" Predictor
 Clustering "*" o-- "1" Labels
 Clustering "*" o-- "1" Summary
 
 Clustering --> Record : creates
-Clustering --> Fitter : uses
 
-NeighboursGetter --> Neighbours : assigns
+NeighboursGetter "*" o-- "1" DistanceGetter
 NeighboursGetter --> InputData : queries
-NeighboursGetter --> DistanceGetter : uses
+NeighboursGetter --> Neighbours : assigns
 NeighboursGetter --> ClusterParameters : uses
 
 DistanceGetter --> InputData : queries
-DistanceGetter --> Metric : uses
+DistanceGetter "*" o-- "1" Metric
 
+SimilarityChecker "*" o-- "1" DistanceGetter
 SimilarityChecker --> Neighbours : checks
-SimilarityChecker --> DistanceGetter : uses
 SimilarityChecker --> ClusterParameters : uses
 
 Metric --> InputData : queries
 
-Fitter --> InputData : uses
-Fitter --> NeighboursGetter : uses
-Fitter --> Neighbours : uses
-Fitter --> DistanceGetter : uses
-Fitter --> SimilarityChecker : uses
-Fitter --> Queue : uses
+Fitter "*" o-- "1" NeighboursGetter
+Fitter "*" o-- "0..2" Neighbours
+Fitter "*" o-- "1" SimilarityChecker
+Fitter "*" o-- "1" Queue
 Fitter --> Labels : manipulates
 
-Predictor --> InputData : uses
-Predictor --> NeighboursGetter : uses
-Predictor --> Neighbours : uses
-Predictor --> DistanceGetter : uses
-Predictor --> SimilarityChecker : uses
-Predictor --> Queue : uses
+Predictor "*" o-- "1" NeighboursGetter
+Predictor "*" o-- "0..2" Neighbours
+Predictor "*" o-- "1" SimilarityChecker
+Predictor "*" o-- "1" Queue
 Predictor --> Labels : manipulates
 
-Summary "*" -- "*" Record
+Summary "*" -- "*" Record : stores
 
 @enduml

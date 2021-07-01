@@ -11,7 +11,7 @@ from cnnclustering._types cimport (
     QUEUE
     )
 from cnnclustering._types cimport (
-    INPUT_DATA_EXT,
+    InputDataExtInterface,
     NEIGHBOURS_GETTER_EXT,
     DISTANCE_GETTER_EXT,
     NEIGHBOURS_EXT,
