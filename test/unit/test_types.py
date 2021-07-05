@@ -227,7 +227,7 @@ class TestNeighboursGetter:
             radius_cutoff=0, cnn_cutoff=0
             )
 
-        neighbours_getter.get(0, input_data, neighbours, None, None, cluster_params)
+        neighbours_getter.get(0, input_data, neighbours, cluster_params)
         assert neighbours._neighbours == [1, 2, 3]
 
 

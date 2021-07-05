@@ -36,301 +36,9 @@ except ModuleNotFoundError as error:
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
 from cnnclustering import _types
 from cnnclustering import _fit
+from cnnclustering import hooks
 
 from libcpp.vector cimport vector as cppvector
-
-
-COMPONENT_NAME_TYPE_MAP = {
-    "input_data": {
-        "components_mview": _types.InputDataExtComponentsMemoryview,
-        "neighbourhoods_mview": _types.InputDataExtNeighbourhoodsMemoryview
-    },
-    "neighbours_getter": {
-        "brute_force": _types.NeighboursGetterExtBruteForce,
-        "lookup": _types.NeighboursGetterExtLookup,
-    },
-    "distance_getter": {
-        "metric": _types.DistanceGetterExtMetric,
-        "lookup": _types.DistanceGetterExtLookup,
-    },
-    "neighbours": {
-        "vector": _types.NeighboursExtVector,
-        "uset": _types.NeighboursExtCPPUnorderedSet,
-        "vuset": _types.NeighboursExtVectorCPPUnorderedSet,
-    },
-    "metric": {
-        "dummy": _types.MetricExtDummy,
-        "precomputed": _types.MetricExtPrecomputed,
-        "euclidean": _types.MetricExtEuclidean,
-        "euclidean_r": _types.MetricExtEuclideanReduced,
-        "euclidean_periodic_r": _types.MetricExtEuclideanPeriodicReduced,
-    },
-    "similarity_checker": {
-        "contains": _types.SimilarityCheckerExtContains,
-        "switch": _types.SimilarityCheckerExtSwitchContains,
-        "screen": _types.SimilarityCheckerExtScreensorted,
-    },
-    "queue": {
-        "fifo": _types.QueueExtFIFOQueue
-    },
-    "fitter": {
-        "bfs": _fit.FitterExtBFS
-    }
-}
-
-COMPONENT_KW_ALT = {
-    "neighbour_neighbours": "neighbours",
-    "getter": "neighbours_getter",
-    "ngetter": "neighbours_getter",
-    "dgetter": "distance_getter",
-    "checker": "similarity_checker",
-}
-
-
-registered_recipes = {
-    "from_points_brute_force": {
-        "input_data": "components_mview",
-        "neighbours_getter": "brute_force",
-        "distance_getter": "metric",
-        "neighbours": ("vuset", (10,), {}),
-        "neighbour_neighbours": ("vuset", (10,), {}),
-        "metric": "euclidean_r",
-        "similarity_checker": "switch",
-        "queue": "fifo",
-        "fitter": "bfs",
-    },
-    "from_neighbourhoods_lookup": {
-        "input_data": "neighbourhoods_mview",
-        "neighbours_getter": "lookup",
-        "distance_getter": "metric",
-        "neighbours": ("vuset", (10,), {}),
-        "neighbour_neighbours": ("vuset", (10,), {}),
-        "metric": "dummy",
-        "similarity_checker": "switch",
-        "queue": "fifo",
-        "fitter": "bfs",
-    },
-    "from_sorted_neighbourhoods_lookup": {
-        "input_data": "neighbourhoods_mview",
-        "neighbours_getter": "lookup",
-        "distance_getter": "metric",
-        "neighbours": ("vector", (10,), {}),
-        "neighbour_neighbours": ("vector", (10,), {}),
-        "metric": "dummy",
-        "similarity_checker": "screen",
-        "queue": "fifo",
-        "fitter": "bfs",
-    }
-}
-
-def prepare_clustering(data, preparation_hook=None, **recipe):
-    """Initialise clustering with input data
-
-    Args:
-        data: Data that should be clustered in a format
-            compatible with 'input_data' specified in the building
-            `recipe`.  May go through `preparation_hook` to establish
-            compatibility.
-
-    Keyword args:
-        preparation_hook: A function that takes input data as a
-            single argument and returns the (optionally) reformatted data
-            plus additional information (e.g. "meta") in form of
-            an argument tuple and a keyword argument dictionary that can
-            be used to initialise an input data type.
-            If `None` uses :meth:`prepare_points_from_parts`.
-        recipe: Building instructions for a
-            :obj:`cnnclustering.cluster.Clustering` instance.
-    """
-
-    default_recipe = {
-        **registered_recipes["from_points_brute_force"]
-        }
-
-    default_recipe.update(recipe)
-
-    if preparation_hook is not None:
-        data_args, data_kwargs = preparation_hook(data)
-    else:
-        data_args, data_kwargs = prepare_points_from_parts(data)
-
-    if data_args is None:
-        data_args = (data,)
-
-    if data_kwargs is None:
-        data_kwargs = {"meta": {}}
-
-    components = {}
-    for component_kw, component_details in default_recipe.items():
-        args = ()
-        kwargs = {}
-        component_type = None
-
-        _component_kw = COMPONENT_KW_ALT.get(
-            component_kw, component_kw
-            )
-
-        if isinstance(component_details, str):
-            component_type = COMPONENT_NAME_TYPE_MAP[_component_kw][
-                component_details
-                ]
-
-        elif isinstance(component_details, tuple):
-            component_type, args, kwargs = component_details
-            if isinstance(component_type, str):
-                component_type = COMPONENT_NAME_TYPE_MAP[_component_kw][
-                    component_type
-                    ]
-
-        else:
-            component_type = component_details
-
-        if _component_kw == "input_data":
-            args = (*data_args, *args)
-
-            data_kwargs["meta"].update(kwargs.get("meta", {}))
-            kwargs.update(data_kwargs)
-
-        if component_type is not None:
-            components[component_kw] = component_type(
-                *args, **kwargs
-            )
-
-    return Clustering(**components)
-
-
-def prepare_pass(data):
-    """Dummy preparation hook
-
-    Use if not preparation of input data is desired.
-
-    Args:
-        data: Input data that should be prepared.
-
-    Returns:
-        None, None
-    """
-
-    return None, None
-
-
-def prepare_points_from_parts(data):
-    r"""Prepare input data points
-
-    Use when point components are passed as sequence of parts, e.g. as
-
-        >>> input_data, meta = prepare_points_parts([[[0, 0],
-        ...                                           [1, 1]],
-        ...                                          [[2, 2],
-        ...                                           [3,3]]])
-        >>> input_data
-        array([[0, 0],
-               [1, 1],
-               [2, 2],
-               [3, 3]])
-
-        >>> meta
-        {"edges": [2, 2]}
-
-    Recognised data formats are:
-
-        * Sequence of length *d*:
-            interpreted as 1 point with *d* components.
-        * 2D Sequence (sequence of sequences all of same length) with
-            length *n* (rows) and width *d* (columns):
-            interpreted as *n* points with *d* components.
-        * Sequence of 2D sequences all of same width:
-            interpreted as parts (groups) of points.
-
-    The returned input data format is compatible with:
-
-        * `cnnclustering._types.InputDataExtPointsMemoryview`
-
-    Args:
-        data: Input data that should be prepared.
-
-    Returns:
-        * Formatted input data (NumPy array of shape
-            :math:`\sum n_\mathrm{part}, d`)
-        * Dictionary of meta-information
-
-    Notes:
-        Does not catch deeper nested formats.
-    """
-
-    try:
-        d1 = len(data)
-    except TypeError as error:
-        raise error
-
-    finished = False
-
-    if d1 == 0:
-        # Empty sequence
-        data = [np.array([[]])]
-        finished = True
-
-    if not finished:
-        try:
-            d2 = [len(x) for x in data]
-            all_d2_equal = (len(set(d2)) == 1)
-        except TypeError:
-            # 1D Sequence
-            data = [np.array([data])]
-            finished = True
-
-    if not finished:
-        try:
-            d3 = [len(y) for x in data for y in x]
-            all_d3_equal = (len(set(d3)) == 1)
-        except TypeError:
-            if not all_d2_equal:
-                raise ValueError(
-                    "Dimension mismatch"
-                )
-            # 2D Sequence of sequences of same length
-            data = [np.asarray(data)]
-            finished = True
-
-    if not finished:
-        if not all_d3_equal:
-            raise ValueError(
-                "Dimension mismatch"
-            )
-        # Sequence of 2D sequences of same width
-        data = [np.asarray(x) for x in data]
-        finished = True
-
-    meta = {}
-
-    meta["edges"] = [x.shape[0] for x in data]
-
-    data_args = (np.asarray(np.vstack(data), order="C", dtype=P_AVALUE),)
-    data_kwargs = {"meta": meta}
-
-    return data_args, data_kwargs
-
-
-def prepare_neighbourhoods(data):
-
-    n_neighbours = [len(s) for s in data]
-    pad_to = max(n_neighbours)
-
-    data = [
-        np.pad(a, (0, pad_to - n_neighbours[i]), mode="constant", constant_values=0)
-        for i, a in enumerate(data)
-        ]
-
-    meta = {}
-
-    data_args = (
-        np.asarray(data, order="C", dtype=P_AINDEX),
-        np.asarray(n_neighbours, dtype=P_AINDEX)
-        )
-
-    data_kwargs = {"meta": meta}
-
-    return data_args, data_kwargs
 
 
 class Clustering:
@@ -347,25 +55,6 @@ class Clustering:
     Args:
         input_data: Any object implementing the input data interface.
             Represents the data points to be clustered.
-        neighbours_getter: Any object implementing the neighbours
-            getter interface. Controls how neighbours are
-            retrieved/calculated from `input data`.
-        distance_getter: Any object implementing the distance
-            getter interface. Controls how distances are
-            retrieved/calculated from `input data`.
-        neighbours: Any object implementing the neighbours
-            interface.
-            Represents neighbours found by the `neighbours_getter`.
-        neighbour_neighbours: Same as `neighbours` but used for the
-            neighbours of the neighbours.
-        metric: Any object implementing the metric interface. Can be
-            used by `neighbours_getter` to retrieved/calculated
-            `neighbours` from `input data`.
-        similarity_checker: Any object implementing the similarity
-            checker interface. Evaluates if to points in `input_data`
-            are part of the same cluster based on their `neighbours`.
-        queue: Any object implementing the queue interface. May be
-            used during the clustering procedure.
         fitter: Any object implementing the fitter interface. Executes
             the clustering procedure.
         predictor: Any object implementing the predictor interface.
@@ -395,26 +84,20 @@ class Clustering:
     """
 
     take_over_attrs = [
-        "_neighbours_getter",
-        "_distance_getter",
-        "_neighbours",
-        "_neighbour_neighbours",
-        "_metric",
-        "_similarity_checker",
-        "_queue",
         "_fitter",
         ]
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return [
+            ("input_data", None),
+            ("fitter", None),
+            ("predictor", None),
+            ]
 
     def __init__(
             self,
             input_data=None,
-            neighbours_getter=None,
-            distance_getter=None,
-            neighbours=None,
-            neighbour_neighbours=None,
-            metric=None,
-            similarity_checker=None,
-            queue=None,
             fitter=None,
             predictor=None,
             labels=None,
@@ -422,13 +105,6 @@ class Clustering:
             parent=None):
 
         self._input_data = input_data
-        self._neighbours_getter = neighbours_getter
-        self._distance_getter = distance_getter
-        self._neighbours = neighbours
-        self._neighbour_neighbours = neighbour_neighbours
-        self._metric = metric
-        self._similarity_checker = similarity_checker
-        self._queue = queue
         self._fitter = fitter
         self._predictor = predictor
         self._labels = labels
@@ -481,23 +157,16 @@ class Clustering:
     def summary(self):
         return self._summary
 
-    def __repr__(self):
-        attr_repr = ", ".join([
-            f"input_data={self._input_data!r}",
-            f"neighbours_getter={self._neighbours_getter!r}",
-            f"distance_getter={self._distance_getter!r}",
-            f"neighbours={self._neighbours!r}",
-            f"neighbour_neighbours={self._neighbour_neighbours!r}",
-            f"metric={self._metric!r}",
-            f"similarity_checker={self._similarity_checker!r}",
-            f"queue={self._queue!r}",
-            f"fitter={self._fitter!r}",
-            f"predictor={self._predictor!r}",
+    def __str__(self):
+        attr_str = ", ".join([
+            f"input_data={self._input_data}",
+            f"fitter={self._fitter}",
+            f"predictor={self._predictor}",
         ])
 
-        return f"{type(self).__name__}({attr_repr})"
+        return f"{type(self).__name__}({attr_str})"
 
-    def __str__(self):
+    def info(self):
 
         access = []
         if self._input_data is not None:
@@ -549,22 +218,55 @@ class Clustering:
             f"Clustering {self.alias!r} has no child with label {next_label}"
             )
 
+    def make_parameters(
+            self,
+            radius_cutoff: float,
+            cnn_cutoff: int,
+            current_start: int) -> Type["ClusterParameters"]:
+
+        try:
+            used_metric = self._fitter._neighbours_getter._distance_getter._metric
+        except AttributeError:
+            pass
+        else:
+            radius_cutoff = used_metric.adjust_radius(radius_cutoff)
+
+        n_member_cutoff = cnn_cutoff
+        try:
+            is_selfcounting = self._fitter._neighbours_getter.is_selfcounting
+        except AttributeError:
+            pass
+        else:
+            if is_selfcounting:
+                n_member_cutoff += 1
+                cnn_cutoff += 2
+
+        cluster_params = ClusterParameters(
+            radius_cutoff,
+            cnn_cutoff,
+            cnn_cutoff,  # similarity_cutoff_continuous not in use right now
+            n_member_cutoff,
+            current_start,
+            )
+
+        return cluster_params
+
     def _fit(self, cluster_params: Type["ClusterParameters"]) -> None:
         """Execute clustering procedure
 
         Low-level alternative to
         :meth:`cnnclustering.cluster.Clustering.fit`.
+
+        Note:
+            No pre-processing of cluster parameters (radius and
+            similarity value adjustements based on used metric,
+            neighbours getter, etc.) and label initialisation is done
+            before the fit. It is the users responsibility to take care
+            of this to obtain sensible results.
         """
 
         self._fitter.fit(
                 self._input_data,
-                self._neighbours_getter,
-                self._distance_getter,
-                self._neighbours,
-                self._neighbour_neighbours,
-                self._metric,
-                self._similarity_checker,
-                self._queue,
                 self._labels,
                 cluster_params
                 )
@@ -617,12 +319,13 @@ class Clustering:
 
         cdef set old_label_set, new_label_set
         cdef ClusterParameters cluster_params
-        cdef AINDEX current_start, _cnn_offset
+        cdef AINDEX current_start
 
         if cnn_offset is None:
-            _cnn_offset = 0
-        else:
-            _cnn_offset = cnn_offset
+            cnn_offset = 0
+        cnn_cutoff -= cnn_offset
+
+        assert cnn_cutoff >= 0
 
         if (self._labels is None) or purge or (
                 not self._labels.meta.get("frozen", False)):
@@ -636,35 +339,19 @@ class Clustering:
             old_label_set = self._labels.to_set()
             current_start = max(old_label_set) + 1
 
-        cluster_params = ClusterParameters(
-            radius_cutoff,
-            cnn_cutoff - _cnn_offset,
-            current_start,
+        cluster_params = self.make_parameters(
+            radius_cutoff, cnn_cutoff, current_start
             )
 
         if record_time:
             _, execution_time = timed(self._fitter.fit)(
                 self._input_data,
-                self._neighbours_getter,
-                self._distance_getter,
-                self._neighbours,
-                self._neighbour_neighbours,
-                self._metric,
-                self._similarity_checker,
-                self._queue,
                 self._labels,
                 cluster_params
                 )
         else:
             self._fitter.fit(
                 self._input_data,
-                self._neighbours_getter,
-                self._distance_getter,
-                self._neighbours,
-                self._neighbour_neighbours,
-                self._metric,
-                self._similarity_checker,
-                self._queue,
                 self._labels,
                 cluster_params
                 )
@@ -673,7 +360,7 @@ class Clustering:
         if info:
             new_label_set = self._labels.to_set()
             params = {
-                k: (radius_cutoff, cnn_cutoff - _cnn_offset)
+                k: (radius_cutoff, cnn_cutoff)
                 for k in new_label_set - old_label_set
                 if k != 0
                 }
@@ -702,7 +389,7 @@ class Clustering:
             rec = Record(
                 self._input_data.n_points,
                 radius_cutoff,
-                cnn_cutoff - _cnn_offset,
+                cnn_cutoff,
                 member_cutoff,
                 max_clusters,
                 len(self._labels.to_set() - {0}),
@@ -757,12 +444,10 @@ class Clustering:
         cnn_cutoff_vector = cnn_cutoff
 
         cdef ClusterParameters cluster_params
-        cdef AINDEX current_start = 1, _cnn_offset
+        cdef AINDEX current_start = 1
 
         if cnn_offset is None:
-            _cnn_offset = 0
-        else:
-            _cnn_offset = cnn_offset
+            cnn_offset = 0
 
         cdef AINDEX index, n = self._input_data.n_points
         cdef AINDEX cluster_label, parent_label
@@ -786,21 +471,14 @@ class Clustering:
                 np.zeros(n, order="C", dtype=P_AINDEX)
                 )
 
-            cluster_params = ClusterParameters(
+            cluster_params = self.make_parameters(
                 radius_cutoff_vector[step],
-                cnn_cutoff_vector[step] - _cnn_offset,
+                cnn_cutoff_vector[step] - cnn_offset,
                 current_start
                 )
 
             self._fitter.fit(
                 self._input_data,
-                self._neighbours_getter,
-                self._distance_getter,
-                self._neighbours,
-                self._neighbour_neighbours,
-                self._metric,
-                self._similarity_checker,
-                self._queue,
                 current_labels,
                 cluster_params
                 )
@@ -1099,9 +777,10 @@ class Clustering:
         cdef ClusterParameters cluster_params
 
         if cnn_offset is None:
-            _cnn_offset = 0
-        else:
-            _cnn_offset = cnn_offset
+            cnn_offset = 0
+        cnn_cutoff -= cnn_offset
+
+        assert cnn_cutoff >= 0
 
         if (other._labels is None) or purge or (
                 not other._labels.meta.get("frozen", False)):
@@ -1109,10 +788,8 @@ class Clustering:
                 np.zeros(other._input_data.n_points, order="C", dtype=P_AINDEX)
                 )
 
-        cluster_params = ClusterParameters(
-            radius_cutoff,
-            cnn_cutoff - _cnn_offset,
-            0,
+        cluster_params = self.make_parameters(
+            radius_cutoff, cnn_cutoff, 0
             )
 
         if clusters is None:
@@ -1124,7 +801,6 @@ class Clustering:
             _, execution_time = timed(self._predictor.predict)(
                 self._input_data,
                 other._input_data,
-                self._neighbours_getter,
                 other._neighbours_getter,
                 self._distance_getter,
                 other._distance_getter,
@@ -1140,7 +816,6 @@ class Clustering:
             self._predictor.predict(
                 self._input_data,
                 other._input_data,
-                self._neighbours_getter,
                 other._neighbours_getter,
                 self._distance_getter,
                 other._distance_getter,
@@ -1156,7 +831,7 @@ class Clustering:
 
         if info:
             params = {
-                k: (radius_cutoff, cnn_cutoff - _cnn_offset)
+                k: (radius_cutoff, cnn_cutoff)
                 for k in clusters
                 if k != 0
                 }
@@ -1422,7 +1097,7 @@ class Clustering:
         if dim is None:
             dim = (0, 1)
         elif dim[1] < dim[0]:
-            dim = dim[::-1]
+            dim = dim[::-1]  # Problem with wraparound=False?
 
         if parts is not None:
             by_parts = list(self._input_data.by_parts())[slice(*parts)]
@@ -1660,6 +1335,129 @@ class Clustering:
         add_children("1", self, graph)
 
         return graph
+
+
+class ClusteringBuilder:
+    """Orchestrate correct initialisation of a clustering
+
+    Args:
+        data: Data that should be clustered in a format
+            compatible with 'input_data' specified in the building
+            `recipe`.  May go through `preparation_hook` to establish
+            compatibility.
+
+    Keyword args:
+        preparation_hook: A function that takes input data as a
+            single argument and returns the (optionally) reformatted data
+            plus additional information (e.g. "meta") in form of
+            an argument tuple and a keyword argument dictionary that can
+            be used to initialise an input data type.
+            If `None` uses :meth:`prepare_points_from_parts`.
+        recipe: Building instructions for a
+            :obj:`cnnclustering.cluster.Clustering` instance.
+    """
+
+    _default_preparation_hook = staticmethod(hooks.prepare_points_from_parts)
+    _clustering = Clustering
+    _default_recipe_key = "points"
+
+    def __init__(
+            self,
+            data, preparation_hook=None,
+            registered_recipe_key=None, **recipe):
+
+        if registered_recipe_key is None:
+            registered_recipe_key = self._default_recipe_key
+
+        self.recipe = hooks.registered_recipes[registered_recipe_key]
+        self.recipe.update(recipe)
+
+        self.recipe = {
+            ".".join(hooks.COMPONENT_ALT_KW_MAP.get(kw, kw) for kw in k.split(".")): v
+            for k, v in self.recipe.items()
+        }
+
+        if preparation_hook is None:
+            preparation_hook = self._default_preparation_hook
+
+        self.data_args, self.data_kwargs = preparation_hook(data)
+
+    def build(self):
+        """Initialise clustering with data and components"""
+
+        def make_component(component_kw, alternative, prev_kw=None):
+            if prev_kw is None:
+                prev_kw = []
+
+            full_kw = ".".join([*prev_kw, component_kw])
+
+            if alternative is not None:
+                alternative = full_kw.rsplit(".", 1)[0] + f".{alternative}"
+
+            if full_kw in self.recipe:
+                component_details = self.recipe[full_kw]
+            elif (alternative is not None) & (alternative in self.recipe):
+                component_details = self.recipe[alternative]
+            else:
+                return object
+
+            args = ()
+            kwargs = {}
+
+            _component_kw = hooks.COMPONENT_KW_TYPE_ALIAS_MAP.get(
+                component_kw, component_kw
+                )
+
+            if component_details is None:
+                return None
+
+            if isinstance(component_details, str):
+                component_type = hooks.COMPONENT_NAME_TYPE_MAP[_component_kw][
+                    component_details
+                    ]
+
+            elif isinstance(component_details, tuple):
+                component_type, args, kwargs = component_details
+                if isinstance(component_type, str):
+                    component_type = hooks.COMPONENT_NAME_TYPE_MAP[_component_kw][
+                        component_type
+                        ]
+
+            else:
+                component_type = component_details
+
+            if _component_kw == "input_data":
+                args = (*self.data_args, *args)
+
+                if "meta" not in self.data_kwargs:
+                    self.data_kwargs["meta"] = {}
+                self.data_kwargs["meta"].update(kwargs.get("meta", {}))
+
+                kwargs.update(self.data_kwargs)
+
+            for component_kw, alternative in (
+                    component_type.get_builder_kwargs()):
+                component = make_component(
+                    component_kw, alternative, prev_kw=full_kw.split(".")
+                )
+                if component is not object:
+                    kwargs[component_kw] = component
+
+            return component_type(
+                *args, **kwargs
+                )
+
+        components_map = {}
+
+        for component_kw, alternative in (
+                self._clustering.get_builder_kwargs()):
+            component = make_component(
+                component_kw, alternative
+                )
+            if component is not object:
+                components_map[component_kw] = component
+
+        return self._clustering(**components_map)
 
 
 class Record:

@@ -1,2 +1,2 @@
-{'radius_cutoff': 0.1, 'cnn_cutoff': 1, 'current_start': 1}
-{'radius_cutoff': 0.1, 'cnn_cutoff': 1, 'current_start': 1}
+{'radius_cutoff': 0.1, 'similarity_cutoff': 1, 'similarity_cutoff_continuous': 0.0, 'n_member_cutoff': 1, 'current_start': 1}
+{'radius_cutoff': 0.1, 'similarity_cutoff': 1, 'similarity_cutoff_continuous': 0.0, 'n_member_cutoff': 1, 'current_start': 1}

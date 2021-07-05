@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from collections import Counter, defaultdict, deque
 from itertools import count
 from typing import Any, Optional, Type
@@ -11,29 +12,10 @@ try:
 except ModuleNotFoundError:
     SKLEARN_FOUND = False
 
+from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
+
 from libc.math cimport sqrt as csqrt, pow as cpow, fabs as cfabs
 from cython.operator cimport dereference, preincrement
-
-from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
-from cnnclustering._interfaces import (
-    InputData,
-    InputDataComponents,
-    InputDataPairwiseDistances,
-    InputDataPairwiseDistancesComputer,
-    InputDataNeighbourhoods,
-    InputDataNeighbourhoodsComputer,
-    NeighboursGetter,
-    Neighbours,
-    DistanceGetter,
-    Metric,
-    SimilarityChecker,
-    Queue,
-    )
-from cnnclustering._interfaces cimport InputDataExtInterface
-
-
-cdef extern from "<algorithm>" namespace "std":
-    Iter find[Iter, T](Iter first, Iter last, const T& value) nogil
 
 
 cdef class ClusterParameters:
@@ -41,23 +23,46 @@ cdef class ClusterParameters:
 
     Args:
         radius_cutoff: Neighbour search radius :math:`r`.
-        cnn_cutoff: Common-nearest-neighbours requirement :math:`c`
-            (similarity criterion).
 
     Keyword args:
+        similarity_cutoff:
+            Value used to determine check similarity criterion.
+            In common-nearest-neighbours clustering, it is the
+            minimum required number of shared neighbours :math:`c`.
+        similarity_cutoff_continuous:
+            Same as `similarity_cutoff` but allowed to be floating point
+            value.
+        n_member_cutoff: Minimum required number of points in neighbour lists
+            to be considered
+            (tested in :obj:`cnnclustering._types.Neighbours.enough`).
+            if `None`, will be set to `similarity_cutoff`.
         current_start: Use this as the first label for identified clusters.
     """
 
-    def __cinit__(self, radius_cutoff, cnn_cutoff, current_start=1):
+    def __cinit__(
+            self,
+            radius_cutoff,
+            similarity_cutoff=0,
+            similarity_cutoff_continuous=0.,
+            n_member_cutoff=None,
+            current_start=1):
+
+        if n_member_cutoff is None:
+            n_member_cutoff = similarity_cutoff
+
         self.radius_cutoff = radius_cutoff
-        self.cnn_cutoff = cnn_cutoff
+        self.similarity_cutoff = similarity_cutoff
+        self.similarity_cutoff_continuous = similarity_cutoff_continuous
+        self.n_member_cutoff = n_member_cutoff
         self.current_start = current_start
 
     def to_dict(self):
         return {
             "radius_cutoff": self.radius_cutoff,
-            "cnn_cutoff": self.cnn_cutoff,
-            "current_start": self.current_start
+            "similarity_cutoff": self.similarity_cutoff,
+            "similarity_cutoff_continuous": self.similarity_cutoff_continuous,
+            "n_member_cutoff": self.n_member_cutoff,
+            "current_start": self.current_start,
             }
 
     def __repr__(self):
@@ -246,6 +251,505 @@ cdef class Labels:
 
         return
 
+
+class InputData(ABC):
+    """Defines the input data interface"""
+
+    @property
+    @abstractmethod
+    def data(self):
+        """Return underlying data (only for user convenience, not to be relied on)"""
+
+    @property
+    @abstractmethod
+    def meta(self):
+        """Return meta-information"""
+
+    @property
+    @abstractmethod
+    def n_points(self) -> int:
+        """Return total number of points"""
+
+    @abstractmethod
+    def get_subset(self, indices: Container) -> Type['InputData']:
+        """Return input data subset"""
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+
+class InputDataComponents(InputData):
+    """Extends the input data interface"""
+
+    @property
+    @abstractmethod
+    def n_dim(self) -> int:
+        """Return total number of dimensions"""
+
+    @abstractmethod
+    def get_component(self, point: int, dimension: int) -> float:
+        """Return one component of point coordinates"""
+
+    @abstractmethod
+    def to_components_array(self):
+        """Return input data as NumPy array of shape (#points, #components)"""
+
+
+class InputDataPairwiseDistances(InputData):
+    """Extends the input data interface"""
+
+    @abstractmethod
+    def get_distance(self, point_a: int, point_b: int) -> float:
+        """Return the pairwise distance between two points"""
+
+
+class InputDataPairwiseDistancesComputer(InputDataPairwiseDistances):
+    """Extends the input data interface"""
+
+    @abstractmethod
+    def compute_distances(self, input_data: Type["InputData"]) -> None:
+        """Pre-compute pairwise distances"""
+
+
+class InputDataNeighbourhoods(InputData):
+    """Extends the input data interface"""
+
+    @abstractmethod
+    def get_n_neighbours(self, point: int) -> int:
+        """Return number of neighbours for point"""
+
+    @abstractmethod
+    def get_neighbour(self, point: int, member: int) -> int:
+        """Return a member for point"""
+
+
+class InputDataNeighbourhoodsComputer(InputDataNeighbourhoods):
+    """Extends the input data interface"""
+
+    @abstractmethod
+    def compute_neighbourhoods(
+            self,
+            input_data: Type["InputData"], r: float,
+            is_sorted: bool = False, is_selfcounting: bool = True) -> None:
+        """Pre-compute neighbourhoods at radius"""
+
+
+cdef class InputDataExtInterface:
+    """Defines the input data interface for Cython extension types"""
+
+    cdef AVALUE _get_component(
+            self, const AINDEX point, const AINDEX dimension) nogil: ...
+
+    def get_component(self, point: int, dimension: int) -> int:
+        return self._get_component(point, dimension)
+
+    cdef AINDEX _get_n_neighbours(self, const AINDEX point) nogil: ...
+
+    def get_n_neighbours(self, point: int) -> int:
+        return self._get_n_neighbours(point)
+
+    cdef AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil: ...
+
+    def get_neighbour(self, point: int, member: int) -> int:
+        return self._get_neighbour(point, member)
+
+    cdef AVALUE _get_distance(self, const AINDEX point_a, const AINDEX point_b) nogil: ...
+
+    def get_distance(self, point_a: int, point_b: int) -> int:
+        return self._get_distance(point_a, point_b)
+
+    cdef void _compute_distances(self, InputDataExtInterface input_data) nogil: ...
+
+    def compute_distances(self, InputDataExtInterface input_data):
+        self._compute_distances(input_data)
+
+    cdef void _compute_neighbourhoods(
+            self,
+            InputDataExtInterface input_data, AVALUE r,
+            ABOOL is_sorted, ABOOL is_selfcounting) nogil: ...
+
+    def compute_neighbourhoods(
+            self,
+            InputDataExtInterface input_data, AVALUE r,
+            ABOOL is_sorted, ABOOL is_selfcounting):
+        self._compute_neighbourhoods(input_data, r, is_sorted, is_selfcounting)
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+class Neighbours(ABC):
+    """Defines the neighbours interface"""
+
+    @property
+    @abstractmethod
+    def neighbours(self):
+       """Return point indices as NumPy array"""
+
+    @property
+    @abstractmethod
+    def n_points(self) -> int:
+       """Return total number of points"""
+
+    @abstractmethod
+    def assign(self, member: int) -> None:
+       """Add a member to this container"""
+
+    @abstractmethod
+    def reset(self) -> None:
+       """Reset/empty this container"""
+
+    @abstractmethod
+    def enough(self, member_cutoff: int) -> bool:
+        """Return True if there are enough points"""
+
+    @abstractmethod
+    def get_member(self, index: int) -> int:
+       """Return indexable neighbours container"""
+
+    @abstractmethod
+    def contains(self, member: int) -> bool:
+       """Return True if member is in neighbours container"""
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+class NeighboursGetter(ABC):
+    """Defines the neighbours-getter interface"""
+
+    @property
+    @abstractmethod
+    def is_sorted(self) -> bool:
+       """Return True if neighbour indices are sorted"""
+
+    @property
+    @abstractmethod
+    def is_selfcounting(self) -> bool:
+       """Return True if points count as their own neighbour"""
+
+    @abstractmethod
+    def get(
+            self,
+            index: int,
+            input_data: Type['InputData'],
+            neighbours: Type['Neighbours'],
+            cluster_params: Type['ClusterParameters']) -> None:
+        """Collect neighbours for point in input data"""
+
+    def get_other(
+            self,
+            index: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData'],
+            neighbours: Type['Neighbours'],
+            cluster_params: Type['ClusterParameters']) -> None:
+        """Collect neighbours in input data for point in other input data"""
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+cdef class NeighboursExtInterface:
+
+    cdef void _assign(self, const AINDEX member) nogil: ...
+    cdef void _reset(self) nogil: ...
+    cdef bint _enough(self, const AINDEX member_cutoff) nogil: ...
+    cdef AINDEX _get_member(self, const AINDEX index) nogil: ...
+    cdef bint _contains(self, const AINDEX member) nogil: ...
+
+    def assign(self, member: int):
+        self._assign(member)
+
+    def reset(self):
+        self._reset()
+
+    def enough(self, member_cutoff: int):
+        return self._enough(member_cutoff)
+
+    def get_member(self, index: int):
+        return self._get_member(index)
+
+    def contains(self, member: int):
+        return self._contains(member)
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+cdef class NeighboursGetterExtInterface:
+
+    cdef void _get(
+            self,
+            const AINDEX index,
+            InputDataExtInterface input_data,
+            NeighboursExtInterface neighbours,
+            ClusterParameters cluster_params) nogil: ...
+
+    cdef void _get_other(
+            self,
+            const AINDEX index,
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data,
+            NeighboursExtInterface neighbours,
+            ClusterParameters cluster_params) nogil: ...
+
+    def get(
+            self,
+            AINDEX index,
+            InputDataExtInterface input_data,
+            NeighboursExtInterface neighbours,
+            ClusterParameters cluster_params):
+        self._get(index, input_data, neighbours, cluster_params)
+
+
+    def get_other(
+            self,
+            AINDEX index,
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data,
+            NeighboursExtInterface neighbours,
+            ClusterParameters cluster_params):
+        self._get_other(
+            index, input_data, other_input_data,
+            neighbours, cluster_params
+            )
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+class DistanceGetter(ABC):
+    """Defines the distance getter interface"""
+
+    @abstractmethod
+    def get_single(
+            self,
+            point_a: int, point_b: int,
+            input_data: Type['InputData']) -> float:
+        """Get distance between two points in input data"""
+
+    @abstractmethod
+    def get_single_other(
+            self,
+            point_a: int, point_b: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData']) -> float:
+        """Get distance between two points in input data and other input data"""
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+cdef class DistanceGetterExtInterface:
+    cdef AVALUE _get_single(
+            self,
+            const AINDEX point_a,
+            const AINDEX point_b,
+            InputDataExtInterface input_data) nogil: ...
+
+    cdef AVALUE _get_single_other(
+            self,
+            const AINDEX point_a,
+            const AINDEX point_b,
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data) nogil: ...
+
+    def get_single(
+            self,
+            AINDEX point_a,
+            AINDEX point_b,
+            InputDataExtInterface input_data):
+
+        return self._get_single(point_a, point_b, input_data)
+
+    def get_single_other(
+            self,
+            AINDEX point_a,
+            AINDEX point_b,
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data):
+
+        return self._get_single_other(point_a, point_b, input_data, other_input_data)
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+class Metric(ABC):
+    """Defines the metric-interface"""
+
+    @abstractmethod
+    def calc_distance(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData']) -> float:
+        """Return distance between two points in input data"""
+
+    @abstractmethod
+    def calc_distance_other(
+            self,
+            index_a: int, index_b: int,
+            input_data: Type['InputData'],
+            other_input_data: Type['InputData']) -> float:
+        """Return distance between two points in input data and other input data"""
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+cdef class MetricExtInterface:
+    """Defines the metric interface for extension types"""
+
+    cdef AVALUE _calc_distance(
+            self,
+            const AINDEX index_a, const AINDEX index_b,
+            InputDataExtInterface input_data) nogil: ...
+
+    cdef AVALUE _calc_distance_other(
+            self,
+            const AINDEX index_a, const AINDEX index_b,
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data) nogil: ...
+
+    cdef AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil: ...
+
+    def calc_distance(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            InputDataExtInterface input_data) -> float:
+
+        return self._calc_distance(index_a, index_b, input_data)
+
+    def calc_distance_other(
+            self,
+            AINDEX index_a, AINDEX index_b,
+            InputDataExtInterface input_data,
+            InputDataExtInterface other_input_data) -> float:
+
+        return self._calc_distance_other(
+            index_a, index_b, input_data, other_input_data
+            )
+
+    def adjust_radius(self, AVALUE radius_cutoff) -> float:
+        return self._adjust_radius(radius_cutoff)
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+class SimilarityChecker(ABC):
+    """Defines the similarity checker interface"""
+
+    @abstractmethod
+    def check(
+            self,
+            neighbours_a: Type["Neighbours"],
+            neighbours_b: Type["Neighbours"],
+            cluster_params: Type['ClusterParameters']) -> bool:
+        """Retrun True if a and b have sufficiently many common neighbours"""
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+cdef class SimilarityCheckerExtInterface:
+    """Defines the similarity checker interface for extension types"""
+
+    cdef bint _check(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params) nogil: ...
+
+    def check(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params):
+
+        return self._check(neighbours_a, neighbours_b, cluster_params)
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+class Queue(ABC):
+    """Defines the queue interface"""
+
+    @abstractmethod
+    def push(self, value):
+        """Put value into the queue"""
+
+    @abstractmethod
+    def pop(self):
+        """Retrieve value from the queue"""
+
+    @abstractmethod
+    def is_empty(self) -> bool:
+        """Return True if there are no values in the queue"""
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+cdef class QueueExtInterface:
+
+    cdef void _push(self, const AINDEX value) nogil: ...
+    cdef AINDEX _pop(self) nogil: ...
+    cdef bint _is_empty(self) nogil: ...
+
+    def push(self, value: int):
+        self._push(value)
+
+    def pop(self) -> int:
+        return self._pop()
+
+    def is_empty(self) -> bool:
+        return self._is_empty()
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
 
 class InputDataNeighbourhoodsSequence(InputDataNeighbourhoods):
     """Implements the input data interface
@@ -453,9 +957,6 @@ cdef class InputDataExtComponentsMemoryview(InputDataExtInterface):
             yield from ()
 
 
-InputDataComponents.register(InputDataExtComponentsMemoryview)
-
-
 cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterface):
     """Implements the input data interface
 
@@ -523,6 +1024,7 @@ cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterface):
         return type(self)(np.asarray(data_subset, order="C", dtype=P_AINDEX))
 
 
+InputDataComponents.register(InputDataExtComponentsMemoryview)
 InputDataNeighbourhoods.register(InputDataExtNeighbourhoodsMemoryview)
 
 
@@ -539,6 +1041,10 @@ class NeighboursList(Neighbours):
     @property
     def n_points(self):
         return self._n_points
+
+    @property
+    def neighbours(self):
+        return np.asarray(self._neighbours)
 
     def assign(self, member: int):
         self._neighbours.append(member)
@@ -578,6 +1084,10 @@ class NeighboursSet(Neighbours):
     def n_points(self):
         return self._n_points
 
+    @property
+    def neighbours(self):
+        return np.asarray(list(self._neighbours))
+
     def assign(self, member: int):
         self._neighbours.add(member)
         self._n_points += 1
@@ -610,7 +1120,7 @@ class NeighboursSet(Neighbours):
         return False
 
 
-cdef class NeighboursExtVector:
+cdef class NeighboursExtVector(NeighboursExtInterface):
     """Implements the neighbours interface
 
     Uses an underlying C++ std:vector.
@@ -632,49 +1142,35 @@ cdef class NeighboursExtVector:
         else:
             self._reset()
 
-    cdef inline void _assign(self, const AINDEX member) nogil:
+    cdef void _assign(self, const AINDEX member) nogil:
         self._neighbours.push_back(member)
         self.n_points += 1
 
-    def assign(self, member: int):
-        self._assign(member)
-
-    cdef inline void _reset(self) nogil:
+    cdef void _reset(self) nogil:
         self._neighbours.resize(0)
         self._neighbours.reserve(self._initial_size)
         self.n_points = 0
 
-    def reset(self):
-        self._reset()
-
-    cdef inline bint _enough(self, const AINDEX member_cutoff) nogil:
+    cdef bint _enough(self, const AINDEX member_cutoff) nogil:
         if self.n_points > member_cutoff:
             return True
         return False
 
-    def enough(self, member_cutoff: int):
-        return self._enough(member_cutoff)
-
-    cdef inline AINDEX _get_member(self, const AINDEX index) nogil:
+    cdef AINDEX _get_member(self, const AINDEX index) nogil:
         return self._neighbours[index]
 
-    def get_member(self, index: int):
-        return self._get_member(index)
-
-    cdef inline bint _contains(self, const AINDEX member) nogil:
+    cdef bint _contains(self, const AINDEX member) nogil:
 
         if find(self._neighbours.begin(), self._neighbours.end(), member) == self._neighbours.end():
             return False
         return True
 
-    def contains(self, member: int):
-        return self._contains(member)
+    @property
+    def neighbours(self):
+        return np.asarray(list(self._neighbours))
 
 
-Neighbours.register(NeighboursExtVector)
-
-
-cdef class NeighboursExtCPPSet:
+cdef class NeighboursExtCPPSet(NeighboursExtInterface):
     """Implements the neighbours interface
 
     Uses an underlying C++ std:set.
@@ -691,29 +1187,20 @@ cdef class NeighboursExtCPPSet:
         else:
             self._reset()
 
-    cdef inline void _assign(self, const AINDEX member) nogil:
+    cdef void _assign(self, const AINDEX member) nogil:
         self._neighbours.insert(member)
         self.n_points += 1
 
-    def assign(self, member: int):
-        self._assign(member)
-
-    cdef inline void _reset(self) nogil:
+    cdef void _reset(self) nogil:
         self._neighbours.clear()
         self.n_points = 0
 
-    def reset(self):
-        self._reset()
-
-    cdef inline bint _enough(self, const AINDEX member_cutoff) nogil:
+    cdef bint _enough(self, const AINDEX member_cutoff) nogil:
         if self.n_points > member_cutoff:
             return True
         return False
 
-    def enough(self, member_cutoff: int):
-        return self._enough(member_cutoff)
-
-    cdef inline AINDEX _get_member(self, const AINDEX index) nogil:
+    cdef AINDEX _get_member(self, const AINDEX index) nogil:
         cdef cppset[AINDEX].iterator it = self._neighbours.begin()
         cdef AINDEX i
 
@@ -722,22 +1209,17 @@ cdef class NeighboursExtCPPSet:
 
         return dereference(it)
 
-    def get_member(self, index: int):
-        return self._get_member(index)
-
-    cdef inline bint _contains(self, const AINDEX member) nogil:
+    cdef bint _contains(self, const AINDEX member) nogil:
         if self._neighbours.find(member) == self._neighbours.end():
             return False
         return True
 
-    def contains(self, member: int):
-        return self._contains(member)
+    @property
+    def neighbours(self):
+        return np.asarray(list(self._neighbours))
 
 
-Neighbours.register(NeighboursExtCPPSet)
-
-
-cdef class NeighboursExtCPPUnorderedSet:
+cdef class NeighboursExtCPPUnorderedSet(NeighboursExtInterface):
     """Implements the neighbours interface
 
     Uses an underlying C++ std:unordered_set.
@@ -754,29 +1236,20 @@ cdef class NeighboursExtCPPUnorderedSet:
         else:
             self._reset()
 
-    cdef inline void _assign(self, const AINDEX member) nogil:
+    cdef void _assign(self, const AINDEX member) nogil:
         self._neighbours.insert(member)
         self.n_points += 1
 
-    def assign(self, member: int):
-        self._assign(member)
-
-    cdef inline void _reset(self) nogil:
+    cdef void _reset(self) nogil:
         self._neighbours.clear()
         self.n_points = 0
 
-    def reset(self):
-        self._reset()
-
-    cdef inline bint _enough(self, const AINDEX member_cutoff) nogil:
+    cdef bint _enough(self, const AINDEX member_cutoff) nogil:
         if self.n_points > member_cutoff:
             return True
         return False
 
-    def enough(self, member_cutoff: int):
-        return self._enough(member_cutoff)
-
-    cdef inline AINDEX _get_member(self, const AINDEX index) nogil:
+    cdef AINDEX _get_member(self, const AINDEX index) nogil:
         cdef cppunordered_set[AINDEX].iterator it = self._neighbours.begin()
         cdef AINDEX i
 
@@ -785,22 +1258,17 @@ cdef class NeighboursExtCPPUnorderedSet:
 
         return dereference(it)
 
-    def get_member(self, index: int):
-        return self._get_member(index)
-
-    cdef inline bint _contains(self, const AINDEX member) nogil:
+    cdef bint _contains(self, const AINDEX member) nogil:
         if self._neighbours.find(member) == self._neighbours.end():
             return False
         return True
 
-    def contains(self, member: int):
-        return self._contains(member)
+    @property
+    def neighbours(self):
+        return np.asarray(list(self._neighbours))
 
 
-Neighbours.register(NeighboursExtCPPUnorderedSet)
-
-
-cdef class NeighboursExtVectorCPPUnorderedSet:
+cdef class NeighboursExtVectorCPPUnorderedSet(NeighboursExtInterface):
     """Implements the neighbours interface
 
     Uses a compination of an underlying C++ std:vector and a std:unordered_set.
@@ -825,55 +1293,63 @@ cdef class NeighboursExtVectorCPPUnorderedSet:
         else:
             self._reset()
 
-    cdef inline void _assign(self, const AINDEX member) nogil:
+    cdef void _assign(self, const AINDEX member) nogil:
         self._neighbours.push_back(member)
         self._neighbours_view.insert(member)
         self.n_points += 1
 
-    def assign(self, member: int):
-        self._assign(member)
-
-    cdef inline void _reset(self) nogil:
+    cdef void _reset(self) nogil:
         self._neighbours.resize(0)
         self._neighbours.reserve(self._initial_size)
         self._neighbours_view.clear()
         self.n_points = 0
 
-    def reset(self):
-        self._reset()
-
-    cdef inline bint _enough(self, const AINDEX member_cutoff) nogil:
+    cdef bint _enough(self, const AINDEX member_cutoff) nogil:
         if self.n_points > member_cutoff:
             return True
         return False
 
-    def enough(self, member_cutoff: int):
-        return self._enough(member_cutoff)
-
-    cdef inline AINDEX _get_member(self, const AINDEX index) nogil:
+    cdef AINDEX _get_member(self, const AINDEX index) nogil:
         return self._neighbours[index]
 
-    def get_member(self, index: int):
-        return self._get_member(index)
-
-    cdef inline bint _contains(self, const AINDEX member) nogil:
+    cdef bint _contains(self, const AINDEX member) nogil:
         if self._neighbours_view.find(member) == self._neighbours_view.end():
             return False
         return True
 
-    def contains(self, member: int):
-        return self._contains(member)
+    @property
+    def neighbours(self):
+        return np.asarray(list(self._neighbours))
 
 
+Neighbours.register(NeighboursExtVector)
+Neighbours.register(NeighboursExtCPPSet)
+Neighbours.register(NeighboursExtCPPUnorderedSet)
 Neighbours.register(NeighboursExtVectorCPPUnorderedSet)
 
 
 class NeighboursGetterBruteForce(NeighboursGetter):
     """Implements the neighbours getter interface"""
 
-    def __init__(self):
+    def __init__(
+            self,
+            distance_getter: Type["DistanceGetter"]):
         self._is_sorted = False
         self._is_selfcounting = True
+        self._distance_getter = distance_getter
+
+    def __str__(self):
+        attr_str = ", ".join([
+            f"dgetter={self._distance_getter}",
+            f"sorted={self._is_sorted}",
+            f"selfcounting={self._is_selfcounting}",
+        ])
+
+        return f"{type(self).__name__}({attr_str})"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return [("distance_getter", None)]
 
     @property
     def is_sorted(self) -> bool:
@@ -888,8 +1364,6 @@ class NeighboursGetterBruteForce(NeighboursGetter):
             index: int,
             input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
-            distance_getter: Type['DistanceGetter'],
-            metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']):
 
         cdef AINDEX i
@@ -898,7 +1372,9 @@ class NeighboursGetterBruteForce(NeighboursGetter):
         neighbours.reset()
 
         for i in range(input_data.n_points):
-            distance = distance_getter.get_single(index, i, input_data, metric)
+            distance = self._distance_getter.get_single(
+                index, i, input_data
+                )
 
             if distance <= cluster_params.radius_cutoff:
                 neighbours.assign(i)
@@ -909,8 +1385,6 @@ class NeighboursGetterBruteForce(NeighboursGetter):
             input_data: Type['InputData'],
             other_input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
-            distance_getter: Type['DistanceGetter'],
-            metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']):
 
         cdef AINDEX i
@@ -919,28 +1393,38 @@ class NeighboursGetterBruteForce(NeighboursGetter):
         neighbours.reset()
 
         for i in range(input_data.n_points):
-            distance = distance_getter.get_single_other(
-                index, i, input_data, other_input_data, metric
+            distance = self._distance_getter.get_single_other(
+                index, i, input_data, other_input_data
                 )
 
             if distance <= cluster_params.radius_cutoff:
                 neighbours.assign(i)
 
 
-cdef class NeighboursGetterExtBruteForce:
+cdef class NeighboursGetterExtBruteForce(NeighboursGetterExtInterface):
     """Implements the neighbours getter interface"""
 
-    def __cinit__(self):
+    def __cinit__(
+            self,
+            DistanceGetterExtInterface distance_getter):
         self.is_sorted = False
         self.is_selfcounting = True
+        self._distance_getter = distance_getter
 
-    cdef inline void _get(
+    def __str__(self):
+        attr_str = ", ".join([
+            f"dgetter={self._distance_getter}",
+            f"sorted={self.is_sorted}",
+            f"selfcounting={self.is_selfcounting}",
+        ])
+
+        return f"{type(self).__name__}({attr_str})"
+
+    cdef void _get(
             self,
             const AINDEX index,
             InputDataExtInterface input_data,
-            NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER_EXT distance_getter,
-            METRIC_EXT metric,
+            NeighboursExtInterface neighbours,
             ClusterParameters cluster_params) nogil:
 
         cdef AINDEX i
@@ -949,71 +1433,37 @@ cdef class NeighboursGetterExtBruteForce:
         neighbours._reset()
 
         for i in range(input_data.n_points):
-            distance = distance_getter._get_single(index, i, input_data, metric)
-
-            if distance <= cluster_params.radius_cutoff:
-                neighbours._assign(i)
-
-    def get(
-            self,
-            AINDEX index,
-            InputDataExtInterface input_data,
-            NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER_EXT distance_getter,
-            METRIC_EXT metric,
-            ClusterParameters cluster_params):
-
-        self._get(
-            index,
-            input_data,
-            neighbours,
-            distance_getter,
-            metric,
-            cluster_params,
-        )
-
-    cdef inline void _get_other(
-            self,
-            const AINDEX index,
-            InputDataExtInterface input_data,
-            InputDataExtInterface other_input_data,
-            NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER_EXT distance_getter,
-            METRIC_EXT metric,
-            ClusterParameters cluster_params) nogil:
-
-        cdef AINDEX i
-        cdef AVALUE distance
-
-        neighbours._reset()
-
-        for i in range(input_data.n_points):
-            distance = distance_getter._get_single_other(
-                index, i, input_data, other_input_data, metric
+            distance = self._distance_getter._get_single(
+                index, i, input_data
                 )
 
             if distance <= cluster_params.radius_cutoff:
                 neighbours._assign(i)
 
-    def get_other(
+    cdef void _get_other(
             self,
-            AINDEX index,
+            const AINDEX index,
             InputDataExtInterface input_data,
             InputDataExtInterface other_input_data,
-            NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER_EXT distance_getter,
-            METRIC_EXT metric,
-            ClusterParameters cluster_params):
+            NeighboursExtInterface neighbours,
+            ClusterParameters cluster_params) nogil:
 
-        self._get_other(
-            index,
-            input_data,
-            other_input_data,
-            neighbours,
-            distance_getter,
-            metric,
-            cluster_params,
-        )
+        cdef AINDEX i
+        cdef AVALUE distance
+
+        neighbours._reset()
+
+        for i in range(input_data.n_points):
+            distance = self._distance_getter._get_single_other(
+                index, i, input_data, other_input_data
+                )
+
+            if distance <= cluster_params.radius_cutoff:
+                neighbours._assign(i)
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return [("distance_getter", None)]
 
 
 class NeighboursGetterLookup(NeighboursGetter):
@@ -1022,6 +1472,14 @@ class NeighboursGetterLookup(NeighboursGetter):
     def __init__(self, is_sorted=False, is_selfcounting=False):
         self._is_sorted = is_sorted
         self._is_selfcounting = is_selfcounting
+
+    def __str__(self):
+        attr_str = ", ".join([
+            f"sorted={self._is_sorted}",
+            f"selfcounting={self._is_selfcounting}",
+        ])
+
+        return f"{type(self).__name__}({attr_str})"
 
     @property
     def is_sorted(self) -> bool:
@@ -1036,8 +1494,6 @@ class NeighboursGetterLookup(NeighboursGetter):
             index: int,
             input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
-            distance_getter: Type['DistanceGetter'],
-            metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']) -> None:
 
         cdef AINDEX i
@@ -1053,8 +1509,6 @@ class NeighboursGetterLookup(NeighboursGetter):
             input_data: Type['InputData'],
             other_input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
-            distance_getter: Type['DistanceGetter'],
-            metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']):
 
         cdef AINDEX i
@@ -1065,20 +1519,26 @@ class NeighboursGetterLookup(NeighboursGetter):
             neighbours.assign(other_input_data.get_neighbour(index, i))
 
 
-cdef class NeighboursGetterExtLookup:
+cdef class NeighboursGetterExtLookup(NeighboursGetterExtInterface):
     """Implements the neighbours getter interface"""
 
     def __cinit__(self, is_sorted=False, is_selfcounting=True):
         self.is_sorted = is_sorted
         self.is_selfcounting = is_selfcounting
 
-    cdef inline void _get(
+    def __str__(self):
+        attr_str = ", ".join([
+            f"sorted={self.is_sorted}",
+            f"selfcounting={self.is_selfcounting}",
+        ])
+
+        return f"{type(self).__name__}({attr_str})"
+
+    cdef void _get(
             self,
             const AINDEX index,
             InputDataExtInterface input_data,
-            NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER_EXT distance_getter,
-            METRIC_EXT metric,
+            NeighboursExtInterface neighbours,
             ClusterParameters cluster_params) nogil:
 
         cdef AINDEX i
@@ -1087,32 +1547,12 @@ cdef class NeighboursGetterExtLookup:
         for i in range(input_data._get_n_neighbours(index)):
             neighbours._assign(input_data._get_neighbour(index, i))
 
-    def get(
-            self,
-            const AINDEX index,
-            InputDataExtInterface input_data,
-            NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER_EXT distance_getter,
-            METRIC_EXT metric,
-            ClusterParameters cluster_params):
-
-        self._get(
-            index,
-            input_data,
-            neighbours,
-            distance_getter,
-            metric,
-            cluster_params,
-        )
-
-    cdef inline void _get_other(
+    cdef void _get_other(
             self,
             const AINDEX index,
             InputDataExtInterface input_data,
             InputDataExtInterface other_input_data,
-            NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER_EXT distance_getter,
-            METRIC_EXT metric,
+            NeighboursExtInterface neighbours,
             ClusterParameters cluster_params) nogil:
 
         cdef AINDEX i
@@ -1122,29 +1562,6 @@ cdef class NeighboursGetterExtLookup:
         for i in range(other_input_data._get_n_neighbours(index)):
             neighbours._assign(other_input_data._get_neighbour(index, i))
 
-    def get_other(
-            self,
-            AINDEX index,
-            InputDataExtInterface input_data,
-            InputDataExtInterface other_input_data,
-            NEIGHBOURS_EXT neighbours,
-            DISTANCE_GETTER_EXT distance_getter,
-            METRIC_EXT metric,
-            ClusterParameters cluster_params):
-
-        self._get_other(
-            index,
-            input_data,
-            other_input_data,
-            neighbours,
-            distance_getter,
-            metric,
-            cluster_params,
-        )
-
-
-NeighboursGetter.register(NeighboursGetterExtLookup)
-
 
 class NeighboursGetterRecomputeLookup(NeighboursGetter):
     """Implements the neighbours getter interface"""
@@ -1152,6 +1569,14 @@ class NeighboursGetterRecomputeLookup(NeighboursGetter):
     def __init__(self, is_sorted=False, is_selfcounting=False):
         self._is_sorted = is_sorted
         self._is_selfcounting = is_selfcounting
+
+    def __str__(self):
+        attr_str = ", ".join([
+            f"sorted={self._is_sorted}",
+            f"selfcounting={self._is_selfcounting}",
+        ])
+
+        return f"{type(self).__name__}({attr_str})"
 
     @property
     def is_sorted(self) -> bool:
@@ -1166,8 +1591,6 @@ class NeighboursGetterRecomputeLookup(NeighboursGetter):
             index: int,
             input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
-            distance_getter: Type['DistanceGetter'],
-            metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']) -> None:
 
         cdef AINDEX i
@@ -1191,8 +1614,6 @@ class NeighboursGetterRecomputeLookup(NeighboursGetter):
             input_data: Type['InputData'],
             other_input_data: Type['InputData'],
             neighbours: Type['Neighbours'],
-            distance_getter: Type['DistanceGetter'],
-            metric: Type['Metric'],
             cluster_params: Type['ClusterParameters']):
 
         cdef AINDEX i
@@ -1211,32 +1632,45 @@ class NeighboursGetterRecomputeLookup(NeighboursGetter):
             neighbours.assign(other_input_data.get_neighbour(index, i))
 
 
+NeighboursGetter.register(NeighboursGetterExtBruteForce)
+NeighboursGetter.register(NeighboursGetterExtLookup)
+
+
 class DistanceGetterMetric(DistanceGetter):
     """Implements the distance getter interface"""
+
+    def __init__(self, metric: Type["Metric"]):
+        self._metric = metric
+
+    def __str__(self):
+        attr_str = ", ".join([
+            f"metric={self._metric}",
+        ])
+
+        return f"{type(self).__name__}({attr_str})"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return [("metric", None)]
 
     def  get_single(
             self,
             point_a: int,
             point_b: int,
-            input_data: Type["InputData"],
-            metric: Type["Metric"]):
+            input_data: Type["InputData"]):
 
-        return metric.calc_distance(point_a, point_b, input_data)
+        return self._metric.calc_distance(point_a, point_b, input_data)
 
     def get_single_other(
             self,
             point_a: int,
             point_b: int,
             input_data: Type["InputData"],
-            other_input_data: Type["InputData"],
-            metric: Type["Metric"]):
+            other_input_data: Type["InputData"]):
 
-        return metric._calc_distance_other(
+        return self._metric._calc_distance_other(
             point_a, point_b, input_data, other_input_data
             )
-
-
-DistanceGetter.register(DistanceGetterExtMetric)
 
 
 class DistanceGetterLookup(DistanceGetter):
@@ -1246,8 +1680,7 @@ class DistanceGetterLookup(DistanceGetter):
             self,
             const AINDEX point_a,
             const AINDEX point_b,
-            InputDataExtInterface input_data,
-            METRIC_EXT metric):
+            InputDataExtInterface input_data):
 
         return input_data.get_distance(point_a, point_b)
 
@@ -1256,45 +1689,48 @@ class DistanceGetterLookup(DistanceGetter):
             const AINDEX point_a,
             const AINDEX point_b,
             InputDataExtInterface input_data,
-            InputDataExtInterface other_input_data,
-            METRIC_EXT metric):
+            InputDataExtInterface other_input_data):
 
         return other_input_data.get_distance(point_a, point_b)
 
 
-DistanceGetter.register(DistanceGetterExtLookup)
-
-
-cdef class DistanceGetterExtMetric:
+cdef class DistanceGetterExtMetric(DistanceGetterExtInterface):
     """Implements the distance getter interface"""
 
-    cdef inline AVALUE _get_single(
+    def __cinit__(self, MetricExtInterface metric):
+        self._metric = metric
+
+    def __str__(self):
+        attr_str = ", ".join([
+            f"metric={self._metric}",
+        ])
+
+        return f"{type(self).__name__}({attr_str})"
+
+    cdef AVALUE _get_single(
             self,
             const AINDEX point_a,
             const AINDEX point_b,
-            InputDataExtInterface input_data,
-            METRIC_EXT metric) nogil:
+            InputDataExtInterface input_data) nogil:
 
-        return metric._calc_distance(point_a, point_b, input_data)
+        return self._metric._calc_distance(point_a, point_b, input_data)
 
     def get_single(
             self,
             AINDEX point_a,
             AINDEX point_b,
-            InputDataExtInterface input_data,
-            METRIC_EXT metric):
+            InputDataExtInterface input_data):
 
-        return self._get_single(point_a, point_b, input_data, metric)
+        return self._get_single(point_a, point_b, input_data)
 
-    cdef inline AVALUE _get_single_other(
+    cdef AVALUE _get_single_other(
             self,
             const AINDEX point_a,
             const AINDEX point_b,
             InputDataExtInterface input_data,
-            InputDataExtInterface other_input_data,
-            METRIC_EXT metric) nogil:
+            InputDataExtInterface other_input_data) nogil:
 
-        return metric._calc_distance_other(
+        return self._metric._calc_distance_other(
             point_a, point_b, input_data, other_input_data
             )
 
@@ -1303,57 +1739,36 @@ cdef class DistanceGetterExtMetric:
             AINDEX point_a,
             AINDEX point_b,
             InputDataExtInterface input_data,
-            InputDataExtInterface other_input_data,
-            METRIC_EXT metric):
+            InputDataExtInterface other_input_data):
 
-        return self._get_single_other(point_a, point_b, input_data, other_input_data, metric)
+        return self._get_single_other(point_a, point_b, input_data, other_input_data)
 
+    @classmethod
+    def get_builder_kwargs(cls):
+        return [("metric", None)]
 
-DistanceGetter.register(DistanceGetterExtMetric)
-
-
-cdef class DistanceGetterExtLookup:
+cdef class DistanceGetterExtLookup(DistanceGetterExtInterface):
     """Implements the distance getter interface"""
 
-    cdef inline AVALUE _get_single(
+    cdef AVALUE _get_single(
             self,
             const AINDEX point_a,
             const AINDEX point_b,
-            InputDataExtInterface input_data,
-            METRIC_EXT metric) nogil:
+            InputDataExtInterface input_data) nogil:
 
         return input_data._get_distance(point_a, point_b)
 
-    def get_single(
-            self,
-            AINDEX point_a,
-            AINDEX point_b,
-            InputDataExtInterface input_data,
-            METRIC_EXT metric):
-
-        return self._get_single(point_a, point_b, input_data, metric)
-
-    cdef inline AVALUE _get_single_other(
+    cdef AVALUE _get_single_other(
             self,
             const AINDEX point_a,
             const AINDEX point_b,
             InputDataExtInterface input_data,
-            InputDataExtInterface other_input_data,
-            METRIC_EXT metric) nogil:
+            InputDataExtInterface other_input_data) nogil:
 
         return other_input_data._get_distance(point_a, point_b)
 
-    def get_single_other(
-            self,
-            AINDEX point_a,
-            AINDEX point_b,
-            InputDataExtInterface input_data,
-            InputDataExtInterface other_input_data,
-            METRIC_EXT metric):
 
-        return self._get_single_other(point_a, point_b, input_data, other_input_data, metric)
-
-
+DistanceGetter.register(DistanceGetterExtMetric)
 DistanceGetter.register(DistanceGetterExtLookup)
 
 
@@ -1377,23 +1792,17 @@ class MetricDummy(Metric):
         return radius_cutoff
 
 
-cdef class MetricExtDummy:
+cdef class MetricExtDummy(MetricExtInterface):
     """Implements the metric interface"""
 
-    cdef inline AVALUE _calc_distance(
+    cdef AVALUE _calc_distance(
             self,
             const AINDEX index_a, const AINDEX index_b,
             InputDataExtInterface input_data) nogil:
 
         return 0.
 
-    def calc_distance(
-            self,
-            AINDEX index_a, AINDEX index_b,
-            InputDataExtInterface input_data) -> float:
-        return self._calc_distance(index_a, index_b, input_data)
-
-    cdef inline AVALUE _calc_distance_other(
+    cdef AVALUE _calc_distance_other(
             self,
             const AINDEX index_a, const AINDEX index_b,
             InputDataExtInterface input_data,
@@ -1401,21 +1810,8 @@ cdef class MetricExtDummy:
 
         return 0.
 
-    def calc_distance_other(
-            self,
-            AINDEX index_a, AINDEX index_b,
-            InputDataExtInterface input_data,
-            InputDataExtInterface other_input_data) -> float:
-
-        return self._calc_distance_other(
-            index_a, index_b, input_data, other_input_data
-            )
-
-    cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
+    cdef AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
         return radius_cutoff
-
-    def adjust_radius(self, radius_cutoff: float) -> float:
-       return self._adjust_radius(radius_cutoff)
 
 
 class MetricPrecomputed(Metric):
@@ -1440,23 +1836,17 @@ class MetricPrecomputed(Metric):
         return radius_cutoff
 
 
-cdef class MetricExtPrecomputed:
+cdef class MetricExtPrecomputed(MetricExtInterface):
     """Implements the metric interface"""
 
-    cdef inline AVALUE _calc_distance(
+    cdef AVALUE _calc_distance(
             self,
             const AINDEX index_a, const AINDEX index_b,
             InputDataExtInterface input_data) nogil:
 
         return input_data._get_component(index_a, index_b)
 
-    def calc_distance(
-            self,
-            AINDEX index_a, AINDEX index_b,
-            InputDataExtInterface input_data) -> float:
-        return self._calc_distance(index_a, index_b, input_data)
-
-    cdef inline AVALUE _calc_distance_other(
+    cdef AVALUE _calc_distance_other(
             self,
             const AINDEX index_a, const AINDEX index_b,
             InputDataExtInterface input_data,
@@ -1464,21 +1854,8 @@ cdef class MetricExtPrecomputed:
 
         return other_input_data._get_component(index_a, index_b)
 
-    def calc_distance_other(
-            self,
-            AINDEX index_a, AINDEX index_b,
-            InputDataExtInterface input_data,
-            InputDataExtInterface other_input_data) -> float:
-
-        return self._calc_distance_other(
-            index_a, index_b, input_data, other_input_data
-            )
-
-    cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
+    cdef AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
         return radius_cutoff
-
-    def adjust_radius(self, radius_cutoff: float) -> float:
-       return self._adjust_radius(radius_cutoff)
 
 
 class MetricEuclidean(Metric):
@@ -1521,10 +1898,10 @@ class MetricEuclidean(Metric):
         return radius_cutoff
 
 
-cdef class MetricExtEuclidean:
+cdef class MetricExtEuclidean(MetricExtInterface):
     """Implements the metric interface"""
 
-    cdef inline AVALUE _calc_distance(
+    cdef AVALUE _calc_distance(
             self,
             const AINDEX index_a, const AINDEX index_b,
             InputDataExtInterface input_data) nogil:
@@ -1540,13 +1917,7 @@ cdef class MetricExtEuclidean:
 
         return csqrt(total)
 
-    def calc_distance(
-            self,
-            AINDEX index_a, AINDEX index_b,
-            InputDataExtInterface input_data) -> float:
-        return self._calc_distance(index_a, index_b, input_data)
-
-    cdef inline AVALUE _calc_distance_other(
+    cdef AVALUE _calc_distance_other(
             self,
             const AINDEX index_a, const AINDEX index_b,
             InputDataExtInterface input_data,
@@ -1563,21 +1934,8 @@ cdef class MetricExtEuclidean:
 
         return csqrt(total)
 
-    def calc_distance_other(
-            self,
-            AINDEX index_a, AINDEX index_b,
-            InputDataExtInterface input_data,
-            InputDataExtInterface other_input_data) -> float:
-
-        return self._calc_distance_other(
-            index_a, index_b, input_data, other_input_data
-            )
-
-    cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
+    cdef AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
         return radius_cutoff
-
-    def adjust_radius(self, radius_cutoff: float) -> float:
-       return self._adjust_radius(radius_cutoff)
 
 
 class MetricEuclideanReduced(Metric):
@@ -1623,7 +1981,7 @@ class MetricEuclideanReduced(Metric):
 cdef class MetricExtEuclideanReduced:
     """Implements the metric interface"""
 
-    cdef inline AVALUE _calc_distance(
+    cdef AVALUE _calc_distance(
             self,
             const AINDEX index_a, const AINDEX index_b,
             InputDataExtInterface input_data) nogil:
@@ -1639,13 +1997,7 @@ cdef class MetricExtEuclideanReduced:
 
         return total
 
-    def calc_distance(
-            self,
-            AINDEX index_a, AINDEX index_b,
-            InputDataExtInterface input_data) -> float:
-        return self._calc_distance(index_a, index_b, input_data)
-
-    cdef inline AVALUE _calc_distance_other(
+    cdef AVALUE _calc_distance_other(
             self,
             const AINDEX index_a, const AINDEX index_b,
             InputDataExtInterface input_data,
@@ -1662,21 +2014,8 @@ cdef class MetricExtEuclideanReduced:
 
         return total
 
-    def calc_distance_other(
-            self,
-            AINDEX index_a, AINDEX index_b,
-            InputDataExtInterface input_data,
-            InputDataExtInterface other_input_data) -> float:
-
-        return self._calc_distance_other(
-            index_a, index_b, input_data, other_input_data
-            )
-
-    cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
+    cdef AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
         return cpow(radius_cutoff, 2)
-
-    def adjust_radius(self, radius_cutoff: float) -> float:
-       return self._adjust_radius(radius_cutoff)
 
 
 cdef class MetricExtEuclideanPeriodicReduced:
@@ -1685,7 +2024,7 @@ cdef class MetricExtEuclideanPeriodicReduced:
     def __cinit__(self, bounds):
         self._bounds = bounds
 
-    cdef inline AVALUE _calc_distance(
+    cdef AVALUE _calc_distance(
             self,
             const AINDEX index_a, const AINDEX index_b,
             InputDataExtInterface input_data) nogil:
@@ -1710,13 +2049,7 @@ cdef class MetricExtEuclideanPeriodicReduced:
 
         return total
 
-    def calc_distance(
-            self,
-            AINDEX index_a, AINDEX index_b,
-            InputDataExtInterface input_data) -> float:
-        return self._calc_distance(index_a, index_b, input_data)
-
-    cdef inline AVALUE _calc_distance_other(
+    cdef AVALUE _calc_distance_other(
             self,
             const AINDEX index_a, const AINDEX index_b,
             InputDataExtInterface input_data,
@@ -1742,21 +2075,15 @@ cdef class MetricExtEuclideanPeriodicReduced:
 
         return total
 
-    def calc_distance_other(
-            self,
-            AINDEX index_a, AINDEX index_b,
-            InputDataExtInterface input_data,
-            InputDataExtInterface other_input_data) -> float:
-
-        return self._calc_distance_other(
-            index_a, index_b, input_data, other_input_data
-            )
-
-    cdef inline AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
+    cdef AVALUE _adjust_radius(self, AVALUE radius_cutoff) nogil:
         return cpow(radius_cutoff, 2)
 
-    def adjust_radius(self, radius_cutoff: float) -> float:
-       return self._adjust_radius(radius_cutoff)
+
+Metric.register(MetricExtDummy)
+Metric.register(MetricExtPrecomputed)
+Metric.register(MetricExtEuclidean)
+Metric.register(MetricExtEuclideanReduced)
+Metric.register(MetricExtEuclideanPeriodicReduced)
 
 
 class SimilarityCheckerContains(SimilarityChecker):
@@ -1787,7 +2114,7 @@ class SimilarityCheckerContains(SimilarityChecker):
 
         cdef AINDEX na = neighbours_a.n_points
 
-        cdef AINDEX c = cluster_params.cnn_cutoff
+        cdef AINDEX c = cluster_params.similarity_cutoff
         cdef AINDEX member_a, member_index_a
         cdef AINDEX common = 0
 
@@ -1833,7 +2160,7 @@ class SimilarityCheckerSwitchContains(SimilarityChecker):
         cdef AINDEX na = neighbours_a.n_points
         cdef AINDEX nb = neighbours_b.n_points
 
-        cdef AINDEX c = cluster_params.cnn_cutoff
+        cdef AINDEX c = cluster_params.similarity_cutoff
         cdef AINDEX member_a, member_index_a
         cdef AINDEX common = 0
 
@@ -1854,7 +2181,7 @@ class SimilarityCheckerSwitchContains(SimilarityChecker):
         return False
 
 
-cdef class SimilarityCheckerExtContains:
+cdef class SimilarityCheckerExtContains(SimilarityCheckerExtInterface):
     r"""Implements the similarity checker interface
 
     Strategy:
@@ -1875,13 +2202,13 @@ cdef class SimilarityCheckerExtContains:
         :obj:`cnnclustering._types.SimilarityCheckerExtSwitchContains`).
     """
 
-    cdef inline bint _check(
+    cdef bint _check(
             self,
-            NEIGHBOURS_EXT neighbours_a,
-            NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
             ClusterParameters cluster_params) nogil:
 
-        cdef AINDEX c = cluster_params.cnn_cutoff
+        cdef AINDEX c = cluster_params.similarity_cutoff
 
         if c == 0:
             return True
@@ -1899,16 +2226,8 @@ cdef class SimilarityCheckerExtContains:
                 continue
         return False
 
-    def check(
-            self,
-            NEIGHBOURS_EXT neighbours_a,
-            NEIGHBOURS_EXT neighbours_b,
-            ClusterParameters cluster_params):
 
-        return self._check(neighbours_a, neighbours_b, cluster_params)
-
-
-cdef class SimilarityCheckerExtSwitchContains:
+cdef class SimilarityCheckerExtSwitchContains(SimilarityCheckerExtInterface):
     r"""Implements the similarity checker interface
 
     Strategy:
@@ -1929,14 +2248,14 @@ cdef class SimilarityCheckerExtSwitchContains:
         :obj:`cnnclustering._types.SimilarityCheckerExtContains`).
     """
 
-    cdef inline bint _check(
+    cdef bint _check(
             self,
-            NEIGHBOURS_EXT neighbours_a,
-            NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
             ClusterParameters cluster_params) nogil:
 
 
-        cdef AINDEX c = cluster_params.cnn_cutoff
+        cdef AINDEX c = cluster_params.similarity_cutoff
 
         if c == 0:
             return True
@@ -1961,16 +2280,8 @@ cdef class SimilarityCheckerExtSwitchContains:
                 continue
         return False
 
-    def check(
-            self,
-            NEIGHBOURS_EXT neighbours_a,
-            NEIGHBOURS_EXT neighbours_b,
-            ClusterParameters cluster_params):
 
-        return self._check(neighbours_a, neighbours_b, cluster_params)
-
-
-cdef class SimilarityCheckerExtScreensorted:
+cdef class SimilarityCheckerExtScreensorted(SimilarityCheckerExtInterface):
     r"""Implements the similarity checker interface
 
     Strategy:
@@ -1987,13 +2298,13 @@ cdef class SimilarityCheckerExtScreensorted:
         :math:`m` being the lengths of the neighbours containers.
     """
 
-    cdef inline bint _check(
+    cdef bint _check(
             self,
-            NEIGHBOURS_EXT neighbours_a,
-            NEIGHBOUR_NEIGHBOURS_EXT neighbours_b,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
             ClusterParameters cluster_params) nogil:
 
-        cdef AINDEX c = cluster_params.cnn_cutoff
+        cdef AINDEX c = cluster_params.similarity_cutoff
 
         if c == 0:
             return True
@@ -2042,14 +2353,9 @@ cdef class SimilarityCheckerExtScreensorted:
         return False
 
 
-    def check(
-            self,
-            NEIGHBOURS_EXT neighbours_a,
-            NEIGHBOURS_EXT neighbours_b,
-            ClusterParameters cluster_params):
-
-        return self._check(neighbours_a, neighbours_b, cluster_params)
-
+SimilarityChecker.register(SimilarityCheckerExtContains)
+SimilarityChecker.register(SimilarityCheckerExtSwitchContains)
+SimilarityChecker.register(SimilarityCheckerExtScreensorted)
 
 class QueueFIFODeque(Queue):
     """Implements the queue interface"""
@@ -2072,7 +2378,7 @@ class QueueFIFODeque(Queue):
         return True
 
 
-cdef class QueueExtLIFOVector:
+cdef class QueueExtLIFOVector(QueueExtInterface):
     """Implements the queue interface"""
 
     cdef inline void _push(self, const AINDEX value) nogil:
@@ -2091,17 +2397,8 @@ cdef class QueueExtLIFOVector:
         """Return True if there are no values in the queue"""
         return self._queue.empty()
 
-    def push(self, value: int):
-        self._push(value)
 
-    def pop(self) -> int:
-        return self._pop()
-
-    def is_empty(self) -> bool:
-        return self._is_empty()
-
-
-cdef class QueueExtFIFOQueue:
+cdef class QueueExtFIFOQueue(QueueExtInterface):
     """Implements the queue interface"""
 
     cdef inline void _push(self, const AINDEX value) nogil:
@@ -2120,11 +2417,6 @@ cdef class QueueExtFIFOQueue:
         """Return True if there are no values in the queue"""
         return self._queue.empty()
 
-    def push(self, value: int):
-        self._push(value)
 
-    def pop(self) -> int:
-        return self._pop()
-
-    def is_empty(self) -> bool:
-        return self._is_empty()
+Queue.register(QueueExtLIFOVector)
+Queue.register(QueueExtFIFOQueue)

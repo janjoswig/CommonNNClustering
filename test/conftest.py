@@ -29,7 +29,7 @@ def toy_data_points(request):
         "blobs": datasets.make_blobs
     }
 
-    points, reference_labels = generation_functions.get(gen_func)(
+    points, reference_labels = generation_functions[gen_func](
         n_samples=n_samples, **gen_kwargs
         )
 

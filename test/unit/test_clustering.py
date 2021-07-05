@@ -16,23 +16,17 @@ class TestClustering:
 
     def test_fit_fully_mocked(self, mocker):
         input_data = mocker.Mock(_types.InputData)
-        neighbours_getter = mocker.Mock(_types.NeighboursGetter)
         neighbours = mocker.Mock(_types.Neighbours)
         similarity_checker = mocker.Mock(_types.SimilarityChecker)
-        metric = mocker.Mock(_types.Metric)
-        queue = mocker.Mock(_types.Queue)
         fitter = mocker.Mock(_fit.Fitter)
 
         type(input_data).n_points = mocker.PropertyMock(return_value=5)
 
         clustering = cluster.Clustering(
             input_data=input_data,
-            neighbours_getter=neighbours_getter,
             neighbours=neighbours,
             neighbour_neighbours=neighbours,
-            metric=metric,
             similarity_checker=similarity_checker,
-            queue=queue,
             fitter=fitter,
         )
         clustering.fit(radius_cutoff=1.0, cnn_cutoff=1)
@@ -41,10 +35,8 @@ class TestClustering:
 
     def test_predict_fully_mocked(self, mocker):
         input_data = mocker.Mock(_types.InputData)
-        neighbours_getter = mocker.Mock(_types.NeighboursGetter)
         neighbours = mocker.Mock(_types.Neighbours)
         similarity_checker = mocker.Mock(_types.SimilarityChecker)
-        metric = mocker.Mock(_types.Metric)
         predictor = mocker.Mock(_fit.Predictor)
         labels = mocker.Mock(_types.Labels)
 
@@ -58,10 +50,8 @@ class TestClustering:
 
         other_clustering = cluster.Clustering(
             input_data=input_data,
-            neighbours_getter=neighbours_getter,
             neighbours=neighbours,
             neighbour_neighbours=neighbours,
-            metric=metric,
             similarity_checker=similarity_checker,
         )
 
