@@ -5,6 +5,9 @@ from cnnclustering import _types, _fit
 
 
 COMPONENT_ALT_KW_MAP = {
+    "input": "input_data",
+    "data": "input_data",
+    "n": "neighbours",
     "na": "neighbours",
     "nb": "neighbour_neighbours",
     "getter": "neighbours_getter",
@@ -58,33 +61,48 @@ COMPONENT_NAME_TYPE_MAP = {
 }
 
 
-registered_recipes = {
-    "None": {},
-    "points": {
-        "input_data": "components_mview",
-        "fitter": "bfs",
-        "fitter.ngetter": "brute_force",
-        "fitter.na": "vector",
-        "fitter.checker": "switch",
-        "fitter.queue": "fifo",
-        "fitter.ngetter.dgetter": "metric",
-        "fitter.ngetter.dgetter.metric": "euclidean_r",
-    },
-    "from_neighbourhoods_lookup": {
-        "input_data": "neighbourhoods_mview",
-        "fitter": "bfs",
-    },
-    "from_sorted_neighbourhoods_lookup": {
-        "input_data": "neighbourhoods_mview",
-        "neighbours_getter": "lookup",
-        "distance_getter": "metric",
-        "neighbours": ("vector", (10,), {}),
-        "neighbour_neighbours": ("vector", (10,), {}),
-        "metric": "dummy",
-        "similarity_checker": "screen",
-        "fitter": "bfs",
+def get_registered_recipe(key):
+    registered_recipes = {
+        "None": {},
+        "points": {
+            "input_data": "components_mview",
+            "fitter": "bfs",
+            "fitter.ngetter": "brute_force",
+            "fitter.na": "vuset",
+            "fitter.checker": "switch",
+            "fitter.queue": "fifo",
+            "fitter.ngetter.dgetter": "metric",
+            "fitter.ngetter.dgetter.metric": "euclidean_r",
+        },
+        "distances": {
+            "input_data": "components_mview",
+            "fitter": "bfs",
+            "fitter.ngetter": "brute_force",
+            "fitter.na": "vuset",
+            "fitter.checker": "switch",
+            "fitter.queue": "fifo",
+            "fitter.ngetter.dgetter": "metric",
+            "fitter.ngetter.dgetter.metric": "precomputed",
+        },
+        "neighbours": {
+            "input_data": "neighbourhoods_mview",
+            "fitter": "bfs",
+            "fitter.ngetter": "lookup",
+            "fitter.na": "vuset",
+            "fitter.checker": "switch",
+            "fitter.queue": "fifo",
+        },
+        "sorted_neighbourhoods": {
+            "input_data": "neighbourhoods_mview",
+            "fitter": "bfs",
+            "fitter.ngetter": "lookup",
+            "fitter.na": "vector",
+            "fitter.checker": "screen",
+            "fitter.queue": "fifo",
+        }
     }
-}
+
+    return registered_recipes[key]
 
 
 def prepare_pass(data):

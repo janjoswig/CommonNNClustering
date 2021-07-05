@@ -104,6 +104,18 @@ class Clustering:
             alias: str = "root",
             parent=None):
 
+        if (input_data is not None) and (
+                not isinstance(input_data, _types.InputData)):
+            builder = ClusteringBuilder(
+                input_data,
+                clustering_type=type(self)
+                )
+            components_map = builder.aggregate_components()
+
+            input_data = components_map.get("input_data")
+            fitter = components_map.get("fitter")
+            predictor = components_map.get("predictor")
+
         self._input_data = input_data
         self._fitter = fitter
         self._predictor = predictor
@@ -1352,28 +1364,40 @@ class ClusteringBuilder:
             plus additional information (e.g. "meta") in form of
             an argument tuple and a keyword argument dictionary that can
             be used to initialise an input data type.
-            If `None` uses :meth:`prepare_points_from_parts`.
-        recipe: Building instructions for a
-            :obj:`cnnclustering.cluster.Clustering` instance.
+            If `None` uses :obj:`_default_preparation_hook`.
+        recipe: Building instructions for a clustering initialisation.
+            Should be a mapping of component keyword arguments to componenet
+            type details.
     """
 
     _default_preparation_hook = staticmethod(hooks.prepare_points_from_parts)
-    _clustering = Clustering
+    _default_clustering = Clustering
     _default_recipe_key = "points"
 
     def __init__(
             self,
-            data, preparation_hook=None,
-            registered_recipe_key=None, **recipe):
+            data,
+            preparation_hook=None,
+            registered_recipe_key=None,
+            clustering_type=None,
+            **recipe):
 
         if registered_recipe_key is None:
             registered_recipe_key = self._default_recipe_key
 
-        self.recipe = hooks.registered_recipes[registered_recipe_key]
+        self.recipe = hooks.get_registered_recipe(registered_recipe_key)
         self.recipe.update(recipe)
 
         self.recipe = {
-            ".".join(hooks.COMPONENT_ALT_KW_MAP.get(kw, kw) for kw in k.split(".")): v
+            k.replace("__", "."): v
+            for k, v in self.recipe.items()
+        }
+
+        self.recipe = {
+            ".".join(
+                hooks.COMPONENT_ALT_KW_MAP.get(kw, kw)
+                for kw in k.split(".")
+                ): v
             for k, v in self.recipe.items()
         }
 
@@ -1382,8 +1406,12 @@ class ClusteringBuilder:
 
         self.data_args, self.data_kwargs = preparation_hook(data)
 
-    def build(self):
-        """Initialise clustering with data and components"""
+        if clustering_type is None:
+            clustering_type = self._default_clustering
+
+        self._clustering = clustering_type
+
+    def aggregate_components(self):
 
         def make_component(component_kw, alternative, prev_kw=None):
             if prev_kw is None:
@@ -1457,7 +1485,12 @@ class ClusteringBuilder:
             if component is not object:
                 components_map[component_kw] = component
 
-        return self._clustering(**components_map)
+        return components_map
+
+    def build(self):
+        """Initialise clustering with data and components"""
+
+        return self._clustering(**self.aggregate_components())
 
 
 class Record:
