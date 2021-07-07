@@ -20,7 +20,7 @@ ctypedef fused FITTER_EXT:
 
 
 cdef class FitterExtBFS:
-    cdef:
+    cdef public:
         NeighboursGetterExtInterface _neighbours_getter
         NeighboursExtInterface _neighbours
         NeighboursExtInterface _neighbour_neighbours
@@ -39,7 +39,7 @@ cdef class FitterExtBFSDebug:
         bint _verbose
         bint _yielding
 
-    cdef:
+    cdef public:
         NeighboursGetterExtInterface _neighbours_getter
         NeighboursExtInterface _neighbours
         NeighboursExtInterface _neighbour_neighbours

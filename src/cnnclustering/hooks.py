@@ -84,7 +84,7 @@ def get_registered_recipe(key):
             "fitter.ngetter.dgetter": "metric",
             "fitter.ngetter.dgetter.metric": "precomputed",
         },
-        "neighbours": {
+        "neighbourhoods": {
             "input_data": "neighbourhoods_mview",
             "fitter": "bfs",
             "fitter.ngetter": "lookup",

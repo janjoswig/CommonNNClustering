@@ -12,13 +12,11 @@ cdef extern from "<algorithm>" namespace "std":
 
 
 ctypedef fused INPUT_DATA:
-    InputDataExtInterface
     InputDataExtComponentsMemoryview
     InputDataExtNeighbourhoodsMemoryview
     object
 
 ctypedef fused INPUT_DATA_EXT:
-    InputDataExtInterface
     InputDataExtComponentsMemoryview
     InputDataExtNeighbourhoodsMemoryview
 
@@ -37,7 +35,6 @@ ctypedef fused INPUT_DATA_EXT_NEIGHBOURHOODS:
     InputDataExtNeighbourhoodsMemoryview
 
 ctypedef fused NEIGHBOURS:
-    NeighboursExtInterface
     NeighboursExtVector
     NeighboursExtVectorCPPUnorderedSet
     NeighboursExtCPPSet
@@ -45,14 +42,12 @@ ctypedef fused NEIGHBOURS:
     object
 
 ctypedef fused NEIGHBOURS_EXT:
-    NeighboursExtInterface
     NeighboursExtVector
     NeighboursExtVectorCPPUnorderedSet
     NeighboursExtCPPSet
     NeighboursExtCPPUnorderedSet
 
 ctypedef fused NEIGHBOUR_NEIGHBOURS:
-    NeighboursExtInterface
     NeighboursExtVector
     NeighboursExtVectorCPPUnorderedSet
     NeighboursExtCPPSet
@@ -60,36 +55,30 @@ ctypedef fused NEIGHBOUR_NEIGHBOURS:
     object
 
 ctypedef fused NEIGHBOUR_NEIGHBOURS_EXT:
-    NeighboursExtInterface
     NeighboursExtVector
     NeighboursExtVectorCPPUnorderedSet
     NeighboursExtCPPSet
     NeighboursExtCPPUnorderedSet
 
 ctypedef fused NEIGHBOURS_GETTER:
-    NeighboursGetterExtInterface
     NeighboursGetterExtBruteForce
     NeighboursGetterExtLookup
     object
 
 ctypedef fused NEIGHBOURS_GETTER_EXT:
-    NeighboursGetterExtInterface
     NeighboursGetterExtBruteForce
     NeighboursGetterExtLookup
 
 ctypedef fused DISTANCE_GETTER:
-    DistanceGetterExtInterface
     DistanceGetterExtMetric
     DistanceGetterExtLookup
     object
 
 ctypedef fused DISTANCE_GETTER_EXT:
-    DistanceGetterExtInterface
     DistanceGetterExtMetric
     DistanceGetterExtLookup
 
 ctypedef fused METRIC:
-    MetricExtInterface
     MetricExtDummy
     MetricExtPrecomputed
     MetricExtEuclidean
@@ -98,7 +87,6 @@ ctypedef fused METRIC:
     object
 
 ctypedef fused METRIC_EXT:
-    MetricExtInterface
     MetricExtDummy
     MetricExtPrecomputed
     MetricExtEuclidean
@@ -107,26 +95,22 @@ ctypedef fused METRIC_EXT:
 
 
 ctypedef fused SIMILARITY_CHECKER:
-    SimilarityCheckerExtInterface
     SimilarityCheckerExtContains
     SimilarityCheckerExtSwitchContains
     SimilarityCheckerExtScreensorted
     object
 
 ctypedef fused SIMILARITY_CHECKER_EXT:
-    SimilarityCheckerExtInterface
     SimilarityCheckerExtContains
     SimilarityCheckerExtSwitchContains
     SimilarityCheckerExtScreensorted
 
 ctypedef fused QUEUE:
-    QueueExtInterface
     QueueExtLIFOVector
     QueueExtFIFOQueue
     object
 
 ctypedef fused QUEUE_EXT:
-    QueueExtInterface
     QueueExtLIFOVector
     QueueExtFIFOQueue
 
@@ -321,7 +305,7 @@ cdef class NeighboursExtVectorCPPUnorderedSet(NeighboursExtInterface):
 
 cdef class NeighboursGetterExtBruteForce(NeighboursGetterExtInterface):
 
-    cdef:
+    cdef public:
         DistanceGetterExtInterface _distance_getter
 
     cdef void _get(
@@ -359,7 +343,7 @@ cdef class NeighboursGetterExtLookup(NeighboursGetterExtInterface):
 
 
 cdef class DistanceGetterExtMetric(DistanceGetterExtInterface):
-    cdef:
+    cdef public:
         MetricExtInterface _metric
 
     cdef AVALUE _get_single(

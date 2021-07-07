@@ -93,6 +93,16 @@ class FitterBFS(Fitter):
 
         return f"{type(self).__name__}({attr_str})"
 
+    @classmethod
+    def get_builder_kwargs(cls):
+        return [
+            ("neighbours_getter", None),
+            ("neighbours", None),
+            ("neighbour_neighbours","neighbours"),
+            ("similarity_checker", None),
+            ("queue", None),
+            ]
+
     def fit(
             self,
             object input_data,
@@ -379,6 +389,16 @@ cdef class FitterExtBFSDebug:
         ])
 
         return f"{type(self).__name__}({attr_str})"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return [
+            ("neighbours_getter", None),
+            ("neighbours", None),
+            ("neighbour_neighbours","neighbours"),
+            ("similarity_checker", None),
+            ("queue", None),
+            ]
 
     def _fit(
             self,

@@ -46,7 +46,8 @@ Please refer to the following papers for the scientific background (and consider
 Documentation
 -------------
 
-The package documentation (under developement) is available [here](https://janjoswig.github.io/CommonNNClustering/).
+The package documentation (under developement) is available [here](https://janjoswig.github.io/CommonNNClustering/) online or under `docs/index.html`.
+The sources for the documentation can be found under `docsrc/`.
 
 Install
 -------
@@ -69,7 +70,7 @@ Quickstart
 ----------
 
 ```python
->>> from cnnclustering.cluster import prepare_clustering
+>>> from cnnclustering import cluster
 
 >>> # 2D data points (list of lists, 12 points in 2 dimensions)
 >>> data_points = [   # point index
@@ -87,7 +88,7 @@ Quickstart
 ...     [5.5, -1.5],  # 11
 ...     ]
 
->>> clustering = prepare_clustering(data_points)
+>>> clustering = cluster.Clustering(data_points)
 >>> clustering.fit(radius_cutoff=1.5, cnn_cutoff=1, v=False)
 >>> clustering.labels
 array([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])

@@ -1566,7 +1566,7 @@ cdef class NeighboursGetterExtLookup(NeighboursGetterExtInterface):
 class NeighboursGetterRecomputeLookup(NeighboursGetter):
     """Implements the neighbours getter interface"""
 
-    def __init__(self, is_sorted=False, is_selfcounting=False):
+    def __init__(self, is_sorted=False, is_selfcounting=True):
         self._is_sorted = is_sorted
         self._is_selfcounting = is_selfcounting
 
