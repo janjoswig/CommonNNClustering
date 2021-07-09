@@ -11,7 +11,9 @@ COMPONENT_ALT_KW_MAP = {
     "na": "neighbours",
     "nb": "neighbour_neighbours",
     "getter": "neighbours_getter",
+    "ogetter": "neighbours_getter_other",
     "ngetter": "neighbours_getter",
+    "ongetter": "neighbours_getter_other",
     "dgetter": "distance_getter",
     "checker": "similarity_checker",
     "q": "queue",
@@ -19,6 +21,7 @@ COMPONENT_ALT_KW_MAP = {
 
 COMPONENT_KW_TYPE_ALIAS_MAP = {
     "neighbour_neighbours": "neighbours",
+    "neighbour_getter_other": "neighbours_getter",
 }
 
 
@@ -63,7 +66,7 @@ COMPONENT_NAME_TYPE_MAP = {
 
 def get_registered_recipe(key):
     registered_recipes = {
-        "None": {},
+        "none": {},
         "points": {
             "input_data": "components_mview",
             "fitter": "bfs",
@@ -95,14 +98,14 @@ def get_registered_recipe(key):
         "sorted_neighbourhoods": {
             "input_data": "neighbourhoods_mview",
             "fitter": "bfs",
-            "fitter.ngetter": "lookup",
+            "fitter.ngetter": ("lookup", (), {"is_sorted": True}),
             "fitter.na": "vector",
             "fitter.checker": "screen",
             "fitter.queue": "fifo",
         }
     }
 
-    return registered_recipes[key]
+    return registered_recipes[key.lower()]
 
 
 def prepare_pass(data):

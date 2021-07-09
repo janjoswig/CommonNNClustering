@@ -3,7 +3,7 @@ from collections import Counter
 import numpy as np
 import pytest
 
-from cnnclustering import cluster
+from cnnclustering import cluster, hooks
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE
 from cnnclustering import _types
 from cnnclustering import _fit
@@ -16,17 +16,12 @@ class TestClustering:
 
     def test_fit_fully_mocked(self, mocker):
         input_data = mocker.Mock(_types.InputData)
-        neighbours = mocker.Mock(_types.Neighbours)
-        similarity_checker = mocker.Mock(_types.SimilarityChecker)
         fitter = mocker.Mock(_fit.Fitter)
 
         type(input_data).n_points = mocker.PropertyMock(return_value=5)
 
         clustering = cluster.Clustering(
             input_data=input_data,
-            neighbours=neighbours,
-            neighbour_neighbours=neighbours,
-            similarity_checker=similarity_checker,
             fitter=fitter,
         )
         clustering.fit(radius_cutoff=1.0, cnn_cutoff=1)
@@ -35,8 +30,6 @@ class TestClustering:
 
     def test_predict_fully_mocked(self, mocker):
         input_data = mocker.Mock(_types.InputData)
-        neighbours = mocker.Mock(_types.Neighbours)
-        similarity_checker = mocker.Mock(_types.SimilarityChecker)
         predictor = mocker.Mock(_fit.Predictor)
         labels = mocker.Mock(_types.Labels)
 
@@ -50,9 +43,6 @@ class TestClustering:
 
         other_clustering = cluster.Clustering(
             input_data=input_data,
-            neighbours=neighbours,
-            neighbour_neighbours=neighbours,
-            similarity_checker=similarity_checker,
         )
 
         clustering.predict(
@@ -215,7 +205,7 @@ class TestPreparationHooks:
     )
     def test_prepare_points_from_parts(
             self, data, expected_data, expected_meta):
-        data_args, data_kwargs = cluster.prepare_points_from_parts(data)
+        data_args, data_kwargs = hooks.prepare_points_from_parts(data)
         reformatted_data = data_args[0]
         np.testing.assert_array_equal(
             expected_data,

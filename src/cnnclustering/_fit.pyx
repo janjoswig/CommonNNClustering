@@ -561,21 +561,45 @@ cdef class FitterExtBFSDebug:
 
 class PredictorFirstmatch(Predictor):
 
+    def __init__(
+            self,
+            neighbours_getter: Type["NeighboursGetter"],
+            neighbours_getter_other: Type["NeighboursGetter"],
+            neighbours: Type["Neighbours"],
+            neighbour_neighbours: Type["Neighbours"],
+            similarity_checker: Type["SimilarityChecker"]):
+        self._neighbours_getter = neighbours_getter
+        self._neighbours_getter_other = neighbours_getter_other
+        self._neighbours = neighbours
+        self._neighbour_neighbours = neighbour_neighbours
+        self._similarity_checker = similarity_checker
+
     def __str__(self):
-        return f"{type(self).__name__}()"
+
+        attr_str = ", ".join([
+            f"ngetter={self._neighbours_getter}",
+            f"ngetter_other={self._neighbours_getter_other}",
+            f"na={self._neighbours}",
+            f"nb={self._neighbour_neighbours}",
+            f"checker={self._similarity_checker}",
+        ])
+
+        return f"{type(self).__name__}({attr_str})"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return [
+            ("neighbours_getter", None),
+            ("neighbours_getter_other", "neighbours_getter"),
+            ("neighbours", None),
+            ("neighbour_neighbours","neighbours"),
+            ("similarity_checker", None),
+            ]
 
     def predict(
             self,
             object input_data,
             object predictand_input_data,
-            object neighbours_getter,
-            object predictand_neighbours_getter,
-            object distance_getter,
-            object predictand_distance_getter,
-            object neighbours,
-            object neighbour_neighbours,
-            object metric,
-            object similarity_checker,
             Labels labels,
             Labels predictand_labels,
             ClusterParameters cluster_params):
@@ -595,43 +619,38 @@ class PredictorFirstmatch(Predictor):
             if _consider[point] == 0:
                 continue
 
-            predictand_neighbours_getter.get_other(
+            self._neighbours_getter_other.get_other(
                 point,
                 input_data,
                 predictand_input_data,
-                neighbours,
-                predictand_distance_getter,
-                metric,
+                self._neighbours,
                 cluster_params
             )
 
-            if not neighbours.enough(n_member_cutoff):
+            if not self._neighbours.enough(n_member_cutoff):
                 continue
 
-            m = neighbours.n_points
-
+            m = self._neighbours.n_points
             for member_index in range(m):
-                member = neighbours.get_member(member_index)
+                member = self._neighbours.get_member(member_index)
                 label = _labels[member]
 
                 if _consider_set.find(label) == _consider_set.end():
                     continue
 
-                neighbours_getter.get(
+                self._neighbours_getter.get(
                     member,
                     input_data,
-                    neighbour_neighbours,
-                    distance_getter,
-                    metric,
+                    self._neighbour_neighbours,
                     cluster_params
                     )
 
-                if not neighbour_neighbours.enough(n_member_cutoff):
+                if not self._neighbour_neighbours.enough(n_member_cutoff):
                     continue
 
-                if similarity_checker.check(
-                        neighbours,
-                        neighbour_neighbours,
+                if self._similarity_checker.check(
+                        self._neighbours,
+                        self._neighbour_neighbours,
                         cluster_params):
                     _consider[point] = 0
                     _predictand_labels[point] = label

@@ -93,6 +93,7 @@ class Clustering:
             ("input_data", None),
             ("fitter", None),
             ("predictor", None),
+            ("labels", None),
             ]
 
     def __init__(
@@ -813,13 +814,6 @@ class Clustering:
             _, execution_time = timed(self._predictor.predict)(
                 self._input_data,
                 other._input_data,
-                other._neighbours_getter,
-                self._distance_getter,
-                other._distance_getter,
-                other._neighbours,
-                other._neighbour_neighbours,
-                other._metric,
-                other._similarity_checker,
                 self._labels,
                 other._labels,
                 cluster_params
@@ -828,13 +822,6 @@ class Clustering:
             self._predictor.predict(
                 self._input_data,
                 other._input_data,
-                other._neighbours_getter,
-                self._distance_getter,
-                other._distance_getter,
-                other._neighbours,
-                other._neighbour_neighbours,
-                other._metric,
-                other._similarity_checker,
                 self._labels,
                 other._labels,
                 cluster_params
@@ -1380,7 +1367,12 @@ class ClusteringBuilder:
             preparation_hook=None,
             registered_recipe_key=None,
             clustering_type=None,
+            alias=None,
+            parent=None,
             **recipe):
+
+        self.alias = alias
+        self.parent = parent
 
         if registered_recipe_key is None:
             registered_recipe_key = self._default_recipe_key
@@ -1463,13 +1455,14 @@ class ClusteringBuilder:
 
                 kwargs.update(self.data_kwargs)
 
-            for component_kw, alternative in (
-                    component_type.get_builder_kwargs()):
-                component = make_component(
-                    component_kw, alternative, prev_kw=full_kw.split(".")
-                )
-                if component is not object:
-                    kwargs[component_kw] = component
+            if hasattr(component_type, "get_builder_kwargs"):
+                for component_kw, alternative in (
+                        component_type.get_builder_kwargs()):
+                    component = make_component(
+                        component_kw, alternative, prev_kw=full_kw.split(".")
+                    )
+                    if component is not object:
+                        kwargs[component_kw] = component
 
             return component_type(
                 *args, **kwargs
@@ -1490,7 +1483,11 @@ class ClusteringBuilder:
     def build(self):
         """Initialise clustering with data and components"""
 
-        return self._clustering(**self.aggregate_components())
+        return self._clustering(
+            alias=self.alias,
+            parent=self.parent,
+            **self.aggregate_components()
+            )
 
 
 class Record:

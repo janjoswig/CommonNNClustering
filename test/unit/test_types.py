@@ -224,7 +224,7 @@ class TestNeighboursGetter:
         neighbours = NeighboursList()
         neighbours_getter = NeighboursGetterLookup()
         cluster_params = ClusterParameters(
-            radius_cutoff=0, cnn_cutoff=0
+            radius_cutoff=0, similarity_cutoff=0
             )
 
         neighbours_getter.get(0, input_data, neighbours, cluster_params)

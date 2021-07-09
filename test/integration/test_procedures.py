@@ -9,36 +9,9 @@ try:
 except ModuleNotFoundError:
     SKLEARN_FOUND = False
 
-from cnnclustering import cluster
+from cnnclustering import cluster, hooks
 from cnnclustering._primitive_types import P_AVALUE
-from cnnclustering._types import (
-    Labels,
-    InputDataNeighbourhoodsSequence,
-    InputDataExtComponentsMemoryview,
-    NeighboursGetterBruteForce,
-    NeighboursGetterLookup,
-    NeighboursGetterExtBruteForce,
-    DistanceGetterMetric,
-    DistanceGetterLookup,
-    DistanceGetterExtMetric,
-    DistanceGetterExtLookup,
-    NeighboursList,
-    NeighboursSet,
-    NeighboursExtVector,
-    MetricDummy,
-    MetricPrecomputed,
-    MetricEuclidean,
-    MetricExtDummy,
-    MetricExtPrecomputed,
-    MetricExtEuclidean,
-    MetricExtEuclideanPeriodicReduced,
-    SimilarityCheckerContains,
-    SimilarityCheckerExtContains,
-    QueueFIFODeque,
-    QueueExtFIFOQueue,
-)
-from cnnclustering._fit import FitterExtBFS, FitterBFS
-from cnnclustering._fit import PredictorFirstmatch
+from cnnclustering import _types, _fit
 
 
 pytestmark = pytest.mark.sklearn
@@ -103,71 +76,51 @@ def no_convert_other(points, other_points, r, c):
 
 @pytest.mark.parametrize(
     (
-        "components,converter"
+        "recipe,converter"
     ),
     [
         (
-            (
-                ("input_data", InputDataNeighbourhoodsSequence, (), {}),
-                (
-                    "neighbours_getter", NeighboursGetterLookup,
+            {
+                "input_data": _types.InputDataNeighbourhoodsSequence,
+                "fitter.getter": (
+                    _types.NeighboursGetterLookup,
                     (), {"is_selfcounting": True}
                 ),
-                ("distance_getter", DistanceGetterMetric, (), {}),
-                ("neighbours", NeighboursList, (), {}),
-                ("neighbour_neighbours", NeighboursList, (), {}),
-                ("metric", MetricDummy, (), {}),
-                ("similarity_checker", SimilarityCheckerContains, (), {}),
-                ("queue", QueueFIFODeque, (), {}),
-                ("fitter", FitterBFS, (), {}),
-            ),
+                "fiiter.na": _types.NeighboursList,
+                "fitter.checker": _types.SimilarityCheckerContains,
+                "queue": _types.QueueFIFODeque,
+                "fitter": _fit.FitterBFS,
+            },
             convert_points_to_neighbours_array_array
         ),
         pytest.param(
-            (
-                ("input_data", InputDataExtComponentsMemoryview, (), {}),
-                ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
-                ("distance_getter", DistanceGetterExtMetric, (), {}),
-                ("neighbours", NeighboursExtVector, (250,), {}),
-                ("neighbour_neighbours", NeighboursExtVector, (250,), {}),
-                ("metric", MetricExtPrecomputed, (), {}),
-                ("similarity_checker", SimilarityCheckerExtContains, (), {}),
-                ("queue", QueueExtFIFOQueue, (), {}),
-                ("fitter", FitterExtBFS, (), {}),
-            ),
+            {
+                "input_data": _types.InputDataExtComponentsMemoryview,
+                "fitter.getter": _types.NeighboursGetterExtBruteForce,
+                "fiiter.na": _types.NeighboursExtVector,
+                "fitter.checker": _types.SimilarityCheckerExtContains,
+                "fitter.getter.dgetter": _types.DistanceGetterExtMetric,
+                "fitter.getter.dgetter.metric": _types.MetricExtPrecomputed,
+                "queue": _types.QueueExtFIFOQueue,
+                "fitter": _fit.FitterExtBFS,
+            },
             convert_points_to_distances_array2d,
             marks=[pytest.mark.heavy]
         ),
         pytest.param(
-            (
-                ("input_data", InputDataExtComponentsMemoryview, (), {}),
-                ("neighbours_getter", NeighboursGetterBruteForce, (), {}),
-                ("distance_getter", DistanceGetterMetric, (), {}),
-                ("neighbours", NeighboursExtVector, (500,), {}),
-                ("neighbour_neighbours", NeighboursExtVector, (500,), {}),
-                ("metric", MetricEuclidean, (), {}),
-                ("similarity_checker", SimilarityCheckerContains, (), {}),
-                ("queue", QueueFIFODeque, (), {}),
-                ("fitter", FitterBFS, (), {}),
-            ),
+            {
+                "input_data": _types.InputDataExtComponentsMemoryview,
+                "fitter.getter": _types.NeighboursGetterExtBruteForce,
+                "fiiter.na": _types.NeighboursExtVector,
+                "fitter.checker": _types.SimilarityCheckerExtContains,
+                "fitter.getter.dgetter": _types.DistanceGetterExtMetric,
+                "fitter.getter.dgetter.metric": _types.MetricExtEuclidean,
+                "queue": _types.QueueExtFIFOQueue,
+                "fitter": _fit.FitterExtBFS,
+            },
             no_convert,
             marks=[pytest.mark.heavy]
-        ),
-        pytest.param(
-            (
-                ("input_data", InputDataExtComponentsMemoryview, (), {}),
-                ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
-                ("distance_getter", DistanceGetterExtMetric, (), {}),
-                ("neighbours", NeighboursExtVector, (500,), {}),
-                ("neighbour_neighbours", NeighboursExtVector, (500,), {}),
-                ("metric", MetricExtEuclidean, (), {}),
-                ("similarity_checker", SimilarityCheckerExtContains, (), {}),
-                ("queue", QueueExtFIFOQueue, (), {}),
-                ("fitter", FitterExtBFS, (), {}),
-            ),
-            no_convert,
-            marks=[pytest.mark.heavy]
-        ),
+        )
     ]
 )
 @pytest.mark.parametrize(
@@ -187,7 +140,7 @@ def no_convert_other(points, other_points, r, c):
 )
 def test_fit_toy_data_with_reference(
         n_samples, gen_func, gen_kwargs, toy_data_points, converter,
-        r, c, fit_kwargs, max_diff, components):
+        r, c, fit_kwargs, max_diff, recipe):
 
     if not SKLEARN_FOUND:
         pytest.skip("Test function requires scikit-learn.")
@@ -195,19 +148,9 @@ def test_fit_toy_data_with_reference(
     points, reference_labels = toy_data_points
     points = converter(points, r, c)
 
-    prepared_components = {}
-    for component_kw, component_type, args, kwargs in components:
-        if component_kw == "input_data":
-            args = (points, *args)
-
-        if component_type is not None:
-            prepared_components[component_kw] = component_type(
-                *args, **kwargs
-            )
-
-    clustering = cluster.Clustering(
-        **prepared_components
-    )
+    builder = cluster.ClusteringBuilder(
+        points, preparation_hook=hooks.prepare_pass, **recipe)
+    clustering = builder.build()
 
     clustering.fit(r, c, **fit_kwargs)
 
@@ -238,11 +181,15 @@ def test_fit_evaluate_regression(datadir, image_regression):
 
     mpl.use("agg")
     data = np.load(datadir / "backbone_dihedrals.npy")
-    clustering = cluster.prepare_clustering(data)
-
-    clustering._metric = MetricExtEuclideanPeriodicReduced(
-        np.array([360, 360], dtype=float)
+    _metric = (
+        _types.MetricExtEuclideanPeriodicReduced,
+        (np.array([360, 360], dtype=float),), {}
     )
+    builder = cluster.ClusteringBuilder(
+        data,
+        fitter__getter__dgetter__metric=_metric
+        )
+    clustering = builder.build()
 
     fig, *_ = clustering.evaluate()
     fig.tight_layout()
@@ -272,52 +219,25 @@ def test_fit_evaluate_regression(datadir, image_regression):
 
 @pytest.mark.parametrize(
     (
-        "components,other_components,converter"
+        "recipe,other_recipe,converter"
     ),
     [
         pytest.param(
-            (
-                ("input_data", InputDataNeighbourhoodsSequence, (), {}),
-                (
-                    "neighbours_getter", NeighboursGetterLookup,
+            {
+                "input_data": _types.InputDataNeighbourhoodsSequence,
+                "predictor.na": _types.NeighboursList,
+                "predictor.getter": (
+                    _types.NeighboursGetterLookup,
                     (), {"is_selfcounting": True}
                 ),
-                ("distance_getter", DistanceGetterMetric, (), {}),
-                ("predictor", PredictorFirstmatch, (), {})
-            ),
-            (
-                ("input_data", InputDataNeighbourhoodsSequence, (), {}),
-                (
-                    "neighbours_getter", NeighboursGetterLookup,
-                    (), {"is_selfcounting": True}
-                ),
-                ("distance_getter", DistanceGetterMetric, (), {}),
-                ("neighbours", NeighboursList, (), {}),
-                ("neighbour_neighbours", NeighboursList, (), {}),
-                ("metric", MetricDummy, (), {}),
-                ("similarity_checker", SimilarityCheckerContains, (), {}),
-            ),
+                "predictor.checker": _types.SimilarityCheckerContains,
+                "predictor": _fit.PredictorFirstmatch
+            },
+            {
+                "input_data": _types.InputDataNeighbourhoodsSequence,
+            },
             convert_points_to_neighbours_array_array_other,
         ),
-        pytest.param(
-            (
-                ("input_data", InputDataExtComponentsMemoryview, (), {}),
-                ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
-                ("distance_getter", DistanceGetterExtMetric, (), {}),
-                ("predictor", PredictorFirstmatch, (), {})
-            ),
-            (
-                ("input_data", InputDataExtComponentsMemoryview, (), {}),
-                ("neighbours_getter", NeighboursGetterExtBruteForce, (), {}),
-                ("distance_getter", DistanceGetterExtMetric, (), {}),
-                ("neighbours", NeighboursExtVector, (500,), {}),
-                ("neighbour_neighbours", NeighboursExtVector, (500,), {}),
-                ("metric", MetricExtEuclidean, (), {}),
-                ("similarity_checker", SimilarityCheckerExtContains, (), {}),
-            ),
-            no_convert_other,
-            marks=[pytest.mark.heavy]
-        )
     ]
 )
 @pytest.mark.parametrize(
@@ -326,7 +246,7 @@ def test_fit_evaluate_regression(datadir, image_regression):
 )
 def test_predict_for_toy_data_from_reference(
         n_samples, gen_func, gen_kwargs, toy_data_points, stride, converter,
-        r, c, components, other_components):
+        r, c, recipe, other_recipe):
 
     if not SKLEARN_FOUND:
         pytest.skip("Test function requires scikit-learn.")
@@ -337,38 +257,22 @@ def test_predict_for_toy_data_from_reference(
 
     points, other_points = converter(points, other_points, r, c)
 
-    print(components)
-
-    prepared_components = {}
-    for component_kw, component_type, args, kwargs in components:
-        if component_kw == "input_data":
-            args = (points, *args)
-
-        if component_type is not None:
-            prepared_components[component_kw] = component_type(
-                *args, **kwargs
-            )
-    prepared_components["labels"] = Labels.from_sequence(reference_labels)
-
-    print(prepared_components)
-
-    other_prepared_components = {}
-    for component_kw, component_type, args, kwargs in other_components:
-        if component_kw == "input_data":
-            args = (other_points, *args)
-
-        if component_type is not None:
-            other_prepared_components[component_kw] = component_type(
-                *args, **kwargs
-            )
-
-    clustering = cluster.Clustering(
-        **prepared_components
-    )
-
-    other_clustering = cluster.Clustering(
-        **other_prepared_components
+    builder = cluster.ClusteringBuilder(
+        points,
+        preparation_hook=hooks.prepare_pass,
+        registered_recipe_key="None",
+        labels=(_types.Labels.from_sequence, (reference_labels,), {}),
+        **recipe
         )
+    clustering = builder.build()
+
+    builder = cluster.ClusteringBuilder(
+        other_points,
+        preparation_hook=hooks.prepare_pass,
+        registered_recipe_key="None",
+        **other_recipe
+        )
+    other_clustering = builder.build()
 
     clustering.predict(other_clustering, r, c)
 

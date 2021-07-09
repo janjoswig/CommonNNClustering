@@ -69,7 +69,7 @@ class TestSimilarityChecker:
         for member in members_b:
             neighbours_b.assign(member)
 
-        cluster_params = ClusterParameters(radius_cutoff=0.0, cnn_cutoff=c)
+        cluster_params = ClusterParameters(radius_cutoff=0.0, similarity_cutoff=c)
 
         checker = checker_type()
         passed = checker.check(neighbours_a, neighbours_b, cluster_params)
