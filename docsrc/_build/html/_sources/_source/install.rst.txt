@@ -17,6 +17,7 @@ packages is installed as well:
 
    * :mod:`matplotlib`
    * :mod:`pandas`
+   * :mod:`networkx`
    * :mod:`scipy`
    * :mod:`sklearn`
 

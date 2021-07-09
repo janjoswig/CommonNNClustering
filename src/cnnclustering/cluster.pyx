@@ -42,15 +42,16 @@ from libcpp.vector cimport vector as cppvector
 
 
 class Clustering:
-    """Represents a clustering endeavour
+    r"""Represents a clustering endeavour
 
     A clustering object is made by aggregation of all necessary parts to
     carry out a clustering of input data points.
 
     Note:
-        A clustering instance may also be created using the convenience
-        function
-        :func:`cnnclustering.cluster.prepare_clustering`
+        A clustering instance may also be created using the clustering
+        builder
+        :func:`cnnclustering.cluster.ClusteringBuilder`, e.g. as
+        `clustering = ClusteringBuilder(data).build()`.
 
     Args:
         input_data: Any object implementing the input data interface.
@@ -67,20 +68,6 @@ class Clustering:
             clustering.
         parent: If not None, an instance of :obj:`cnnclustering.cluster.Clustering`
             of which this clustering is a child of.
-
-    Attributes:
-        input_data: A representation of the input data, typically a
-            (list of) NumPy array(s). Shorthand for
-            :obj:`self._input_data.data
-        hierarchy_level: The level of this clustering in the hierarchical
-            tree of clusterings (0 for the root instance).
-        labels: Direct access to :obj:`cnnclustering._types.Labels.labels`
-            holding
-            cluster label assignments for points in `input_data`.
-        children: A dictionary with child cluster labels as keys and
-            :obj:`cnnclustering.cluster.Clustering` instances as values.
-        summary: An instance of :obj:`cnnclustering.cluster.Summary`
-            collecting clustering results.
     """
 
     take_over_attrs = [
@@ -144,6 +131,10 @@ class Clustering:
 
     @property
     def labels(self):
+        """
+        Direct access to :obj:`cnnclustering._types.Labels.labels`
+        holding cluster label assignments for points in `input_data`.
+        """
         if self._labels is not None:
             return self._labels.labels
         return None
@@ -156,10 +147,19 @@ class Clustering:
 
     @property
     def children(self):
+        """
+        Return a mapping of child cluster labels to
+        :obj:`cnnclustering.cluster.Clustering` instances representing
+        the children of this clustering.
+        """
         return self._children
 
     @property
     def hierarchy_level(self):
+        """
+        The level of this clustering in the hierarchical
+        tree of clusterings (0 for the root instance).
+        """
         return self._hierarchy_level
 
     @hierarchy_level.setter
@@ -168,6 +168,10 @@ class Clustering:
 
     @property
     def summary(self):
+        """
+        Return an instance of :obj:`cnnclustering.cluster.Summary`
+        collecting clustering results for this clustering.
+        """
         return self._summary
 
     def __str__(self):

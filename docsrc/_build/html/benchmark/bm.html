@@ -291,28 +291,31 @@ div.rendered_html tbody tr:hover {
 <h1>Benchmark clustering performance<a class="headerlink" href="#Benchmark-clustering-performance" title="Permalink to this headline">¶</a></h1>
 <p>Remember to compile <code class="docutils literal notranslate"><span class="pre">cnnclustering</span></code> with <code class="docutils literal notranslate"><span class="pre">TRACE_CYTHON=0</span></code> if timings should be measured. <code class="docutils literal notranslate"><span class="pre">TRACE_CYTHON=1</span></code> is required for line profiling and test coverage and will cause substantial overhead.</p>
 <h1><p>Table of Contents</p>
-</h1><div class="toc"><ul class="toc-item"><li><p>1  Function definitions</p>
+</h1><div class="toc"><ul class="toc-item"><li><p>1  Helper function definitions</p>
 <ul class="toc-item"><li><p>1.1  Benchmark helper</p>
 <ul class="toc-item"><li><p>1.1.1  Collect</p>
-</li><li><p>1.1.2  Initialisation</p>
-</li></ul></li><li><p>1.2  Timed functions</p>
-</li><li><p>1.3  Data set generation functions</p>
-</li><li><p>1.4  Data transformation</p>
-</li><li><p>1.5  Plotting</p>
+</li></ul></li><li><p>1.2  Plots</p>
+</li><li><p>1.3  Timed functions</p>
+</li><li><p>1.4  Data set generation functions</p>
 </li></ul></li><li><p>2  Runs</p>
 <ul class="toc-item"><li><p>2.1  Example</p>
 </li><li><p>2.2  CommonNN Clustering</p>
-<ul class="toc-item"><li><p>2.2.1  Run a</p>
+<ul class="toc-item"><li><p>2.2.1  Data set: no structure</p>
 </li><li><p>2.2.2  Run b</p>
 </li><li><p>2.2.3  Run c</p>
-</li><li><p>2.2.4  Run c b</p>
-</li><li><p>2.2.5  Run c c</p>
-</li><li><p>2.2.6  Run d</p>
-</li><li><p>2.2.7  Run d b</p>
-</li><li><p>2.2.8  Run d c</p>
-</li><li><p>2.2.9  Plots</p>
-</li></ul></li></ul></li></ul></div><div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[82]:
+</li><li><p>2.2.4  Run d a</p>
+</li><li><p>2.2.5  Run d b</p>
+</li><li><p>2.2.6  Run d c</p>
+</li><li><p>2.2.7  Run d d</p>
+</li><li><p>2.2.8  Run d e</p>
+</li><li><p>2.2.9  Run d f</p>
+</li></ul></li><li><p>2.3  CommonNN Clustering - complete</p>
+</li></ul></li><li><p>3  Scaling</p>
+</li><li><p>4  Plots</p>
+<ul class="toc-item"><li><p>4.1  Compare parameters for screen</p>
+</li><li><p>4.2  Compare input variations</p>
+</li></ul></li></ul></div><div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -325,23 +328,27 @@ div.rendered_html tbody tr:hover {
 <span class="kn">import</span> <span class="nn">timeit</span>
 
 <span class="kn">import</span> <span class="nn">cnnclustering</span>
-<span class="kn">from</span> <span class="nn">cnnclustering</span> <span class="kn">import</span> <span class="n">cluster</span>
+<span class="kn">from</span> <span class="nn">cnnclustering</span> <span class="kn">import</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">hooks</span>
 <span class="kn">from</span> <span class="nn">cnnclustering</span> <span class="kn">import</span> <span class="n">_fit</span><span class="p">,</span> <span class="n">_primitive_types</span><span class="p">,</span> <span class="n">_types</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">mpl_toolkits.axes_grid1.inset_locator</span> <span class="kn">import</span> <span class="n">zoomed_inset_axes</span><span class="p">,</span> <span class="n">mark_inset</span>
+<span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">DBSCAN</span>
 <span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">datasets</span>
 <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">pairwise_distances</span>
 <span class="kn">from</span> <span class="nn">sklearn.neighbors</span> <span class="kn">import</span> <span class="n">KDTree</span>
 <span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
 <span class="kn">from</span> <span class="nn">tqdm.notebook</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
-<span class="kn">import</span> <span class="nn">helper</span>
+<span class="kn">import</span> <span class="nn">cnnclustering_fit_cases</span> <span class="k">as</span> <span class="nn">cases</span>
+<span class="kn">import</span> <span class="nn">helper_base</span>
+<span class="kn">import</span> <span class="nn">helper_plot</span>
+<span class="kn">import</span> <span class="nn">helper_timeit</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -350,7 +357,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -367,7 +374,7 @@ div.rendered_html tbody tr:hover {
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -380,11 +387,11 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-cnnclustering :   0.3.11
+cnnclustering :   0.4.3
 </pre></div></div>
 </div>
-<div class="section" id="Function-definitions">
-<h2>Function definitions<a class="headerlink" href="#Function-definitions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Helper-function-definitions">
+<h2>Helper function definitions<a class="headerlink" href="#Helper-function-definitions" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="Benchmark-helper">
 <h3>Benchmark helper<a class="headerlink" href="#Benchmark-helper" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="Collect">
@@ -396,7 +403,8 @@ cnnclustering :   0.3.11
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="k">def</span> <span class="nf">collect_timings</span><span class="p">(</span>
         <span class="n">gen_func</span><span class="p">,</span> <span class="n">setup_func</span><span class="p">,</span> <span class="n">run_arguments_list</span><span class="p">,</span>
-        <span class="n">transform_func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">repeats</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="n">transform_func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">repeats</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">magic</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Orchestrate timings</span>
 
 <span class="sd">    Args:</span>
@@ -439,154 +447,153 @@ cnnclustering :   0.3.11
 
         <span class="n">timeit_results</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">repeats</span><span class="p">):</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">setup_args</span><span class="p">,</span> <span class="n">setup_kwargs</span> <span class="o">=</span> <span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;setup&quot;</span><span class="p">,</span> <span class="p">((),</span> <span class="p">{}))</span>
-                <span class="n">timed_func</span> <span class="o">=</span> <span class="n">setup_func</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">setup_args</span><span class="p">,</span> <span class="o">**</span><span class="n">setup_kwargs</span><span class="p">)</span>
+            <span class="n">setup_args</span><span class="p">,</span> <span class="n">setup_kwargs</span> <span class="o">=</span> <span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;setup&quot;</span><span class="p">,</span> <span class="p">((),</span> <span class="p">{}))</span>
+            <span class="n">timed_func</span> <span class="o">=</span> <span class="n">setup_func</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">setup_args</span><span class="p">,</span> <span class="o">**</span><span class="n">setup_kwargs</span><span class="p">)</span>
 
-                <span class="n">timed_args</span><span class="p">,</span> <span class="n">timed_kwargs</span> <span class="o">=</span> <span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;timed&quot;</span><span class="p">,</span> <span class="p">((),</span> <span class="p">{}))</span>
+            <span class="n">timed_args</span><span class="p">,</span> <span class="n">timed_kwargs</span> <span class="o">=</span> <span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;timed&quot;</span><span class="p">,</span> <span class="p">((),</span> <span class="p">{}))</span>
+            <span class="k">if</span> <span class="n">magic</span><span class="p">:</span>
                 <span class="n">o</span> <span class="o">=</span> <span class="o">%</span><span class="k">timeit</span> -n 1 -r 1 -q -o timed_func(*timed_args, **timed_kwargs)
-            <span class="k">except</span> <span class="ne">MemoryError</span><span class="p">:</span>
-                <span class="n">o</span> <span class="o">=</span> <span class="s2">&quot;MemoryError&quot;</span>
-                <span class="k">break</span>
-
-            <span class="k">finally</span><span class="p">:</span>
-                <span class="n">timeit_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">o</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span>
+                    <span class="s2">&quot;timed_func(*timed_args, **timed_kwargs)&quot;</span><span class="p">,</span>
+                    <span class="n">number</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="nb">globals</span><span class="o">=</span><span class="nb">globals</span><span class="p">()</span>
+                    <span class="p">)</span>
+            <span class="n">timeit_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
 
         <span class="n">run_id</span> <span class="o">=</span> <span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">run_index</span><span class="p">))</span>
         <span class="n">tqdm</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timed run ID: </span><span class="si">{</span><span class="n">run_id</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2">    (</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">.%m.%Y %H:%M:%S&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
-        <span class="n">timings</span><span class="p">[</span><span class="n">run_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">combine_timeit_results</span><span class="p">(</span><span class="o">*</span><span class="n">timeit_results</span><span class="p">)</span>
+        <span class="n">timings</span><span class="p">[</span><span class="n">run_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">helper_jupyter</span><span class="o">.</span><span class="n">combine_timeit_results</span><span class="p">(</span><span class="o">*</span><span class="n">timeit_results</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">timings</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="section" id="Initialisation">
-<h4>Initialisation<a class="headerlink" href="#Initialisation" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="Plots">
+<h3>Plots<a class="headerlink" href="#Plots" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">def</span> <span class="nf">make_maps</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Initialise benchmark setting/result mappings&quot;&quot;&quot;</span>
+<span></span><span class="k">def</span> <span class="nf">evaluate_timings</span><span class="p">(</span>
+        <span class="n">RUN_TIMINGS_MAP</span><span class="p">,</span> <span class="n">RUN_SCALING_MAP</span><span class="p">,</span> <span class="n">run_name_list</span><span class="p">,</span>
+        <span class="n">normal_ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">plot_props</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">legend_props</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
-    <span class="k">global</span> <span class="n">RUN_ARGUMENTS_MAP</span>
-    <span class="k">global</span> <span class="n">RUN_TIMINGS_MAP</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">normal_ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">log_ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">normal_ax</span><span class="p">,</span> <span class="n">log_ax</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">normal_ax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">normal_ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">log_ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>
 
-    <span class="k">if</span> <span class="s2">&quot;RUN_ARGUMENTS_MAP&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">():</span>
-        <span class="n">RUN_ARGUMENTS_MAP</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">plot_props</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plot_props</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="k">if</span> <span class="s2">&quot;RUN_TIMINGS_MAP&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">():</span>
-        <span class="n">RUN_TIMINGS_MAP</span> <span class="o">=</span> <span class="p">{}</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">def</span> <span class="nf">del_maps</span><span class="p">():</span>
-    <span class="o">%</span><span class="k">xdel</span> RUN_ARGUMENTS_MAP
-    <span class="o">%</span><span class="k">xdel</span> RUN_TIMINGS_MAP
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="section" id="Timed-functions">
-<h3>Timed functions<a class="headerlink" href="#Timed-functions" title="Permalink to this headline">¶</a></h3>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">def</span> <span class="nf">setup_sleep</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Dummy example&quot;&quot;&quot;</span>
+    <span class="n">default_legend_props</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;fancybox&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;framealpha&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;edgecolor&quot;</span><span class="p">:</span> <span class="s2">&quot;k&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;fontsize&quot;</span><span class="p">:</span> <span class="s2">&quot;xx-small&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
 
-    <span class="k">return</span> <span class="n">time</span><span class="o">.</span><span class="n">sleep</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">def</span> <span class="nf">setup_commonnn_clustering__fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">preparation_hook</span><span class="o">=</span><span class="n">cluster</span><span class="o">.</span><span class="n">prepare_pass</span><span class="p">,</span> <span class="n">recipe</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Prepare benchmark of :meth:`cnnclustering.cluster.Clustering._fit`&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">legend_props</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default_legend_props</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">legend_props</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">recipe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">recipe</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">fit_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">fit_legend_labels</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="n">clustering</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">prepare_clustering</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">preparation_hook</span><span class="p">,</span> <span class="o">**</span><span class="n">recipe</span><span class="p">)</span>
-    <span class="n">clustering</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="n">_types</span><span class="o">.</span><span class="n">Labels</span><span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">clustering</span><span class="o">.</span><span class="n">_input_data</span><span class="o">.</span><span class="n">n_points</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">_primitive_types</span><span class="o">.</span><span class="n">P_AINDEX</span><span class="p">)</span>
+    <span class="n">normal_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">log_lines</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">run_name_list</span><span class="p">:</span>
+
+        <span class="p">(</span><span class="n">newx</span><span class="p">,</span> <span class="n">fity</span><span class="p">),</span> <span class="n">b</span> <span class="o">=</span> <span class="n">RUN_SCALING_MAP</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">normal_ax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_line</span><span class="p">,</span> <span class="o">=</span> <span class="n">helper_plot</span><span class="o">.</span><span class="n">plot_timings</span><span class="p">(</span>
+                <span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
+                <span class="n">ax</span><span class="o">=</span><span class="n">normal_ax</span><span class="p">,</span>
+                <span class="n">id_to_x</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                <span class="n">sort_ids</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">set_ax_props</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">plot_props</span><span class="o">=</span><span class="n">plot_props</span>
+            <span class="p">)</span>
+            <span class="n">normal_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n_line</span><span class="p">)</span>
+            <span class="n">f_line</span><span class="p">,</span> <span class="o">=</span> <span class="n">normal_ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="n">newx</span><span class="p">,</span> <span class="n">fity</span><span class="p">,</span>
+                <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">n_line</span><span class="o">.</span><span class="n">get_color</span><span class="p">(),</span>
+                <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span>
+                <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span>
+            <span class="p">)</span>
+            <span class="n">fit_legend_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s1"> ($b = </span><span class="si">{</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1"> \pm </span><span class="si">{</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">$)&#39;</span><span class="p">)</span>
+            <span class="n">fit_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f_line</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">log_ax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">l_line</span><span class="p">,</span> <span class="o">=</span> <span class="n">helper_plot</span><span class="o">.</span><span class="n">plot_timings</span><span class="p">(</span>
+                <span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
+                <span class="n">ax</span><span class="o">=</span><span class="n">log_ax</span><span class="p">,</span>
+                <span class="n">id_to_x</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                <span class="n">sort_ids</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">set_ax_props</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">plot_props</span><span class="o">=</span><span class="n">plot_props</span>
+            <span class="p">)</span>
+            <span class="n">log_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l_line</span><span class="p">)</span>
+            <span class="n">fl_line</span><span class="p">,</span> <span class="o">=</span> <span class="n">log_ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="n">newx</span><span class="p">,</span> <span class="n">fity</span><span class="p">,</span>
+                <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">l_line</span><span class="o">.</span><span class="n">get_color</span><span class="p">(),</span>
+                <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span>
+                <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">normal_ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">fit_legend_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s1"> ($b = </span><span class="si">{</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1"> \pm </span><span class="si">{</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">$)&#39;</span><span class="p">)</span>
+                <span class="n">fit_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fl_line</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">normal_ax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">normal_ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="p">{</span>
+            <span class="s2">&quot;xlabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;ylabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;ylim&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">})</span>
+
+        <span class="k">if</span> <span class="n">log_ax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">normal_ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">tick_top</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">log_ax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">log_ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">**</span><span class="p">{</span>
+            <span class="s2">&quot;xlabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;ylabel&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;xscale&quot;</span><span class="p">:</span> <span class="s2">&quot;log&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;yscale&quot;</span><span class="p">:</span> <span class="s2">&quot;log&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ylim&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">})</span>
+
+    <span class="k">if</span> <span class="n">normal_ax</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">legend_ax</span> <span class="o">=</span> <span class="n">normal_ax</span>
+        <span class="n">legend_lines</span> <span class="o">=</span> <span class="n">normal_lines</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">legend_ax</span> <span class="o">=</span> <span class="n">log_ax</span>
+        <span class="n">legend_lines</span> <span class="o">=</span> <span class="n">log_lines</span>
+
+    <span class="n">legend</span> <span class="o">=</span> <span class="n">legend_ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
+        <span class="n">legend_lines</span><span class="p">,</span>
+        <span class="n">fit_legend_labels</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">default_legend_props</span>
         <span class="p">)</span>
+    <span class="n">legend</span><span class="o">.</span><span class="n">get_frame</span><span class="p">()</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">clustering</span><span class="o">.</span><span class="n">_fit</span>
+    <span class="k">return</span> <span class="n">fig</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">def</span> <span class="nf">setup_commonnn_clustering_fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">preparation_hook</span><span class="o">=</span><span class="n">cluster</span><span class="o">.</span><span class="n">prepare_pass</span><span class="p">,</span> <span class="n">recipe</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Prepare benchmark of :meth:`cnnclustering.cluster.Clustering.fit`&quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="n">recipe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">recipe</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="n">clustering</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">prepare_clustering</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">preparation_hook</span><span class="p">,</span> <span class="o">**</span><span class="n">recipe</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">clustering</span><span class="o">.</span><span class="n">fit</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="section" id="Data-set-generation-functions">
-<h3>Data set generation functions<a class="headerlink" href="#Data-set-generation-functions" title="Permalink to this headline">¶</a></h3>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">def</span> <span class="nf">gen_dummy</span><span class="p">():</span>
-    <span class="k">return</span> <span class="p">[]</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="section" id="Data-transformation">
-<h3>Data transformation<a class="headerlink" href="#Data-transformation" title="Permalink to this headline">¶</a></h3>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">def</span> <span class="nf">compute_neighbours</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-
-    <span class="n">tree</span> <span class="o">=</span> <span class="n">KDTree</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-    <span class="n">neighbourhoods</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query_radius</span><span class="p">(</span>
-        <span class="n">data</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="n">radius</span><span class="p">,</span> <span class="n">return_distance</span><span class="o">=</span><span class="kc">False</span>
-        <span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">sort</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">neighbourhoods</span><span class="p">:</span>
-            <span class="n">n</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-
-    <span class="k">return</span> <span class="n">neighbourhoods</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="section" id="Plotting">
-<h3>Plotting<a class="headerlink" href="#Plotting" title="Permalink to this headline">¶</a></h3>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -611,6 +618,69 @@ cnnclustering :   0.3.11
 </pre></div>
 </div>
 </div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">marker_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;o&quot;</span><span class="p">,</span> <span class="s2">&quot;v&quot;</span><span class="p">,</span> <span class="s2">&quot;^&quot;</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot;h&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="s2">&quot;8&quot;</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s2">&quot;o&quot;</span>
+
+<span class="p">]</span>
+<span class="n">color_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;396ab1&#39;</span><span class="p">,</span> <span class="s1">&#39;da7c30&#39;</span><span class="p">,</span> <span class="s1">&#39;3e9651&#39;</span><span class="p">,</span> <span class="s1">&#39;cc2529&#39;</span><span class="p">,</span> <span class="s1">&#39;535154&#39;</span><span class="p">,</span> <span class="s1">&#39;6b4c9a&#39;</span><span class="p">,</span> <span class="s1">&#39;922428&#39;</span><span class="p">,</span> <span class="s1">&#39;948b3d&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;7293cb&#39;</span><span class="p">,</span> <span class="s1">&#39;e1974c&#39;</span><span class="p">,</span> <span class="s1">&#39;84ba5b&#39;</span><span class="p">,</span> <span class="s1">&#39;d35e60&#39;</span><span class="p">,</span> <span class="s1">&#39;9067a7&#39;</span><span class="p">,</span> <span class="s1">&#39;ab6857&#39;</span><span class="p">,</span> <span class="s1">&#39;ccc210&#39;</span><span class="p">,</span> <span class="s1">&#39;808585&#39;</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Timed-functions">
+<h3>Timed functions<a class="headerlink" href="#Timed-functions" title="Permalink to this headline">¶</a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">def</span> <span class="nf">setup_sleep</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Dummy example&quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">time</span><span class="o">.</span><span class="n">sleep</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">def</span> <span class="nf">setup_dbscan_clustering_complete</span><span class="p">(</span>
+        <span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Prepare benchmark of :meth:`sklearn.cluster.DBSCAN`&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">fit_complete</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="n">clustering</span> <span class="o">=</span> <span class="n">DBSCAN</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">clustering</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fit_complete</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Data-set-generation-functions">
+<h3>Data set generation functions<a class="headerlink" href="#Data-set-generation-functions" title="Permalink to this headline">¶</a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">def</span> <span class="nf">gen_dummy</span><span class="p">():</span>
+    <span class="k">return</span> <span class="p">[]</span>
+</pre></div>
+</div>
+</div>
 </div>
 </div>
 <div class="section" id="Runs">
@@ -618,7 +688,7 @@ cnnclustering :   0.3.11
 <div class="section" id="Example">
 <h3>Example<a class="headerlink" href="#Example" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -658,7 +728,7 @@ cnnclustering :   0.3.11
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">()</span>
-<span class="n">print_ratios</span><span class="p">(</span><span class="n">get_ratios</span><span class="p">(</span><span class="n">sleep_timings</span><span class="p">))</span>
+<span class="n">helper</span><span class="o">.</span><span class="n">print_ratios</span><span class="p">(</span><span class="n">helper</span><span class="o">.</span><span class="n">get_ratios</span><span class="p">(</span><span class="n">sleep_timings</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -666,15 +736,15 @@ cnnclustering :   0.3.11
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"model_id": "210180cd645842b19c0962839774b41d", "version_major": 2, "version_minor": 0}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"model_id": "9d84cab9687b4af29c0a91b4c0c96490", "version_major": 2, "version_minor": 0}</script></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Timed run ID:          1    (06.05.2021 16:49:54)
-Timed run ID:          2    (06.05.2021 16:49:56)
+Timed run ID:          1    (07.07.2021 13:56:42)
+Timed run ID:          2    (07.07.2021 13:56:44)
 
     Run ID: Factor
 =======================
@@ -683,7 +753,7 @@ Timed run ID:          2    (06.05.2021 16:49:56)
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -692,37 +762,370 @@ Timed run ID:          2    (06.05.2021 16:49:56)
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{&#39;1&#39;: &lt;TimeitResult : 100 ms ± 2.42 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;2&#39;: &lt;TimeitResult : 200 ms ± 3.87 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;}
+{&#39;1&#39;: &lt;TimeitResult : 100 ms ± 12.1 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+ &#39;2&#39;: &lt;TimeitResult : 200 ms ± 7.37 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;}
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mf">1.618</span><span class="p">))</span>
-<span class="n">plot_timings</span><span class="p">(</span><span class="n">sleep_timings</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">id_to_x</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+<span class="n">helper</span><span class="o">.</span><span class="n">plot_timings</span><span class="p">(</span><span class="n">sleep_timings</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">id_to_x</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&lt;matplotlib.lines.Line2D at 0x7f776cdb3670&gt;]
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/benchmark_bm_28_0.png" src="../_images/benchmark_bm_28_0.png" />
+<img alt="../_images/benchmark_bm_24_1.png" src="../_images/benchmark_bm_24_1.png" />
 </div>
 </div>
 </div>
 <div class="section" id="CommonNN-Clustering">
 <h3>CommonNN Clustering<a class="headerlink" href="#CommonNN-Clustering" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">report_dir</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;reports/curta/cnnclustering_fit&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Clustering of a data sets with increasing number of points while dimensionality, cluster parameters, and cluster recipe are fixed:</p>
+<ul class="simple">
+<li><p>Default recipe:</p>
+<ul>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.25\)</span>, <span class="math notranslate nohighlight">\(c = 0\)</span> : (run_a_a)</p></li>
+</ul>
+</li>
+<li><p>Distance recipe:</p>
+<ul>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.25\)</span>, <span class="math notranslate nohighlight">\(c = 0\)</span> : (run_b_a)</p></li>
+</ul>
+</li>
+<li><p>Neighbours recipe:</p>
+<ul>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.25\)</span>, <span class="math notranslate nohighlight">\(c = 0\)</span> : (run_c_a)</p></li>
+</ul>
+</li>
+<li><p>Neighbours sorted recipe:</p>
+<ul>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.25\)</span>, <span class="math notranslate nohighlight">\(c = 0\)</span> : (run_d_a)</p></li>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.25\)</span>, <span class="math notranslate nohighlight">\(c = 50\)</span> : (run_d_b)</p></li>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.25\)</span>, <span class="math notranslate nohighlight">\(c = 100\)</span> : (run_d_c)</p></li>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.1\)</span>, <span class="math notranslate nohighlight">\(c = 0\)</span> : (run_d_d)</p></li>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.1\)</span>, <span class="math notranslate nohighlight">\(c = 50\)</span> : (run_d_e)</p></li>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.1\)</span>, <span class="math notranslate nohighlight">\(c = 100\)</span> : (run_d_f)</p></li>
+</ul>
+</li>
+</ul>
+<div class="section" id="Data-set:-no-structure">
+<h4>Data set: no structure<a class="headerlink" href="#Data-set:-no-structure" title="Permalink to this headline">¶</a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># The test data</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
+    <span class="o">*</span><span class="n">helper_base</span><span class="o">.</span><span class="n">gen_no_structure_points</span><span class="p">((</span><span class="mi">5000</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+    <span class="n">s</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;matplotlib.collections.PathCollection at 0x7f0294779940&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/benchmark_bm_29_1.png" src="../_images/benchmark_bm_29_1.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">if</span> <span class="s2">&quot;RUN_ARGUMENTS_MAP&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">():</span>
+    <span class="n">RUN_ARGUMENTS_MAP</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">if</span> <span class="s2">&quot;RUN_TIMINGS_MAP&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">():</span>
+    <span class="n">RUN_TIMINGS_MAP</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">if</span> <span class="s2">&quot;RUN_SCALING_MAP&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">():</span>
+    <span class="n">RUN_SCALING_MAP</span> <span class="o">=</span> <span class="p">{}</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">importlib</span>
+<span class="n">importlib</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">helper_timeit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;module &#39;helper_timeit&#39; from &#39;/home/janjoswig/repo/CommonNNClustering/docsrc/benchmark/helper_timeit.py&#39;&gt;
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">run_name_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s1">&#39;no_structure_run_a_a&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;no_structure_run_b_a&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;no_structure_run_c_a&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;no_structure_run_d_a&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;no_structure_run_d_a&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;no_structure_run_d_b&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;no_structure_run_d_c&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;no_structure_run_d_d&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;no_structure_run_d_e&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;no_structure_run_d_f&#39;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="k">for</span> <span class="n">run_name</span> <span class="ow">in</span> <span class="n">run_name_list</span><span class="p">:</span>
+    <span class="n">report_file</span> <span class="o">=</span> <span class="n">report_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">_raw.json&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">report_file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">continue</span>
+
+    <span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">helper_timeit</span><span class="o">.</span><span class="n">load_report</span><span class="p">(</span><span class="n">report_file</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">RUN_TIMINGS_MAP</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;no_structure_run_a_a&#39;: {&#39;500&#39;: &lt;TimeitResult : 7.61 ms ± 230 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;1000&#39;: &lt;TimeitResult : 29.9 ms ± 569 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;2000&#39;: &lt;TimeitResult : 119 ms ± 166 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;4000&#39;: &lt;TimeitResult : 481 ms ± 2.7 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;8000&#39;: &lt;TimeitResult : 1.93 s ± 6.27 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;16000&#39;: &lt;TimeitResult : 7.69 s ± 25.4 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;32000&#39;: &lt;TimeitResult : 30.7 s ± 36.7 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;64000&#39;: &lt;TimeitResult : 2min 4s ± 262 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;128000&#39;: &lt;TimeitResult : 8min 34s ± 1.52 s per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;256000&#39;: &lt;TimeitResult : 35min 36s ± 1.7 s per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;},
+ &#39;no_structure_run_b_a&#39;: {&#39;500&#39;: &lt;TimeitResult : 2.14 ms ± 53.8 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;1000&#39;: &lt;TimeitResult : 8.38 ms ± 302 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;2000&#39;: &lt;TimeitResult : 33.5 ms ± 57 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;4000&#39;: &lt;TimeitResult : 135 ms ± 1.28 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;8000&#39;: &lt;TimeitResult : 532 ms ± 412 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;16000&#39;: &lt;TimeitResult : 2.16 s ± 33.2 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;32000&#39;: &lt;TimeitResult : 8.61 s ± 102 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;64000&#39;: &lt;TimeitResult : 35.1 s ± 838 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;},
+ &#39;no_structure_run_c_a&#39;: {&#39;500&#39;: &lt;TimeitResult : 615 µs ± 9.1 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;1000&#39;: &lt;TimeitResult : 2.32 ms ± 37.2 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;2000&#39;: &lt;TimeitResult : 9.09 ms ± 66.6 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;4000&#39;: &lt;TimeitResult : 36.4 ms ± 395 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;8000&#39;: &lt;TimeitResult : 143 ms ± 166 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;16000&#39;: &lt;TimeitResult : 562 ms ± 2.3 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;32000&#39;: &lt;TimeitResult : 2.24 s ± 6.3 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;64000&#39;: &lt;TimeitResult : 9.05 s ± 19.4 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;128000&#39;: &lt;TimeitResult : 36.4 s ± 198 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;256000&#39;: &lt;TimeitResult : 2min 26s ± 547 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;},
+ &#39;no_structure_run_d_a&#39;: {&#39;500&#39;: &lt;TimeitResult : 79.2 µs ± 6.15 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;1000&#39;: &lt;TimeitResult : 228 µs ± 2.85 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;2000&#39;: &lt;TimeitResult : 832 µs ± 10.6 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;4000&#39;: &lt;TimeitResult : 2.95 ms ± 41.6 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;8000&#39;: &lt;TimeitResult : 10.9 ms ± 25.1 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;16000&#39;: &lt;TimeitResult : 40 ms ± 61.2 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;32000&#39;: &lt;TimeitResult : 152 ms ± 1.42 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;64000&#39;: &lt;TimeitResult : 605 ms ± 7.48 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;128000&#39;: &lt;TimeitResult : 2.32 s ± 2.69 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;256000&#39;: &lt;TimeitResult : 9.43 s ± 231 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;},
+ &#39;no_structure_run_d_b&#39;: {&#39;500&#39;: &lt;TimeitResult : 26.4 µs ± 748 ns per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;1000&#39;: &lt;TimeitResult : 82.2 µs ± 3.22 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;2000&#39;: &lt;TimeitResult : 272 µs ± 7.02 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;4000&#39;: &lt;TimeitResult : 59.3 ms ± 85.7 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;8000&#39;: &lt;TimeitResult : 30.2 ms ± 25.3 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;16000&#39;: &lt;TimeitResult : 61.3 ms ± 668 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;32000&#39;: &lt;TimeitResult : 194 ms ± 2.41 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;64000&#39;: &lt;TimeitResult : 682 ms ± 12.8 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;128000&#39;: &lt;TimeitResult : 2.49 s ± 31.6 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;256000&#39;: &lt;TimeitResult : 9.86 s ± 383 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;},
+ &#39;no_structure_run_d_c&#39;: {&#39;500&#39;: &lt;TimeitResult : 27.9 µs ± 2.38 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;1000&#39;: &lt;TimeitResult : 81 µs ± 3.22 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;2000&#39;: &lt;TimeitResult : 273 µs ± 6.3 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;4000&#39;: &lt;TimeitResult : 993 µs ± 17.7 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;8000&#39;: &lt;TimeitResult : 462 ms ± 663 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;16000&#39;: &lt;TimeitResult : 128 ms ± 1.31 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;32000&#39;: &lt;TimeitResult : 237 ms ± 1.75 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;64000&#39;: &lt;TimeitResult : 771 ms ± 19.2 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;128000&#39;: &lt;TimeitResult : 2.68 s ± 47.1 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;256000&#39;: &lt;TimeitResult : 10.3 s ± 406 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;},
+ &#39;no_structure_run_d_d&#39;: {&#39;500&#39;: &lt;TimeitResult : 30.4 µs ± 1.65 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;1000&#39;: &lt;TimeitResult : 89.2 µs ± 913 ns per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;2000&#39;: &lt;TimeitResult : 283 µs ± 10.6 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;4000&#39;: &lt;TimeitResult : 858 µs ± 11.8 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;8000&#39;: &lt;TimeitResult : 2.62 ms ± 67 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;16000&#39;: &lt;TimeitResult : 9.29 ms ± 498 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;32000&#39;: &lt;TimeitResult : 33.1 ms ± 733 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;64000&#39;: &lt;TimeitResult : 128 ms ± 5.22 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;128000&#39;: &lt;TimeitResult : 436 ms ± 13.7 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;256000&#39;: &lt;TimeitResult : 1.72 s ± 57.2 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;},
+ &#39;no_structure_run_d_e&#39;: {&#39;500&#39;: &lt;TimeitResult : 14.7 µs ± 497 ns per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;1000&#39;: &lt;TimeitResult : 32.8 µs ± 639 ns per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;2000&#39;: &lt;TimeitResult : 85.2 µs ± 4.2 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;4000&#39;: &lt;TimeitResult : 242 µs ± 6.51 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;8000&#39;: &lt;TimeitResult : 793 µs ± 7.4 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;16000&#39;: &lt;TimeitResult : 16.5 ms ± 43.3 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;32000&#39;: &lt;TimeitResult : 412 ms ± 1.97 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;64000&#39;: &lt;TimeitResult : 217 ms ± 2.35 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;128000&#39;: &lt;TimeitResult : 616 ms ± 15.3 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;256000&#39;: &lt;TimeitResult : 2.04 s ± 8.56 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;},
+ &#39;no_structure_run_d_f&#39;: {&#39;500&#39;: &lt;TimeitResult : 14.7 µs ± 668 ns per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;1000&#39;: &lt;TimeitResult : 32.6 µs ± 542 ns per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;2000&#39;: &lt;TimeitResult : 85.3 µs ± 3.92 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;4000&#39;: &lt;TimeitResult : 243 µs ± 7.31 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;8000&#39;: &lt;TimeitResult : 786 µs ± 15.1 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;16000&#39;: &lt;TimeitResult : 2.79 ms ± 15.1 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;32000&#39;: &lt;TimeitResult : 54.7 ms ± 1.11 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;64000&#39;: &lt;TimeitResult : 3.12 s ± 20 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;128000&#39;: &lt;TimeitResult : 823 ms ± 20 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
+  &#39;256000&#39;: &lt;TimeitResult : 2.41 s ± 11.3 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;}}
+</pre></div></div>
+</div>
+<p>#### Run d f</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;no_structure_run_d_f&quot;</span>
+<span class="n">report_file</span> <span class="o">=</span> <span class="n">report_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">.json&quot;</span>
+
+<span class="n">gen_func</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">gen_no_structure_points</span>
+<span class="n">transform_func</span> <span class="o">=</span> <span class="n">compute_neighbours</span>
+<span class="n">setup_func</span> <span class="o">=</span> <span class="n">setup_commonnn_clustering__fit</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="n">radius_cutoff</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">cnn_cutoff</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="k">for</span> <span class="n">n_points</span> <span class="ow">in</span> <span class="n">n_points_list</span><span class="p">:</span>
+    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_points</span><span class="p">),</span>
+            <span class="s2">&quot;gen&quot;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="mi">2</span><span class="p">),),</span> <span class="p">{}</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;transform&quot;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,),</span> <span class="p">{</span><span class="s2">&quot;sort&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;setup&quot;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">(),</span> <span class="p">{</span>
+                    <span class="s2">&quot;preparation_hook&quot;</span><span class="p">:</span> <span class="n">hooks</span><span class="o">.</span><span class="n">prepare_neighbourhoods</span><span class="p">,</span>
+                    <span class="s2">&quot;recipe&quot;</span><span class="p">:</span> <span class="n">neighbours_sorted_recipe</span>
+                    <span class="p">}</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;timed&quot;</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">ClusterParameters</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="p">),),</span> <span class="p">{}</span>
+            <span class="p">),</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collection for run: </span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">collect_timings</span><span class="p">(</span>
+    <span class="n">gen_func</span><span class="p">,</span>
+    <span class="n">setup_func</span><span class="p">,</span>
+    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span>
+    <span class="n">transform_func</span><span class="o">=</span><span class="n">transform_func</span><span class="p">,</span>
+    <span class="n">timings</span><span class="o">=</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">helper</span><span class="o">.</span><span class="n">save_report</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">report_file</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">helper</span><span class="o">.</span><span class="n">print_ratios</span><span class="p">(</span><span class="n">helper</span><span class="o">.</span><span class="n">get_ratios</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="CommonNN-Clustering---complete">
+<h3>CommonNN Clustering - complete<a class="headerlink" href="#CommonNN-Clustering---complete" title="Permalink to this headline">¶</a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -730,60 +1133,47 @@ Timed run ID:          2    (06.05.2021 16:49:56)
 </pre></div>
 </div>
 </div>
-<p>Clustering of a 2D toy data set (no structure) with increasing number of points while dimensionality, cluster parameters, and cluster recipe are fixed:</p>
+<p>Clustering of a 2D toy data set (varied blobs) with increasing number of points while dimensionality, cluster parameters, and cluster recipe are fixed. This benchmark includes timings for preparation steps:</p>
 <ul class="simple">
-<li><p>Default recipe:</p>
+<li><p>Neighbours sorted recipe:</p>
 <ul>
-<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.1\)</span>, <span class="math notranslate nohighlight">\(c = 0\)</span> : <a class="reference external" href="#run_a">run a</a></p></li>
-</ul>
-</li>
-<li><p>Distance recipe:</p>
-<ul>
-<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.1\)</span>, <span class="math notranslate nohighlight">\(c = 0\)</span> : <a class="reference external" href="#run_a">run b</a></p></li>
-</ul>
-</li>
-<li><p>Neighbours recipe:</p>
-<ul>
-<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.1\)</span>, <span class="math notranslate nohighlight">\(c = 0\)</span> : <a class="reference external" href="#run_a">run c</a></p></li>
-</ul>
-</li>
-<li><p>Neighbours recipe:</p>
-<ul>
-<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.1\)</span>, <span class="math notranslate nohighlight">\(c = 0\)</span> : <a class="reference external" href="#run_a">run d</a></p></li>
-<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.1\)</span>, <span class="math notranslate nohighlight">\(c = 100\)</span> : <a class="reference external" href="#run_a_b">run d b</a></p></li>
-<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.3\)</span>, <span class="math notranslate nohighlight">\(c = 0\)</span> : <a class="reference external" href="#run_a_c">run d c</a></p></li>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.2\)</span>, <span class="math notranslate nohighlight">\(c = 0\)</span> : <a class="reference external" href="#run_d_a">run d a</a></p></li>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.2\)</span>, <span class="math notranslate nohighlight">\(c = 50\)</span> : <a class="reference external" href="#run_d_b">run d b</a></p></li>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.2\)</span>, <span class="math notranslate nohighlight">\(c = 100\)</span> : <a class="reference external" href="#run_d_c">run d c</a></p></li>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.1\)</span>, <span class="math notranslate nohighlight">\(c = 0\)</span> : <a class="reference external" href="#run_d_d">run d d</a></p></li>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.1\)</span>, <span class="math notranslate nohighlight">\(c = 50\)</span> : <a class="reference external" href="#run_d_e">run d e</a></p></li>
+<li><p><span class="math notranslate nohighlight">\(d = 2\)</span>, <span class="math notranslate nohighlight">\(r = 0.1\)</span>, <span class="math notranslate nohighlight">\(c = 100\)</span> : <a class="reference external" href="#run_d_f">run d f</a></p></li>
 </ul>
 </li>
 </ul>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># The test data</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
-    <span class="o">*</span><span class="n">helper</span><span class="o">.</span><span class="n">gen_no_structure_points</span><span class="p">((</span><span class="mi">5000</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">helper</span><span class="o">.</span><span class="n">gen_blobs_points</span><span class="p">((</span><span class="mi">5000</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
     <span class="n">s</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-
 <span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.collections.PathCollection at 0x7f26f1d37a00&gt;
+&lt;matplotlib.collections.PathCollection at 0x7fb37a39c670&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/benchmark_bm_32_1.png" src="../_images/benchmark_bm_32_1.png" />
+<img alt="../_images/benchmark_bm_43_1.png" src="../_images/benchmark_bm_43_1.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -795,85 +1185,146 @@ Timed run ID:          2    (06.05.2021 16:49:56)
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">default_recipe</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;input_data&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">InputDataExtPointsMemoryview</span><span class="p">,</span>
-    <span class="s2">&quot;neighbours_getter&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">NeighboursGetterExtBruteForce</span><span class="p">,</span>
-    <span class="s2">&quot;neighbours&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">NeighboursExtVector</span><span class="p">,</span> <span class="p">(</span><span class="mi">5000</span><span class="p">,),</span> <span class="p">{}),</span>
-    <span class="s2">&quot;neighbour_neighbours&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">NeighboursExtVector</span><span class="p">,</span> <span class="p">(</span><span class="mi">5000</span><span class="p">,),</span> <span class="p">{}),</span>
-    <span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">MetricExtEuclideanReduced</span><span class="p">,</span>
-    <span class="s2">&quot;similarity_checker&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">SimilarityCheckerExtContains</span><span class="p">,</span>
-    <span class="s2">&quot;queue&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">QueueExtFIFOQueue</span><span class="p">,</span>
-    <span class="s2">&quot;fitter&quot;</span><span class="p">:</span> <span class="n">_fit</span><span class="o">.</span><span class="n">FitterExtBFS</span><span class="p">,</span>
-<span class="p">}</span>
+<span></span><span class="n">n_points_list</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">distance_recipe</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;input_data&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">InputDataExtPointsMemoryview</span><span class="p">,</span>
-    <span class="s2">&quot;neighbours_getter&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">NeighboursGetterExtBruteForce</span><span class="p">,</span>
-    <span class="s2">&quot;neighbours&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">NeighboursExtVector</span><span class="p">,</span> <span class="p">(</span><span class="mi">5000</span><span class="p">,),</span> <span class="p">{}),</span>
-    <span class="s2">&quot;neighbour_neighbours&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">NeighboursExtVector</span><span class="p">,</span> <span class="p">(</span><span class="mi">5000</span><span class="p">,),</span> <span class="p">{}),</span>
-    <span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">MetricExtPrecomputed</span><span class="p">,</span>
-    <span class="s2">&quot;similarity_checker&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">SimilarityCheckerExtContains</span><span class="p">,</span>
-    <span class="s2">&quot;queue&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">QueueExtFIFOQueue</span><span class="p">,</span>
-    <span class="s2">&quot;fitter&quot;</span><span class="p">:</span> <span class="n">_fit</span><span class="o">.</span><span class="n">FitterExtBFS</span><span class="p">,</span>
-<span class="p">}</span>
-</pre></div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000, 256000]
+</pre></div></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</div>
+<div class="section" id="Scaling">
+<h2>Scaling<a class="headerlink" href="#Scaling" title="Permalink to this headline">¶</a></h2>
+<p>Fit for empirical growth function:</p>
+<p>$ t = a n^b + c$</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[44]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">neighbours_recipe</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;input_data&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">InputDataExtNeighboursMemoryview</span><span class="p">,</span>
-    <span class="s2">&quot;neighbours_getter&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">NeighboursGetterExtLookup</span><span class="p">,</span>
-    <span class="s2">&quot;neighbours&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">NeighboursExtVector</span><span class="p">,</span> <span class="p">(</span><span class="mi">5000</span><span class="p">,),</span> <span class="p">{}),</span>
-    <span class="s2">&quot;neighbour_neighbours&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">NeighboursExtVector</span><span class="p">,</span> <span class="p">(</span><span class="mi">5000</span><span class="p">,),</span> <span class="p">{}),</span>
-    <span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">MetricExtDummy</span><span class="p">,</span>
-    <span class="s2">&quot;similarity_checker&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">SimilarityCheckerExtContains</span><span class="p">,</span>
-    <span class="s2">&quot;queue&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">QueueExtFIFOQueue</span><span class="p">,</span>
-    <span class="s2">&quot;fitter&quot;</span><span class="p">:</span> <span class="n">_fit</span><span class="o">.</span><span class="n">FitterExtBFS</span><span class="p">,</span>
+<span></span><span class="n">mask_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># &quot;no_structure_run_d_e&quot;: {&quot;500&quot;, &quot;32000&quot;},</span>
+    <span class="s2">&quot;no_structure_run_d_f&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;64000&quot;</span><span class="p">,</span> <span class="s2">&quot;128000&quot;</span><span class="p">}</span>
 <span class="p">}</span>
+
+<span class="k">for</span> <span class="n">full_run_name</span><span class="p">,</span> <span class="n">timings</span> <span class="ow">in</span> <span class="n">RUN_TIMINGS_MAP</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">full_run_name</span><span class="p">)</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="o">*</span><span class="p">(</span>
+            <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">best</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">timings</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">helper_timeit</span><span class="o">.</span><span class="n">TimeitResult</span><span class="p">))</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mask_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">full_run_name</span><span class="p">,</span> <span class="nb">set</span><span class="p">()))</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">sorti</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">sorti</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">sorti</span><span class="p">]</span>
+
+    <span class="c1"># newx = np.linspace(n_points_list[0], n_points_list[-1], 100)</span>
+    <span class="n">newx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="n">fity</span><span class="p">,</span> <span class="p">(</span><span class="n">popt</span><span class="p">,</span> <span class="n">perr</span><span class="p">)</span> <span class="o">=</span> <span class="n">helper_base</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">newx</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">),</span> <span class="n">maxfev</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="n">RUN_SCALING_MAP</span><span class="p">[</span><span class="n">full_run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">newx</span><span class="p">,</span> <span class="n">fity</span><span class="p">),</span> <span class="p">(</span><span class="n">popt</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">perr</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+no_structure_run_a_a
+no_structure_run_b_a
+no_structure_run_c_a
+no_structure_run_d_a
+no_structure_run_d_b
+no_structure_run_d_c
+no_structure_run_d_d
+no_structure_run_d_e
+no_structure_run_d_f
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="id1">
+<h2>Plots<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[143]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">neighbours_sorted_recipe</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;input_data&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">InputDataExtNeighboursMemoryview</span><span class="p">,</span>
-    <span class="s2">&quot;neighbours_getter&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">NeighboursGetterExtLookup</span><span class="p">,</span>
-    <span class="s2">&quot;neighbours&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">NeighboursExtVector</span><span class="p">,</span> <span class="p">(</span><span class="mi">5000</span><span class="p">,),</span> <span class="p">{}),</span>
-    <span class="s2">&quot;neighbour_neighbours&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">NeighboursExtVector</span><span class="p">,</span> <span class="p">(</span><span class="mi">5000</span><span class="p">,),</span> <span class="p">{}),</span>
-    <span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">MetricExtDummy</span><span class="p">,</span>
-    <span class="s2">&quot;similarity_checker&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">SimilarityCheckerExtScreensorted</span><span class="p">,</span>
-    <span class="s2">&quot;queue&quot;</span><span class="p">:</span> <span class="n">_types</span><span class="o">.</span><span class="n">QueueExtFIFOQueue</span><span class="p">,</span>
-    <span class="s2">&quot;fitter&quot;</span><span class="p">:</span> <span class="n">_fit</span><span class="o">.</span><span class="n">FitterExtBFS</span><span class="p">,</span>
-<span class="p">}</span>
+<span></span><span class="n">figsrc_dir</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="s2">&quot;$WD/CommonNN/Manuscript/figsrc/Benchmark&quot;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
+<div class="section" id="Compare-parameters-for-screen">
+<h3>Compare parameters for screen<a class="headerlink" href="#Compare-parameters-for-screen" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[41]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">make_maps</span><span class="p">()</span>
+<span></span><span class="n">run_name_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">&quot;no_structure_run_d_a&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;$r=0.25, c=0$&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;no_structure_run_d_b&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;$r=0.25, c=50$&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;no_structure_run_d_c&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;$r=0.25, c=100$&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;no_structure_run_d_f&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;$r=0.10, c=100$&quot;</span><span class="p">),</span>
+<span class="p">]</span>
 </pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[48]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">log_ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">3.33</span><span class="p">,</span> <span class="mf">3.33</span> <span class="o">/</span> <span class="mf">1.2</span><span class="p">))</span>
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_prop_cycle</span><span class="p">(</span>
+    <span class="n">marker</span><span class="o">=</span><span class="n">marker_list</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="n">color_list</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">evaluate_timings</span><span class="p">(</span>
+    <span class="n">RUN_TIMINGS_MAP</span><span class="p">,</span> <span class="n">RUN_SCALING_MAP</span><span class="p">,</span> <span class="n">run_name_list</span><span class="p">,</span>
+    <span class="n">log_ax</span><span class="o">=</span><span class="n">log_ax</span><span class="p">,</span>
+    <span class="n">plot_props</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;linestyle&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;markeredgecolor&quot;</span><span class="p">:</span> <span class="s2">&quot;k&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;markeredgewidth&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="n">legend_props</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">1e-5</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="mi">20</span> <span class="o">+</span> <span class="s2">&quot;Screen&quot;</span><span class="p">)</span>
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;#points&quot;</span><span class="p">)</span>
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;time / s&quot;</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;/home/janjoswig/Documents/Projects/CNN/Presentation/08072021/figures/bm_no_structure_screen.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/benchmark_bm_53_0.png" src="../_images/benchmark_bm_53_0.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -882,746 +1333,113 @@ Timed run ID:          2    (06.05.2021 16:49:56)
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">run_name_list</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;no_structure_run_a&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;no_structure_run_b&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;no_structure_run_c&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;no_structure_run_c_b&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;no_structure_run_c_c&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;no_structure_run_d&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;no_structure_run_d_b&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;no_structure_run_d_c&#39;</span><span class="p">,</span>
+    <span class="p">(</span><span class="s2">&quot;no_structure_run_d_b&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;$r=0.25, c=50$&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;no_structure_run_d_c&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;$r=0.25, c=100$&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;no_structure_run_d_e&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;$r=0.10, c=50$&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;no_structure_run_d_f&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;$r=0.10, c=100$&quot;</span><span class="p">),</span>
 <span class="p">]</span>
-
-<span class="k">for</span> <span class="n">run_name</span> <span class="ow">in</span> <span class="n">run_name_list</span><span class="p">:</span>
-    <span class="n">report_file</span> <span class="o">=</span> <span class="n">report_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">.json&quot;</span>
-    <span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">load_report</span><span class="p">(</span><span class="n">report_file</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<p>#### Run a</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;no_structure_run_a&quot;</span>
-<span class="n">report_file</span> <span class="o">=</span> <span class="n">report_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">.json&quot;</span>
-
-<span class="n">gen_func</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">gen_no_structure_points</span>
-<span class="n">transform_func</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">setup_func</span> <span class="o">=</span> <span class="n">setup_commonnn_clustering__fit</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[37]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">radius_cutoff</span> <span class="o">=</span> <span class="mf">0.1</span>
-<span class="n">cnn_cutoff</span> <span class="o">=</span> <span class="mi">0</span>
-
-<span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">n_points</span> <span class="ow">in</span> <span class="n">n_points_list</span><span class="p">:</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_points</span><span class="p">),</span>
-            <span class="s2">&quot;gen&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="mi">2</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;setup&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(),</span> <span class="p">{</span><span class="s2">&quot;recipe&quot;</span><span class="p">:</span> <span class="n">default_recipe</span><span class="p">}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;timed&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">ClusterParameters</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
+<span></span><span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">log_ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">3.33</span><span class="p">,</span> <span class="mf">3.33</span> <span class="o">/</span> <span class="mf">1.618</span><span class="p">))</span>
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_prop_cycle</span><span class="p">(</span>
+    <span class="n">marker</span><span class="o">=</span><span class="n">marker_list</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="n">color_list</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">evaluate_timings</span><span class="p">(</span>
+    <span class="n">RUN_TIMINGS_MAP</span><span class="p">,</span> <span class="n">RUN_SCALING_MAP</span><span class="p">,</span> <span class="n">run_name_list</span><span class="p">,</span>
+    <span class="n">log_ax</span><span class="o">=</span><span class="n">log_ax</span><span class="p">,</span>
+    <span class="n">plot_props</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;linestyle&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;markeredgecolor&quot;</span><span class="p">:</span> <span class="s2">&quot;k&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;markeredgewidth&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+        <span class="s2">&quot;markersize&quot;</span><span class="p">:</span> <span class="mi">5</span>
+        <span class="p">},</span>
+    <span class="n">legend_props</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">)</span>
         <span class="p">}</span>
     <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[38]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collection for run: </span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="n">collect_timings</span><span class="p">(</span>
-    <span class="n">gen_func</span><span class="p">,</span>
-    <span class="n">setup_func</span><span class="p">,</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span>
-    <span class="n">transform_func</span><span class="o">=</span><span class="n">transform_func</span><span class="p">,</span>
-    <span class="n">timings</span><span class="o">=</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Collection for run: no_structure_run_a
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"model_id": "c8022f4edb8c4f8a854a88f5007d8d72", "version_major": 2, "version_minor": 0}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Timed run ID:        500    (06.05.2021 16:49:56)
-Timed run ID:       1000    (06.05.2021 16:49:56)
-Timed run ID:       2000    (06.05.2021 16:49:57)
-Timed run ID:       4000    (06.05.2021 16:49:58)
-Timed run ID:       8000    (06.05.2021 16:50:01)
-Timed run ID:      16000    (06.05.2021 16:50:16)
-Timed run ID:      32000    (06.05.2021 16:51:13)
-Timed run ID:      64000    (06.05.2021 16:55:05)
-Timed run ID:     128000    (06.05.2021 17:11:19)
-Timed run ID:     256000    (06.05.2021 18:18:45)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[38]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-{&#39;500&#39;: &lt;TimeitResult : 2.01 ms ± 259 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;1000&#39;: &lt;TimeitResult : 7.54 ms ± 1.68 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;2000&#39;: &lt;TimeitResult : 27.5 ms ± 9.73 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;4000&#39;: &lt;TimeitResult : 89.4 ms ± 24.7 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;8000&#39;: &lt;TimeitResult : 359 ms ± 98.9 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;16000&#39;: &lt;TimeitResult : 1.43 s ± 394 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;32000&#39;: &lt;TimeitResult : 5.72 s ± 1.57 s per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;64000&#39;: &lt;TimeitResult : 23.2 s ± 6.31 s per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;128000&#39;: &lt;TimeitResult : 1min 37s ± 29.4 s per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;256000&#39;: &lt;TimeitResult : 6min 44s ± 2min 26s per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;}
-</pre></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[39]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">save_report</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">report_file</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[40]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">print_ratios</span><span class="p">(</span><span class="n">get_ratios</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]))</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-    Run ID: Factor
-=======================
-       500: 1.00
-      1000: 3.84
-      2000: 11.38
-      4000: 45.04
-      8000: 180.10
-     16000: 720.78
-     32000: 2884.09
-     64000: 11527.52
-    128000: 46168.29
-    256000: 184473.71
-</pre></div></div>
-</div>
-<p>#### Run b</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[41]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;no_structure_run_b&quot;</span>
-<span class="n">report_file</span> <span class="o">=</span> <span class="n">report_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">.json&quot;</span>
 
-<span class="n">gen_func</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">gen_no_structure_points</span>
-<span class="n">transform_func</span> <span class="o">=</span> <span class="n">pairwise_distances</span>
-<span class="n">setup_func</span> <span class="o">=</span> <span class="n">setup_commonnn_clustering__fit</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">radius_cutoff</span> <span class="o">=</span> <span class="mf">0.1</span>
-<span class="n">cnn_cutoff</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">1e-5</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 
-<span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">n_points</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">500</span> <span class="o">*</span> <span class="mi">2</span><span class="o">**</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">)]:</span>  <span class="c1"># Memory error on 128000</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_points</span><span class="p">),</span>
-            <span class="s2">&quot;gen&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="mi">2</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;setup&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(),</span> <span class="p">{</span><span class="s2">&quot;recipe&quot;</span><span class="p">:</span> <span class="n">distance_recipe</span><span class="p">}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;timed&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">ClusterParameters</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-        <span class="p">}</span>
-    <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[43]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collection for run: </span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="n">collect_timings</span><span class="p">(</span>
-    <span class="n">gen_func</span><span class="p">,</span>
-    <span class="n">setup_func</span><span class="p">,</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span>
-    <span class="n">transform_func</span><span class="o">=</span><span class="n">transform_func</span><span class="p">,</span>
-    <span class="n">timings</span><span class="o">=</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span>
-<span class="p">)</span>
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="mi">20</span> <span class="o">+</span> <span class="s2">&quot;Screen&quot;</span><span class="p">)</span>
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;#points&quot;</span><span class="p">)</span>
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;time / s&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Collection for run: no_structure_run_b
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"model_id": "df05dbf1af2148a79b1b6af19ab42b7b", "version_major": 2, "version_minor": 0}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Timed run ID:        500    (06.05.2021 18:18:45)
-Timed run ID:       1000    (06.05.2021 18:18:45)
-Timed run ID:       2000    (06.05.2021 18:18:46)
-Timed run ID:       4000    (06.05.2021 18:18:46)
-Timed run ID:       8000    (06.05.2021 18:18:52)
-Timed run ID:      16000    (06.05.2021 18:19:06)
-Timed run ID:      32000    (06.05.2021 18:20:06)
-Timed run ID:      64000    (06.05.2021 18:24:16)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[43]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{&#39;500&#39;: &lt;TimeitResult : 724 µs ± 108 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;1000&#39;: &lt;TimeitResult : 2.8 ms ± 629 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;2000&#39;: &lt;TimeitResult : 12.7 ms ± 4.81 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;4000&#39;: &lt;TimeitResult : 64.1 ms ± 23.3 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;8000&#39;: &lt;TimeitResult : 454 ms ± 196 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;16000&#39;: &lt;TimeitResult : 1.17 s ± 239 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;32000&#39;: &lt;TimeitResult : 4.25 s ± 33.7 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;64000&#39;: &lt;TimeitResult : 17.1 s ± 64.7 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;}
+Text(0, 0.5, &#39;time / s&#39;)
 </pre></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[44]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">][</span><span class="s2">&quot;128000&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;MemoryError&quot;</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[45]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">save_report</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">report_file</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[46]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">print_ratios</span><span class="p">(</span><span class="n">get_ratios</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">))</span>
-</pre></div>
-</div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<div class="highlight"><pre>
-    Run ID: Factor
-=======================
-       500: 1.00
-      1000: 3.60
-      2000: 11.49
-      4000: 47.19
-      8000: 367.65
-     16000: 1498.82
-     32000: 6146.07
-     64000: 24953.98
-</pre></div></div>
+<img alt="../_images/benchmark_bm_55_1.png" src="../_images/benchmark_bm_55_1.png" />
 </div>
-<p>#### Run c</p>
+</div>
+</div>
+<div class="section" id="Compare-input-variations">
+<h3>Compare input variations<a class="headerlink" href="#Compare-input-variations" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[47]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;no_structure_run_c&quot;</span>
-<span class="n">report_file</span> <span class="o">=</span> <span class="n">report_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">.json&quot;</span>
-
-<span class="n">gen_func</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">gen_no_structure_points</span>
-<span class="n">transform_func</span> <span class="o">=</span> <span class="n">compute_neighbours</span>
-<span class="n">setup_func</span> <span class="o">=</span> <span class="n">setup_commonnn_clustering__fit</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[48]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-<span class="n">radius_cutoff</span> <span class="o">=</span> <span class="mf">0.1</span>
-<span class="n">cnn_cutoff</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="k">for</span> <span class="n">n_points</span> <span class="ow">in</span> <span class="n">n_points_list</span><span class="p">:</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_points</span><span class="p">),</span>
-            <span class="s2">&quot;gen&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="mi">2</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;transform&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;setup&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(),</span> <span class="p">{</span>
-                    <span class="s2">&quot;preparation_hook&quot;</span><span class="p">:</span> <span class="n">cluster</span><span class="o">.</span><span class="n">prepare_neighbourhoods</span><span class="p">,</span>
-                    <span class="s2">&quot;recipe&quot;</span><span class="p">:</span> <span class="n">neighbours_recipe</span>
-                    <span class="p">}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;timed&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">ClusterParameters</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-        <span class="p">}</span>
-    <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[49]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collection for run: </span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="n">collect_timings</span><span class="p">(</span>
-    <span class="n">gen_func</span><span class="p">,</span>
-    <span class="n">setup_func</span><span class="p">,</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span>
-    <span class="n">transform_func</span><span class="o">=</span><span class="n">transform_func</span><span class="p">,</span>
-    <span class="n">timings</span><span class="o">=</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Collection for run: no_structure_run_c
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"model_id": "9ee0ee50049c4a4dbbb5053003d910f3", "version_major": 2, "version_minor": 0}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Timed run ID:        500    (06.05.2021 18:24:17)
-Timed run ID:       1000    (06.05.2021 18:24:17)
-Timed run ID:       2000    (06.05.2021 18:24:17)
-Timed run ID:       4000    (06.05.2021 18:24:18)
-Timed run ID:       8000    (06.05.2021 18:24:20)
-Timed run ID:      16000    (06.05.2021 18:24:24)
-Timed run ID:      32000    (06.05.2021 18:24:32)
-Timed run ID:      64000    (06.05.2021 18:24:49)
-Timed run ID:     128000    (06.05.2021 18:25:28)
-Timed run ID:     256000    (06.05.2021 18:27:06)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[49]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-{&#39;500&#39;: &lt;TimeitResult : 83.8 µs ± 32 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;1000&#39;: &lt;TimeitResult : 93.1 µs ± 19.6 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;2000&#39;: &lt;TimeitResult : 185 µs ± 92.6 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;4000&#39;: &lt;TimeitResult : 965 µs ± 577 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;8000&#39;: &lt;TimeitResult : 7.92 ms ± 5.55 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;16000&#39;: &lt;TimeitResult : 13.9 ms ± 9.04 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;32000&#39;: &lt;TimeitResult : 40.7 ms ± 8.03 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;64000&#39;: &lt;TimeitResult : 138 ms ± 21.4 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;128000&#39;: &lt;TimeitResult : 530 ms ± 70.4 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;256000&#39;: &lt;TimeitResult : 2.26 s ± 259 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;}
-</pre></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[50]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">save_report</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">report_file</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[51]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">print_ratios</span><span class="p">(</span><span class="n">get_ratios</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">))</span>
+<span></span><span class="n">run_name_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">&quot;no_structure_run_a_a&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;points $r=0.25, c=0$&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;no_structure_run_b_a&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;distances $r=0.25, c=0$&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;no_structure_run_c_a&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;neighbourhoods $r=0.25, c=0$&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;no_structure_run_d_a&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;neigh. sorted $r=0.25, c=0$&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;no_structure_run_d_d&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;neigh. sorted $r=0.10, c=0$&quot;</span><span class="p">),</span>
+<span class="p">]</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-    Run ID: Factor
-=======================
-       500: 1.00
-      1000: 1.13
-      2000: 1.45
-      4000: 2.68
-      8000: 26.48
-     16000: 81.55
-     32000: 409.02
-     64000: 1472.91
-    128000: 5848.36
-    256000: 25515.87
-</pre></div></div>
-</div>
-<p>#### Run c b</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[52]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;no_structure_run_c_b&quot;</span>
-<span class="n">report_file</span> <span class="o">=</span> <span class="n">report_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">.json&quot;</span>
-
-<span class="n">gen_func</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">gen_no_structure_points</span>
-<span class="n">transform_func</span> <span class="o">=</span> <span class="n">compute_neighbours</span>
-<span class="n">setup_func</span> <span class="o">=</span> <span class="n">setup_commonnn_clustering__fit</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[53]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-<span class="n">radius_cutoff</span> <span class="o">=</span> <span class="mf">0.1</span>
-<span class="n">cnn_cutoff</span> <span class="o">=</span> <span class="mi">100</span>
-<span class="k">for</span> <span class="n">n_points</span> <span class="ow">in</span> <span class="n">n_points_list</span><span class="p">:</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_points</span><span class="p">),</span>
-            <span class="s2">&quot;gen&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="mi">2</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;transform&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;setup&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(),</span> <span class="p">{</span>
-                    <span class="s2">&quot;preparation_hook&quot;</span><span class="p">:</span> <span class="n">cluster</span><span class="o">.</span><span class="n">prepare_neighbourhoods</span><span class="p">,</span>
-                    <span class="s2">&quot;recipe&quot;</span><span class="p">:</span> <span class="n">neighbours_recipe</span>
-                    <span class="p">}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;timed&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">ClusterParameters</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
+<span></span><span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">log_ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">3.33</span><span class="p">,</span> <span class="mf">3.33</span> <span class="o">/</span> <span class="mf">1.2</span><span class="p">))</span>
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_prop_cycle</span><span class="p">(</span>
+    <span class="n">marker</span><span class="o">=</span><span class="n">marker_list</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="n">color_list</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">evaluate_timings</span><span class="p">(</span>
+    <span class="n">RUN_TIMINGS_MAP</span><span class="p">,</span> <span class="n">RUN_SCALING_MAP</span><span class="p">,</span> <span class="n">run_name_list</span><span class="p">,</span>
+    <span class="n">log_ax</span><span class="o">=</span><span class="n">log_ax</span><span class="p">,</span>
+    <span class="n">plot_props</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;linestyle&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;markeredgecolor&quot;</span><span class="p">:</span> <span class="s2">&quot;k&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;markeredgewidth&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="n">legend_props</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;loc&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">)</span>
         <span class="p">}</span>
     <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[54]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collection for run: </span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="n">collect_timings</span><span class="p">(</span>
-    <span class="n">gen_func</span><span class="p">,</span>
-    <span class="n">setup_func</span><span class="p">,</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span>
-    <span class="n">transform_func</span><span class="o">=</span><span class="n">transform_func</span><span class="p">,</span>
-    <span class="n">timings</span><span class="o">=</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Collection for run: no_structure_run_c_b
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"model_id": "3a8a25349883459d876e0174ae5c64aa", "version_major": 2, "version_minor": 0}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Timed run ID:        500    (06.05.2021 18:27:06)
-Timed run ID:       1000    (06.05.2021 18:27:07)
-Timed run ID:       2000    (06.05.2021 18:27:07)
-Timed run ID:       4000    (06.05.2021 18:27:08)
-Timed run ID:       8000    (06.05.2021 18:27:10)
-Timed run ID:      16000    (06.05.2021 18:27:13)
-Timed run ID:      32000    (06.05.2021 18:27:21)
-Timed run ID:      64000    (06.05.2021 18:30:14)
-Timed run ID:     128000    (06.05.2021 18:31:14)
-Timed run ID:     256000    (06.05.2021 18:33:43)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[54]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-{&#39;500&#39;: &lt;TimeitResult : 73.3 µs ± 7.55 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;1000&#39;: &lt;TimeitResult : 82.6 µs ± 2.25 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;2000&#39;: &lt;TimeitResult : 106 µs ± 952 ns per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;4000&#39;: &lt;TimeitResult : 182 µs ± 3.08 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;8000&#39;: &lt;TimeitResult : 481 µs ± 103 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;16000&#39;: &lt;TimeitResult : 1.54 ms ± 134 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;32000&#39;: &lt;TimeitResult : 24.3 ms ± 26.5 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;64000&#39;: &lt;TimeitResult : 15.7 s ± 2.49 s per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;128000&#39;: &lt;TimeitResult : 2.54 s ± 409 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;256000&#39;: &lt;TimeitResult : 7.16 s ± 329 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;}
-</pre></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[55]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">save_report</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">report_file</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[56]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">print_ratios</span><span class="p">(</span><span class="n">get_ratios</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">))</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-    Run ID: Factor
-=======================
-       500: 1.00
-      1000: 1.14
-      2000: 1.48
-      4000: 2.56
-      8000: 6.30
-     16000: 21.03
-     32000: 89.47
-    128000: 29191.25
-    256000: 94533.45
-     64000: 168392.29
-</pre></div></div>
-</div>
-<p>#### Run c c</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[57]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;no_structure_run_c_c&quot;</span>
-<span class="n">report_file</span> <span class="o">=</span> <span class="n">report_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">.json&quot;</span>
 
-<span class="n">gen_func</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">gen_no_structure_points</span>
-<span class="n">transform_func</span> <span class="o">=</span> <span class="n">compute_neighbours</span>
-<span class="n">setup_func</span> <span class="o">=</span> <span class="n">setup_commonnn_clustering__fit</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[58]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">1e-5</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-<span class="n">radius_cutoff</span> <span class="o">=</span> <span class="mf">0.3</span>
-<span class="n">cnn_cutoff</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="k">for</span> <span class="n">n_points</span> <span class="ow">in</span> <span class="n">n_points_list</span><span class="p">:</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_points</span><span class="p">),</span>
-            <span class="s2">&quot;gen&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="mi">2</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;transform&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;setup&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(),</span> <span class="p">{</span>
-                    <span class="s2">&quot;preparation_hook&quot;</span><span class="p">:</span> <span class="n">cluster</span><span class="o">.</span><span class="n">prepare_neighbourhoods</span><span class="p">,</span>
-                    <span class="s2">&quot;recipe&quot;</span><span class="p">:</span> <span class="n">neighbours_recipe</span>
-                    <span class="p">}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;timed&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">ClusterParameters</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-        <span class="p">}</span>
-    <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[59]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collection for run: </span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="n">collect_timings</span><span class="p">(</span>
-    <span class="n">gen_func</span><span class="p">,</span>
-    <span class="n">setup_func</span><span class="p">,</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span>
-    <span class="n">transform_func</span><span class="o">=</span><span class="n">transform_func</span><span class="p">,</span>
-    <span class="n">timings</span><span class="o">=</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Collection for run: no_structure_run_c_c
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"model_id": "12764808cf3d42429c45cc88c51d93c5", "version_major": 2, "version_minor": 0}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Timed run ID:        500    (06.05.2021 18:33:43)
-Timed run ID:       1000    (06.05.2021 18:33:44)
-Timed run ID:       2000    (06.05.2021 18:33:44)
-Timed run ID:       4000    (06.05.2021 18:33:45)
-Timed run ID:       8000    (06.05.2021 18:33:47)
-Timed run ID:      16000    (06.05.2021 18:33:52)
-Timed run ID:      32000    (06.05.2021 18:34:05)
-Timed run ID:      64000    (06.05.2021 18:34:46)
-Timed run ID:     128000    (06.05.2021 18:37:36)
-Timed run ID:     256000    (06.05.2021 18:54:39)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[59]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-{&#39;500&#39;: &lt;TimeitResult : 187 µs ± 76.8 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;1000&#39;: &lt;TimeitResult : 1.09 ms ± 855 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;2000&#39;: &lt;TimeitResult : 1.59 ms ± 722 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;4000&#39;: &lt;TimeitResult : 4.27 ms ± 919 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;8000&#39;: &lt;TimeitResult : 16.7 ms ± 2.68 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;16000&#39;: &lt;TimeitResult : 72 ms ± 9.88 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;32000&#39;: &lt;TimeitResult : 355 ms ± 42.4 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;64000&#39;: &lt;TimeitResult : 1.84 s ± 189 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;128000&#39;: &lt;TimeitResult : 10.8 s ± 892 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;256000&#39;: &lt;TimeitResult : 1min 17s ± 4.69 s per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;}
-</pre></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[60]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">save_report</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">report_file</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[61]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">print_ratios</span><span class="p">(</span><span class="n">get_ratios</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">))</span>
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="mi">20</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;#points&quot;</span><span class="p">)</span>
+<span class="n">log_ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;time / s&quot;</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;/home/janjoswig/Documents/Projects/CNN/Presentation/08072021/figures/bm_no_structure_input.png&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1629,500 +1447,15 @@ Timed run ID:     256000    (06.05.2021 18:54:39)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<div class="highlight"><pre>
-    Run ID: Factor
-=======================
-       500: 1.00
-      1000: 3.46
-      2000: 10.44
-      4000: 36.08
-      8000: 155.47
-     16000: 704.80
-     32000: 3539.87
-     64000: 18977.51
-    128000: 115620.64
-    256000: 863166.43
-</pre></div></div>
-</div>
-<p>#### Run d</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[62]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;no_structure_run_d&quot;</span>
-<span class="n">report_file</span> <span class="o">=</span> <span class="n">report_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">.json&quot;</span>
-
-<span class="n">gen_func</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">gen_no_structure_points</span>
-<span class="n">transform_func</span> <span class="o">=</span> <span class="n">compute_neighbours</span>
-<span class="n">setup_func</span> <span class="o">=</span> <span class="n">setup_commonnn_clustering__fit</span>
-</pre></div>
+<img alt="../_images/benchmark_bm_58_0.png" src="../_images/benchmark_bm_58_0.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[63]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-<span class="n">radius_cutoff</span> <span class="o">=</span> <span class="mf">0.1</span>
-<span class="n">cnn_cutoff</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="k">for</span> <span class="n">n_points</span> <span class="ow">in</span> <span class="n">n_points_list</span><span class="p">:</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_points</span><span class="p">),</span>
-            <span class="s2">&quot;gen&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="mi">2</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;transform&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,),</span> <span class="p">{</span><span class="s2">&quot;sort&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;setup&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(),</span> <span class="p">{</span>
-                    <span class="s2">&quot;preparation_hook&quot;</span><span class="p">:</span> <span class="n">cluster</span><span class="o">.</span><span class="n">prepare_neighbourhoods</span><span class="p">,</span>
-                    <span class="s2">&quot;recipe&quot;</span><span class="p">:</span> <span class="n">neighbours_sorted_recipe</span>
-                    <span class="p">}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;timed&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">ClusterParameters</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-        <span class="p">}</span>
-    <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[64]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collection for run: </span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="n">collect_timings</span><span class="p">(</span>
-    <span class="n">gen_func</span><span class="p">,</span>
-    <span class="n">setup_func</span><span class="p">,</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span>
-    <span class="n">transform_func</span><span class="o">=</span><span class="n">transform_func</span><span class="p">,</span>
-    <span class="n">timings</span><span class="o">=</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Collection for run: no_structure_run_d
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"model_id": "6a72abb851974632a1d96a4ea12b3726", "version_major": 2, "version_minor": 0}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Timed run ID:        500    (06.05.2021 18:54:40)
-Timed run ID:       1000    (06.05.2021 18:54:40)
-Timed run ID:       2000    (06.05.2021 18:54:41)
-Timed run ID:       4000    (06.05.2021 18:54:42)
-Timed run ID:       8000    (06.05.2021 18:54:44)
-Timed run ID:      16000    (06.05.2021 18:54:48)
-Timed run ID:      32000    (06.05.2021 18:54:55)
-Timed run ID:      64000    (06.05.2021 18:55:13)
-Timed run ID:     128000    (06.05.2021 18:55:51)
-Timed run ID:     256000    (06.05.2021 18:57:25)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[64]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-{&#39;500&#39;: &lt;TimeitResult : 81.9 µs ± 25.6 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;1000&#39;: &lt;TimeitResult : 94.6 µs ± 17.3 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;2000&#39;: &lt;TimeitResult : 208 µs ± 126 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;4000&#39;: &lt;TimeitResult : 774 µs ± 427 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;8000&#39;: &lt;TimeitResult : 5.18 ms ± 3 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;16000&#39;: &lt;TimeitResult : 9.47 ms ± 3.72 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;32000&#39;: &lt;TimeitResult : 30.8 ms ± 3.11 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;64000&#39;: &lt;TimeitResult : 102 ms ± 6.33 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;128000&#39;: &lt;TimeitResult : 365 ms ± 12.7 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;256000&#39;: &lt;TimeitResult : 1.27 s ± 24.4 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;}
-</pre></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[65]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">previous_timings</span> <span class="o">=</span> <span class="n">load_report</span><span class="p">(</span><span class="n">report_file</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">run_id</span><span class="p">,</span> <span class="n">timing</span> <span class="ow">in</span> <span class="n">previous_timings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="k">if</span> <span class="n">run_id</span> <span class="ow">in</span> <span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]:</span>
-        <span class="n">combined</span> <span class="o">=</span> <span class="n">combine_timeit_results</span><span class="p">(</span>
-            <span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">][</span><span class="n">run_id</span><span class="p">],</span> <span class="n">timing</span>
-        <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">combined</span> <span class="o">=</span> <span class="n">timing</span>
-
-    <span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">][</span><span class="n">run_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">combined</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[66]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">save_report</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">report_file</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[67]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">print_ratios</span><span class="p">(</span><span class="n">get_ratios</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">))</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-    Run ID: Factor
-=======================
-       500: 1.00
-      1000: 1.14
-      2000: 1.50
-      4000: 2.67
-      8000: 22.84
-     16000: 80.77
-     32000: 359.05
-     64000: 1280.41
-    128000: 4773.54
-    256000: 17251.74
-</pre></div></div>
-</div>
-<p>#### Run d b</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[68]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;no_structure_run_d_b&quot;</span>
-<span class="n">report_file</span> <span class="o">=</span> <span class="n">report_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">.json&quot;</span>
-
-<span class="n">gen_func</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">gen_no_structure_points</span>
-<span class="n">transform_func</span> <span class="o">=</span> <span class="n">compute_neighbours</span>
-<span class="n">setup_func</span> <span class="o">=</span> <span class="n">setup_commonnn_clustering__fit</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[69]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-<span class="n">radius_cutoff</span> <span class="o">=</span> <span class="mf">0.1</span>
-<span class="n">cnn_cutoff</span> <span class="o">=</span> <span class="mi">100</span>
-<span class="k">for</span> <span class="n">n_points</span> <span class="ow">in</span> <span class="n">n_points_list</span><span class="p">:</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_points</span><span class="p">),</span>
-            <span class="s2">&quot;gen&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="mi">2</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;transform&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,),</span> <span class="p">{</span><span class="s2">&quot;sort&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;setup&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(),</span> <span class="p">{</span>
-                    <span class="s2">&quot;preparation_hook&quot;</span><span class="p">:</span> <span class="n">cluster</span><span class="o">.</span><span class="n">prepare_neighbourhoods</span><span class="p">,</span>
-                    <span class="s2">&quot;recipe&quot;</span><span class="p">:</span> <span class="n">neighbours_sorted_recipe</span>
-                    <span class="p">}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;timed&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">ClusterParameters</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-        <span class="p">}</span>
-    <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[70]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collection for run: </span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="n">collect_timings</span><span class="p">(</span>
-    <span class="n">gen_func</span><span class="p">,</span>
-    <span class="n">setup_func</span><span class="p">,</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span>
-    <span class="n">transform_func</span><span class="o">=</span><span class="n">transform_func</span><span class="p">,</span>
-    <span class="n">timings</span><span class="o">=</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Collection for run: no_structure_run_d_b
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"model_id": "c99111f4c046439191202ccc6de50c09", "version_major": 2, "version_minor": 0}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Timed run ID:        500    (06.05.2021 18:57:25)
-Timed run ID:       1000    (06.05.2021 18:57:25)
-Timed run ID:       2000    (06.05.2021 18:57:26)
-Timed run ID:       4000    (06.05.2021 18:57:27)
-Timed run ID:       8000    (06.05.2021 18:57:28)
-Timed run ID:      16000    (06.05.2021 18:57:32)
-Timed run ID:      32000    (06.05.2021 18:57:40)
-Timed run ID:      64000    (06.05.2021 18:58:22)
-Timed run ID:     128000    (06.05.2021 18:59:04)
-Timed run ID:     256000    (06.05.2021 19:00:43)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[70]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-{&#39;500&#39;: &lt;TimeitResult : 78.8 µs ± 9.26 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;1000&#39;: &lt;TimeitResult : 88 µs ± 11 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;2000&#39;: &lt;TimeitResult : 109 µs ± 4.72 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;4000&#39;: &lt;TimeitResult : 185 µs ± 3.57 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;8000&#39;: &lt;TimeitResult : 452 µs ± 9.96 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;16000&#39;: &lt;TimeitResult : 1.5 ms ± 14.5 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;32000&#39;: &lt;TimeitResult : 11.1 ms ± 6.44 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;64000&#39;: &lt;TimeitResult : 2.65 s ± 443 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;128000&#39;: &lt;TimeitResult : 625 ms ± 37.4 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;256000&#39;: &lt;TimeitResult : 1.71 s ± 26.1 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;}
-</pre></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[71]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">save_report</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">report_file</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[72]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">print_ratios</span><span class="p">(</span><span class="n">get_ratios</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">))</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-    Run ID: Factor
-=======================
-       500: 1.00
-      1000: 1.10
-      2000: 1.43
-      4000: 2.43
-      8000: 5.96
-     16000: 19.97
-     32000: 87.27
-    128000: 7739.12
-    256000: 22501.85
-     64000: 26586.38
-</pre></div></div>
-</div>
-<p>#### Run d c</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[73]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;no_structure_run_d_c&quot;</span>
-<span class="n">report_file</span> <span class="o">=</span> <span class="n">report_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">.json&quot;</span>
-
-<span class="n">gen_func</span> <span class="o">=</span> <span class="n">helper</span><span class="o">.</span><span class="n">gen_no_structure_points</span>
-<span class="n">transform_func</span> <span class="o">=</span> <span class="n">compute_neighbours</span>
-<span class="n">setup_func</span> <span class="o">=</span> <span class="n">setup_commonnn_clustering__fit</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[74]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-<span class="n">radius_cutoff</span> <span class="o">=</span> <span class="mf">0.3</span>
-<span class="n">cnn_cutoff</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="k">for</span> <span class="n">n_points</span> <span class="ow">in</span> <span class="n">n_points_list</span><span class="p">:</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">n_points</span><span class="p">),</span>
-            <span class="s2">&quot;gen&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">((</span><span class="n">n_points</span><span class="p">,</span> <span class="mi">2</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;transform&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,),</span> <span class="p">{</span><span class="s2">&quot;sort&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;setup&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(),</span> <span class="p">{</span>
-                    <span class="s2">&quot;preparation_hook&quot;</span><span class="p">:</span> <span class="n">cluster</span><span class="o">.</span><span class="n">prepare_neighbourhoods</span><span class="p">,</span>
-                    <span class="s2">&quot;recipe&quot;</span><span class="p">:</span> <span class="n">neighbours_sorted_recipe</span>
-                    <span class="p">}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;timed&quot;</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">_types</span><span class="o">.</span><span class="n">ClusterParameters</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="p">),),</span> <span class="p">{}</span>
-            <span class="p">),</span>
-        <span class="p">}</span>
-    <span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[75]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collection for run: </span><span class="si">{</span><span class="n">run_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="n">collect_timings</span><span class="p">(</span>
-    <span class="n">gen_func</span><span class="p">,</span>
-    <span class="n">setup_func</span><span class="p">,</span>
-    <span class="n">RUN_ARGUMENTS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span>
-    <span class="n">transform_func</span><span class="o">=</span><span class="n">transform_func</span><span class="p">,</span>
-    <span class="n">timings</span><span class="o">=</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">]</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Collection for run: no_structure_run_d_c
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"model_id": "30ebf17add2046809b3e6d2e78b5a881", "version_major": 2, "version_minor": 0}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Timed run ID:        500    (06.05.2021 19:00:43)
-Timed run ID:       1000    (06.05.2021 19:00:43)
-Timed run ID:       2000    (06.05.2021 19:00:44)
-Timed run ID:       4000    (06.05.2021 19:00:45)
-Timed run ID:       8000    (06.05.2021 19:00:47)
-Timed run ID:      16000    (06.05.2021 19:00:52)
-Timed run ID:      32000    (06.05.2021 19:01:03)
-Timed run ID:      64000    (06.05.2021 19:01:34)
-Timed run ID:     128000    (06.05.2021 19:03:09)
-Timed run ID:     256000    (06.05.2021 19:08:48)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[75]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-{&#39;500&#39;: &lt;TimeitResult : 163 µs ± 58.9 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;1000&#39;: &lt;TimeitResult : 747 µs ± 484 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;2000&#39;: &lt;TimeitResult : 1.08 ms ± 309 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;4000&#39;: &lt;TimeitResult : 2.97 ms ± 398 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;8000&#39;: &lt;TimeitResult : 10.1 ms ± 666 µs per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;16000&#39;: &lt;TimeitResult : 39.4 ms ± 1.34 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;32000&#39;: &lt;TimeitResult : 150 ms ± 3.93 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;64000&#39;: &lt;TimeitResult : 566 ms ± 6.94 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;128000&#39;: &lt;TimeitResult : 2.2 s ± 10.9 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;,
- &#39;256000&#39;: &lt;TimeitResult : 8.99 s ± 26.7 ms per loop (mean ± std. dev. of 10 runs, 1 loop each)&gt;}
-</pre></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[76]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">save_report</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">report_file</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[77]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">print_ratios</span><span class="p">(</span><span class="n">get_ratios</span><span class="p">(</span><span class="n">RUN_TIMINGS_MAP</span><span class="p">[</span><span class="n">run_name</span><span class="p">],</span> <span class="n">which</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">))</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-    Run ID: Factor
-=======================
-       500: 1.00
-      1000: 3.58
-      2000: 8.80
-      4000: 30.28
-      8000: 113.11
-     16000: 464.12
-     32000: 1816.65
-     64000: 6954.94
-    128000: 27366.46
-    256000: 112138.82
-</pre></div></div>
-</div>
-<div class="section" id="Plots">
-<h4>Plots<a class="headerlink" href="#Plots" title="Permalink to this headline">¶</a></h4>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">figsrc_dir</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="s2">&quot;$WD/CommonNN/Manuscript/figsrc/Benchmark&quot;</span><span class="p">))</span>
+<span></span>
 </pre></div>
 </div>
 </div>
@@ -2257,7 +1590,7 @@ Timed run ID:     256000    (06.05.2021 19:08:48)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/benchmark_bm_92_0.png" src="../_images/benchmark_bm_92_0.png" />
+<img alt="../_images/benchmark_bm_60_0.png" src="../_images/benchmark_bm_60_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -2383,8 +1716,7 @@ Timed run ID:     256000    (06.05.2021 19:08:48)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/benchmark_bm_93_0.png" src="../_images/benchmark_bm_93_0.png" />
-</div>
+<img alt="../_images/benchmark_bm_61_0.png" src="../_images/benchmark_bm_61_0.png" />
 </div>
 </div>
 </div>

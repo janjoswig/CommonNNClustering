@@ -36,7 +36,7 @@
             
   <div class="section" id="quickstart">
 <h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">cnnclustering.cluster</span> <span class="kn">import</span> <span class="n">prepare_clustering</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">cnnclustering</span> <span class="kn">import</span> <span class="n">cluster</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># 2D data points (list of lists, 12 points in 2 dimensions)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data_points</span> <span class="o">=</span> <span class="p">[</span>   <span class="c1"># point index</span>
@@ -54,10 +54,10 @@
 <span class="gp">... </span>    <span class="p">[</span><span class="mf">5.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">],</span>  <span class="c1"># 11</span>
 <span class="gp">... </span>    <span class="p">]</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering</span> <span class="o">=</span> <span class="n">prepare_clustering</span><span class="p">(</span><span class="n">data_points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">clustering</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">Clustering</span><span class="p">(</span><span class="n">data_points</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clustering</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">radius_cutoff</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">cnn_cutoff</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">clustering</span><span class="o">.</span><span class="n">labels</span>
-<span class="go">Labels([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])</span>
+<span class="go">array([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])</span>
 </pre></div>
 </div>
 <img alt="../_images/tutorial_basic_usage_27_01.png" src="../_images/tutorial_basic_usage_27_01.png" />

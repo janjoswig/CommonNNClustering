@@ -1,7 +1,7 @@
 .. _sec_api_cnnclustering:
 
-cnnclustering - A Python module for common-nearest-neighbour clustering
-=======================================================================
+cnnclustering - A Python package for common-nearest-neighbour clustering
+========================================================================
 
 Go to:
 
@@ -15,12 +15,7 @@ cluster
 -------
 
 The functionality of this module is primarily exposed and bundled by the
-:class:`cnnclustering.cluster.Clustering` class. For hierarchical clusterings
-:class:`cnnclustering.cluster.ClusteringChild` is used, too.
+:class:`cnnclustering.cluster.Clustering` class.
 
 .. autoclass:: cnnclustering.cluster.Clustering
-   :members:
-
-
-.. autoclass:: cnnclustering.cluster.ClusteringChild
    :members:

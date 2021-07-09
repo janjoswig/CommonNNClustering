@@ -3,7 +3,7 @@ Quickstart
 
 .. code-block::
 
-   >>> from cnnclustering.cluster import prepare_clustering
+   >>> from cnnclustering import cluster
 
    >>> # 2D data points (list of lists, 12 points in 2 dimensions)
    >>> data_points = [   # point index
@@ -21,9 +21,9 @@ Quickstart
    ...     [5.5, -1.5],  # 11
    ...     ]
 
-   >>> clustering = prepare_clustering(data_points)
+   >>> clustering = cluster.Clustering(data_points)
    >>> clustering.fit(radius_cutoff=1.5, cnn_cutoff=1, v=False)
    >>> clustering.labels
-   Labels([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])
+   array([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])
 
 .. image:: ../_build/html/_images/tutorial_basic_usage_27_0.png
