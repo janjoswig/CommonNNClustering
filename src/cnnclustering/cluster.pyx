@@ -1301,7 +1301,7 @@ class Clustering:
 
         ax.set(**ax_props_defaults)
 
-        return fig, ax
+        return fig, ax, plotted
 
     def to_nx_DiGraph(self, ignore=None):
         """Convert cluster hierarchy to networkx DiGraph
