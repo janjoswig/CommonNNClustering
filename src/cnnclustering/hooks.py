@@ -59,7 +59,8 @@ COMPONENT_NAME_TYPE_MAP = {
         "fifo": _types.QueueExtFIFOQueue
     },
     "fitter": {
-        "bfs": _fit.FitterExtBFS
+        "bfs": _fit.FitterExtBFS,
+        "bfs_debug": _fit.FitterExtBFSDebug
     }
 }
 

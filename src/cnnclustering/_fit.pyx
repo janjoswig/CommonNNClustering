@@ -430,7 +430,13 @@ cdef class FitterExtBFSDebug:
             print("CommonNN clustering")
             print("=" * 80)
             print(f"{n} points")
-            print(cluster_params)
+            print(
+                *(
+                    f"{k:<29}: {v}"
+                    for k, v in cluster_params.to_dict().items()
+                ),
+                sep="\n"
+            )
             print()
 
         for init_point in range(n):
@@ -439,7 +445,7 @@ cdef class FitterExtBFSDebug:
                 print("New source: {init_point}")
 
             if _consider[init_point] == 0:
-                if self._verboose:
+                if self._verbose:
                     print("    ... already visited\n")
                 continue
             _consider[init_point] = 0
