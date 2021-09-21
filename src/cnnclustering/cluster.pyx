@@ -47,12 +47,6 @@ class Clustering:
     A clustering object is made by aggregation of all necessary parts to
     carry out a clustering of input data points.
 
-    Note:
-        A clustering instance may also be created using the clustering
-        builder
-        :func:`cnnclustering.cluster.ClusteringBuilder`, e.g. as
-        `clustering = ClusteringBuilder(data).build()`.
-
     Args:
         input_data: Any object implementing the input data interface.
             Represents the data points to be clustered.
@@ -68,6 +62,12 @@ class Clustering:
             clustering.
         parent: If not None, an instance of :obj:`cnnclustering.cluster.Clustering`
             of which this clustering is a child of.
+
+    Note:
+        A clustering instance may also be created using the clustering
+        builder
+        :func:`cnnclustering.cluster.ClusteringBuilder`, e.g. as
+        `clustering = ClusteringBuilder(data).build()`.
     """
 
     take_over_attrs = [

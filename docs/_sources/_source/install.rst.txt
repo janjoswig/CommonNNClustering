@@ -12,8 +12,8 @@ We recommend to install the latest version of:
    * :mod:`PyYAML`
    * :mod:`tqdm`
 
-Optionally, additional functionality is available when one of the following
-packages is installed as well:
+Optionally, additional functionality is available when the following
+packages are installed as well:
 
    * :mod:`matplotlib`
    * :mod:`pandas`

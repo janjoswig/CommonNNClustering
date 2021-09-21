@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath("../src"))
 
 # -- Project information -----------------------------------------------------
 
-project = "cnnclustering"
+project = "CommonNNClustering"
 copyright = "2020, Jan-Oliver Joswig"
 author = "Jan-Oliver Joswig"
 
@@ -89,3 +89,5 @@ nbsphinx_prolog = """
         }
     </style>
 """
+
+default_role = "code"

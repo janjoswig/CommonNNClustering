@@ -88,8 +88,8 @@ cdef class Labels:
 
     Attributes:
         n_points: The length of the labels container
-        meta: The meta information dictionary
         labels: The labels container converted to a NumPy ndarray
+        meta: The meta information dictionary
         consider: The consider container converted to a NumPy ndarray
         mapping: A mapping of cluster labels to indices in `labels`
         set: The set of cluster labels

@@ -1,0 +1,1667 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>_types &#8212; CommonNNClustering  documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="cluster" href="api_cluster.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="types">
+<span id="sec-api-types"></span><h1>_types<a class="headerlink" href="#types" title="Permalink to this headline">¶</a></h1>
+<p>This module provides a set of types that can be used as building block
+in the aggregation of a <a class="reference internal" href="api_cluster.html#cnnclustering.cluster.Clustering" title="cnnclustering.cluster.Clustering"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clustering</span></code></a> object.</p>
+<p>Go to:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#sec-api-cnnclustering-types-cluster-params"><span class="std std-ref">Cluster parameters</span></a></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnnclustering-types-labels"><span class="std std-ref">Cluster labels</span></a></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnnclustering-types-input-data"><span class="std std-ref">Input data</span></a></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnnclustering-types-neighbours"><span class="std std-ref">Neighbours</span></a></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnnclustering-types-neighbours-getter"><span class="std std-ref">Neighbours getter</span></a></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnnclustering-types-distance-getter"><span class="std std-ref">Distance getter</span></a></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnnclustering-types-metric"><span class="std std-ref">Metrics</span></a></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnnclustering-types-similarity-checker"><span class="std std-ref">Similarity Checker</span></a></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnnclustering-types-queue"><span class="std std-ref">Queues</span></a></p></li>
+</ul>
+</div></blockquote>
+<div class="section" id="cluster-parameters">
+<span id="sec-api-cnnclustering-types-cluster-params"></span><h2>Cluster parameters<a class="headerlink" href="#cluster-parameters" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="cnnclustering._types.ClusterParameters">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">ClusterParameters</span></code><a class="headerlink" href="#cnnclustering._types.ClusterParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Input parameters for clustering procedure</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>radius_cutoff</strong> – Neighbour search radius <span class="math notranslate nohighlight">\(r\)</span>.</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>similarity_cutoff</strong> – Value used to determine check similarity criterion.
+In common-nearest-neighbours clustering, it is the
+minimum required number of shared neighbours <span class="math notranslate nohighlight">\(c\)</span>.</p></li>
+<li><p><strong>similarity_cutoff_continuous</strong> – Same as <code class="code docutils literal notranslate"><span class="pre">similarity_cutoff</span></code> but allowed to be floating point
+value.</p></li>
+<li><p><strong>n_member_cutoff</strong> – Minimum required number of points in neighbour lists
+to be considered
+(tested in <a class="reference internal" href="#cnnclustering._types.Neighbours.enough" title="cnnclustering._types.Neighbours.enough"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering._types.Neighbours.enough</span></code></a>).
+if <code class="code docutils literal notranslate"><span class="pre">None</span></code>, will be set to <code class="code docutils literal notranslate"><span class="pre">similarity_cutoff</span></code>.</p></li>
+<li><p><strong>current_start</strong> – Use this as the first label for identified clusters.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="cnnclustering._types.ClusterParameters.current_start">
+<code class="sig-name descname"><span class="pre">current_start</span></code><a class="headerlink" href="#cnnclustering._types.ClusterParameters.current_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘AINDEX’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>current_start</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.ClusterParameters.n_member_cutoff">
+<code class="sig-name descname"><span class="pre">n_member_cutoff</span></code><a class="headerlink" href="#cnnclustering._types.ClusterParameters.n_member_cutoff" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘AINDEX’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>n_member_cutoff</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.ClusterParameters.radius_cutoff">
+<code class="sig-name descname"><span class="pre">radius_cutoff</span></code><a class="headerlink" href="#cnnclustering._types.ClusterParameters.radius_cutoff" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘AVALUE’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>radius_cutoff</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.ClusterParameters.similarity_cutoff">
+<code class="sig-name descname"><span class="pre">similarity_cutoff</span></code><a class="headerlink" href="#cnnclustering._types.ClusterParameters.similarity_cutoff" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘AINDEX’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>similarity_cutoff</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.ClusterParameters.similarity_cutoff_continuous">
+<code class="sig-name descname"><span class="pre">similarity_cutoff_continuous</span></code><a class="headerlink" href="#cnnclustering._types.ClusterParameters.similarity_cutoff_continuous" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘AVALUE’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>similarity_cutoff_continuous</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.ClusterParameters.to_dict">
+<code class="sig-name descname"><span class="pre">to_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.ClusterParameters.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="cluster-labels">
+<span id="sec-api-cnnclustering-types-labels"></span><h2>Cluster labels<a class="headerlink" href="#cluster-labels" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="cnnclustering._types.Labels">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">Labels</span></code><a class="headerlink" href="#cnnclustering._types.Labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents cluster label assignments</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>labels</strong> – A container of integer cluster labels
+supporting the buffer protocol</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>consider</strong> – A boolean (uint8) container of same length as <code class="code docutils literal notranslate"><span class="pre">labels</span></code>
+indicating if a cluster label should be considered for assignment
+during clustering.  If <code class="code docutils literal notranslate"><span class="pre">None</span></code>, will be created as all true.</p></li>
+<li><p><strong>meta</strong> – Meta information.  If <code class="code docutils literal notranslate"><span class="pre">None</span></code>, will be created as empty
+dictionary.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="cnnclustering._types.Labels.n_points">
+<code class="sig-name descname"><span class="pre">n_points</span></code><a class="headerlink" href="#cnnclustering._types.Labels.n_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>The length of the labels container</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.Labels.meta">
+<code class="sig-name descname"><span class="pre">meta</span></code><a class="headerlink" href="#cnnclustering._types.Labels.meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>The meta information dictionary</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.Labels.labels">
+<code class="sig-name descname"><span class="pre">labels</span></code><a class="headerlink" href="#cnnclustering._types.Labels.labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>The labels container converted to a NumPy ndarray</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.Labels.consider">
+<code class="sig-name descname"><span class="pre">consider</span></code><a class="headerlink" href="#cnnclustering._types.Labels.consider" title="Permalink to this definition">¶</a></dt>
+<dd><p>The consider container converted to a NumPy ndarray</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.Labels.mapping">
+<code class="sig-name descname"><span class="pre">mapping</span></code><a class="headerlink" href="#cnnclustering._types.Labels.mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>A mapping of cluster labels to indices in <code class="code docutils literal notranslate"><span class="pre">labels</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.Labels.set">
+<code class="sig-name descname"><span class="pre">set</span></code><a class="headerlink" href="#cnnclustering._types.Labels.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>The set of cluster labels</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.Labels.consider_set">
+<code class="sig-name descname"><span class="pre">consider_set</span></code><a class="headerlink" href="#cnnclustering._types.Labels.consider_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>A set of cluster labels to consider for cluster
+label assignments</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Labels.from_sequence">
+<code class="sig-name descname"><span class="pre">from_sequence</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type</span> <span class="pre">cls</span></em>, <em class="sig-param"><span class="pre">labels</span></em>, <em class="sig-param"><span class="pre">*</span></em>, <em class="sig-param"><span class="pre">consider=None</span></em>, <em class="sig-param"><span class="pre">meta=None</span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Labels" title="cnnclustering._types.Labels"><span class="pre">Labels</span></a><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#cnnclustering._types.Labels.from_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct <a class="reference internal" href="#cnnclustering._types.Labels" title="cnnclustering._types.Labels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Labels</span></code></a> from any sequence (not supporting the buffer protocol)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="id0">
+<code class="sig-name descname"><span class="pre">meta</span></code><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>meta</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Labels.sort_by_size">
+<code class="sig-name descname"><span class="pre">sort_by_size</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member_cutoff</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_clusters</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.Labels.sort_by_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort labels by clustersize in-place</p>
+<p>Re-assigns cluster numbers so that the biggest cluster (that is
+not noise) is cluster 1.  Also filters out clusters, that have
+not at least <code class="code docutils literal notranslate"><span class="pre">member_cutoff</span></code> members (default 2).
+Optionally, does only
+keep the <code class="code docutils literal notranslate"><span class="pre">max_clusters</span></code> largest clusters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>member_cutoff</strong> – Valid clusters need to have at least this
+many members.</p></li>
+<li><p><strong>max_clusters</strong> – Only keep this many clusters.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Labels.to_mapping">
+<code class="sig-name descname"><span class="pre">to_mapping</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.Labels.to_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert labels container to <code class="code docutils literal notranslate"><span class="pre">mapping</span></code> of labels to lists of point indices</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Labels.to_set">
+<code class="sig-name descname"><span class="pre">to_set</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.Labels.to_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert labels container to <code class="code docutils literal notranslate"><span class="pre">set</span></code> of unique labels</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="input-data">
+<span id="sec-api-cnnclustering-types-input-data"></span><h2>Input data<a class="headerlink" href="#input-data" title="Permalink to this headline">¶</a></h2>
+<p>Types used as input data to a clustering have to adhere to the input
+data interface which is defined through
+<a class="reference internal" href="#cnnclustering._types.InputDataExtInterface" title="cnnclustering._types.InputDataExtInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataExtInterface</span></code></a> for Cython extension
+types. For pure Python types the input data interface is defined through
+the abstract base class <code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataInputData</span></code>
+and the specialised abstract classes
+<a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputData</span></code></a>
+<a class="reference internal" href="#cnnclustering._types.InputDataComponents" title="cnnclustering._types.InputDataComponents"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataComponents</span></code></a>
+<a class="reference internal" href="#cnnclustering._types.InputDataPairwiseDistances" title="cnnclustering._types.InputDataPairwiseDistances"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataPairwiseDistances</span></code></a>
+<a class="reference internal" href="#cnnclustering._types.InputDataPairwiseDistancesComputer" title="cnnclustering._types.InputDataPairwiseDistancesComputer"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataPairwiseDistancesComputer</span></code></a>
+<a class="reference internal" href="#cnnclustering._types.InputDataNeighbourhoods" title="cnnclustering._types.InputDataNeighbourhoods"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataNeighbourhoods</span></code></a>
+<a class="reference internal" href="#cnnclustering._types.InputDataNeighbourhoodsComputer" title="cnnclustering._types.InputDataNeighbourhoodsComputer"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataNeighbourhoodsComputer</span></code></a></p>
+<dl class="py class">
+<dt id="cnnclustering._types.InputDataExtInterface">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">InputDataExtInterface</span></code><a class="headerlink" href="#cnnclustering._types.InputDataExtInterface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the input data interface for Cython extension types</p>
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtInterface.compute_distances">
+<code class="sig-name descname"><span class="pre">compute_distances</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">input_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.InputDataExtInterface.compute_distances" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtInterface.compute_neighbourhoods">
+<code class="sig-name descname"><span class="pre">compute_neighbourhoods</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">input_data</span></em>, <em class="sig-param"><span class="pre">AVALUE</span> <span class="pre">r</span></em>, <em class="sig-param"><span class="pre">ABOOL</span> <span class="pre">is_sorted</span></em>, <em class="sig-param"><span class="pre">ABOOL</span> <span class="pre">is_selfcounting</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.InputDataExtInterface.compute_neighbourhoods" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtInterface.get_builder_kwargs">
+<code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type</span> <span class="pre">cls</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.InputDataExtInterface.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtInterface.get_component">
+<code class="sig-name descname"><span class="pre">get_component</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.InputDataExtInterface.get_component" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtInterface.get_distance">
+<code class="sig-name descname"><span class="pre">get_distance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.InputDataExtInterface.get_distance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtInterface.get_n_neighbours">
+<code class="sig-name descname"><span class="pre">get_n_neighbours</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.InputDataExtInterface.get_n_neighbours" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtInterface.get_neighbour">
+<code class="sig-name descname"><span class="pre">get_neighbour</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.InputDataExtInterface.get_neighbour" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.InputDataExtInterface.meta">
+<code class="sig-name descname"><span class="pre">meta</span></code><a class="headerlink" href="#cnnclustering._types.InputDataExtInterface.meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>meta</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.InputDataExtInterface.n_dim">
+<code class="sig-name descname"><span class="pre">n_dim</span></code><a class="headerlink" href="#cnnclustering._types.InputDataExtInterface.n_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘AINDEX’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>n_dim</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.InputDataExtInterface.n_points">
+<code class="sig-name descname"><span class="pre">n_points</span></code><a class="headerlink" href="#cnnclustering._types.InputDataExtInterface.n_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘AINDEX’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>n_points</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.InputData">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">InputData</span></code><a class="headerlink" href="#cnnclustering._types.InputData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the input data interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.InputData.data">
+<em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">data</span></code><a class="headerlink" href="#cnnclustering._types.InputData.data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return underlying data (only for user convenience, not to be relied on)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputData.get_builder_kwargs">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.InputData.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputData.get_subset">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_subset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Container</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#cnnclustering._types.InputData.get_subset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return input data subset</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputData.meta">
+<em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">meta</span></code><a class="headerlink" href="#cnnclustering._types.InputData.meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return meta-information</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputData.n_points">
+<em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">n_points</span></code><a class="headerlink" href="#cnnclustering._types.InputData.n_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return total number of points</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.InputDataComponents">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">InputDataComponents</span></code><a class="headerlink" href="#cnnclustering._types.InputDataComponents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extends the input data interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataComponents.get_component">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_component</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.InputDataComponents.get_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return one component of point coordinates</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataComponents.n_dim">
+<em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">n_dim</span></code><a class="headerlink" href="#cnnclustering._types.InputDataComponents.n_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return total number of dimensions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataComponents.to_components_array">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">to_components_array</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.InputDataComponents.to_components_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return input data as NumPy array of shape (#points, #components)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.InputDataPairwiseDistances">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">InputDataPairwiseDistances</span></code><a class="headerlink" href="#cnnclustering._types.InputDataPairwiseDistances" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extends the input data interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataPairwiseDistances.get_distance">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_distance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.InputDataPairwiseDistances.get_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the pairwise distance between two points</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.InputDataPairwiseDistancesComputer">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">InputDataPairwiseDistancesComputer</span></code><a class="headerlink" href="#cnnclustering._types.InputDataPairwiseDistancesComputer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extends the input data interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataPairwiseDistancesComputer.compute_distances">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">compute_distances</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cnnclustering._types.InputDataPairwiseDistancesComputer.compute_distances" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pre-compute pairwise distances</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.InputDataNeighbourhoods">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">InputDataNeighbourhoods</span></code><a class="headerlink" href="#cnnclustering._types.InputDataNeighbourhoods" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extends the input data interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataNeighbourhoods.get_n_neighbours">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_n_neighbours</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.InputDataNeighbourhoods.get_n_neighbours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of neighbours for point</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataNeighbourhoods.get_neighbour">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_neighbour</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.InputDataNeighbourhoods.get_neighbour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a member for point</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.InputDataNeighbourhoodsComputer">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">InputDataNeighbourhoodsComputer</span></code><a class="headerlink" href="#cnnclustering._types.InputDataNeighbourhoodsComputer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extends the input data interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataNeighbourhoodsComputer.compute_neighbourhoods">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">compute_neighbourhoods</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self,</span> <span class="pre">input_data:</span> <span class="pre">Type[u'InputData'],</span> <span class="pre">double</span> <span class="pre">r:</span> <span class="pre">float,</span> <span class="pre">is_sorted:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">is_selfcounting:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cnnclustering._types.InputDataNeighbourhoodsComputer.compute_neighbourhoods" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pre-compute neighbourhoods at radius</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.InputDataExtComponentsMemoryview">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">InputDataExtComponentsMemoryview</span></code><a class="headerlink" href="#cnnclustering._types.InputDataExtComponentsMemoryview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the input data interface</p>
+<p>Stores compenents as cython memoryview.</p>
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtComponentsMemoryview.by_parts">
+<code class="sig-name descname"><span class="pre">by_parts</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Iterator</span><a class="headerlink" href="#cnnclustering._types.InputDataExtComponentsMemoryview.by_parts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yield data by parts</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Generator of 2D <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> s (parts)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtComponentsMemoryview.get_component">
+<code class="sig-name descname"><span class="pre">get_component</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.InputDataExtComponentsMemoryview.get_component" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtComponentsMemoryview.get_subset">
+<code class="sig-name descname"><span class="pre">get_subset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Sequence</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputDataExtComponentsMemoryview" title="cnnclustering._types.InputDataExtComponentsMemoryview"><span class="pre">InputDataExtComponentsMemoryview</span></a><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#cnnclustering._types.InputDataExtComponentsMemoryview.get_subset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtComponentsMemoryview.to_components_array">
+<code class="sig-name descname"><span class="pre">to_components_array</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.InputDataExtComponentsMemoryview.to_components_array" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.InputDataExtDistancesLinearMemoryview">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">InputDataExtDistancesLinearMemoryview</span></code><a class="headerlink" href="#cnnclustering._types.InputDataExtDistancesLinearMemoryview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the input data interface</p>
+<p>Stores distances as 1D memoryview</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.InputDataExtNeighbourhoodsMemoryview">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">InputDataExtNeighbourhoodsMemoryview</span></code><a class="headerlink" href="#cnnclustering._types.InputDataExtNeighbourhoodsMemoryview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the input data interface</p>
+<p>Neighbours of points stored using a cython memoryview.</p>
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtNeighbourhoodsMemoryview.get_n_neighbours">
+<code class="sig-name descname"><span class="pre">get_n_neighbours</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.InputDataExtNeighbourhoodsMemoryview.get_n_neighbours" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtNeighbourhoodsMemoryview.get_neighbour">
+<code class="sig-name descname"><span class="pre">get_neighbour</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.InputDataExtNeighbourhoodsMemoryview.get_neighbour" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataExtNeighbourhoodsMemoryview.get_subset">
+<code class="sig-name descname"><span class="pre">get_subset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Sequence</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputDataExtNeighbourhoodsMemoryview" title="cnnclustering._types.InputDataExtNeighbourhoodsMemoryview"><span class="pre">InputDataExtNeighbourhoodsMemoryview</span></a><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#cnnclustering._types.InputDataExtNeighbourhoodsMemoryview.get_subset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return input data subset</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.InputDataNeighbourhoodsSequence">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">InputDataNeighbourhoodsSequence</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Sequence</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.InputDataNeighbourhoodsSequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the input data interface</p>
+<p>Neighbours of points stored as a sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> – Any sequence of neighbour index sequences (need to be
+sized, indexable, and iterable)</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>meta</strong> – Meta-information dictionary.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataNeighbourhoodsSequence.data">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">data</span></code><a class="headerlink" href="#cnnclustering._types.InputDataNeighbourhoodsSequence.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataNeighbourhoodsSequence.get_n_neighbours">
+<code class="sig-name descname"><span class="pre">get_n_neighbours</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.InputDataNeighbourhoodsSequence.get_n_neighbours" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataNeighbourhoodsSequence.get_neighbour">
+<code class="sig-name descname"><span class="pre">get_neighbour</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.InputDataNeighbourhoodsSequence.get_neighbour" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataNeighbourhoodsSequence.get_subset">
+<code class="sig-name descname"><span class="pre">get_subset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Container</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputDataNeighbourhoodsSequence" title="cnnclustering._types.InputDataNeighbourhoodsSequence"><span class="pre">InputDataNeighbourhoodsSequence</span></a><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#cnnclustering._types.InputDataNeighbourhoodsSequence.get_subset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataNeighbourhoodsSequence.meta">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">meta</span></code><a class="headerlink" href="#cnnclustering._types.InputDataNeighbourhoodsSequence.meta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataNeighbourhoodsSequence.n_neighbours">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">n_neighbours</span></code><a class="headerlink" href="#cnnclustering._types.InputDataNeighbourhoodsSequence.n_neighbours" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataNeighbourhoodsSequence.n_points">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">n_points</span></code><a class="headerlink" href="#cnnclustering._types.InputDataNeighbourhoodsSequence.n_points" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.InputDataSklearnKDTree">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">InputDataSklearnKDTree</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the input data interface</p>
+<p>Components stored as a NumPy array.  Neighbour queries delegated
+to pre-build KDTree.</p>
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataSklearnKDTree.build_tree">
+<code class="sig-name descname"><span class="pre">build_tree</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree.build_tree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataSklearnKDTree.clear_cached">
+<code class="sig-name descname"><span class="pre">clear_cached</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree.clear_cached" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataSklearnKDTree.compute_neighbourhoods">
+<code class="sig-name descname"><span class="pre">compute_neighbourhoods</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self,</span> <span class="pre">input_data:</span> <span class="pre">Type[u'InputData'],</span> <span class="pre">double</span> <span class="pre">radius:</span> <span class="pre">float,</span> <span class="pre">is_sorted:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">is_selfcounting:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree.compute_neighbourhoods" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataSklearnKDTree.data">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">data</span></code><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataSklearnKDTree.get_component">
+<code class="sig-name descname"><span class="pre">get_component</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree.get_component" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataSklearnKDTree.get_n_neighbours">
+<code class="sig-name descname"><span class="pre">get_n_neighbours</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree.get_n_neighbours" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataSklearnKDTree.get_neighbour">
+<code class="sig-name descname"><span class="pre">get_neighbour</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree.get_neighbour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a member for point</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataSklearnKDTree.get_subset">
+<code class="sig-name descname"><span class="pre">get_subset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Container</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputDataSklearnKDTree" title="cnnclustering._types.InputDataSklearnKDTree"><span class="pre">InputDataSklearnKDTree</span></a><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree.get_subset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return input data subset</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataSklearnKDTree.meta">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">meta</span></code><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree.meta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataSklearnKDTree.n_dim">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">n_dim</span></code><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree.n_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataSklearnKDTree.n_neighbours">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">n_neighbours</span></code><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree.n_neighbours" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataSklearnKDTree.n_points">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">n_points</span></code><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree.n_points" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.InputDataSklearnKDTree.to_components_array">
+<code class="sig-name descname"><span class="pre">to_components_array</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.InputDataSklearnKDTree.to_components_array" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="neighbour-containers">
+<span id="sec-api-cnnclustering-types-neighbours"></span><h2>Neighbour containers<a class="headerlink" href="#neighbour-containers" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursExtInterface">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursExtInterface</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursExtInterface" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="cnnclustering._types.NeighboursExtInterface.assign">
+<code class="sig-name descname"><span class="pre">assign</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursExtInterface.assign" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursExtInterface.contains">
+<code class="sig-name descname"><span class="pre">contains</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursExtInterface.contains" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursExtInterface.enough">
+<code class="sig-name descname"><span class="pre">enough</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member_cutoff</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursExtInterface.enough" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursExtInterface.get_builder_kwargs">
+<code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type</span> <span class="pre">cls</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursExtInterface.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursExtInterface.get_member">
+<code class="sig-name descname"><span class="pre">get_member</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursExtInterface.get_member" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.NeighboursExtInterface.n_points">
+<code class="sig-name descname"><span class="pre">n_points</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursExtInterface.n_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘AINDEX’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>n_points</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursExtInterface.reset">
+<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursExtInterface.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.Neighbours">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">Neighbours</span></code><a class="headerlink" href="#cnnclustering._types.Neighbours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the neighbours interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.Neighbours.assign">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">assign</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cnnclustering._types.Neighbours.assign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a member to this container</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Neighbours.contains">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">contains</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#cnnclustering._types.Neighbours.contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if member is in neighbours container</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Neighbours.enough">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">enough</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member_cutoff</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#cnnclustering._types.Neighbours.enough" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if there are enough points</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Neighbours.get_builder_kwargs">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.Neighbours.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Neighbours.get_member">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_member</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.Neighbours.get_member" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return indexable neighbours container</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Neighbours.n_points">
+<em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">n_points</span></code><a class="headerlink" href="#cnnclustering._types.Neighbours.n_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return total number of points</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Neighbours.neighbours">
+<em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">neighbours</span></code><a class="headerlink" href="#cnnclustering._types.Neighbours.neighbours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return point indices as NumPy array</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Neighbours.reset">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cnnclustering._types.Neighbours.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset/empty this container</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursExtVector">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursExtVector</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursExtVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the neighbours interface</p>
+<p>Uses an underlying C++ std:vector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>initial_size</strong> – Number of elements reserved for the size of vector.</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>neighbours</strong> – A sequence of labels suitable to be cast to a vector.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursExtCPPSet">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursExtCPPSet</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursExtCPPSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the neighbours interface</p>
+<p>Uses an underlying C++ std:set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><p><strong>neighbours</strong> – A sequence of labels suitable to be cast to a C++ set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursExtCPPUnorderedSet">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursExtCPPUnorderedSet</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursExtCPPUnorderedSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the neighbours interface</p>
+<p>Uses an underlying C++ std:unordered_set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><p><strong>neighbours</strong> – A sequence of labels suitable to be cast to a C++ set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursExtVectorCPPUnorderedSet">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursExtVectorCPPUnorderedSet</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursExtVectorCPPUnorderedSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the neighbours interface</p>
+<p>Uses a compination of an underlying C++ std:vector and a std:unordered_set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><p><strong>neighbours</strong> – A sequence of labels suitable to be cast to a C++ vector.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursList">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursList</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">neighbours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the neighbours interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursList.assign">
+<code class="sig-name descname"><span class="pre">assign</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursList.assign" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursList.contains">
+<code class="sig-name descname"><span class="pre">contains</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#cnnclustering._types.NeighboursList.contains" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursList.enough">
+<code class="sig-name descname"><span class="pre">enough</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member_cutoff</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#cnnclustering._types.NeighboursList.enough" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursList.get_member">
+<code class="sig-name descname"><span class="pre">get_member</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.NeighboursList.get_member" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursList.n_points">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">n_points</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursList.n_points" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursList.neighbours">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">neighbours</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursList.neighbours" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursList.reset">
+<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursList.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursSet">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursSet</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">neighbours</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the neighbours interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursSet.assign">
+<code class="sig-name descname"><span class="pre">assign</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursSet.assign" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursSet.contains">
+<code class="sig-name descname"><span class="pre">contains</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#cnnclustering._types.NeighboursSet.contains" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursSet.enough">
+<code class="sig-name descname"><span class="pre">enough</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member_cutoff</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursSet.enough" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursSet.get_member">
+<code class="sig-name descname"><span class="pre">get_member</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.NeighboursSet.get_member" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursSet.n_points">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">n_points</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursSet.n_points" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursSet.neighbours">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">neighbours</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursSet.neighbours" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursSet.reset">
+<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursSet.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="neighbours-getter">
+<span id="sec-api-cnnclustering-types-neighbours-getter"></span><h2>Neighbours getter<a class="headerlink" href="#neighbours-getter" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursGetterExtInterface">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursGetterExtInterface</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursGetterExtInterface" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterExtInterface.get">
+<code class="sig-name descname"><span class="pre">get</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">index</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">input_data</span></em>, <em class="sig-param"><span class="pre">NeighboursExtInterface</span> <span class="pre">neighbours</span></em>, <em class="sig-param"><span class="pre">ClusterParameters</span> <span class="pre">cluster_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterExtInterface.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterExtInterface.get_builder_kwargs">
+<code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type</span> <span class="pre">cls</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterExtInterface.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterExtInterface.get_other">
+<code class="sig-name descname"><span class="pre">get_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">index</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">input_data</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">other_input_data</span></em>, <em class="sig-param"><span class="pre">NeighboursExtInterface</span> <span class="pre">neighbours</span></em>, <em class="sig-param"><span class="pre">ClusterParameters</span> <span class="pre">cluster_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterExtInterface.get_other" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.NeighboursGetterExtInterface.is_selfcounting">
+<code class="sig-name descname"><span class="pre">is_selfcounting</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursGetterExtInterface.is_selfcounting" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘bool’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>is_selfcounting</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.NeighboursGetterExtInterface.is_sorted">
+<code class="sig-name descname"><span class="pre">is_sorted</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursGetterExtInterface.is_sorted" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘bool’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>is_sorted</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursGetter">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursGetter</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursGetter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the neighbours-getter interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetter.get">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.ClusterParameters" title="cnnclustering._types.ClusterParameters"><span class="pre">ClusterParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetter.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect neighbours for point in input data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetter.get_builder_kwargs">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetter.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetter.get_other">
+<code class="sig-name descname"><span class="pre">get_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.ClusterParameters" title="cnnclustering._types.ClusterParameters"><span class="pre">ClusterParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetter.get_other" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect neighbours in input data for point in other input data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetter.is_selfcounting">
+<em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_selfcounting</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursGetter.is_selfcounting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if points count as their own neighbour</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetter.is_sorted">
+<em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_sorted</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursGetter.is_sorted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if neighbour indices are sorted</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursGetterExtBruteForce">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursGetterExtBruteForce</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance_getter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">DistanceGetterExtInterface</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterExtBruteForce" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the neighbours getter interface</p>
+<p>This getter retrieves the neighbours of a point by comparing the
+distances (from a distance getter) between the point and all
+other points to the radius cutoff (<span class="math notranslate nohighlight">\(r_{ij} \leq r\)</span>).</p>
+<p>The resulting neighbour containers are in general not sorted and
+include points as their own neighbour (self counting).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>distance_getter</strong> – An object implementing the distance getter
+interface. Has to be a Cython extension type.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterExtBruteForce.get_builder_kwargs">
+<code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type</span> <span class="pre">cls</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterExtBruteForce.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursGetterExtLookup">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursGetterExtLookup</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursGetterExtLookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the neighbours getter interface</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursGetterBruteForce">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursGetterBruteForce</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance_getter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">DistanceGetter</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterBruteForce" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the neighbours getter interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterBruteForce.get">
+<code class="sig-name descname"><span class="pre">get</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.ClusterParameters" title="cnnclustering._types.ClusterParameters"><span class="pre">ClusterParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterBruteForce.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterBruteForce.get_builder_kwargs">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterBruteForce.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterBruteForce.get_other">
+<code class="sig-name descname"><span class="pre">get_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.ClusterParameters" title="cnnclustering._types.ClusterParameters"><span class="pre">ClusterParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterBruteForce.get_other" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterBruteForce.is_selfcounting">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_selfcounting</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursGetterBruteForce.is_selfcounting" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterBruteForce.is_sorted">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_sorted</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursGetterBruteForce.is_sorted" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursGetterLookup">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursGetterLookup</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_sorted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_selfcounting</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterLookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the neighbours getter interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterLookup.get">
+<code class="sig-name descname"><span class="pre">get</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.ClusterParameters" title="cnnclustering._types.ClusterParameters"><span class="pre">ClusterParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterLookup.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterLookup.get_other">
+<code class="sig-name descname"><span class="pre">get_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.ClusterParameters" title="cnnclustering._types.ClusterParameters"><span class="pre">ClusterParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterLookup.get_other" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterLookup.is_selfcounting">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_selfcounting</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursGetterLookup.is_selfcounting" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterLookup.is_sorted">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_sorted</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursGetterLookup.is_sorted" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.NeighboursGetterRecomputeLookup">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">NeighboursGetterRecomputeLookup</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_sorted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_selfcounting</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterRecomputeLookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the neighbours getter interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterRecomputeLookup.get">
+<code class="sig-name descname"><span class="pre">get</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.ClusterParameters" title="cnnclustering._types.ClusterParameters"><span class="pre">ClusterParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterRecomputeLookup.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterRecomputeLookup.get_other">
+<code class="sig-name descname"><span class="pre">get_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.ClusterParameters" title="cnnclustering._types.ClusterParameters"><span class="pre">ClusterParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.NeighboursGetterRecomputeLookup.get_other" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterRecomputeLookup.is_selfcounting">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_selfcounting</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursGetterRecomputeLookup.is_selfcounting" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.NeighboursGetterRecomputeLookup.is_sorted">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_sorted</span></code><a class="headerlink" href="#cnnclustering._types.NeighboursGetterRecomputeLookup.is_sorted" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="distance-getter">
+<span id="sec-api-cnnclustering-types-distance-getter"></span><h2>Distance getter<a class="headerlink" href="#distance-getter" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="cnnclustering._types.DistanceGetterExtInterface">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">DistanceGetterExtInterface</span></code><a class="headerlink" href="#cnnclustering._types.DistanceGetterExtInterface" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="cnnclustering._types.DistanceGetterExtInterface.get_builder_kwargs">
+<code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type</span> <span class="pre">cls</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.DistanceGetterExtInterface.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.DistanceGetterExtInterface.get_single">
+<code class="sig-name descname"><span class="pre">get_single</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">point_a</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">point_b</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">input_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.DistanceGetterExtInterface.get_single" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.DistanceGetterExtInterface.get_single_other">
+<code class="sig-name descname"><span class="pre">get_single_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">point_a</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">point_b</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">input_data</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">other_input_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.DistanceGetterExtInterface.get_single_other" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.DistanceGetter">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">DistanceGetter</span></code><a class="headerlink" href="#cnnclustering._types.DistanceGetter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the distance getter interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.DistanceGetter.get_builder_kwargs">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.DistanceGetter.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.DistanceGetter.get_single">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_single</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.DistanceGetter.get_single" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get distance between two points in input data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.DistanceGetter.get_single_other">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">get_single_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.DistanceGetter.get_single_other" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get distance between two points in input data and other input data</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.DistanceGetterExtMetric">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">DistanceGetterExtMetric</span></code><a class="headerlink" href="#cnnclustering._types.DistanceGetterExtMetric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the distance getter interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.DistanceGetterExtMetric.get_builder_kwargs">
+<code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type</span> <span class="pre">cls</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.DistanceGetterExtMetric.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.DistanceGetterExtMetric.get_single">
+<code class="sig-name descname"><span class="pre">get_single</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">point_a</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">point_b</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">input_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.DistanceGetterExtMetric.get_single" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.DistanceGetterExtMetric.get_single_other">
+<code class="sig-name descname"><span class="pre">get_single_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">point_a</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">point_b</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">input_data</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">other_input_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.DistanceGetterExtMetric.get_single_other" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.DistanceGetterExtLookup">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">DistanceGetterExtLookup</span></code><a class="headerlink" href="#cnnclustering._types.DistanceGetterExtLookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the distance getter interface</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.DistanceGetterMetric">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">DistanceGetterMetric</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">Metric</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.DistanceGetterMetric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the distance getter interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.DistanceGetterMetric.get_builder_kwargs">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.DistanceGetterMetric.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.DistanceGetterMetric.get_single">
+<code class="sig-name descname"><span class="pre">get_single</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.DistanceGetterMetric.get_single" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.DistanceGetterMetric.get_single_other">
+<code class="sig-name descname"><span class="pre">get_single_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.DistanceGetterMetric.get_single_other" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.DistanceGetterLookup">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">DistanceGetterLookup</span></code><a class="headerlink" href="#cnnclustering._types.DistanceGetterLookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the distance getter interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.DistanceGetterLookup.get_single">
+<code class="sig-name descname"><span class="pre">get_single</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">point_a</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">point_b</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">input_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.DistanceGetterLookup.get_single" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.DistanceGetterLookup.get_single_other">
+<code class="sig-name descname"><span class="pre">get_single_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">point_a</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">point_b</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">input_data</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">other_input_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.DistanceGetterLookup.get_single_other" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="metrics">
+<span id="sec-api-cnnclustering-types-metric"></span><h2>Metrics<a class="headerlink" href="#metrics" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="cnnclustering._types.MetricExtInterface">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">MetricExtInterface</span></code><a class="headerlink" href="#cnnclustering._types.MetricExtInterface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the metric interface for extension types</p>
+<dl class="py method">
+<dt id="cnnclustering._types.MetricExtInterface.adjust_radius">
+<code class="sig-name descname"><span class="pre">adjust_radius</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">AVALUE</span> <span class="pre">radius_cutoff</span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.MetricExtInterface.adjust_radius" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.MetricExtInterface.calc_distance">
+<code class="sig-name descname"><span class="pre">calc_distance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">index_a</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">index_b</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">input_data</span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.MetricExtInterface.calc_distance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.MetricExtInterface.calc_distance_other">
+<code class="sig-name descname"><span class="pre">calc_distance_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">index_a</span></em>, <em class="sig-param"><span class="pre">AINDEX</span> <span class="pre">index_b</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">input_data</span></em>, <em class="sig-param"><span class="pre">InputDataExtInterface</span> <span class="pre">other_input_data</span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.MetricExtInterface.calc_distance_other" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.MetricExtInterface.get_builder_kwargs">
+<code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type</span> <span class="pre">cls</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.MetricExtInterface.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.Metric">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">Metric</span></code><a class="headerlink" href="#cnnclustering._types.Metric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the metric-interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.Metric.calc_distance">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">calc_distance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.Metric.calc_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return distance between two points in input data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Metric.calc_distance_other">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">calc_distance_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.Metric.calc_distance_other" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return distance between two points in input data and other input data</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.MetricExtDummy">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">MetricExtDummy</span></code><a class="headerlink" href="#cnnclustering._types.MetricExtDummy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the metric interface</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.MetricExtPrecomputed">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">MetricExtPrecomputed</span></code><a class="headerlink" href="#cnnclustering._types.MetricExtPrecomputed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the metric interface</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.MetricExtEuclidean">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">MetricExtEuclidean</span></code><a class="headerlink" href="#cnnclustering._types.MetricExtEuclidean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the metric interface</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.MetricExtEuclideanReduced">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">MetricExtEuclideanReduced</span></code><a class="headerlink" href="#cnnclustering._types.MetricExtEuclideanReduced" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the metric interface</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.MetricExtEuclideanPeriodicReduced">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">MetricExtEuclideanPeriodicReduced</span></code><a class="headerlink" href="#cnnclustering._types.MetricExtEuclideanPeriodicReduced" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the metric interface</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.MetricDummy">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">MetricDummy</span></code><a class="headerlink" href="#cnnclustering._types.MetricDummy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the metric interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.MetricDummy.adjust_radius">
+<code class="sig-name descname"><span class="pre">adjust_radius</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">double</span> <span class="pre">radius_cutoff:</span> <span class="pre">float</span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.MetricDummy.adjust_radius" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.MetricDummy.calc_distance">
+<code class="sig-name descname"><span class="pre">calc_distance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.MetricDummy.calc_distance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.MetricDummy.calc_distance_other">
+<code class="sig-name descname"><span class="pre">calc_distance_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.MetricDummy.calc_distance_other" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.MetricEuclidean">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">MetricEuclidean</span></code><a class="headerlink" href="#cnnclustering._types.MetricEuclidean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the metric interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.MetricEuclidean.adjust_radius">
+<code class="sig-name descname"><span class="pre">adjust_radius</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">double</span> <span class="pre">radius_cutoff:</span> <span class="pre">float</span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.MetricEuclidean.adjust_radius" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.MetricEuclidean.calc_distance">
+<code class="sig-name descname"><span class="pre">calc_distance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.MetricEuclidean.calc_distance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.MetricEuclidean.calc_distance_other">
+<code class="sig-name descname"><span class="pre">calc_distance_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.MetricEuclidean.calc_distance_other" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.MetricEuclideanReduced">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">MetricEuclideanReduced</span></code><a class="headerlink" href="#cnnclustering._types.MetricEuclideanReduced" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the metric interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.MetricEuclideanReduced.adjust_radius">
+<code class="sig-name descname"><span class="pre">adjust_radius</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">double</span> <span class="pre">radius_cutoff:</span> <span class="pre">float</span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.MetricEuclideanReduced.adjust_radius" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.MetricEuclideanReduced.calc_distance">
+<code class="sig-name descname"><span class="pre">calc_distance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.MetricEuclideanReduced.calc_distance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.MetricEuclideanReduced.calc_distance_other">
+<code class="sig-name descname"><span class="pre">calc_distance_other</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><span class="pre">InputData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">float</span><a class="headerlink" href="#cnnclustering._types.MetricEuclideanReduced.calc_distance_other" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="similarity-checker">
+<span id="sec-api-cnnclustering-types-similarity-checker"></span><h2>Similarity checker<a class="headerlink" href="#similarity-checker" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="cnnclustering._types.SimilarityCheckerExtInterface">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">SimilarityCheckerExtInterface</span></code><a class="headerlink" href="#cnnclustering._types.SimilarityCheckerExtInterface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the similarity checker interface for extension types</p>
+<dl class="py method">
+<dt id="cnnclustering._types.SimilarityCheckerExtInterface.check">
+<code class="sig-name descname"><span class="pre">check</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">self</span></em>, <em class="sig-param"><span class="pre">NeighboursExtInterface</span> <span class="pre">neighbours_a</span></em>, <em class="sig-param"><span class="pre">NeighboursExtInterface</span> <span class="pre">neighbours_b</span></em>, <em class="sig-param"><span class="pre">ClusterParameters</span> <span class="pre">cluster_params</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.SimilarityCheckerExtInterface.check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.SimilarityCheckerExtInterface.get_builder_kwargs">
+<code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type</span> <span class="pre">cls</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.SimilarityCheckerExtInterface.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.SimilarityChecker">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">SimilarityChecker</span></code><a class="headerlink" href="#cnnclustering._types.SimilarityChecker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the similarity checker interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.SimilarityChecker.check">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">check</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.ClusterParameters" title="cnnclustering._types.ClusterParameters"><span class="pre">ClusterParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#cnnclustering._types.SimilarityChecker.check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrun True if a and b have sufficiently many common neighbours</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.SimilarityChecker.get_builder_kwargs">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.SimilarityChecker.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.SimilarityCheckerExtContains">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">SimilarityCheckerExtContains</span></code><a class="headerlink" href="#cnnclustering._types.SimilarityCheckerExtContains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the similarity checker interface</p>
+<dl class="simple">
+<dt>Strategy:</dt><dd><p>Loops over members of one neighbours container and checks
+if they are contained in the other neighbours container.  Breaks
+early when similarity criterion is reached.
+The performance and time-complexity of the check depends on the
+used neighbour containers.
+Worst case time
+complexity is <span class="math notranslate nohighlight">\(\mathcal{O}(n * m)\)</span> with <span class="math notranslate nohighlight">\(n\)</span> and
+<span class="math notranslate nohighlight">\(m\)</span> being the lengths of the neighbours containers if the
+containment check is performed by iteration.  Worst
+case time complexity is <span class="math notranslate nohighlight">\(\mathcal{O}(n)\)</span> if containment
+check can be performed as lookup in linear time.  Note that
+no switching of the neighbours containers is done to ensure
+that the first container is the one with the shorter length
+(compare
+<a class="reference internal" href="#cnnclustering._types.SimilarityCheckerExtSwitchContains" title="cnnclustering._types.SimilarityCheckerExtSwitchContains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering._types.SimilarityCheckerExtSwitchContains</span></code></a>).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.SimilarityCheckerExtSwitchContains">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">SimilarityCheckerExtSwitchContains</span></code><a class="headerlink" href="#cnnclustering._types.SimilarityCheckerExtSwitchContains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the similarity checker interface</p>
+<dl class="simple">
+<dt>Strategy:</dt><dd><p>Loops over members of one neighbours container and checks
+if they are contained in the other neighbours container.  Breaks
+early when similarity criterion is reached.
+The performance and time-complexity of the check depends on the
+used neighbour containers.
+Worst case time
+complexity is <span class="math notranslate nohighlight">\(\mathcal{O}(n * m)\)</span> with <span class="math notranslate nohighlight">\(n\)</span> and
+<span class="math notranslate nohighlight">\(m\)</span> being the lengths of the neighbours containers if the
+containment check is performed by iteration.  Worst
+case time complexity is <span class="math notranslate nohighlight">\(\mathcal{O}(n)\)</span> if containment
+check can be performed as lookup in linear time.  Note that
+switching of the neighbours containers is done to ensure
+that the first container is the one with the shorter length
+(compare
+<a class="reference internal" href="#cnnclustering._types.SimilarityCheckerExtContains" title="cnnclustering._types.SimilarityCheckerExtContains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering._types.SimilarityCheckerExtContains</span></code></a>).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.SimilarityCheckerExtScreensorted">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">SimilarityCheckerExtScreensorted</span></code><a class="headerlink" href="#cnnclustering._types.SimilarityCheckerExtScreensorted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the similarity checker interface</p>
+<dl class="simple">
+<dt>Strategy:</dt><dd><p>Loops over members of two neighbour containers alternatingly
+and checks if neighbours are contained in both containers.
+Requires that the containers are sorted ascendingly to return
+the correct result. Sorting will neither be checked nor enforced.
+Breaks
+early when similarity criterion is reached.
+The performance of the check depends on the
+used neighbour containers.
+Worst case time
+complexity is <span class="math notranslate nohighlight">\(\mathcal{O}(n + m)\)</span> with <span class="math notranslate nohighlight">\(n\)</span> and
+<span class="math notranslate nohighlight">\(m\)</span> being the lengths of the neighbours containers.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.SimilarityCheckerContains">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">SimilarityCheckerContains</span></code><a class="headerlink" href="#cnnclustering._types.SimilarityCheckerContains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the similarity checker interface</p>
+<dl class="simple">
+<dt>Strategy:</dt><dd><p>Loops over members of one neighbours container and checks
+if they are contained in the other neighbours container.  Breaks
+early when similarity criterion is reached.
+The performance and time-complexity of the check depends on the
+used neighbour containers.  Worst case time
+complexity is <span class="math notranslate nohighlight">\(\mathcal{O}(n * m)\)</span> with <span class="math notranslate nohighlight">\(n\)</span> and
+<span class="math notranslate nohighlight">\(m\)</span> being the lengths of the neighbours containers if the
+containment check is performed by iteration.  Worst
+case time complexity is <span class="math notranslate nohighlight">\(\mathcal{O}(n)\)</span> if containment
+check can be performed as lookup in linear time.  Note that
+no switching of the neighbours containers is done to ensure
+that the first container is the one with the shorter length
+(compare
+<a class="reference internal" href="#cnnclustering._types.SimilarityCheckerSwitchContains" title="cnnclustering._types.SimilarityCheckerSwitchContains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering._types.SimilarityCheckerSwitchContains</span></code></a>).</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="cnnclustering._types.SimilarityCheckerContains.check">
+<code class="sig-name descname"><span class="pre">check</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.ClusterParameters" title="cnnclustering._types.ClusterParameters"><span class="pre">ClusterParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#cnnclustering._types.SimilarityCheckerContains.check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.SimilarityCheckerSwitchContains">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">SimilarityCheckerSwitchContains</span></code><a class="headerlink" href="#cnnclustering._types.SimilarityCheckerSwitchContains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the similarity checker interface</p>
+<dl class="simple">
+<dt>Strategy:</dt><dd><p>Loops over members of one neighbours container and checks
+if they are contained in the other neighbours container.  Breaks
+early when similarity criterion is reached.  The performance
+and time-complexity of the check depends on the
+used neighbour containers.  Worst case time
+complexity is <span class="math notranslate nohighlight">\(\mathcal{O}(n * m)\)</span> with <span class="math notranslate nohighlight">\(n\)</span> and
+<span class="math notranslate nohighlight">\(m\)</span> being the lengths of the neighbours containers if the
+containment check is performed by iteration.  Worst
+case time complexity is <span class="math notranslate nohighlight">\(\mathcal{O}(n)\)</span> if containment
+check can be performed as lookup in linear time.  Note that a
+switching of the neighbours containers is done to ensure
+that the first container is the one with the shorter length
+(compare
+<a class="reference internal" href="#cnnclustering._types.SimilarityCheckerContains" title="cnnclustering._types.SimilarityCheckerContains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering._types.SimilarityCheckerContains</span></code></a>).</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="cnnclustering._types.SimilarityCheckerSwitchContains.check">
+<code class="sig-name descname"><span class="pre">check</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours_a</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbours_b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Neighbours" title="cnnclustering._types.Neighbours"><span class="pre">Neighbours</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.ClusterParameters" title="cnnclustering._types.ClusterParameters"><span class="pre">ClusterParameters</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#cnnclustering._types.SimilarityCheckerSwitchContains.check" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="queue">
+<span id="sec-api-cnnclustering-types-queue"></span><h2>Queue<a class="headerlink" href="#queue" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="cnnclustering._types.QueueExtInterface">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">QueueExtInterface</span></code><a class="headerlink" href="#cnnclustering._types.QueueExtInterface" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="cnnclustering._types.QueueExtInterface.get_builder_kwargs">
+<code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type</span> <span class="pre">cls</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.QueueExtInterface.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.QueueExtInterface.is_empty">
+<code class="sig-name descname"><span class="pre">is_empty</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#cnnclustering._types.QueueExtInterface.is_empty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.QueueExtInterface.pop">
+<code class="sig-name descname"><span class="pre">pop</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">int</span><a class="headerlink" href="#cnnclustering._types.QueueExtInterface.pop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.QueueExtInterface.push">
+<code class="sig-name descname"><span class="pre">push</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.QueueExtInterface.push" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.Queue">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">Queue</span></code><a class="headerlink" href="#cnnclustering._types.Queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the queue interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.Queue.get_builder_kwargs">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">get_builder_kwargs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.Queue.get_builder_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Queue.is_empty">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">is_empty</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#cnnclustering._types.Queue.is_empty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if there are no values in the queue</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Queue.pop">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">pop</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.Queue.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve value from the queue</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.Queue.push">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">push</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.Queue.push" title="Permalink to this definition">¶</a></dt>
+<dd><p>Put value into the queue</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.QueueExtLIFOVector">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">QueueExtLIFOVector</span></code><a class="headerlink" href="#cnnclustering._types.QueueExtLIFOVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the queue interface</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.QueueExtFIFOQueue">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">QueueExtFIFOQueue</span></code><a class="headerlink" href="#cnnclustering._types.QueueExtFIFOQueue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the queue interface</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering._types.QueueFIFODeque">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">QueueFIFODeque</span></code><a class="headerlink" href="#cnnclustering._types.QueueFIFODeque" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements the queue interface</p>
+<dl class="py method">
+<dt id="cnnclustering._types.QueueFIFODeque.is_empty">
+<code class="sig-name descname"><span class="pre">is_empty</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">bool</span><a class="headerlink" href="#cnnclustering._types.QueueFIFODeque.is_empty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if there are no values in the queue</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.QueueFIFODeque.pop">
+<code class="sig-name descname"><span class="pre">pop</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.QueueFIFODeque.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve value from front/left end</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering._types.QueueFIFODeque.push">
+<code class="sig-name descname"><span class="pre">push</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.QueueFIFODeque.push" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append value to back/right end</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CommonNNClustering</a></h1>
+
+
+
+<p class="blurb">A Python package for common-nearest-neighbours clustering</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=janjoswig&repo=CommonNNClustering&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="api_reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="api_cluster.html">cluster</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">_types</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="api_reference.html">API Reference</a><ul>
+      <li>Previous: <a href="api_cluster.html" title="previous chapter">cluster</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Jan-Oliver Joswig.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/_source/api_types.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

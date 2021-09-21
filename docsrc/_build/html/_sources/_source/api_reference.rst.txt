@@ -1,7 +1,10 @@
 API Reference
 =============
 
+The :mod:`cnnclustering` package provides the following modules:
+
 .. toctree::
    :maxdepth: 1
 
-   api_cnnclustering
+   api_cluster
+   api_types
