@@ -240,6 +240,16 @@ cdef class InputDataExtComponentsMemoryview(InputDataExtInterface):
             self, const AINDEX point, const AINDEX dimension) nogil
 
 
+cdef class InputDataExtDistancesLinearMemoryview(InputDataExtInterface):
+
+    cdef:
+        AVALUE[::1] _data
+
+    cdef AVALUE _get_distance(self, const AINDEX point_a, const AINDEX point_b) nogil
+    cdef void _compute_distances(self, InputDataExtInterface input_data) nogil
+
+
+
 cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterface):
 
     cdef:

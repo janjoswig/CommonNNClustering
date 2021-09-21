@@ -957,6 +957,47 @@ cdef class InputDataExtComponentsMemoryview(InputDataExtInterface):
             yield from ()
 
 
+cdef class InputDataExtDistancesLinearMemoryview(InputDataExtInterface):
+    """Implements the input data interface
+
+    Stores distances as 1D memoryview
+    """
+
+    def __cinit__(self, AVALUE[::1] data not None, *, n_points=None, meta=None):
+        self._data = data
+        if n_points is None:
+            self.n_points = int(0.5 * (csqrt(8 * self._data.shape[0] + 1) + 1))
+
+        _meta = {"access_distances": True}
+        if meta is not None:
+            _meta.update(meta)
+        self.meta = _meta
+
+    cdef AVALUE _get_distance(self, const AINDEX point_a, const AINDEX point_b) nogil:
+
+        cdef AINDEX i, j, a, b
+
+        if point_a == point_b:
+            return 0
+
+        if point_a > point_b:
+            b = point_a
+            a = point_b
+        else:
+            a = point_a
+            b = point_b
+
+        # Start of block d(a)
+        i = a * (self.n_points - 1) - (a**2 - a) / 2
+        j = b - a - 1  # Pos. within d(a) block
+
+        return self._data[i + j]
+
+    @property
+    def data(self):
+        return np.asarray(self._data)
+
+
 cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterface):
     """Implements the input data interface
 
@@ -1025,6 +1066,7 @@ cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterface):
 
 
 InputDataComponents.register(InputDataExtComponentsMemoryview)
+InputDataPairwiseDistances.register(InputDataExtDistancesLinearMemoryview)
 InputDataNeighbourhoods.register(InputDataExtNeighbourhoodsMemoryview)
 
 
@@ -1402,7 +1444,19 @@ class NeighboursGetterBruteForce(NeighboursGetter):
 
 
 cdef class NeighboursGetterExtBruteForce(NeighboursGetterExtInterface):
-    """Implements the neighbours getter interface"""
+    """Implements the neighbours getter interface
+
+    This getter retrieves the neighbours of a point by comparing the
+    distances (from a distance getter) between the point and all
+    other points to the radius cutoff (:math:`r_{ij} \leq r`).
+
+    The resulting neighbour containers are in general not sorted and
+    include points as their own neighbour (self counting).
+
+    Args:
+        distance_getter: An object implementing the distance getter
+            interface. Has to be a Cython extension type.
+    """
 
     def __cinit__(
             self,
@@ -1410,6 +1464,9 @@ cdef class NeighboursGetterExtBruteForce(NeighboursGetterExtInterface):
         self.is_sorted = False
         self.is_selfcounting = True
         self._distance_getter = distance_getter
+
+    def __init__(self, distance_getter: Type["DistanceGetterExtInterface"]):
+        pass
 
     def __str__(self):
         attr_str = ", ".join([

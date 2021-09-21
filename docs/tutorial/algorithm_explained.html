@@ -297,7 +297,7 @@ div.rendered_html tbody tr:hover {
 <div class="section" id="Import-dependencies">
 <h3>Import dependencies<a class="headerlink" href="#Import-dependencies" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -316,6 +316,9 @@ div.rendered_html tbody tr:hover {
 <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">cKDTree</span>
 <span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">datasets</span>
 <span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
+
+<span class="kn">from</span> <span class="nn">cnnclustering</span> <span class="kn">import</span> <span class="n">cluster</span>
+<span class="kn">from</span> <span class="nn">cnnclustering</span> <span class="kn">import</span> <span class="n">_types</span>
 </pre></div>
 </div>
 </div>
@@ -335,8 +338,8 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-3.8.8 | packaged by conda-forge | (default, Feb 20 2021, 16:22:27)
-[GCC 9.3.0]
+3.8.8 (default, Mar 11 2021, 08:58:19)
+[GCC 8.3.0]
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -825,7 +828,7 @@ simplicity here.</p>
 <div class="section" id="id1">
 <h3>DBSCAN<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -857,53 +860,16 @@ simplicity here.</p>
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
-<span class="ansi-red-intense-fg ansi-bold">AttributeError</span>                            Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-16-06d6b7973624&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
-<span class="ansi-green-fg">     22</span> G <span class="ansi-yellow-intense-fg ansi-bold">=</span> networkx<span class="ansi-yellow-intense-fg ansi-bold">.</span>Graph<span class="ansi-yellow-intense-fg ansi-bold">(</span>graph<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">     23</span> pos <span class="ansi-yellow-intense-fg ansi-bold">=</span> networkx<span class="ansi-yellow-intense-fg ansi-bold">.</span>spring_layout<span class="ansi-yellow-intense-fg ansi-bold">(</span>G<span class="ansi-yellow-intense-fg ansi-bold">,</span> iterations<span class="ansi-yellow-intense-fg ansi-bold">=</span><span class="ansi-cyan-intense-fg ansi-bold">10</span><span class="ansi-yellow-intense-fg ansi-bold">,</span> seed<span class="ansi-yellow-intense-fg ansi-bold">=</span><span class="ansi-cyan-intense-fg ansi-bold">7</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-intense-fg ansi-bold">---&gt; 24</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>networkx<span class="ansi-yellow-intense-fg ansi-bold">.</span>draw<span class="ansi-yellow-intense-fg ansi-bold">(</span>G<span class="ansi-yellow-intense-fg ansi-bold">,</span> pos<span class="ansi-yellow-intense-fg ansi-bold">=</span>pos<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">     25</span> plt<span class="ansi-yellow-intense-fg ansi-bold">.</span>show<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/site-packages/networkx/drawing/nx_pylab.py</span> in <span class="ansi-cyan-fg">draw</span><span class="ansi-blue-intense-fg ansi-bold">(G, pos, ax, **kwds)</span>
-<span class="ansi-green-fg">    126</span>
-<span class="ansi-green-fg">    127</span>     <span class="ansi-green-intense-fg ansi-bold">try</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 128</span><span class="ansi-yellow-intense-fg ansi-bold">         </span>draw_networkx<span class="ansi-yellow-intense-fg ansi-bold">(</span>G<span class="ansi-yellow-intense-fg ansi-bold">,</span> pos<span class="ansi-yellow-intense-fg ansi-bold">=</span>pos<span class="ansi-yellow-intense-fg ansi-bold">,</span> ax<span class="ansi-yellow-intense-fg ansi-bold">=</span>ax<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">**</span>kwds<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    129</span>         ax<span class="ansi-yellow-intense-fg ansi-bold">.</span>set_axis_off<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    130</span>         plt<span class="ansi-yellow-intense-fg ansi-bold">.</span>draw_if_interactive<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/site-packages/networkx/drawing/nx_pylab.py</span> in <span class="ansi-cyan-fg">draw_networkx</span><span class="ansi-blue-intense-fg ansi-bold">(G, pos, arrows, with_labels, **kwds)</span>
-<span class="ansi-green-fg">    278</span>
-<span class="ansi-green-fg">    279</span>     node_collection <span class="ansi-yellow-intense-fg ansi-bold">=</span> draw_networkx_nodes<span class="ansi-yellow-intense-fg ansi-bold">(</span>G<span class="ansi-yellow-intense-fg ansi-bold">,</span> pos<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">**</span>kwds<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 280</span><span class="ansi-yellow-intense-fg ansi-bold">     </span>edge_collection <span class="ansi-yellow-intense-fg ansi-bold">=</span> draw_networkx_edges<span class="ansi-yellow-intense-fg ansi-bold">(</span>G<span class="ansi-yellow-intense-fg ansi-bold">,</span> pos<span class="ansi-yellow-intense-fg ansi-bold">,</span> arrows<span class="ansi-yellow-intense-fg ansi-bold">=</span>arrows<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">**</span>kwds<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    281</span>     <span class="ansi-green-intense-fg ansi-bold">if</span> with_labels<span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-fg">    282</span>         draw_networkx_labels<span class="ansi-yellow-intense-fg ansi-bold">(</span>G<span class="ansi-yellow-intense-fg ansi-bold">,</span> pos<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">**</span>kwds<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/site-packages/networkx/drawing/nx_pylab.py</span> in <span class="ansi-cyan-fg">draw_networkx_edges</span><span class="ansi-blue-intense-fg ansi-bold">(G, pos, edgelist, width, edge_color, style, alpha, arrowstyle, arrowsize, edge_cmap, edge_vmin, edge_vmax, ax, arrows, label, node_size, nodelist, node_shape, connectionstyle, **kwds)</span>
-<span class="ansi-green-fg">    577</span>     edge_pos <span class="ansi-yellow-intense-fg ansi-bold">=</span> np<span class="ansi-yellow-intense-fg ansi-bold">.</span>asarray<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-yellow-intense-fg ansi-bold">(</span>pos<span class="ansi-yellow-intense-fg ansi-bold">[</span>e<span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-cyan-intense-fg ansi-bold">0</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">,</span> pos<span class="ansi-yellow-intense-fg ansi-bold">[</span>e<span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">)</span> <span class="ansi-green-intense-fg ansi-bold">for</span> e <span class="ansi-green-intense-fg ansi-bold">in</span> edgelist<span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    578</span>
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 579</span><span class="ansi-yellow-intense-fg ansi-bold">     </span><span class="ansi-green-intense-fg ansi-bold">if</span> <span class="ansi-green-intense-fg ansi-bold">not</span> cb<span class="ansi-yellow-intense-fg ansi-bold">.</span>iterable<span class="ansi-yellow-intense-fg ansi-bold">(</span>width<span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-fg">    580</span>         lw <span class="ansi-yellow-intense-fg ansi-bold">=</span> <span class="ansi-yellow-intense-fg ansi-bold">(</span>width<span class="ansi-yellow-intense-fg ansi-bold">,</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    581</span>     <span class="ansi-green-intense-fg ansi-bold">else</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-
-<span class="ansi-red-intense-fg ansi-bold">AttributeError</span>: module &#39;matplotlib.cbook&#39; has no attribute &#39;iterable&#39;
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_algorithm_explained_35_1.png" src="../_images/tutorial_algorithm_explained_35_1.png" />
+<img alt="../_images/tutorial_algorithm_explained_35_0.png" src="../_images/tutorial_algorithm_explained_35_0.png" />
 </div>
 </div>
 <p>Once such a graph is constructed, graph traversal algorithms can be used to find the connected components of nodes within the graph. A generic way to do so using a breadth-first-search algorithm could look like this:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -940,7 +906,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -949,7 +915,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -974,7 +940,7 @@ simplicity here.</p>
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -983,50 +949,15 @@ simplicity here.</p>
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
-<span class="ansi-red-intense-fg ansi-bold">AttributeError</span>                            Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-19-37c52e07a125&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
-<span class="ansi-green-intense-fg ansi-bold">----&gt; 1</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>networkx<span class="ansi-yellow-intense-fg ansi-bold">.</span>draw<span class="ansi-yellow-intense-fg ansi-bold">(</span>G<span class="ansi-yellow-intense-fg ansi-bold">,</span> pos<span class="ansi-yellow-intense-fg ansi-bold">=</span>pos<span class="ansi-yellow-intense-fg ansi-bold">,</span> with_labels<span class="ansi-yellow-intense-fg ansi-bold">=</span><span class="ansi-green-intense-fg ansi-bold">True</span><span class="ansi-yellow-intense-fg ansi-bold">,</span> node_color<span class="ansi-yellow-intense-fg ansi-bold">=</span><span class="ansi-yellow-intense-fg ansi-bold">[</span>x<span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-yellow-intense-fg ansi-bold">]</span> <span class="ansi-green-intense-fg ansi-bold">for</span> x <span class="ansi-green-intense-fg ansi-bold">in</span> sorted<span class="ansi-yellow-intense-fg ansi-bold">(</span>labels<span class="ansi-yellow-intense-fg ansi-bold">.</span>items<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">      2</span> plt<span class="ansi-yellow-intense-fg ansi-bold">.</span>show<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/site-packages/networkx/drawing/nx_pylab.py</span> in <span class="ansi-cyan-fg">draw</span><span class="ansi-blue-intense-fg ansi-bold">(G, pos, ax, **kwds)</span>
-<span class="ansi-green-fg">    126</span>
-<span class="ansi-green-fg">    127</span>     <span class="ansi-green-intense-fg ansi-bold">try</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 128</span><span class="ansi-yellow-intense-fg ansi-bold">         </span>draw_networkx<span class="ansi-yellow-intense-fg ansi-bold">(</span>G<span class="ansi-yellow-intense-fg ansi-bold">,</span> pos<span class="ansi-yellow-intense-fg ansi-bold">=</span>pos<span class="ansi-yellow-intense-fg ansi-bold">,</span> ax<span class="ansi-yellow-intense-fg ansi-bold">=</span>ax<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">**</span>kwds<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    129</span>         ax<span class="ansi-yellow-intense-fg ansi-bold">.</span>set_axis_off<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    130</span>         plt<span class="ansi-yellow-intense-fg ansi-bold">.</span>draw_if_interactive<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/site-packages/networkx/drawing/nx_pylab.py</span> in <span class="ansi-cyan-fg">draw_networkx</span><span class="ansi-blue-intense-fg ansi-bold">(G, pos, arrows, with_labels, **kwds)</span>
-<span class="ansi-green-fg">    278</span>
-<span class="ansi-green-fg">    279</span>     node_collection <span class="ansi-yellow-intense-fg ansi-bold">=</span> draw_networkx_nodes<span class="ansi-yellow-intense-fg ansi-bold">(</span>G<span class="ansi-yellow-intense-fg ansi-bold">,</span> pos<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">**</span>kwds<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 280</span><span class="ansi-yellow-intense-fg ansi-bold">     </span>edge_collection <span class="ansi-yellow-intense-fg ansi-bold">=</span> draw_networkx_edges<span class="ansi-yellow-intense-fg ansi-bold">(</span>G<span class="ansi-yellow-intense-fg ansi-bold">,</span> pos<span class="ansi-yellow-intense-fg ansi-bold">,</span> arrows<span class="ansi-yellow-intense-fg ansi-bold">=</span>arrows<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">**</span>kwds<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    281</span>     <span class="ansi-green-intense-fg ansi-bold">if</span> with_labels<span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-fg">    282</span>         draw_networkx_labels<span class="ansi-yellow-intense-fg ansi-bold">(</span>G<span class="ansi-yellow-intense-fg ansi-bold">,</span> pos<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">**</span>kwds<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/site-packages/networkx/drawing/nx_pylab.py</span> in <span class="ansi-cyan-fg">draw_networkx_edges</span><span class="ansi-blue-intense-fg ansi-bold">(G, pos, edgelist, width, edge_color, style, alpha, arrowstyle, arrowsize, edge_cmap, edge_vmin, edge_vmax, ax, arrows, label, node_size, nodelist, node_shape, connectionstyle, **kwds)</span>
-<span class="ansi-green-fg">    577</span>     edge_pos <span class="ansi-yellow-intense-fg ansi-bold">=</span> np<span class="ansi-yellow-intense-fg ansi-bold">.</span>asarray<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-yellow-intense-fg ansi-bold">(</span>pos<span class="ansi-yellow-intense-fg ansi-bold">[</span>e<span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-cyan-intense-fg ansi-bold">0</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">,</span> pos<span class="ansi-yellow-intense-fg ansi-bold">[</span>e<span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">)</span> <span class="ansi-green-intense-fg ansi-bold">for</span> e <span class="ansi-green-intense-fg ansi-bold">in</span> edgelist<span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    578</span>
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 579</span><span class="ansi-yellow-intense-fg ansi-bold">     </span><span class="ansi-green-intense-fg ansi-bold">if</span> <span class="ansi-green-intense-fg ansi-bold">not</span> cb<span class="ansi-yellow-intense-fg ansi-bold">.</span>iterable<span class="ansi-yellow-intense-fg ansi-bold">(</span>width<span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-fg">    580</span>         lw <span class="ansi-yellow-intense-fg ansi-bold">=</span> <span class="ansi-yellow-intense-fg ansi-bold">(</span>width<span class="ansi-yellow-intense-fg ansi-bold">,</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    581</span>     <span class="ansi-green-intense-fg ansi-bold">else</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-
-<span class="ansi-red-intense-fg ansi-bold">AttributeError</span>: module &#39;matplotlib.cbook&#39; has no attribute &#39;iterable&#39;
-</pre></div></div>
-</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_algorithm_explained_39_1.png" src="../_images/tutorial_algorithm_explained_39_1.png" />
+<img alt="../_images/tutorial_algorithm_explained_39_0.png" src="../_images/tutorial_algorithm_explained_39_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1087,7 +1018,7 @@ simplicity here.</p>
 </div>
 <p>In practice, one does not necessarily need to construct a density connectivity graph in its entirety beforehand. It is also possible to start from another input structure and explore the connectivity while traversing the structure. We will now show a variant of the CNN clustering procedure, starting from pre-computed neighbourhoods in more detail. For this, we generate a small example data set of 200 points in 2D.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1111,7 +1042,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1128,7 +1059,7 @@ simplicity here.</p>
 </div>
 <p>We expect to find two clusters (an inner and an outer ring) in this data set. We will at first compute the neighbourhoods for all points with respect to a radius of <span class="math notranslate nohighlight">\(r\)</span>. Below we show the neighbourhood for the first point in the set.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1137,7 +1068,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1166,7 +1097,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1183,7 +1114,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1197,7 +1128,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1276,7 +1207,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1302,9 +1233,10 @@ simplicity here.</p>
 
         <span class="k">if</span> <span class="n">color_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">color_list</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="s2">&quot;black&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
-                            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">islice</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;axes.prop_cycle&quot;</span><span class="p">],</span>
-                                            <span class="n">current</span><span class="p">)]</span>
+                <span class="s2">&quot;black&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span>
+                    <span class="n">i</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">islice</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;axes.prop_cycle&quot;</span><span class="p">],</span> <span class="n">current</span><span class="p">)</span>
+                <span class="p">]</span>
 
         <span class="k">for</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">current</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
             <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">==</span> <span class="n">cluster</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
@@ -1319,7 +1251,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1345,9 +1277,10 @@ simplicity here.</p>
             <span class="n">c</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="mi">0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">))]),</span>
             <span class="n">cmap</span><span class="o">=</span><span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span>
                 <span class="s2">&quot;cluster_map&quot;</span><span class="p">,</span>
-                <span class="p">[</span><span class="s2">&quot;black&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
-                             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">islice</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;axes.prop_cycle&quot;</span><span class="p">],</span>
-                                             <span class="mi">2</span><span class="p">)]</span>
+                <span class="p">[</span><span class="s2">&quot;black&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span>
+                    <span class="n">i</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">islice</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">&quot;axes.prop_cycle&quot;</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="p">]</span>
                 <span class="p">),</span>
             <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">2</span>
             <span class="p">)</span>
@@ -1378,89 +1311,26 @@ simplicity here.</p>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">scatter</span><span class="p">,</span>
 
 
-<span class="n">Animation</span> <span class="o">=</span> <span class="n">AnimatedIterations</span><span class="p">(</span><span class="n">noisy_circles</span><span class="p">,</span> <span class="n">cnn_from_neighbourhoods</span><span class="p">(</span><span class="n">neighbourhoods</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">yield_iterations</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="n">Animation</span> <span class="o">=</span> <span class="n">AnimatedIterations</span><span class="p">(</span>
+    <span class="n">noisy_circles</span><span class="p">,</span>
+    <span class="n">cnn_from_neighbourhoods</span><span class="p">(</span><span class="n">neighbourhoods</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">yield_iterations</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="p">)</span>
 <span class="c1"># Animation.animation.save(&#39;iteration.mp4&#39;, dpi=150)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">Animation</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;iteration.mp4&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span></span><span class="c1"># Animation.animation.save(&#39;iteration.mp4&#39;, dpi=300)</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-MovieWriter ffmpeg unavailable; using Pillow instead.
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
-<span class="ansi-red-intense-fg ansi-bold">KeyError</span>                                  Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/site-packages/PIL/Image.py</span> in <span class="ansi-cyan-fg">save</span><span class="ansi-blue-intense-fg ansi-bold">(self, fp, format, **params)</span>
-<span class="ansi-green-fg">   2143</span>             <span class="ansi-green-intense-fg ansi-bold">try</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-intense-fg ansi-bold">-&gt; 2144</span><span class="ansi-yellow-intense-fg ansi-bold">                 </span>format <span class="ansi-yellow-intense-fg ansi-bold">=</span> EXTENSION<span class="ansi-yellow-intense-fg ansi-bold">[</span>ext<span class="ansi-yellow-intense-fg ansi-bold">]</span>
-<span class="ansi-green-fg">   2145</span>             <span class="ansi-green-intense-fg ansi-bold">except</span> KeyError <span class="ansi-green-intense-fg ansi-bold">as</span> e<span class="ansi-yellow-intense-fg ansi-bold">:</span>
-
-<span class="ansi-red-intense-fg ansi-bold">KeyError</span>: &#39;.mp4&#39;
-
-The above exception was the direct cause of the following exception:
-
-<span class="ansi-red-intense-fg ansi-bold">ValueError</span>                                Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-30-c526e9e922d2&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
-<span class="ansi-green-intense-fg ansi-bold">----&gt; 1</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>Animation<span class="ansi-yellow-intense-fg ansi-bold">.</span>animation<span class="ansi-yellow-intense-fg ansi-bold">.</span>save<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">&#39;iteration.mp4&#39;</span><span class="ansi-yellow-intense-fg ansi-bold">,</span> dpi<span class="ansi-yellow-intense-fg ansi-bold">=</span><span class="ansi-cyan-intense-fg ansi-bold">300</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/site-packages/matplotlib/animation.py</span> in <span class="ansi-cyan-fg">save</span><span class="ansi-blue-intense-fg ansi-bold">(self, filename, writer, fps, dpi, codec, bitrate, extra_args, metadata, extra_anim, savefig_kwargs, progress_callback)</span>
-<span class="ansi-green-fg">   1175</span>                         progress_callback<span class="ansi-yellow-intense-fg ansi-bold">(</span>frame_number<span class="ansi-yellow-intense-fg ansi-bold">,</span> total_frames<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">   1176</span>                         frame_number <span class="ansi-yellow-intense-fg ansi-bold">+=</span> <span class="ansi-cyan-intense-fg ansi-bold">1</span>
-<span class="ansi-green-intense-fg ansi-bold">-&gt; 1177</span><span class="ansi-yellow-intense-fg ansi-bold">                 </span>writer<span class="ansi-yellow-intense-fg ansi-bold">.</span>grab_frame<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">**</span>savefig_kwargs<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">   1178</span>
-<span class="ansi-green-fg">   1179</span>     <span class="ansi-green-intense-fg ansi-bold">def</span> _step<span class="ansi-yellow-intense-fg ansi-bold">(</span>self<span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-yellow-intense-fg ansi-bold">*</span>args<span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/contextlib.py</span> in <span class="ansi-cyan-fg">__exit__</span><span class="ansi-blue-intense-fg ansi-bold">(self, type, value, traceback)</span>
-<span class="ansi-green-fg">    118</span>         <span class="ansi-green-intense-fg ansi-bold">if</span> type <span class="ansi-green-intense-fg ansi-bold">is</span> <span class="ansi-green-intense-fg ansi-bold">None</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-fg">    119</span>             <span class="ansi-green-intense-fg ansi-bold">try</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 120</span><span class="ansi-yellow-intense-fg ansi-bold">                 </span>next<span class="ansi-yellow-intense-fg ansi-bold">(</span>self<span class="ansi-yellow-intense-fg ansi-bold">.</span>gen<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    121</span>             <span class="ansi-green-intense-fg ansi-bold">except</span> StopIteration<span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-fg">    122</span>                 <span class="ansi-green-intense-fg ansi-bold">return</span> <span class="ansi-green-intense-fg ansi-bold">False</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/site-packages/matplotlib/animation.py</span> in <span class="ansi-cyan-fg">saving</span><span class="ansi-blue-intense-fg ansi-bold">(self, fig, outfile, dpi, *args, **kwargs)</span>
-<span class="ansi-green-fg">    236</span>             <span class="ansi-green-intense-fg ansi-bold">yield</span> self
-<span class="ansi-green-fg">    237</span>         <span class="ansi-green-intense-fg ansi-bold">finally</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 238</span><span class="ansi-yellow-intense-fg ansi-bold">             </span>self<span class="ansi-yellow-intense-fg ansi-bold">.</span>finish<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    239</span>
-<span class="ansi-green-fg">    240</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/site-packages/matplotlib/animation.py</span> in <span class="ansi-cyan-fg">finish</span><span class="ansi-blue-intense-fg ansi-bold">(self)</span>
-<span class="ansi-green-fg">    538</span>
-<span class="ansi-green-fg">    539</span>     <span class="ansi-green-intense-fg ansi-bold">def</span> finish<span class="ansi-yellow-intense-fg ansi-bold">(</span>self<span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 540</span><span class="ansi-yellow-intense-fg ansi-bold">         self._frames[0].save(
-</span><span class="ansi-green-fg">    541</span>             self<span class="ansi-yellow-intense-fg ansi-bold">.</span>outfile<span class="ansi-yellow-intense-fg ansi-bold">,</span> save_all<span class="ansi-yellow-intense-fg ansi-bold">=</span><span class="ansi-green-intense-fg ansi-bold">True</span><span class="ansi-yellow-intense-fg ansi-bold">,</span> append_images<span class="ansi-yellow-intense-fg ansi-bold">=</span>self<span class="ansi-yellow-intense-fg ansi-bold">.</span>_frames<span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-yellow-intense-fg ansi-bold">:</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">,</span>
-<span class="ansi-green-fg">    542</span>             duration=int(1000 / self.fps), loop=0)
-
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/site-packages/PIL/Image.py</span> in <span class="ansi-cyan-fg">save</span><span class="ansi-blue-intense-fg ansi-bold">(self, fp, format, **params)</span>
-<span class="ansi-green-fg">   2144</span>                 format <span class="ansi-yellow-intense-fg ansi-bold">=</span> EXTENSION<span class="ansi-yellow-intense-fg ansi-bold">[</span>ext<span class="ansi-yellow-intense-fg ansi-bold">]</span>
-<span class="ansi-green-fg">   2145</span>             <span class="ansi-green-intense-fg ansi-bold">except</span> KeyError <span class="ansi-green-intense-fg ansi-bold">as</span> e<span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-intense-fg ansi-bold">-&gt; 2146</span><span class="ansi-yellow-intense-fg ansi-bold">                 </span><span class="ansi-green-intense-fg ansi-bold">raise</span> ValueError<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">f&#34;unknown file extension: {ext}&#34;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span> <span class="ansi-green-intense-fg ansi-bold">from</span> e
-<span class="ansi-green-fg">   2147</span>
-<span class="ansi-green-fg">   2148</span>         <span class="ansi-green-intense-fg ansi-bold">if</span> format<span class="ansi-yellow-intense-fg ansi-bold">.</span>upper<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span> <span class="ansi-green-intense-fg ansi-bold">not</span> <span class="ansi-green-intense-fg ansi-bold">in</span> SAVE<span class="ansi-yellow-intense-fg ansi-bold">:</span>
-
-<span class="ansi-red-intense-fg ansi-bold">ValueError</span>: unknown file extension: .mp4
-</pre></div></div>
-</div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[40]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1475,25 +1345,167 @@ The above exception was the direct cause of the following exception:
 <div class="highlight"><pre>
 <span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
 <span class="ansi-red-intense-fg ansi-bold">RuntimeError</span>                              Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-31-9de12198d56c&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
+<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-40-9de12198d56c&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
 <span class="ansi-green-intense-fg ansi-bold">----&gt; 1</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>HTML<span class="ansi-yellow-intense-fg ansi-bold">(</span>Animation<span class="ansi-yellow-intense-fg ansi-bold">.</span>animation<span class="ansi-yellow-intense-fg ansi-bold">.</span>to_html5_video<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
 
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/site-packages/matplotlib/animation.py</span> in <span class="ansi-cyan-fg">to_html5_video</span><span class="ansi-blue-intense-fg ansi-bold">(self, embed_limit)</span>
-<span class="ansi-green-fg">   1346</span>                 <span class="ansi-red-intense-fg ansi-bold"># We create a writer manually so that we can get the</span>
-<span class="ansi-green-fg">   1347</span>                 <span class="ansi-red-intense-fg ansi-bold"># appropriate size for the tag</span>
-<span class="ansi-green-intense-fg ansi-bold">-&gt; 1348</span><span class="ansi-yellow-intense-fg ansi-bold">                 </span>Writer <span class="ansi-yellow-intense-fg ansi-bold">=</span> writers<span class="ansi-yellow-intense-fg ansi-bold">[</span>mpl<span class="ansi-yellow-intense-fg ansi-bold">.</span>rcParams<span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-blue-intense-fg ansi-bold">&#39;animation.writer&#39;</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">]</span>
-<span class="ansi-green-fg">   1349</span>                 writer = Writer(codec=&#39;h264&#39;,
-<span class="ansi-green-fg">   1350</span>                                 bitrate<span class="ansi-yellow-intense-fg ansi-bold">=</span>mpl<span class="ansi-yellow-intense-fg ansi-bold">.</span>rcParams<span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-blue-intense-fg ansi-bold">&#39;animation.bitrate&#39;</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">,</span>
+<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/cnnclustering38/lib/python3.8/site-packages/matplotlib/animation.py</span> in <span class="ansi-cyan-fg">to_html5_video</span><span class="ansi-blue-intense-fg ansi-bold">(self, embed_limit)</span>
+<span class="ansi-green-fg">   1330</span>                 <span class="ansi-red-intense-fg ansi-bold"># We create a writer manually so that we can get the</span>
+<span class="ansi-green-fg">   1331</span>                 <span class="ansi-red-intense-fg ansi-bold"># appropriate size for the tag</span>
+<span class="ansi-green-intense-fg ansi-bold">-&gt; 1332</span><span class="ansi-yellow-intense-fg ansi-bold">                 </span>Writer <span class="ansi-yellow-intense-fg ansi-bold">=</span> writers<span class="ansi-yellow-intense-fg ansi-bold">[</span>mpl<span class="ansi-yellow-intense-fg ansi-bold">.</span>rcParams<span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-blue-intense-fg ansi-bold">&#39;animation.writer&#39;</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">]</span>
+<span class="ansi-green-fg">   1333</span>                 writer = Writer(codec=&#39;h264&#39;,
+<span class="ansi-green-fg">   1334</span>                                 bitrate<span class="ansi-yellow-intense-fg ansi-bold">=</span>mpl<span class="ansi-yellow-intense-fg ansi-bold">.</span>rcParams<span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-blue-intense-fg ansi-bold">&#39;animation.bitrate&#39;</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">,</span>
 
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/miniconda3-4.7.12/envs/md38/lib/python3.8/site-packages/matplotlib/animation.py</span> in <span class="ansi-cyan-fg">__getitem__</span><span class="ansi-blue-intense-fg ansi-bold">(self, name)</span>
-<span class="ansi-green-fg">    149</span>         <span class="ansi-green-intense-fg ansi-bold">if</span> self<span class="ansi-yellow-intense-fg ansi-bold">.</span>is_available<span class="ansi-yellow-intense-fg ansi-bold">(</span>name<span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-fg">    150</span>             <span class="ansi-green-intense-fg ansi-bold">return</span> self<span class="ansi-yellow-intense-fg ansi-bold">.</span>_registered<span class="ansi-yellow-intense-fg ansi-bold">[</span>name<span class="ansi-yellow-intense-fg ansi-bold">]</span>
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 151</span><span class="ansi-yellow-intense-fg ansi-bold">         </span><span class="ansi-green-intense-fg ansi-bold">raise</span> RuntimeError<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">f&#34;Requested MovieWriter ({name}) not available&#34;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    152</span>
-<span class="ansi-green-fg">    153</span>
+<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/cnnclustering38/lib/python3.8/site-packages/matplotlib/animation.py</span> in <span class="ansi-cyan-fg">__getitem__</span><span class="ansi-blue-intense-fg ansi-bold">(self, name)</span>
+<span class="ansi-green-fg">    164</span>         <span class="ansi-green-intense-fg ansi-bold">if</span> self<span class="ansi-yellow-intense-fg ansi-bold">.</span>is_available<span class="ansi-yellow-intense-fg ansi-bold">(</span>name<span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
+<span class="ansi-green-fg">    165</span>             <span class="ansi-green-intense-fg ansi-bold">return</span> self<span class="ansi-yellow-intense-fg ansi-bold">.</span>_registered<span class="ansi-yellow-intense-fg ansi-bold">[</span>name<span class="ansi-yellow-intense-fg ansi-bold">]</span>
+<span class="ansi-green-intense-fg ansi-bold">--&gt; 166</span><span class="ansi-yellow-intense-fg ansi-bold">         </span><span class="ansi-green-intense-fg ansi-bold">raise</span> RuntimeError<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">f&#34;Requested MovieWriter ({name}) not available&#34;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
+<span class="ansi-green-fg">    167</span>
+<span class="ansi-green-fg">    168</span>
 
 <span class="ansi-red-intense-fg ansi-bold">RuntimeError</span>: Requested MovieWriter (ffmpeg) not available
 </pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">animation</span><span class="o">.</span><span class="n">writers</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&#39;pillow&#39;, &#39;imagemagick&#39;, &#39;imagemagick_file&#39;, &#39;html&#39;]
+</pre></div></div>
+</div>
+<div class="section" id="Debug-mode">
+<h3>Debug mode<a class="headerlink" href="#Debug-mode" title="Permalink to this headline">¶</a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">clustering</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">ClusteringBuilder</span><span class="p">(</span>
+    <span class="n">noisy_circles</span><span class="p">,</span>
+    <span class="n">fitter</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;bfs_debug&quot;</span><span class="p">,</span> <span class="p">(),</span> <span class="p">{</span><span class="s2">&quot;yielding&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">clustering</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Clustering(input_data=InputDataExtComponentsMemoryview, fitter=FitterExtBFSDebug(ngetter=NeighboursGetterExtBruteForce(dgetter=DistanceGetterExtMetric(metric=MetricExtEuclideanReduced), sorted=False, selfcounting=True), na=NeighboursExtVectorCPPUnorderedSet, nb=NeighboursExtVectorCPPUnorderedSet, checker=SimilarityCheckerExtSwitchContains, queue=QueueExtFIFOQueue, verbose=True, yielding=False), predictor=None)
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">clustering</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+-----------------------------------------------------------------------------------------------
+#points   r         c         min       max       #clusters %largest  %noise    time
+200       0.700     5         None      None      0         0.000     1.000     00:00:0.000
+-----------------------------------------------------------------------------------------------
+
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">clustering</span><span class="o">.</span><span class="n">_labels</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Labels([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">iterations</span> <span class="o">=</span> <span class="n">clustering</span><span class="o">.</span><span class="n">_fitter</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+    <span class="n">clustering</span><span class="o">.</span><span class="n">_input_data</span><span class="p">,</span>
+    <span class="n">clustering</span><span class="o">.</span><span class="n">_labels</span><span class="p">,</span>
+    <span class="n">_types</span><span class="o">.</span><span class="n">ClusterParameters</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="nb">next</span><span class="p">(</span><span class="n">iterations</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+CommonNN clustering
+================================================================================
+200 points
+{&#39;radius_cutoff&#39;: 0.7, &#39;similarity_cutoff&#39;: 5, &#39;similarity_cutoff_continuous&#39;: 0.0, &#39;n_member_cutoff&#39;: 5, &#39;current_start&#39;: 1}
+
+New source: {init_point}
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
+<span class="ansi-red-intense-fg ansi-bold">AttributeError</span>                            Traceback (most recent call last)
+<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-23-3ce9e7e2a6cb&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
+<span class="ansi-green-intense-fg ansi-bold">----&gt; 1</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>next<span class="ansi-yellow-intense-fg ansi-bold">(</span>iterations<span class="ansi-yellow-intense-fg ansi-bold">)</span>
+
+<span class="ansi-green-intense-fg ansi-bold">src/cnnclustering/_fit.pyx</span> in <span class="ansi-cyan-fg">fit</span><span class="ansi-blue-intense-fg ansi-bold">()</span>
+
+<span class="ansi-green-intense-fg ansi-bold">src/cnnclustering/_fit.pyx</span> in <span class="ansi-cyan-fg">_fit</span><span class="ansi-blue-intense-fg ansi-bold">()</span>
+
+<span class="ansi-red-intense-fg ansi-bold">AttributeError</span>: &#39;cnnclustering._fit.FitterExtBFSDebug&#39; object has no attribute &#39;_verboose&#39;
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span>
+</pre></div>
+</div>
+</div>
 </div>
 </div>
 </div>
