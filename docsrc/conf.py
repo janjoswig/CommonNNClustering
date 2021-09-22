@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath("../src"))
 
 # -- Project information -----------------------------------------------------
 
-project = "CommonNNClustering"
+project = "CommonNN Clustering"
 copyright = "2020, Jan-Oliver Joswig"
 author = "Jan-Oliver Joswig"
 
@@ -46,7 +46,8 @@ templates_path = ["_templates"]
 exclude_patterns = [
     "_build",
     "**.ipynb_checkpoints",
-    "charts"
+    "charts",
+    "benchmark",
     ]
 
 

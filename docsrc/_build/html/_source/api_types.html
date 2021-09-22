@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>_types &#8212; CommonNNClustering  documentation</title>
+    <title>_types &#8212; CommonNN Clustering  documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
@@ -78,66 +78,11 @@ if <code class="code docutils literal notranslate"><span class="pre">None</span>
 </ul>
 </dd>
 </dl>
-<dl class="py attribute">
-<dt id="cnnclustering._types.ClusterParameters.current_start">
-<code class="sig-name descname"><span class="pre">current_start</span></code><a class="headerlink" href="#cnnclustering._types.ClusterParameters.current_start" title="Permalink to this definition">¶</a></dt>
-<dd><p>‘AINDEX’</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>current_start</p>
+<dt class="field-odd">Members</dt>
+<dd class="field-odd"><p>to_dict</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cnnclustering._types.ClusterParameters.n_member_cutoff">
-<code class="sig-name descname"><span class="pre">n_member_cutoff</span></code><a class="headerlink" href="#cnnclustering._types.ClusterParameters.n_member_cutoff" title="Permalink to this definition">¶</a></dt>
-<dd><p>‘AINDEX’</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>n_member_cutoff</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cnnclustering._types.ClusterParameters.radius_cutoff">
-<code class="sig-name descname"><span class="pre">radius_cutoff</span></code><a class="headerlink" href="#cnnclustering._types.ClusterParameters.radius_cutoff" title="Permalink to this definition">¶</a></dt>
-<dd><p>‘AVALUE’</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>radius_cutoff</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cnnclustering._types.ClusterParameters.similarity_cutoff">
-<code class="sig-name descname"><span class="pre">similarity_cutoff</span></code><a class="headerlink" href="#cnnclustering._types.ClusterParameters.similarity_cutoff" title="Permalink to this definition">¶</a></dt>
-<dd><p>‘AINDEX’</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>similarity_cutoff</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cnnclustering._types.ClusterParameters.similarity_cutoff_continuous">
-<code class="sig-name descname"><span class="pre">similarity_cutoff_continuous</span></code><a class="headerlink" href="#cnnclustering._types.ClusterParameters.similarity_cutoff_continuous" title="Permalink to this definition">¶</a></dt>
-<dd><p>‘AVALUE’</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>similarity_cutoff_continuous</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering._types.ClusterParameters.to_dict">
-<code class="sig-name descname"><span class="pre">to_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.ClusterParameters.to_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 </div>
@@ -205,55 +150,11 @@ dictionary.</p></li>
 label assignments</p>
 </dd></dl>
 
-<dl class="py method">
-<dt id="cnnclustering._types.Labels.from_sequence">
-<code class="sig-name descname"><span class="pre">from_sequence</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">type</span> <span class="pre">cls</span></em>, <em class="sig-param"><span class="pre">labels</span></em>, <em class="sig-param"><span class="pre">*</span></em>, <em class="sig-param"><span class="pre">consider=None</span></em>, <em class="sig-param"><span class="pre">meta=None</span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cnnclustering._types.Labels" title="cnnclustering._types.Labels"><span class="pre">Labels</span></a><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#cnnclustering._types.Labels.from_sequence" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct <a class="reference internal" href="#cnnclustering._types.Labels" title="cnnclustering._types.Labels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Labels</span></code></a> from any sequence (not supporting the buffer protocol)</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="id0">
-<code class="sig-name descname"><span class="pre">meta</span></code><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
-<dd><p>dict</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>meta</p>
+<dt class="field-odd">Members</dt>
+<dd class="field-odd"><p>from_sequence, sort_by_size</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering._types.Labels.sort_by_size">
-<code class="sig-name descname"><span class="pre">sort_by_size</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member_cutoff</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_clusters</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.Labels.sort_by_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sort labels by clustersize in-place</p>
-<p>Re-assigns cluster numbers so that the biggest cluster (that is
-not noise) is cluster 1.  Also filters out clusters, that have
-not at least <code class="code docutils literal notranslate"><span class="pre">member_cutoff</span></code> members (default 2).
-Optionally, does only
-keep the <code class="code docutils literal notranslate"><span class="pre">max_clusters</span></code> largest clusters.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>member_cutoff</strong> – Valid clusters need to have at least this
-many members.</p></li>
-<li><p><strong>max_clusters</strong> – Only keep this many clusters.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering._types.Labels.to_mapping">
-<code class="sig-name descname"><span class="pre">to_mapping</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.Labels.to_mapping" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert labels container to <code class="code docutils literal notranslate"><span class="pre">mapping</span></code> of labels to lists of point indices</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cnnclustering._types.Labels.to_set">
-<code class="sig-name descname"><span class="pre">to_set</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.Labels.to_set" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert labels container to <code class="code docutils literal notranslate"><span class="pre">set</span></code> of unique labels</p>
-</dd></dl>
-
 </dd></dl>
 
 </div>
@@ -1586,7 +1487,7 @@ that the first container is the one with the shorter length
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">CommonNNClustering</a></h1>
+<h1 class="logo"><a href="../index.html">CommonNN Clustering</a></h1>
 
 
 

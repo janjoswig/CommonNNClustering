@@ -1,3 +1,5 @@
+.. _sec_api_ref:
+
 API Reference
 =============
 

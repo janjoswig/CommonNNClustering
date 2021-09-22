@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cluster &#8212; CommonNNClustering  documentation</title>
+    <title>cluster &#8212; CommonNN Clustering  documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
@@ -34,16 +34,21 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="cluster">
-<span id="sec-api-cluster"></span><h1>cluster<a class="headerlink" href="#cluster" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="module-cnnclustering"><span id="sec-api-cluster"></span></span><div class="section" id="cluster">
+<h1>cluster<a class="headerlink" href="#cluster" title="Permalink to this headline">¶</a></h1>
+<p>The functionality of this module is primarily exposed and bundled by the
+<a class="reference internal" href="#cnnclustering.cluster.Clustering" title="cnnclustering.cluster.Clustering"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clustering</span></code></a> class. An instance of this
+class aggregates various types (defined in <code class="xref py py-mod docutils literal notranslate"><span class="pre">_types</span></code>
+<a class="reference internal" href="api_types.html#sec-api-types"><span class="std std-ref">here</span></a>).</p>
 <p>Go to:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><a class="reference internal" href="#sec-api-cnnclustering-cluster-clustering"><span class="std std-ref">Clustering class API</span></a></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnnclustering-cluster-clustering"><span class="std std-ref">Clustering</span></a></p></li>
+<li><p><a class="reference internal" href="#sec-api-cnnclustering-cluster-records"><span class="std std-ref">Records and summary</span></a></p></li>
 </ul>
 </div></blockquote>
-<p id="sec-api-cnnclustering-cluster-clustering">The functionality of this module is primarily exposed and bundled by the
-<a class="reference internal" href="#cnnclustering.cluster.Clustering" title="cnnclustering.cluster.Clustering"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clustering</span></code></a> class:</p>
+<div class="section" id="clustering">
+<span id="sec-api-cnnclustering-cluster-clustering"></span><h2>Clustering<a class="headerlink" href="#clustering" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="cnnclustering.cluster.Clustering">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering.cluster.</span></code><code class="sig-name descname"><span class="pre">Clustering</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alias</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">unicode</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'root'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.Clustering" title="Permalink to this definition">¶</a></dt>
@@ -54,7 +59,7 @@ carry out a clustering of input data points.</p>
 <p class="admonition-title">Note</p>
 <p>A clustering instance may also be created using the clustering
 builder
-<code class="xref py py-func docutils literal notranslate"><span class="pre">cnnclustering.cluster.ClusteringBuilder()</span></code>, e.g. as
+<a class="reference internal" href="#cnnclustering.cluster.ClusteringBuilder" title="cnnclustering.cluster.ClusteringBuilder"><code class="xref py py-func docutils literal notranslate"><span class="pre">cnnclustering.cluster.ClusteringBuilder()</span></code></a>, e.g. as
 <code class="code docutils literal notranslate"><span class="pre">clustering</span> <span class="pre">=</span> <span class="pre">ClusteringBuilder(data).build()</span></code>.</p>
 </div>
 <dl class="field-list simple">
@@ -202,9 +207,9 @@ equivalent to <code class="code docutils literal notranslate"><span class="pre">
 <code class="xref py py-meth docutils literal notranslate"><span class="pre">Labels.sort_by_size()</span></code>.</p></li>
 <li><p><strong>info</strong> – Wether to modify <code class="xref py py-obj docutils literal notranslate"><span class="pre">Labels.meta</span></code> information for
 this clustering.</p></li>
-<li><p><strong>record</strong> – Wether to create a <code class="xref py py-obj docutils literal notranslate"><span class="pre">Record</span></code>
+<li><p><strong>record</strong> – Wether to create a <a class="reference internal" href="#cnnclustering.cluster.Record" title="cnnclustering.cluster.Record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Record</span></code></a>
 instance for this clustering which is appended to the
-<code class="xref py py-obj docutils literal notranslate"><span class="pre">Summary</span></code>.</p></li>
+<a class="reference internal" href="#cnnclustering.cluster.Summary" title="cnnclustering.cluster.Summary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Summary</span></code></a>.</p></li>
 <li><p><strong>record_time</strong> – Wether to time clustering execution.</p></li>
 <li><p><strong>v</strong> – Be chatty.</p></li>
 <li><p><strong>purge</strong> – If True, force re-initialisation of cluster label
@@ -350,7 +355,7 @@ visualise:</p>
 <dl class="py method">
 <dt id="cnnclustering.cluster.Clustering.summary">
 <em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">summary</span></code><a class="headerlink" href="#cnnclustering.cluster.Clustering.summary" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an instance of <code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering.cluster.Summary</span></code>
+<dd><p>Return an instance of <a class="reference internal" href="#cnnclustering.cluster.Summary" title="cnnclustering.cluster.Summary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering.cluster.Summary</span></code></a>
 collecting clustering results for this clustering.</p>
 </dd></dl>
 
@@ -387,6 +392,97 @@ the labels and children are reset to <code class="code docutils literal notransl
 
 </dd></dl>
 
+<dl class="py class">
+<dt id="cnnclustering.cluster.ClusteringBuilder">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering.cluster.</span></code><code class="sig-name descname"><span class="pre">ClusteringBuilder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preparation_hook</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">registered_recipe_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clustering_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alias</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">recipe</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.ClusteringBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Orchestrate correct initialisation of a clustering</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> – Data that should be clustered in a format
+compatible with ‘input_data’ specified in the building
+<code class="code docutils literal notranslate"><span class="pre">recipe</span></code>.  May go through <code class="code docutils literal notranslate"><span class="pre">preparation_hook</span></code> to establish
+compatibility.</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>preparation_hook</strong> – A function that takes input data as a
+single argument and returns the (optionally) reformatted data
+plus additional information (e.g. “meta”) in form of
+an argument tuple and a keyword argument dictionary that can
+be used to initialise an input data type.
+If <code class="code docutils literal notranslate"><span class="pre">None</span></code> uses <code class="xref py py-obj docutils literal notranslate"><span class="pre">_default_preparation_hook</span></code>.</p></li>
+<li><p><strong>recipe</strong> – Building instructions for a clustering initialisation.
+Should be a mapping of component keyword arguments to componenet
+type details.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="cnnclustering.cluster.ClusteringBuilder.aggregate_components">
+<code class="sig-name descname"><span class="pre">aggregate_components</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.ClusteringBuilder.aggregate_components" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cluster.ClusteringBuilder.build">
+<code class="sig-name descname"><span class="pre">build</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.ClusteringBuilder.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialise clustering with data and components</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="records-and-summary">
+<span id="sec-api-cnnclustering-cluster-records"></span><h2>Records and summary<a class="headerlink" href="#records-and-summary" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="cnnclustering.cluster.Record">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering.cluster.</span></code><code class="sig-name descname"><span class="pre">Record</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cnn_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member_cutoff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_clusters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_clusters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratio_largest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratio_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.Record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cluster result container</p>
+<p><a class="reference internal" href="#cnnclustering.cluster.Record" title="cnnclustering.cluster.Record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering.cluster.Record</span></code></a> instances can created during
+<a class="reference internal" href="#cnnclustering.cluster.Clustering.fit" title="cnnclustering.cluster.Clustering.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cnnclustering.cluster.Clustering.fit()</span></code></a> and
+are collected in <a class="reference internal" href="#cnnclustering.cluster.Summary" title="cnnclustering.cluster.Summary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering.cluster.Summary</span></code></a>.</p>
+<dl class="py method">
+<dt id="cnnclustering.cluster.Record.to_dict">
+<code class="sig-name descname"><span class="pre">to_dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.Record.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cnnclustering.cluster.Summary">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering.cluster.</span></code><code class="sig-name descname"><span class="pre">Summary</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.Summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>List like container for cluster results</p>
+<p>Stores instances of <a class="reference internal" href="#cnnclustering.cluster.Record" title="cnnclustering.cluster.Record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering.cluster.Record</span></code></a>.</p>
+<dl class="py method">
+<dt id="cnnclustering.cluster.Summary.insert">
+<code class="sig-name descname"><span class="pre">insert</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.Summary.insert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cluster.Summary.to_DataFrame">
+<code class="sig-name descname"><span class="pre">to_DataFrame</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.Summary.to_DataFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert list of records to (typed) <code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="cnnclustering.cluster.make_typed_DataFrame">
+<code class="sig-prename descclassname"><span class="pre">cnnclustering.cluster.</span></code><code class="sig-name descname"><span class="pre">make_typed_DataFrame</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">columns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtypes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.make_typed_DataFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct <code class="xref py py-obj docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> with typed columns</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="cnnclustering.cluster.timed">
+<code class="sig-prename descclassname"><span class="pre">cnnclustering.cluster.</span></code><code class="sig-name descname"><span class="pre">timed</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.timed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to measure execution time</p>
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -396,7 +492,7 @@ the labels and children are reset to <code class="code docutils literal notransl
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">CommonNNClustering</a></h1>
+<h1 class="logo"><a href="../index.html">CommonNN Clustering</a></h1>
 
 
 

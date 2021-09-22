@@ -26,7 +26,11 @@ Cluster parameters
 ------------------
 
 .. autoclass:: cnnclustering._types.ClusterParameters
-   :members:
+
+   Members
+   ^^^^^^^
+
+   :members: to_dict
 
 
 .. _sec_api_cnnclustering_types_labels:
@@ -35,7 +39,10 @@ Cluster labels
 --------------
 
 .. autoclass:: cnnclustering._types.Labels
-   :members:
+
+   Members
+   ^^^^^^^
+   :members: from_sequence, sort_by_size
 
 
 .. _sec_api_cnnclustering_types_input_data:

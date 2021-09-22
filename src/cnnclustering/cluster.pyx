@@ -66,8 +66,9 @@ class Clustering:
     Note:
         A clustering instance may also be created using the clustering
         builder
-        :func:`cnnclustering.cluster.ClusteringBuilder`, e.g. as
-        `clustering = ClusteringBuilder(data).build()`.
+        :class:`~cnnclustering.cluster.ClusteringBuilder`, e.g. as
+
+            `clustering = ClusteringBuilder(data).build()`.
     """
 
     take_over_attrs = [

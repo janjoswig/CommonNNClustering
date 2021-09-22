@@ -26,26 +26,26 @@ cdef class ClusterParameters:
 
     Keyword args:
         similarity_cutoff:
-            Value used to determine check similarity criterion.
+            Value used to check the similarity criterion.
             In common-nearest-neighbours clustering, it is the
             minimum required number of shared neighbours :math:`c`.
         similarity_cutoff_continuous:
-            Same as `similarity_cutoff` but allowed to be floating point
+            Same as `similarity_cutoff` but allowed to be a floating point
             value.
         n_member_cutoff: Minimum required number of points in neighbour lists
             to be considered
             (tested in :obj:`cnnclustering._types.Neighbours.enough`).
-            if `None`, will be set to `similarity_cutoff`.
+            If `None`, will be set to `similarity_cutoff`.
         current_start: Use this as the first label for identified clusters.
     """
 
     def __cinit__(
             self,
-            radius_cutoff,
-            similarity_cutoff=0,
-            similarity_cutoff_continuous=0.,
-            n_member_cutoff=None,
-            current_start=1):
+            radius_cutoff: float
+            similarity_cutoff: int = 0,
+            similarity_cutoff_continuous: float = 0.,
+            n_member_cutoff: int = None,
+            current_start: int = 1):
 
         if n_member_cutoff is None:
             n_member_cutoff = similarity_cutoff
@@ -56,7 +56,19 @@ cdef class ClusterParameters:
         self.n_member_cutoff = n_member_cutoff
         self.current_start = current_start
 
+    def __init__(
+            self,
+            radius_cutoff: float
+            similarity_cutoff: int = 0,
+            similarity_cutoff_continuous: float = 0.,
+            n_member_cutoff: int = None,
+            current_start: int = 1):
+        pass
+
     def to_dict(self):
+        """Return a Python dictionary of cluster parameter ke-value pairs
+        """
+
         return {
             "radius_cutoff": self.radius_cutoff,
             "similarity_cutoff": self.similarity_cutoff,
@@ -114,6 +126,9 @@ cdef class Labels:
         if meta is None:
             meta = {}
         self.meta = meta
+
+    def __init__(self, labels, *, consider=None, meta=None):
+        pass
 
     @property
     def mapping(self):
