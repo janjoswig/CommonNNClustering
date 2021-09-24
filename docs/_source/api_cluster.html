@@ -51,17 +51,10 @@ class aggregates various types (defined in <code class="xref py py-mod docutils 
 <span id="sec-api-cnnclustering-cluster-clustering"></span><h2>Clustering<a class="headerlink" href="#clustering" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="cnnclustering.cluster.Clustering">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering.cluster.</span></code><code class="sig-name descname"><span class="pre">Clustering</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alias</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">unicode</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'root'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.Clustering" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering.cluster.</span></code><code class="sig-name descname"><span class="pre">Clustering</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alias</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">unicode</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'root'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.Clustering" title="Permalink to this definition">¶</a></dt>
 <dd><p>Represents a clustering endeavour</p>
 <p>A clustering object is made by aggregation of all necessary parts to
 carry out a clustering of input data points.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>A clustering instance may also be created using the clustering
-builder
-<a class="reference internal" href="#cnnclustering.cluster.ClusteringBuilder" title="cnnclustering.cluster.ClusteringBuilder"><code class="xref py py-func docutils literal notranslate"><span class="pre">cnnclustering.cluster.ClusteringBuilder()</span></code></a>, e.g. as
-<code class="code docutils literal notranslate"><span class="pre">clustering</span> <span class="pre">=</span> <span class="pre">ClusteringBuilder(data).build()</span></code>.</p>
-</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -82,6 +75,15 @@ of which this clustering is a child of.</p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A clustering instance may also be created using the clustering
+builder
+<a class="reference internal" href="#cnnclustering.cluster.ClusteringBuilder" title="cnnclustering.cluster.ClusteringBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClusteringBuilder</span></code></a>, e.g. as</p>
+<blockquote>
+<div><p><code class="code docutils literal notranslate"><span class="pre">clustering</span> <span class="pre">=</span> <span class="pre">ClusteringBuilder(data).build()</span></code>.</p>
+</div></blockquote>
+</div>
 <dl class="py method">
 <dt id="cnnclustering.cluster.Clustering.children">
 <em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">children</span></code><a class="headerlink" href="#cnnclustering.cluster.Clustering.children" title="Permalink to this definition">¶</a></dt>

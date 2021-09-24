@@ -41,7 +41,7 @@ cdef class ClusterParameters:
 
     def __cinit__(
             self,
-            radius_cutoff: float
+            radius_cutoff: float,
             similarity_cutoff: int = 0,
             similarity_cutoff_continuous: float = 0.,
             n_member_cutoff: int = None,
@@ -58,7 +58,7 @@ cdef class ClusterParameters:
 
     def __init__(
             self,
-            radius_cutoff: float
+            radius_cutoff: float,
             similarity_cutoff: int = 0,
             similarity_cutoff_continuous: float = 0.,
             n_member_cutoff: int = None,
@@ -1023,6 +1023,72 @@ cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterface):
             self,
             AINDEX[:, ::1] data not None,
             AINDEX[::1] n_neighbours not None, *, meta=None):
+
+        self._data = data
+        self.n_points = self._data.shape[0]
+        self._n_neighbours = n_neighbours
+
+        _meta = {"access_neighbours": True}
+        if meta is not None:
+            _meta.update(meta)
+        self.meta = _meta
+
+    @property
+    def data(self):
+        cdef AINDEX i
+
+        return [
+            s[:self._n_neighbours[i]]
+            for i, s in enumerate(np.asarray(self._data))
+            ]
+
+    @property
+    def n_neighbours(self):
+        return np.asarray(self._n_neighbours)
+
+    cdef AINDEX _get_n_neighbours(self, const AINDEX point) nogil:
+        return self._n_neighbours[point]
+
+    def get_n_neighbours(self, point: int) -> int:
+        return self._get_n_neighbours(point)
+
+    cdef AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil:
+        """Return a member for point"""
+        return self._data[point, member]
+
+    def get_neighbour(self, point: int, member: int) -> int:
+        return self._get_neighbour(point, member)
+
+    def get_subset(self, indices: Sequence) -> Type['InputDataExtNeighbourhoodsMemoryview']:
+        """Return input data subset"""
+
+        cdef list lengths
+
+        data_subset = np.asarray(self._data)[indices]
+        data_subset = [
+            [m for m in a if m in indices]
+            for a in data_subset
+        ]
+
+        lengths = [len(a) for a in data_subset]
+        pad_to = max(lengths)
+
+        for i, a in enumerate(data_subset):
+            missing_elements = pad_to - lengths[i]
+            a.extend([0] * missing_elements)
+
+        return type(self)(np.asarray(data_subset, order="C", dtype=P_AINDEX))
+
+
+cdef class InputDataExtNeighbourhoodsVector(InputDataExtInterface):
+    """Implements the input data interface
+
+    Neighbours of points stored using a C++ vector of vectors.
+    """
+
+    def __cinit__(
+            self,
+            data, *, meta=None):
 
         self._data = data
         self.n_points = self._data.shape[0]

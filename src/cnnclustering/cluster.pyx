@@ -91,13 +91,15 @@ class Clustering:
             predictor=None,
             labels=None,
             alias: str = "root",
-            parent=None):
+            parent=None,
+            **kwargs):
 
         if (input_data is not None) and (
                 not isinstance(input_data, _types.InputData)):
             builder = ClusteringBuilder(
                 input_data,
-                clustering_type=type(self)
+                clustering_type=type(self),
+                **kwargs
                 )
             components_map = builder.aggregate_components()
 

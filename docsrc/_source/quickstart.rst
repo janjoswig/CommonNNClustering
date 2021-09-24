@@ -26,4 +26,4 @@ Quickstart
    >>> clustering.labels
    array([1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2])
 
-.. image:: ../_build/html/_images/tutorial_basic_usage_27_0.png
+.. image:: ../_build/html/_images/tutorial_basic_usage_30_0.png

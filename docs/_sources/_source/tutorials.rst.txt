@@ -3,7 +3,7 @@ Tutorials
 
 Density-based common-nearest-neighbours clustering can be applied to
 arbitrary data sets. Here we demonstrate how to use
-the :ref:`cnnclustering <sec_api_ref` Python package to
+the :ref:`cnnclustering <sec_api_ref>` Python package to
 assign cluster labels to data points in different contexts.
 
 .. toctree::

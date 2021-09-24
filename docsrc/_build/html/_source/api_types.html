@@ -57,7 +57,7 @@ in the aggregation of a <a class="reference internal" href="api_cluster.html#cnn
 <span id="sec-api-cnnclustering-types-cluster-params"></span><h2>Cluster parameters<a class="headerlink" href="#cluster-parameters" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="cnnclustering._types.ClusterParameters">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">ClusterParameters</span></code><a class="headerlink" href="#cnnclustering._types.ClusterParameters" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">ClusterParameters</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">double</span> <span class="pre">radius_cutoff:</span> <span class="pre">float</span></em>, <em class="sig-param"><span class="pre">similarity_cutoff:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></em>, <em class="sig-param"><span class="pre">double</span> <span class="pre">similarity_cutoff_continuous:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.</span></em>, <em class="sig-param"><span class="pre">n_member_cutoff:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">current_start:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.ClusterParameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Input parameters for clustering procedure</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -65,20 +65,18 @@ in the aggregation of a <a class="reference internal" href="api_cluster.html#cnn
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>similarity_cutoff</strong> – Value used to determine check similarity criterion.
+<li><p><strong>similarity_cutoff</strong> – Value used to check the similarity criterion.
 In common-nearest-neighbours clustering, it is the
 minimum required number of shared neighbours <span class="math notranslate nohighlight">\(c\)</span>.</p></li>
-<li><p><strong>similarity_cutoff_continuous</strong> – Same as <code class="code docutils literal notranslate"><span class="pre">similarity_cutoff</span></code> but allowed to be floating point
+<li><p><strong>similarity_cutoff_continuous</strong> – Same as <code class="code docutils literal notranslate"><span class="pre">similarity_cutoff</span></code> but allowed to be a floating point
 value.</p></li>
 <li><p><strong>n_member_cutoff</strong> – Minimum required number of points in neighbour lists
 to be considered
 (tested in <a class="reference internal" href="#cnnclustering._types.Neighbours.enough" title="cnnclustering._types.Neighbours.enough"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering._types.Neighbours.enough</span></code></a>).
-if <code class="code docutils literal notranslate"><span class="pre">None</span></code>, will be set to <code class="code docutils literal notranslate"><span class="pre">similarity_cutoff</span></code>.</p></li>
+If <code class="code docutils literal notranslate"><span class="pre">None</span></code>, will be set to <code class="code docutils literal notranslate"><span class="pre">similarity_cutoff</span></code>.</p></li>
 <li><p><strong>current_start</strong> – Use this as the first label for identified clusters.</p></li>
 </ul>
 </dd>
-</dl>
-<dl class="field-list simple">
 <dt class="field-odd">Members</dt>
 <dd class="field-odd"><p>to_dict</p>
 </dd>
@@ -90,7 +88,7 @@ if <code class="code docutils literal notranslate"><span class="pre">None</span>
 <span id="sec-api-cnnclustering-types-labels"></span><h2>Cluster labels<a class="headerlink" href="#cluster-labels" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="cnnclustering._types.Labels">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">Labels</span></code><a class="headerlink" href="#cnnclustering._types.Labels" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">Labels</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering._types.Labels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Represents cluster label assignments</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -114,15 +112,15 @@ dictionary.</p></li>
 </dd></dl>
 
 <dl class="py attribute">
-<dt id="cnnclustering._types.Labels.meta">
-<code class="sig-name descname"><span class="pre">meta</span></code><a class="headerlink" href="#cnnclustering._types.Labels.meta" title="Permalink to this definition">¶</a></dt>
-<dd><p>The meta information dictionary</p>
-</dd></dl>
-
-<dl class="py attribute">
 <dt id="cnnclustering._types.Labels.labels">
 <code class="sig-name descname"><span class="pre">labels</span></code><a class="headerlink" href="#cnnclustering._types.Labels.labels" title="Permalink to this definition">¶</a></dt>
 <dd><p>The labels container converted to a NumPy ndarray</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cnnclustering._types.Labels.meta">
+<code class="sig-name descname"><span class="pre">meta</span></code><a class="headerlink" href="#cnnclustering._types.Labels.meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>The meta information dictionary</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -165,13 +163,20 @@ data interface which is defined through
 <a class="reference internal" href="#cnnclustering._types.InputDataExtInterface" title="cnnclustering._types.InputDataExtInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataExtInterface</span></code></a> for Cython extension
 types. For pure Python types the input data interface is defined through
 the abstract base class <code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataInputData</span></code>
-and the specialised abstract classes
-<a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputData</span></code></a>
-<a class="reference internal" href="#cnnclustering._types.InputDataComponents" title="cnnclustering._types.InputDataComponents"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataComponents</span></code></a>
-<a class="reference internal" href="#cnnclustering._types.InputDataPairwiseDistances" title="cnnclustering._types.InputDataPairwiseDistances"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataPairwiseDistances</span></code></a>
-<a class="reference internal" href="#cnnclustering._types.InputDataPairwiseDistancesComputer" title="cnnclustering._types.InputDataPairwiseDistancesComputer"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataPairwiseDistancesComputer</span></code></a>
-<a class="reference internal" href="#cnnclustering._types.InputDataNeighbourhoods" title="cnnclustering._types.InputDataNeighbourhoods"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataNeighbourhoods</span></code></a>
-<a class="reference internal" href="#cnnclustering._types.InputDataNeighbourhoodsComputer" title="cnnclustering._types.InputDataNeighbourhoodsComputer"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataNeighbourhoodsComputer</span></code></a></p>
+and the specialised abstract classes</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputData</span></code></a></p></li>
+<li><p><a class="reference internal" href="#cnnclustering._types.InputDataComponents" title="cnnclustering._types.InputDataComponents"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataComponents</span></code></a></p></li>
+<li><p><a class="reference internal" href="#cnnclustering._types.InputDataPairwiseDistances" title="cnnclustering._types.InputDataPairwiseDistances"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataPairwiseDistances</span></code></a></p></li>
+<li><p><a class="reference internal" href="#cnnclustering._types.InputDataPairwiseDistancesComputer" title="cnnclustering._types.InputDataPairwiseDistancesComputer"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataPairwiseDistancesComputer</span></code></a></p></li>
+<li><p><a class="reference internal" href="#cnnclustering._types.InputDataNeighbourhoods" title="cnnclustering._types.InputDataNeighbourhoods"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataNeighbourhoods</span></code></a></p></li>
+<li><p><a class="reference internal" href="#cnnclustering._types.InputDataNeighbourhoodsComputer" title="cnnclustering._types.InputDataNeighbourhoodsComputer"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputDataNeighbourhoodsComputer</span></code></a></p></li>
+</ul>
+</div></blockquote>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
 <dl class="py class">
 <dt id="cnnclustering._types.InputDataExtInterface">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">InputDataExtInterface</span></code><a class="headerlink" href="#cnnclustering._types.InputDataExtInterface" title="Permalink to this definition">¶</a></dt>
@@ -1385,8 +1390,18 @@ that the first container is the one with the shorter length
 </dd></dl>
 
 </div>
-<div class="section" id="queue">
-<span id="sec-api-cnnclustering-types-queue"></span><h2>Queue<a class="headerlink" href="#queue" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="queues">
+<span id="sec-api-cnnclustering-types-queue"></span><h2>Queues<a class="headerlink" href="#queues" title="Permalink to this headline">¶</a></h2>
+<p>Queues can be optionally used by a fitter, e.g.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">FitterExtBFS</span></code></p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">FitterBFS</span></code></p></li>
+</ul>
+</div></blockquote>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
 <dl class="py class">
 <dt id="cnnclustering._types.QueueExtInterface">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">QueueExtInterface</span></code><a class="headerlink" href="#cnnclustering._types.QueueExtInterface" title="Permalink to this definition">¶</a></dt>
@@ -1412,6 +1427,9 @@ that the first container is the one with the shorter length
 
 </dd></dl>
 
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
 <dl class="py class">
 <dt id="cnnclustering._types.Queue">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">Queue</span></code><a class="headerlink" href="#cnnclustering._types.Queue" title="Permalink to this definition">¶</a></dt>
@@ -1441,18 +1459,27 @@ that the first container is the one with the shorter length
 
 </dd></dl>
 
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
 <dl class="py class">
 <dt id="cnnclustering._types.QueueExtLIFOVector">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">QueueExtLIFOVector</span></code><a class="headerlink" href="#cnnclustering._types.QueueExtLIFOVector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements the queue interface</p>
 </dd></dl>
 
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
 <dl class="py class">
 <dt id="cnnclustering._types.QueueExtFIFOQueue">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">QueueExtFIFOQueue</span></code><a class="headerlink" href="#cnnclustering._types.QueueExtFIFOQueue" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implements the queue interface</p>
 </dd></dl>
 
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
 <dl class="py class">
 <dt id="cnnclustering._types.QueueFIFODeque">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnnclustering._types.</span></code><code class="sig-name descname"><span class="pre">QueueFIFODeque</span></code><a class="headerlink" href="#cnnclustering._types.QueueFIFODeque" title="Permalink to this definition">¶</a></dt>

@@ -27,9 +27,6 @@ Cluster parameters
 
 .. autoclass:: cnnclustering._types.ClusterParameters
 
-   Members
-   ^^^^^^^
-
    :members: to_dict
 
 
@@ -40,8 +37,6 @@ Cluster labels
 
 .. autoclass:: cnnclustering._types.Labels
 
-   Members
-   ^^^^^^^
    :members: from_sequence, sort_by_size
 
 
@@ -56,12 +51,15 @@ data interface which is defined through
 types. For pure Python types the input data interface is defined through
 the abstract base class :class:`~cnnclustering._types.InputDataInputData`
 and the specialised abstract classes
-:class:`~cnnclustering._types.InputData`
-:class:`~cnnclustering._types.InputDataComponents`
-:class:`~cnnclustering._types.InputDataPairwiseDistances`
-:class:`~cnnclustering._types.InputDataPairwiseDistancesComputer`
-:class:`~cnnclustering._types.InputDataNeighbourhoods`
-:class:`~cnnclustering._types.InputDataNeighbourhoodsComputer`
+
+   * :class:`~cnnclustering._types.InputData`
+   * :class:`~cnnclustering._types.InputDataComponents`
+   * :class:`~cnnclustering._types.InputDataPairwiseDistances`
+   * :class:`~cnnclustering._types.InputDataPairwiseDistancesComputer`
+   * :class:`~cnnclustering._types.InputDataNeighbourhoods`
+   * :class:`~cnnclustering._types.InputDataNeighbourhoodsComputer`
+
+|
 
 .. autoclass:: cnnclustering._types.InputDataExtInterface
    :members:
@@ -246,20 +244,38 @@ Similarity checker
 
 .. _sec_api_cnnclustering_types_queue:
 
-Queue
------
+
+|
+
+Queues
+------
+
+Queues can be optionally used by a fitter, e.g.
+
+   * :class:`~cnnclustering._fit.FitterExtBFS`
+   * :class:`~cnnclustering._fit.FitterBFS`
+
+|
 
 .. autoclass:: cnnclustering._types.QueueExtInterface
    :members:
 
+|
+
 .. autoclass:: cnnclustering._types.Queue
    :members:
+
+|
 
 .. autoclass:: cnnclustering._types.QueueExtLIFOVector
    :members:
 
+|
+
 .. autoclass:: cnnclustering._types.QueueExtFIFOQueue
    :members:
+
+|
 
 .. autoclass:: cnnclustering._types.QueueFIFODeque
    :members:
