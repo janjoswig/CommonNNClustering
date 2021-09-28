@@ -1083,7 +1083,10 @@ cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterface):
 cdef class InputDataExtNeighbourhoodsVector(InputDataExtInterface):
     """Implements the input data interface
 
-    Neighbours of points stored using a C++ vector of vectors.
+    Neighbours of points are stored using a C++ vector of vectors.
+
+    Args:
+
     """
 
     def __cinit__(
@@ -1091,8 +1094,8 @@ cdef class InputDataExtNeighbourhoodsVector(InputDataExtInterface):
             data, *, meta=None):
 
         self._data = data
-        self.n_points = self._data.shape[0]
-        self._n_neighbours = n_neighbours
+        self.n_points = self._data.size()
+        self._n_neighbours = [len(x) for x in data]
 
         _meta = {"access_neighbours": True}
         if meta is not None:
@@ -1103,14 +1106,11 @@ cdef class InputDataExtNeighbourhoodsVector(InputDataExtInterface):
     def data(self):
         cdef AINDEX i
 
-        return [
-            s[:self._n_neighbours[i]]
-            for i, s in enumerate(np.asarray(self._data))
-            ]
+        return self._data
 
     @property
     def n_neighbours(self):
-        return np.asarray(self._n_neighbours)
+        return self._n_neighbours
 
     cdef AINDEX _get_n_neighbours(self, const AINDEX point) nogil:
         return self._n_neighbours[point]
@@ -1120,34 +1120,28 @@ cdef class InputDataExtNeighbourhoodsVector(InputDataExtInterface):
 
     cdef AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil:
         """Return a member for point"""
-        return self._data[point, member]
+        return self._data[point][member]
 
     def get_neighbour(self, point: int, member: int) -> int:
         return self._get_neighbour(point, member)
 
-    def get_subset(self, indices: Sequence) -> Type['InputDataExtNeighbourhoodsMemoryview']:
+    def get_subset(self, indices: Sequence) -> Type['InputDataExtNeighbourhoodsVector']:
         """Return input data subset"""
 
         cdef list lengths
 
-        data_subset = np.asarray(self._data)[indices]
+        data_subset = [x for x in self.data if x in indices]
         data_subset = [
             [m for m in a if m in indices]
             for a in data_subset
         ]
 
-        lengths = [len(a) for a in data_subset]
-        pad_to = max(lengths)
-
-        for i, a in enumerate(data_subset):
-            missing_elements = pad_to - lengths[i]
-            a.extend([0] * missing_elements)
-
-        return type(self)(np.asarray(data_subset, order="C", dtype=P_AINDEX))
+        return type(self)(data_subset)
 
 
 InputDataComponents.register(InputDataExtComponentsMemoryview)
 InputDataPairwiseDistances.register(InputDataExtDistancesLinearMemoryview)
+InputDataNeighbourhoods.register(InputDataExtNeighbourhoodsMemoryview)
 InputDataNeighbourhoods.register(InputDataExtNeighbourhoodsMemoryview)
 
 

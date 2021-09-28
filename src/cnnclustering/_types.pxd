@@ -260,6 +260,16 @@ cdef class InputDataExtNeighbourhoodsMemoryview(InputDataExtInterface):
     cdef AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
 
 
+cdef class InputDataExtNeighbourhoodsVector(InputDataExtInterface):
+
+    cdef:
+        cppvector[cppvector[AINDEX]] _data
+        cppvector[AINDEX] _n_neighbours
+
+    cdef AINDEX _get_n_neighbours(self, const AINDEX point) nogil
+    cdef AINDEX _get_neighbour(self, const AINDEX point, const AINDEX member) nogil
+
+
 cdef class NeighboursExtVector(NeighboursExtInterface):
 
     cdef:
