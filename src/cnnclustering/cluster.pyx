@@ -149,6 +149,12 @@ class Clustering:
         self._labels = value
 
     @property
+    def input_data(self):
+        if self._input_data is not None:
+            return self._input_data.data
+        return None
+
+    @property
     def children(self):
         """
         Return a mapping of child cluster labels to
@@ -191,7 +197,7 @@ class Clustering:
         access = []
         if self._input_data is not None:
             for kind, check in (
-                    ("points", "access_points"),
+                    ("coordinates", "access_coords"),
                     ("distances", "access_distances"),
                     ("neighbours", "access_neighbours")):
 
@@ -1095,9 +1101,9 @@ class Clustering:
             raise ModuleNotFoundError("No module named 'matplotlib'")
 
         if (self._input_data is None) or (
-                not self._input_data.meta.get("access_points", False)):
+                not self._input_data.meta.get("access_coords", False)):
             raise ValueError(
-                "No data points found to evaluate."
+                "No data point coordinates found to evaluate."
             )
 
         if dim is None:
@@ -1366,7 +1372,7 @@ class ClusteringBuilder:
 
     _default_preparation_hook = staticmethod(hooks.prepare_points_from_parts)
     _default_clustering = Clustering
-    _default_recipe_key = "points"
+    _default_recipe_key = "coordinates"
 
     def __init__(
             self,

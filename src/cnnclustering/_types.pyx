@@ -836,7 +836,7 @@ class InputDataSklearnKDTree(InputDataComponents,InputDataNeighbourhoodsComputer
         self.clear_cached()
 
         _meta = {
-            "access_points": True,
+            "access_coords": True,
             "access_neighbours": True
             }
         if meta is not None:
@@ -923,7 +923,7 @@ cdef class InputDataExtComponentsMemoryview(InputDataExtInterface):
         self.n_points = self._data.shape[0]
         self.n_dim = self._data.shape[1]
 
-        _meta = {"access_points": True}
+        _meta = {"access_coords": True}
         if meta is not None:
             _meta.update(meta)
         self.meta = _meta

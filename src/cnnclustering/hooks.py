@@ -68,7 +68,7 @@ COMPONENT_NAME_TYPE_MAP = {
 def get_registered_recipe(key):
     registered_recipes = {
         "none": {},
-        "points": {
+        "coordinates": {
             "input_data": "components_mview",
             "fitter": "bfs",
             "fitter.ngetter": "brute_force",
