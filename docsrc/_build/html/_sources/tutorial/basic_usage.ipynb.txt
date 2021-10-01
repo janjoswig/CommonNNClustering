@@ -2,70 +2,19 @@
  "cells": [
   {
    "cell_type": "markdown",
-   "metadata": {
-    "toc": true
-   },
-   "source": [
-    "<h1>Contents<span class=\"tocSkip\"></span></h1>\n",
-    "<div class=\"toc\"><ul class=\"toc-item\"><li><span><a href=\"#Notebook-configuration\" data-toc-modified-id=\"Notebook-configuration-1\"><span class=\"toc-item-num\">1&nbsp;&nbsp;</span>Notebook configuration</a></span></li><li><span><a href=\"#Getting-started\" data-toc-modified-id=\"Getting-started-2\"><span class=\"toc-item-num\">2&nbsp;&nbsp;</span>Getting started</a></span></li></ul></div>"
-   ]
-  },
-  {
-   "cell_type": "markdown",
    "metadata": {},
    "source": [
     "# Basic usage of the cluster module"
    ]
   },
   {
-   "cell_type": "code",
-   "execution_count": 1,
-   "metadata": {
-    "ExecuteTime": {
-     "end_time": "2021-09-24T14:31:43.291658Z",
-     "start_time": "2021-09-24T14:31:40.702120Z"
-    }
-   },
-   "outputs": [],
-   "source": [
-    "import sys\n",
-    "\n",
-    "# Optional dependencies\n",
-    "import matplotlib as mpl\n",
-    "import matplotlib.pyplot as plt\n",
-    "\n",
-    "from cnnclustering import cluster"
-   ]
-  },
-  {
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "The notebook was created using Python 3.8."
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 2,
-   "metadata": {
-    "ExecuteTime": {
-     "end_time": "2021-09-24T14:31:43.298447Z",
-     "start_time": "2021-09-24T14:31:43.294653Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "3.8.8 (default, Mar 11 2021, 08:58:19) \n",
-      "[GCC 8.3.0]\n"
-     ]
-    }
-   ],
-   "source": [
-    "# Version information\n",
-    "print(sys.version)"
+    "Go to:\n",
+    "    \n",
+    "  - [Notebook configuration](basic_usage.ipynb#Notebook-configuration)\n",
+    "  - [Getting started](basic_usage.ipynb#Getting-started)"
    ]
   },
   {
@@ -76,10 +25,68 @@
    ]
   },
   {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2021-10-01T09:13:28.523135Z",
+     "start_time": "2021-10-01T09:13:26.427353Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "import sys\n",
+    "\n",
+    "# Optional dependencies\n",
+    "import matplotlib as mpl\n",
+    "import matplotlib.pyplot as plt\n",
+    "\n",
+    "import cnnclustering\n",
+    "from cnnclustering import cluster"
+   ]
+  },
+  {
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "We use `matplotlib` to create plots. The `\"matplotlibrc\"` file in the root directory of the CommonNNClustering repository is used to customize the appearance of the plots."
+    "Print Python and package version information:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2021-10-01T09:13:28.530534Z",
+     "start_time": "2021-10-01T09:13:28.525553Z"
+    }
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Python:  3.8.8 (default, Mar 11 2021, 08:58:19)  [GCC 8.3.0]\n",
+      "Packages:\n",
+      "    matplotlib: 3.3.4\n",
+      "    cnnclustering: 0.4.3\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Version information\n",
+    "print(\"Python: \", *sys.version.split(\"\\n\"))\n",
+    "\n",
+    "print(\"Packages:\")\n",
+    "for package in [mpl, cnnclustering]:\n",
+    "    print(f\"    {package.__name__}: {package.__version__}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We use [Matplotlib](https://matplotlib.org/) to create plots. The `matplotlibrc` file in the root directory of the `CommonNNClustering` repository is used to customize the appearance of the plots."
    ]
   },
   {
@@ -87,8 +94,8 @@
    "execution_count": 3,
    "metadata": {
     "ExecuteTime": {
-     "end_time": "2021-09-24T14:31:43.312163Z",
-     "start_time": "2021-09-24T14:31:43.300711Z"
+     "end_time": "2021-10-01T09:13:28.540353Z",
+     "start_time": "2021-10-01T09:13:28.532580Z"
     }
    },
    "outputs": [],
@@ -105,8 +112,8 @@
    "execution_count": 4,
    "metadata": {
     "ExecuteTime": {
-     "end_time": "2021-09-24T14:31:43.319601Z",
-     "start_time": "2021-09-24T14:31:43.315399Z"
+     "end_time": "2021-10-01T09:13:28.547540Z",
+     "start_time": "2021-10-01T09:13:28.542440Z"
     }
    },
    "outputs": [],
@@ -152,7 +159,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "A `clustering` can be initiated by passing *raw* input data to it. By default, this is expected to be a nested sequence, e.g. a list of lists. It will be understood as the coordinates of a number of data points. Similar data structures, like a two-dimensional `NumPy` array would be acceptable, as well. It is possible to use different kinds of input data formats instead, like for example pre-computed parwise distances, and it is described later how to do it."
+    "A `Clustering` can be initiated by passing *raw* input data to it. By default, this is expected to be a nested sequence, e.g. a list of lists. It will be understood as the coordinates of a number of data points in a feature space. Similar data structures, like a two-dimensional NumPy array would be acceptable, as well. It is possible to use different kinds of input data formats instead, like for example pre-computed pairwise distances, and it is described later how to do it (refer to tutorials [Clustering of scikit-learn toy data sets](scikit_learn_datasets.ipynb) and [Advanced usage](advanced_usage.ipynb))."
    ]
   },
   {
@@ -160,19 +167,11 @@
    "execution_count": 5,
    "metadata": {
     "ExecuteTime": {
-     "end_time": "2021-09-24T14:31:43.331217Z",
-     "start_time": "2021-09-24T14:31:43.321747Z"
+     "end_time": "2021-10-01T09:13:28.559277Z",
+     "start_time": "2021-10-01T09:13:28.549422Z"
     }
    },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Clustering(input_data=InputDataExtComponentsMemoryview, fitter=FitterExtBFS(ngetter=NeighboursGetterExtBruteForce(dgetter=DistanceGetterExtMetric(metric=MetricExtEuclideanReduced), sorted=False, selfcounting=True), na=NeighboursExtVectorCPPUnorderedSet, nb=NeighboursExtVectorCPPUnorderedSet, checker=SimilarityCheckerExtSwitchContains, queue=QueueExtFIFOQueue), predictor=None)\n"
-     ]
-    }
-   ],
+   "outputs": [],
    "source": [
     "# 2D Data points (list of lists, 12 points in 2 dimensions)\n",
     "data_points = [   # Point index\n",
@@ -190,15 +189,14 @@
     "    [5.5, -1.5],  # 11\n",
     "    ]\n",
     "\n",
-    "clustering = cluster.Clustering(data_points)\n",
-    "print(clustering)"
+    "clustering = cluster.Clustering(data_points)"
    ]
   },
   {
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "The *raw* data points that we passed here to create the `Clustering` object are internally wrapped into a specific input data type and are stored on the instance under the `_input_data` attribute."
+    "We can get a view of the input data associated with a `Clustering` back like this:"
    ]
   },
   {
@@ -206,40 +204,8 @@
    "execution_count": 6,
    "metadata": {
     "ExecuteTime": {
-     "end_time": "2021-09-24T14:31:43.344137Z",
-     "start_time": "2021-09-24T14:31:43.333136Z"
-    }
-   },
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "<cnnclustering._types.InputDataExtComponentsMemoryview at 0x7f9871b477b0>"
-      ]
-     },
-     "execution_count": 6,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
-   "source": [
-    "clustering._input_data"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "The input data type chosen here, is the default option for point coordinates. We can get a view of the actual data back with the `data` attribute of the input data object."
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 7,
-   "metadata": {
-    "ExecuteTime": {
-     "end_time": "2021-09-24T14:31:43.356350Z",
-     "start_time": "2021-09-24T14:31:43.347293Z"
+     "end_time": "2021-10-01T09:13:28.574417Z",
+     "start_time": "2021-10-01T09:13:28.561068Z"
     }
    },
    "outputs": [
@@ -260,13 +226,23 @@
        "       [ 5.5, -1.5]])"
       ]
      },
-     "execution_count": 7,
+     "execution_count": 6,
      "metadata": {},
      "output_type": "execute_result"
     }
    ],
    "source": [
-    "clustering._input_data.data"
+    "clustering.input_data"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-info\">\n",
+    "\n",
+    "**Info:** The *raw* data points that we passed here to create the `Clustering` object are internally wrapped into a specific input data type and are stored on the instance under the `_input_data` attribute. `Clustering.input_data` is actually a shortcut for `Clustering._input_data.data`.  \n",
+    "</div>"
    ]
   },
   {
@@ -278,11 +254,11 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 8,
+   "execution_count": 7,
    "metadata": {
     "ExecuteTime": {
-     "end_time": "2021-09-24T14:31:43.367096Z",
-     "start_time": "2021-09-24T14:31:43.359175Z"
+     "end_time": "2021-10-01T09:13:28.583970Z",
+     "start_time": "2021-10-01T09:13:28.576633Z"
     }
    },
    "outputs": [
@@ -292,7 +268,7 @@
        "True"
       ]
      },
-     "execution_count": 8,
+     "execution_count": 7,
      "metadata": {},
      "output_type": "execute_result"
     }
@@ -307,19 +283,19 @@
    "source": [
     "To cluster the points, we will use the `fit` method. The clustering depends on two parameters:\n",
     "  \n",
-    "  - `radius_cutoff`: Points are considered neighbours if the distance between them is smaller than this cutoff radius $r$.\n",
+    "  - `radius_cutoff`: Points are considered neighbours if the distance between them is not larger than this cutoff radius $r$.\n",
     "  - `cnn_cutoff`: Points are assigned to the same cluster if they share at least this number of $c$ common neighbours.\n",
     "  \n",
-    "For the clustering procedure, we ultimately need to compute the neighbouring points with respect to the `radius_cutoff` for each point in the data set. Then we can determine if two points fulfill the criterion of being part of the same cluster. How this is done, can be controlled in detail but by default the input data points are assumed to be given in euclidean space and the neighbours are computed brute force. For larger data sets it makes sense to use a different approach."
+    "For the clustering procedure, we ultimately need to compute the neighbouring points with respect to the `radius_cutoff` for each point in the data set. Then we can determine if two points fulfill the criterion of being part of the same cluster. How this is done, can be controlled in detail but by default the input data points are assumed to be given in euclidean space and the neighbours are computed brute force. For larger data sets, it makes sense to use a different approach."
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 9,
+   "execution_count": 8,
    "metadata": {
     "ExecuteTime": {
-     "end_time": "2021-09-24T14:31:43.378061Z",
-     "start_time": "2021-09-24T14:31:43.368888Z"
+     "end_time": "2021-10-01T09:13:28.593066Z",
+     "start_time": "2021-10-01T09:13:28.587006Z"
     }
    },
    "outputs": [
@@ -343,7 +319,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "A clustering attempt returns and prints a comprehensive summary of the cluster parameters and the outcome. You can suppress the recording with the keyword argument `rec=False` and the printing with `v=False`:\n",
+    "A clustering attempt returns and prints a comprehensive record of the cluster parameters and the outcome. You can suppress the recording with the keyword argument `record=False` and the printing with `v=False`:\n",
     "\n",
     "  - **#points**: Number of data points in the data set.\n",
     "  - **r**: Radius cutoff *r*.\n",
@@ -361,16 +337,16 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "The outcome of the clustering are cluster label assignments for each point. Points classified as *noise* (not part of any cluster) are labeled 0. Integer labels larger than 0 indicate the membership of each point to one of the identified clusters. If clusters where sorted (`sort_by_size = True`), cluster 1 has the highest member count."
+    "The outcome of the clustering are cluster label assignments for each point. Points classified as *noise* (not part of any cluster) are labeled 0. Integer labels larger than 0 indicate the membership of each point to one of the identified clusters. If clusters where sorted (`sort_by_size=True`), cluster 1 has the highest member count."
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 10,
+   "execution_count": 9,
    "metadata": {
     "ExecuteTime": {
-     "end_time": "2021-09-24T14:31:43.393855Z",
-     "start_time": "2021-09-24T14:31:43.381237Z"
+     "end_time": "2021-10-01T09:13:28.602419Z",
+     "start_time": "2021-10-01T09:13:28.595128Z"
     }
    },
    "outputs": [
@@ -380,7 +356,7 @@
        "array([1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2, 2])"
       ]
      },
-     "execution_count": 10,
+     "execution_count": 9,
      "metadata": {},
      "output_type": "execute_result"
     }
@@ -393,16 +369,16 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "The `labels` attribute of a cluster object always holds the result of the latest fit. All cluster results (from fits where `rec=True`) are collected in a summary without storing the actual labels."
+    "The `labels` attribute of a cluster object always holds the result of the latest fit. All cluster results (from fits where `record=True`) are collected in a summary without storing the actual labels."
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 11,
+   "execution_count": 10,
    "metadata": {
     "ExecuteTime": {
-     "end_time": "2021-09-24T14:31:43.406100Z",
-     "start_time": "2021-09-24T14:31:43.396058Z"
+     "end_time": "2021-10-01T09:13:28.612024Z",
+     "start_time": "2021-10-01T09:13:28.604296Z"
     }
    },
    "outputs": [
@@ -432,16 +408,16 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "If you have Pandas installed, the summary can be transformed into a handy `pandas.DataFrame`."
+    "If you have [Pandas](https://pandas.pydata.org/) installed, the summary can be transformed into a handy `pandas.DataFrame`."
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 12,
+   "execution_count": 11,
    "metadata": {
     "ExecuteTime": {
-     "end_time": "2021-09-24T14:31:43.443134Z",
-     "start_time": "2021-09-24T14:31:43.408677Z"
+     "end_time": "2021-10-01T09:13:28.638559Z",
+     "start_time": "2021-10-01T09:13:28.614025Z"
     }
    },
    "outputs": [
@@ -488,7 +464,7 @@
        "      <td>2</td>\n",
        "      <td>0.583333</td>\n",
        "      <td>0.166667</td>\n",
-       "      <td>0.000034</td>\n",
+       "      <td>0.000038</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>1</th>\n",
@@ -500,7 +476,7 @@
        "      <td>2</td>\n",
        "      <td>0.416667</td>\n",
        "      <td>0.333333</td>\n",
-       "      <td>0.000025</td>\n",
+       "      <td>0.000029</td>\n",
        "    </tr>\n",
        "  </tbody>\n",
        "</table>\n",
@@ -512,11 +488,11 @@
        "1        12            1.5           1           <NA>          <NA>   \n",
        "\n",
        "   n_clusters  ratio_largest  ratio_noise  execution_time  \n",
-       "0           2       0.583333     0.166667        0.000034  \n",
-       "1           2       0.416667     0.333333        0.000025  "
+       "0           2       0.583333     0.166667        0.000038  \n",
+       "1           2       0.416667     0.333333        0.000029  "
       ]
      },
-     "execution_count": 12,
+     "execution_count": 11,
      "metadata": {},
      "output_type": "execute_result"
     }
@@ -529,16 +505,16 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "A cluster object comes with a variety of convenience methods that allow for example a quick look at a plot of data points and a cluster result."
+    "A `Clustering` object comes with a variety of convenience methods that allow for example a quick look at a plot of data points and a cluster result."
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 13,
+   "execution_count": 12,
    "metadata": {
     "ExecuteTime": {
-     "end_time": "2021-09-24T14:31:44.098308Z",
-     "start_time": "2021-09-24T14:31:43.446145Z"
+     "end_time": "2021-10-01T09:13:29.230015Z",
+     "start_time": "2021-10-01T09:13:28.640020Z"
     },
     "scrolled": true
    },
@@ -600,7 +576,7 @@
    "skip_h1_title": true,
    "title_cell": "Contents",
    "title_sidebar": "Contents",
-   "toc_cell": true,
+   "toc_cell": false,
    "toc_position": {
     "height": "calc(100% - 180px)",
     "left": "10px",

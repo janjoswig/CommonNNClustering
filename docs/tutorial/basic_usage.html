@@ -289,11 +289,15 @@ div.rendered_html tbody tr:hover {
     .nboutput .prompt {
         display: none;
     }
-</style><h1><p>Contents</p>
-</h1><div class="toc"><ul class="toc-item"><li><p>1  Notebook configuration</p>
-</li><li><p>2  Getting started</p>
-</li></ul></div><div class="section" id="Basic-usage-of-the-cluster-module">
+</style><div class="section" id="Basic-usage-of-the-cluster-module">
 <h1>Basic usage of the cluster module<a class="headerlink" href="#Basic-usage-of-the-cluster-module" title="Permalink to this headline">¶</a></h1>
+<p>Go to:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#Notebook-configuration"><span class="std std-ref">Notebook configuration</span></a></p></li>
+<li><p><a class="reference internal" href="#Getting-started"><span class="std std-ref">Getting started</span></a></p></li>
+</ul>
+<div class="section" id="Notebook-configuration">
+<h2>Notebook configuration<a class="headerlink" href="#Notebook-configuration" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -305,18 +309,23 @@ div.rendered_html tbody tr:hover {
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
+<span class="kn">import</span> <span class="nn">cnnclustering</span>
 <span class="kn">from</span> <span class="nn">cnnclustering</span> <span class="kn">import</span> <span class="n">cluster</span>
 </pre></div>
 </div>
 </div>
-<p>The notebook was created using Python 3.8.</p>
+<p>Print Python and package version information:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Version information</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Python: &quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Packages:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">package</span> <span class="ow">in</span> <span class="p">[</span><span class="n">mpl</span><span class="p">,</span> <span class="n">cnnclustering</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="n">package</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">package</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -325,13 +334,13 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-3.8.8 (default, Mar 11 2021, 08:58:19)
-[GCC 8.3.0]
+Python:  3.8.8 (default, Mar 11 2021, 08:58:19)  [GCC 8.3.0]
+Packages:
+    matplotlib: 3.3.4
+    cnnclustering: 0.4.3
 </pre></div></div>
 </div>
-<div class="section" id="Notebook-configuration">
-<h2>Notebook configuration<a class="headerlink" href="#Notebook-configuration" title="Permalink to this headline">¶</a></h2>
-<p>We use <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> to create plots. The <code class="docutils literal notranslate"><span class="pre">&quot;matplotlibrc&quot;</span></code> file in the root directory of the CommonNNClustering repository is used to customize the appearance of the plots.</p>
+<p>We use <a class="reference external" href="https://matplotlib.org/">Matplotlib</a> to create plots. The <code class="docutils literal notranslate"><span class="pre">matplotlibrc</span></code> file in the root directory of the <code class="docutils literal notranslate"><span class="pre">CommonNNClustering</span></code> repository is used to customize the appearance of the plots.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -371,8 +380,9 @@ parameters.</p>
 <div class="admonition note">
 <p><strong>Info:</strong> The user is also refered to the <a class="reference external" href="https://github.com/scikit-learn-contrib/scikit-learn-extra">scikit-learn-extra project</a> for an alternative API following a parameter centered approach to clustering as <code class="docutils literal notranslate"><span class="pre">sklearn_extra.cluster.CommonNNClustering</span></code>.</p>
 </div>
-<p>A <code class="docutils literal notranslate"><span class="pre">clustering</span></code> can be initiated by passing <em>raw</em> input data to it. By default, this is expected to be a nested sequence, e.g. a list of lists. It will be understood as the coordinates of a number of data points. Similar data structures, like a two-dimensional <code class="docutils literal notranslate"><span class="pre">NumPy</span></code> array would be acceptable, as well. It is possible to use different kinds of input data formats instead, like for example pre-computed parwise distances, and it is described later how to do it.</p>
-<div class="nbinput docutils container">
+<p>A <code class="docutils literal notranslate"><span class="pre">Clustering</span></code> can be initiated by passing <em>raw</em> input data to it. By default, this is expected to be a nested sequence, e.g. a list of lists. It will be understood as the coordinates of a number of data points in a feature space. Similar data structures, like a two-dimensional NumPy array would be acceptable, as well. It is possible to use different kinds of input data formats instead, like for example pre-computed pairwise distances, and it is described later how to do it (refer to tutorials
+<a class="reference internal" href="scikit_learn_datasets.html"><span class="doc">Clustering of scikit-learn toy data sets</span></a> and <a class="reference internal" href="advanced_usage.html"><span class="doc">Advanced usage</span></a>).</p>
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
@@ -394,49 +404,21 @@ parameters.</p>
     <span class="p">]</span>
 
 <span class="n">clustering</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">Clustering</span><span class="p">(</span><span class="n">data_points</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">clustering</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Clustering(input_data=InputDataExtComponentsMemoryview, fitter=FitterExtBFS(ngetter=NeighboursGetterExtBruteForce(dgetter=DistanceGetterExtMetric(metric=MetricExtEuclideanReduced), sorted=False, selfcounting=True), na=NeighboursExtVectorCPPUnorderedSet, nb=NeighboursExtVectorCPPUnorderedSet, checker=SimilarityCheckerExtSwitchContains, queue=QueueExtFIFOQueue), predictor=None)
-</pre></div></div>
-</div>
-<p>The <em>raw</em> data points that we passed here to create the <code class="docutils literal notranslate"><span class="pre">Clustering</span></code> object are internally wrapped into a specific input data type and are stored on the instance under the <code class="docutils literal notranslate"><span class="pre">_input_data</span></code> attribute.</p>
+<p>We can get a view of the input data associated with a <code class="docutils literal notranslate"><span class="pre">Clustering</span></code> back like this:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">clustering</span><span class="o">.</span><span class="n">_input_data</span>
+<span></span><span class="n">clustering</span><span class="o">.</span><span class="n">input_data</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-&lt;cnnclustering._types.InputDataExtComponentsMemoryview at 0x7f9871b477b0&gt;
-</pre></div></div>
-</div>
-<p>The input data type chosen here, is the default option for point coordinates. We can get a view of the actual data back with the <code class="docutils literal notranslate"><span class="pre">data</span></code> attribute of the input data object.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">clustering</span><span class="o">.</span><span class="n">_input_data</span><span class="o">.</span><span class="n">data</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -455,9 +437,12 @@ array([[ 0. ,  0. ],
        [ 5.5, -1.5]])
 </pre></div></div>
 </div>
+<div class="admonition note">
+<p><strong>Info:</strong> The <em>raw</em> data points that we passed here to create the <code class="docutils literal notranslate"><span class="pre">Clustering</span></code> object are internally wrapped into a specific input data type and are stored on the instance under the <code class="docutils literal notranslate"><span class="pre">_input_data</span></code> attribute. <code class="docutils literal notranslate"><span class="pre">Clustering.input_data</span></code> is actually a shortcut for <code class="docutils literal notranslate"><span class="pre">Clustering._input_data.data</span></code>.</p>
+</div>
 <p>When we cluster data points, we are essentially interested in cluster label assignments for these points. The labels will be exposed as <code class="docutils literal notranslate"><span class="pre">labels</span></code> attribute on the instance, which is currently <code class="docutils literal notranslate"><span class="pre">None</span></code> because no clustering has been done yet.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -466,7 +451,7 @@ array([[ 0. ,  0. ],
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -476,12 +461,12 @@ True
 </div>
 <p>To cluster the points, we will use the <code class="docutils literal notranslate"><span class="pre">fit</span></code> method. The clustering depends on two parameters:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">radius_cutoff</span></code>: Points are considered neighbours if the distance between them is smaller than this cutoff radius <span class="math notranslate nohighlight">\(r\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">radius_cutoff</span></code>: Points are considered neighbours if the distance between them is not larger than this cutoff radius <span class="math notranslate nohighlight">\(r\)</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">cnn_cutoff</span></code>: Points are assigned to the same cluster if they share at least this number of <span class="math notranslate nohighlight">\(c\)</span> common neighbours.</p></li>
 </ul>
-<p>For the clustering procedure, we ultimately need to compute the neighbouring points with respect to the <code class="docutils literal notranslate"><span class="pre">radius_cutoff</span></code> for each point in the data set. Then we can determine if two points fulfill the criterion of being part of the same cluster. How this is done, can be controlled in detail but by default the input data points are assumed to be given in euclidean space and the neighbours are computed brute force. For larger data sets it makes sense to use a different approach.</p>
+<p>For the clustering procedure, we ultimately need to compute the neighbouring points with respect to the <code class="docutils literal notranslate"><span class="pre">radius_cutoff</span></code> for each point in the data set. Then we can determine if two points fulfill the criterion of being part of the same cluster. How this is done, can be controlled in detail but by default the input data points are assumed to be given in euclidean space and the neighbours are computed brute force. For larger data sets, it makes sense to use a different approach.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -501,7 +486,7 @@ True
 
 </pre></div></div>
 </div>
-<p>A clustering attempt returns and prints a comprehensive summary of the cluster parameters and the outcome. You can suppress the recording with the keyword argument <code class="docutils literal notranslate"><span class="pre">rec=False</span></code> and the printing with <code class="docutils literal notranslate"><span class="pre">v=False</span></code>:</p>
+<p>A clustering attempt returns and prints a comprehensive record of the cluster parameters and the outcome. You can suppress the recording with the keyword argument <code class="docutils literal notranslate"><span class="pre">record=False</span></code> and the printing with <code class="docutils literal notranslate"><span class="pre">v=False</span></code>:</p>
 <ul class="simple">
 <li><p><strong>#points</strong>: Number of data points in the data set.</p></li>
 <li><p><strong>r</strong>: Radius cutoff <em>r</em>.</p></li>
@@ -513,9 +498,9 @@ True
 <li><p><strong>%noise</strong>: Member share on the total number of points identified as noise (not part of any cluster).</p></li>
 </ul>
 <p>The <code class="docutils literal notranslate"><span class="pre">min</span></code> (keyword argument <code class="docutils literal notranslate"><span class="pre">member_cutoff</span></code>) and <code class="docutils literal notranslate"><span class="pre">max</span></code> (keyword argument <code class="docutils literal notranslate"><span class="pre">max_clusters</span></code>) only take effect in an optional post processing step when <code class="docutils literal notranslate"><span class="pre">sort_by_size=True</span></code> (default). Then the clusters are sorted in order by there size, so that the first cluster (cluster 1) has the highest member count. Optionally, they are trimmed in the way that valid clusters have a minimum number of members (<code class="docutils literal notranslate"><span class="pre">member_cutoff</span></code>) and only the largest clusters are kept (<code class="docutils literal notranslate"><span class="pre">max_clusters</span></code>).</p>
-<p>The outcome of the clustering are cluster label assignments for each point. Points classified as <em>noise</em> (not part of any cluster) are labeled 0. Integer labels larger than 0 indicate the membership of each point to one of the identified clusters. If clusters where sorted (<code class="docutils literal notranslate"><span class="pre">sort_by_size</span> <span class="pre">=</span> <span class="pre">True</span></code>), cluster 1 has the highest member count.</p>
+<p>The outcome of the clustering are cluster label assignments for each point. Points classified as <em>noise</em> (not part of any cluster) are labeled 0. Integer labels larger than 0 indicate the membership of each point to one of the identified clusters. If clusters where sorted (<code class="docutils literal notranslate"><span class="pre">sort_by_size=True</span></code>), cluster 1 has the highest member count.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -524,7 +509,7 @@ True
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -532,9 +517,9 @@ True
 array([1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2, 2])
 </pre></div></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">labels</span></code> attribute of a cluster object always holds the result of the latest fit. All cluster results (from fits where <code class="docutils literal notranslate"><span class="pre">rec=True</span></code>) are collected in a summary without storing the actual labels.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">labels</span></code> attribute of a cluster object always holds the result of the latest fit. All cluster results (from fits where <code class="docutils literal notranslate"><span class="pre">record=True</span></code>) are collected in a summary without storing the actual labels.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -560,9 +545,9 @@ array([1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2, 2])
 
 </pre></div></div>
 </div>
-<p>If you have Pandas installed, the summary can be transformed into a handy <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p>
+<p>If you have <a class="reference external" href="https://pandas.pydata.org/">Pandas</a> installed, the summary can be transformed into a handy <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -571,7 +556,7 @@ array([1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2, 2])
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -615,7 +600,7 @@ array([1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2, 2])
       <td>2</td>
       <td>0.583333</td>
       <td>0.166667</td>
-      <td>0.000034</td>
+      <td>0.000038</td>
     </tr>
     <tr>
       <th>1</th>
@@ -627,15 +612,15 @@ array([1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2, 2])
       <td>2</td>
       <td>0.416667</td>
       <td>0.333333</td>
-      <td>0.000025</td>
+      <td>0.000029</td>
     </tr>
   </tbody>
 </table>
 </div></div>
 </div>
-<p>A cluster object comes with a variety of convenience methods that allow for example a quick look at a plot of data points and a cluster result.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">Clustering</span></code> object comes with a variety of convenience methods that allow for example a quick look at a plot of data points and a cluster result.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -660,7 +645,7 @@ array([1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2, 2])
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_basic_usage_30_0.png" src="../_images/tutorial_basic_usage_30_0.png" />
+<img alt="../_images/tutorial_basic_usage_29_0.png" src="../_images/tutorial_basic_usage_29_0.png" />
 </div>
 </div>
 </div>
@@ -698,6 +683,7 @@ array([1, 1, 1, 1, 1, 1, 1, 0, 0, 2, 2, 2])
 <li class="toctree-l1 current"><a class="reference internal" href="../_source/tutorials.html">Tutorials</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Basic usage of the cluster module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scikit_learn_datasets.html">Clustering of scikit-learn toy data sets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html">Advanced usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hierarchical_clustering_basics.html">Hierarchical clustering basics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data_input_formats.html">Usage of different data input formats and clustering recipes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="algorithm_explained.html">Density based clustering explained</a></li>

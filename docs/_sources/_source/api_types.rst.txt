@@ -244,6 +244,9 @@ Similarity checker
 
 .. _sec_api_cnnclustering_types_queue:
 
+
+|
+
 Queues
 ------
 
