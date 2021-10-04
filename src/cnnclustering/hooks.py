@@ -49,6 +49,8 @@ COMPONENT_NAME_TYPE_MAP = {
         "euclidean": _types.MetricExtEuclidean,
         "euclidean_r": _types.MetricExtEuclideanReduced,
         "euclidean_periodic_r": _types.MetricExtEuclideanPeriodicReduced,
+        "euclidean_reduced": _types.MetricExtEuclideanReduced,
+        "euclidean_periodic_reduced": _types.MetricExtEuclideanPeriodicReduced,
     },
     "similarity_checker": {
         "contains": _types.SimilarityCheckerExtContains,

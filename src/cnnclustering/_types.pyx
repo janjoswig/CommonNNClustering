@@ -310,7 +310,7 @@ class InputDataComponents(InputData):
         """Return one component of point coordinates"""
 
     @abstractmethod
-    def to_components_array(self):
+    def to_components_array(self) -> Type[np.ndarray]:
         """Return input data as NumPy array of shape (#points, #components)"""
 
 
@@ -2377,7 +2377,7 @@ cdef class SimilarityCheckerExtSwitchContains(SimilarityCheckerExtInterface):
         switching of the neighbours containers is done to ensure
         that the first container is the one with the shorter length
         (compare
-        :obj:`cnnclustering._types.SimilarityCheckerExtContains`).
+        :class:`~cnnclustering._types.SimilarityCheckerExtContains`).
     """
 
     cdef bint _check(
@@ -2488,6 +2488,7 @@ cdef class SimilarityCheckerExtScreensorted(SimilarityCheckerExtInterface):
 SimilarityChecker.register(SimilarityCheckerExtContains)
 SimilarityChecker.register(SimilarityCheckerExtSwitchContains)
 SimilarityChecker.register(SimilarityCheckerExtScreensorted)
+
 
 class QueueFIFODeque(Queue):
     """Implements the queue interface"""

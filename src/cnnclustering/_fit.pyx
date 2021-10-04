@@ -565,6 +565,10 @@ cdef class FitterExtBFSDebug:
             )
 
 
+Fitter.register(FitterExtBFS)
+Fitter.register(FitterExtBFSDebug)
+
+
 class PredictorFirstmatch(Predictor):
 
     def __init__(

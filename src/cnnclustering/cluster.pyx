@@ -47,20 +47,26 @@ class Clustering:
     A clustering object is made by aggregation of all necessary parts to
     carry out a clustering of input data points.
 
-    Args:
+    Keyword args:
         input_data: Any object implementing the input data interface.
-            Represents the data points to be clustered.
+            Represents the data points to be clustered.  If this
+            is not a valid (registered) concrete implementation of
+            :class:`~cnnclustering._types.InputData`, this invokes
+            the creation of a clustering via
+            :class:`~cnnclustering.cluster.ClusteringBuilder`.
         fitter: Any object implementing the fitter interface. Executes
             the clustering procedure.
         predictor: Any object implementing the predictor interface.
             Translates a clustering result to another
-            :obj:`cnnclustering.cluster.Clustering` object with different
+            :class:`~cnnclustering.cluster.Clustering` object with different
             `input_data`.
-        labels: An instance of :obj:`cnnclustering._types.Labels` holding
-            cluster label assignments for points in `input_data`.
+        labels: An instance of :class:`~cnnclustering._types.Labels` holding
+            cluster label assignments for points in `input_data`.  If this
+            is not an instance of class:`~cnnclustering._types.Labels`,
+            attempts a corresponding intialisation.
         alias: A descriptive string identifier associated with this
             clustering.
-        parent: If not None, an instance of :obj:`cnnclustering.cluster.Clustering`
+        parent: An instance of :class:`~cnnclustering.cluster.Clustering`
             of which this clustering is a child of.
 
     Note:
@@ -96,6 +102,10 @@ class Clustering:
 
         if (input_data is not None) and (
                 not isinstance(input_data, _types.InputData)):
+
+            if fitter is not None:
+                kwargs["fitter"] = fitter
+
             builder = ClusteringBuilder(
                 input_data,
                 clustering_type=type(self),
@@ -107,10 +117,10 @@ class Clustering:
             fitter = components_map.get("fitter")
             predictor = components_map.get("predictor")
 
-        self._input_data = input_data
-        self._fitter = fitter
+        self.input_data = input_data
+        self.fitter = fitter
         self._predictor = predictor
-        self._labels = labels
+        self.labels = labels
 
         self._children = None
         self._root_indices = None
@@ -144,7 +154,7 @@ class Clustering:
 
     @labels.setter
     def labels(self, value):
-        if not isinstance(value, Labels):
+        if (value is not None) & (not isinstance(value, Labels)):
             value = Labels(value)
         self._labels = value
 
@@ -153,6 +163,28 @@ class Clustering:
         if self._input_data is not None:
             return self._input_data.data
         return None
+
+    @input_data.setter
+    def input_data(self, value):
+        if (value is not None) & (not isinstance(value, _types.InputData)):
+            raise TypeError(
+                f"Can't use object of type {type(value).__name__} as input data. "
+                f"Expected type {_types.InputData.__name__}."
+                )
+        self._input_data = value
+
+    @property
+    def fitter(self):
+        return self._fitter
+
+    @fitter.setter
+    def fitter(self, value):
+        if (value is not None) & (not isinstance(value, _fit.Fitter)):
+            raise TypeError(
+                f"Can't use object of type {type(value).__name__} as fitter. "
+                f"Expected type {_fit.Fitter.__name__}."
+                )
+        self._fitter = value
 
     @property
     def children(self):

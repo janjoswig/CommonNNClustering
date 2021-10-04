@@ -56,21 +56,27 @@ class aggregates various types (defined in <code class="xref py py-mod docutils 
 <p>A clustering object is made by aggregation of all necessary parts to
 carry out a clustering of input data points.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Keyword Arguments</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input_data</strong> – Any object implementing the input data interface.
-Represents the data points to be clustered.</p></li>
+Represents the data points to be clustered.  If this
+is not a valid (registered) concrete implementation of
+<a class="reference internal" href="api_types.html#cnnclustering._types.InputData" title="cnnclustering._types.InputData"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputData</span></code></a>, this invokes
+the creation of a clustering via
+<a class="reference internal" href="#cnnclustering.cluster.ClusteringBuilder" title="cnnclustering.cluster.ClusteringBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClusteringBuilder</span></code></a>.</p></li>
 <li><p><strong>fitter</strong> – Any object implementing the fitter interface. Executes
 the clustering procedure.</p></li>
 <li><p><strong>predictor</strong> – Any object implementing the predictor interface.
 Translates a clustering result to another
-<a class="reference internal" href="#cnnclustering.cluster.Clustering" title="cnnclustering.cluster.Clustering"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering.cluster.Clustering</span></code></a> object with different
+<a class="reference internal" href="#cnnclustering.cluster.Clustering" title="cnnclustering.cluster.Clustering"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clustering</span></code></a> object with different
 <code class="code docutils literal notranslate"><span class="pre">input_data</span></code>.</p></li>
-<li><p><strong>labels</strong> – An instance of <a class="reference internal" href="api_types.html#cnnclustering._types.Labels" title="cnnclustering._types.Labels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering._types.Labels</span></code></a> holding
-cluster label assignments for points in <code class="code docutils literal notranslate"><span class="pre">input_data</span></code>.</p></li>
+<li><p><strong>labels</strong> – An instance of <a class="reference internal" href="api_types.html#cnnclustering._types.Labels" title="cnnclustering._types.Labels"><code class="xref py py-class docutils literal notranslate"><span class="pre">Labels</span></code></a> holding
+cluster label assignments for points in <code class="code docutils literal notranslate"><span class="pre">input_data</span></code>.  If this
+is not an instance of class:<code class="code docutils literal notranslate"><span class="pre">~cnnclustering._types.Labels</span></code>,
+attempts a corresponding intialisation.</p></li>
 <li><p><strong>alias</strong> – A descriptive string identifier associated with this
 clustering.</p></li>
-<li><p><strong>parent</strong> – If not None, an instance of <a class="reference internal" href="#cnnclustering.cluster.Clustering" title="cnnclustering.cluster.Clustering"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cnnclustering.cluster.Clustering</span></code></a>
+<li><p><strong>parent</strong> – An instance of <a class="reference internal" href="#cnnclustering.cluster.Clustering" title="cnnclustering.cluster.Clustering"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clustering</span></code></a>
 of which this clustering is a child of.</p></li>
 </ul>
 </dd>
@@ -226,6 +232,11 @@ assignments.</p></li>
 <code class="sig-name descname"><span class="pre">fit_hierarchical</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius_cutoff</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cnn_cutoff</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">member_cutoff</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_clusters</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cnn_offset</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnnclustering.cluster.Clustering.fit_hierarchical" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute hierarchical clustering procedure</p>
 </dd></dl>
+
+<dl class="py method">
+<dt id="cnnclustering.cluster.Clustering.fitter">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">fitter</span></code><a class="headerlink" href="#cnnclustering.cluster.Clustering.fitter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt id="cnnclustering.cluster.Clustering.get_builder_kwargs">
