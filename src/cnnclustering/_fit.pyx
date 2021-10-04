@@ -427,7 +427,7 @@ cdef class FitterExtBFSDebug:
         current = cluster_params.current_start
 
         if self._verbose:
-            print("CommonNN clustering")
+            print(f"CommonNN clustering - {type(self).__name__}")
             print("=" * 80)
             print(f"{n} points")
             print(
@@ -442,7 +442,7 @@ cdef class FitterExtBFSDebug:
         for init_point in range(n):
 
             if self._verbose:
-                print("New source: {init_point}")
+                print(f"New source: {init_point}")
 
             if _consider[init_point] == 0:
                 if self._verbose:
@@ -464,35 +464,31 @@ cdef class FitterExtBFSDebug:
 
             _labels[init_point] = current
             if self._verbose:
-                print("    ... new cluster {current}")
+                print(f"    ... new cluster {current}")
 
             if self._yielding:
-                yield (
-                    "assigned_source",
-                    (init_point, None, None),
-                    (
-                        self._neighbours.neighbours,
-                        None
-                    ),
-                    labels.labels,
-                    labels.consider
-                    )
+                yield {
+                    "reason": "assigned_source",
+                    "init_point": init_point,
+                    "point": None,
+                    "member": None,
+                    }
 
             while True:
 
                 m = self._neighbours.n_points
                 if self._verbose:
-                    print("    ... loop over {m} neighbours")
+                    print(f"    ... loop over {m} neighbours")
 
                 for member_index in range(m):
                     member = self._neighbours._get_member(member_index)
 
                     if self._verbose:
-                        print("        ... current neighbour {member}")
+                        print(f"        ... current neighbour {member}")
 
                     if _consider[member] == 0:
                         if self._verbose:
-                            print("        ... already visited\n")
+                            print(f"        ... already visited\n")
                         continue
 
                     self._neighbours_getter._get(
@@ -520,16 +516,12 @@ cdef class FitterExtBFSDebug:
                         _labels[member] = current
 
                         if self._yielding:
-                            yield (
-                                "assigned_neighbour",
-                                (init_point, point, member),
-                                (
-                                    self._neighbours.neighbours,
-                                    self._neighbour_neighbours.neighbours
-                                ),
-                                labels.labels,
-                                labels.consider
-                                )
+                            yield {
+                                "reason": "assigned_neighbour",
+                                "init_point": init_point,
+                                "point": point,
+                                "member": member,
+                                }
                         self._queue._push(member)
 
                 if self._queue._is_empty():
