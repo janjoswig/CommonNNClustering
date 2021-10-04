@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Density based clustering explained &#8212; CommonNN Clustering  documentation</title>
+    <title>Density based clustering basics &#8212; CommonNN Clustering  documentation</title>
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
@@ -19,7 +19,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Molecular dynamics application example" href="md_example.html" />
-    <link rel="prev" title="Usage of different data input formats and clustering recipes" href="data_input_formats.html" />
+    <link rel="prev" title="Hierarchical clustering basics" href="hierarchical_clustering_basics.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -289,15 +289,20 @@ div.rendered_html tbody tr:hover {
     .nboutput .prompt {
         display: none;
     }
-</style><div class="section" id="Density-based-clustering-explained">
-<h1>Density based clustering explained<a class="headerlink" href="#Density-based-clustering-explained" title="Permalink to this headline">¶</a></h1>
-<p>Learn in this tutorial about the basics of density-based clustering and how common-nearest-neighbours clustering works compared to other methods.</p>
-<div class="section" id="Pre-requirements">
-<h2>Pre-requirements<a class="headerlink" href="#Pre-requirements" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="Import-dependencies">
-<h3>Import dependencies<a class="headerlink" href="#Import-dependencies" title="Permalink to this headline">¶</a></h3>
+</style><div class="section" id="Density-based-clustering-basics">
+<h1>Density based clustering basics<a class="headerlink" href="#Density-based-clustering-basics" title="Permalink to this headline">¶</a></h1>
+<p>Go to:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#Notebook-configuration"><span class="std std-ref">Notebook configuration</span></a></p></li>
+<li><p><a class="reference internal" href="#Helper-function-definitions"><span class="std std-ref">Helper function definitions</span></a></p></li>
+<li><p><a class="reference internal" href="#Density-criteria"><span class="std std-ref">Density criteria</span></a></p></li>
+<li><p><a class="reference internal" href="#Identification-of-connected-components-of-points"><span class="std std-ref">Identification of connected components</span></a></p></li>
+<li><p><a class="reference internal" href="#CommonNN-clustering-in-detail"><span class="std std-ref">CommonNN clustering in detail</span></a></p></li>
+</ul>
+<div class="section" id="Notebook-configuration">
+<h2>Notebook configuration<a class="headerlink" href="#Notebook-configuration" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -305,31 +310,37 @@ div.rendered_html tbody tr:hover {
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">islice</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
-<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">HTML</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
 <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">animation</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">networkx</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
 <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">quad</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">cKDTree</span>
+<span class="kn">import</span> <span class="nn">sklearn</span>
 <span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">datasets</span>
 <span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
 
+<span class="kn">import</span> <span class="nn">cnnclustering</span>
 <span class="kn">from</span> <span class="nn">cnnclustering</span> <span class="kn">import</span> <span class="n">cluster</span>
-<span class="kn">from</span> <span class="nn">cnnclustering</span> <span class="kn">import</span> <span class="n">_types</span>
+<span class="kn">from</span> <span class="nn">cnnclustering</span> <span class="kn">import</span> <span class="n">_types</span><span class="p">,</span> <span class="n">_fit</span>
 </pre></div>
 </div>
 </div>
-<p>This notebook was created using Python 3.8.</p>
+<p>Print Python and package version information:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Version information</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Python: &quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Packages:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">package</span> <span class="ow">in</span> <span class="p">[</span><span class="n">mpl</span><span class="p">,</span> <span class="n">networkx</span><span class="p">,</span> <span class="n">np</span><span class="p">,</span> <span class="n">scipy</span><span class="p">,</span> <span class="n">sklearn</span><span class="p">,</span> <span class="n">cnnclustering</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="n">package</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">package</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -338,10 +349,17 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-3.8.8 (default, Mar 11 2021, 08:58:19)
-[GCC 8.3.0]
+Python:  3.8.8 (default, Mar 11 2021, 08:58:19)  [GCC 8.3.0]
+Packages:
+    matplotlib: 3.3.4
+    networkx: 2.5
+    numpy: 1.20.1
+    scipy: 1.6.1
+    sklearn: 0.24.1
+    cnnclustering: 0.4.3
 </pre></div></div>
 </div>
+<p>We use <a class="reference external" href="https://matplotlib.org/">Matplotlib</a> to create plots. The <code class="docutils literal notranslate"><span class="pre">matplotlibrc</span></code> file in the root directory of the <code class="docutils literal notranslate"><span class="pre">CommonNNClustering</span></code> repository is used to customize the appearance of the plots.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -356,8 +374,9 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 </div>
-<div class="section" id="Helper-functions">
-<h3>Helper functions<a class="headerlink" href="#Helper-functions" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="Helper-function-definitions">
+<h2>Helper function definitions<a class="headerlink" href="#Helper-function-definitions" title="Permalink to this headline">¶</a></h2>
+<p>The following functions will be used throughout this notebook.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
@@ -384,7 +403,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="k">def</span> <span class="nf">determine_cuts</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Find points in space where density cutoff is crossed</span>
+    <span class="sd">&quot;&quot;&quot;Find points in 1D space where density cutoff is crossed</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">       x: coordinate</span>
@@ -430,11 +449,10 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 </div>
-</div>
 <div class="section" id="Density-criteria">
 <h2>Density criteria<a class="headerlink" href="#Density-criteria" title="Permalink to this headline">¶</a></h2>
-<p>Density-based clustering defines clusters as <em>dense</em> regions in space, separated by <em>sparse</em> regions. But what is dense and what is sparse? This is commonly defined by a threshold, that is a density criterion that determines the clustering. In the case where we have a density function defined on a continuous coordinate, the density criterion manifests itself as a density iso-surface. Regions in which the density is higher than a cutoff set as density criterion qualify as <em>dense</em>, and therefore
-represent a cluster. On the other hand, regions in which the density falls below the density criterion are considered <em>sparse</em> and do not constitute a part of a cluster. We can illustrate this on the example of a bimodal gaussian distribution in one dimension.</p>
+<p>Density-based clustering defines clusters as <em>dense</em> regions in space, separated by <em>sparse</em> regions. But what is dense and what is sparse? This is commonly defined by a threshold (a density criterion) that determines the outcome of the clustering. In the case where we have a density function defined on a continuous coordinate, the density criterion manifests itself as a density iso-surface. Regions in which the density is higher than a cutoff set as density criterion qualify as <em>dense</em>, and
+therefore represent a cluster. On the other hand, regions in which the density falls below the density criterion are considered <em>sparse</em> and do not constitute a part of a cluster. We can illustrate this on the example of a bimodal gaussian distribution in one dimension.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
@@ -458,10 +476,10 @@ represent a cluster. On the other hand, regions in which the density falls below
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_algorithm_explained_14_0.png" src="../_images/tutorial_algorithm_explained_14_0.png" />
+<img alt="../_images/tutorial_algorithm_explained_15_0.png" src="../_images/tutorial_algorithm_explained_15_0.png" />
 </div>
 </div>
-<p>We have two maxima in the distribution. An intuitive classification in clusters would separate the two peaks into two different clusters. In density based clustering we define the two clusters as the regions of high density where we have low density in between. By applying an iso-value cutoff on the density, we can specify what should be considered high or low density. In a dense region, the density is at least as high as the density criterion requires.</p>
+<p>We have two maxima in the distribution. An intuitive classification would separate the two peaks into two different clusters. In threshold-based density based clustering we define the two clusters as the regions of high density where we have low density in between. By applying an iso-value cutoff on the density, we can specify what should be considered high or low density. In a dense region, the density is at least as high as the density criterion requires.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
@@ -521,11 +539,11 @@ represent a cluster. On the other hand, regions in which the density falls below
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_algorithm_explained_16_0.png" src="../_images/tutorial_algorithm_explained_16_0.png" />
+<img alt="../_images/tutorial_algorithm_explained_17_0.png" src="../_images/tutorial_algorithm_explained_17_0.png" />
 </div>
 </div>
-<p>Choosing the density criterion in this way, defines the two clusters exactly as we would have expected. We can label the regions, i.e. we can assign a number to them, that denotes their cluster membership. We use 0 to indicate that a region is not part of any cluster and positive integers as cluster numbers. When we vary the density criterion, we can influence the outcome of the clustering by changing the definition of what is dense enough to be a cluster. This could leave us with both density
-maxima in one cluster, clusters of different broadness, or not cluster at all.</p>
+<p>Choosing the density criterion in this way, defines the two clusters as we would have expected. We can label the regions, i.e. we can assign a number to them, that denotes their cluster membership. We use 0 to indicate that a region is not part of any cluster and positive integers as cluster numbers. When we vary the density criterion, we can influence the outcome of the clustering by changing the definition of what is dense enough to be a cluster. This could leave us with both density maxima in
+one cluster, clusters of different broadness, or no cluster at all.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
@@ -571,11 +589,11 @@ maxima in one cluster, clusters of different broadness, or not cluster at all.</
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_algorithm_explained_18_0.png" src="../_images/tutorial_algorithm_explained_18_0.png" />
+<img alt="../_images/tutorial_algorithm_explained_19_0.png" src="../_images/tutorial_algorithm_explained_19_0.png" />
 </div>
 </div>
-<p>When we operate on data sets (in maybe high dimensional spaces), however, we normally do not have a continuous description of the density, that we can directly use. Instead we may have sample points from an underlying (unknown) distribution. To apply a density based clustering on them, we need to approximate the density in some way. For this approximation, quite a number of different possibilities exist, which provide a different notion of what density is or how it could be estimated from
-scattered data. To illustrate this, let’s draw samples from the above used bimodal distribution to emulate data points.</p>
+<p>When we operate on data sets (in maybe high dimensional spaces), however, we normally do not have a continuous description of the density that we can directly use. Instead we may have sample points from an underlying (unknown) distribution. To apply a density based clustering on them, we need to approximate the density in some way. For this approximation, a number of different possibilities exist, which provide a different notion of what density is or how it could be estimated from scattered
+data. To illustrate this, let’s draw samples from the above used bimodal distribution to emulate data points.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
@@ -610,20 +628,20 @@ scattered data. To illustrate this, let’s draw samples from the above used bim
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_algorithm_explained_20_0.png" src="../_images/tutorial_algorithm_explained_20_0.png" />
+<img alt="../_images/tutorial_algorithm_explained_21_0.png" src="../_images/tutorial_algorithm_explained_21_0.png" />
 </div>
 </div>
 <p>In the following we look into how density is deduced from points in terms of the following methods:</p>
 <ul class="simple">
 <li><p>DBSCAN</p></li>
 <li><p>Jarvis-Patrick</p></li>
-<li><p>CNN</p></li>
+<li><p>CommonNN</p></li>
 </ul>
-<p>In general, point density can be expressed in simple terms by the number of points <span class="math notranslate nohighlight">\(n\)</span> found on an area <span class="math notranslate nohighlight">\(x\)</span> <span class="math notranslate nohighlight">\(\left(\rho = \frac{n}{x}\right)\)</span>.</p>
+<p>In general, point density can be expressed in simple terms by the number of points <span class="math notranslate nohighlight">\(n\)</span> found on a volume <span class="math notranslate nohighlight">\(V\)</span>.</p>
 <div class="section" id="DBSCAN">
 <h3>DBSCAN<a class="headerlink" href="#DBSCAN" title="Permalink to this headline">¶</a></h3>
-<p>In DBSCAN local point density (so the density around a sample point) is accordingly expressed as the number of neighbouring points <span class="math notranslate nohighlight">\(k_r\)</span> with respect to a neighbour search radius <span class="math notranslate nohighlight">\(r\)</span>. The density criterion is formulated as such: Points that have at least <span class="math notranslate nohighlight">\(k\)</span> nearest neighbours in their neighbourhood <span class="math notranslate nohighlight">\(r\)</span> qualify as part of a dense region, i.e. a cluster. Points that fulfill the density criterion can be also referred to as <em>core points</em>. Additionally it is possible to
-describe points that do not fulfill the density criterion themselves but are neighbours of those core points as <em>edge points</em>. For our samples above this could look as the followed if we choose the density criterion as <span class="math notranslate nohighlight">\(k=1\)</span> and <span class="math notranslate nohighlight">\(r=0.5\)</span>. To determine the number of neighbours for each point, we calculated pairwise point distances and compare them to <span class="math notranslate nohighlight">\(r\)</span>.</p>
+<p>In DBSCAN, local point density is expressed for each point as the number of neighbouring points <span class="math notranslate nohighlight">\(k_r\)</span> with respect to a neighbour search radius <span class="math notranslate nohighlight">\(r\)</span>. The density criterion is formulated as such: Points that have at least <span class="math notranslate nohighlight">\(k\)</span> nearest neighbours in their neighbourhood <span class="math notranslate nohighlight">\(r\)</span> qualify as part of a dense region, i.e. a cluster. Points that fulfill the density criterion can be also referred to as <em>core points</em>. Additionally it is possible to describe points that do not fulfill the
+density criterion themselves but are neighbours of those core points as <em>edge points</em>. For our samples above this could look as shown below if we choose the density criterion to be <span class="math notranslate nohighlight">\(k=1\)</span> and <span class="math notranslate nohighlight">\(r=0.5\)</span>. To determine the number of neighbours for each point, we calculated pairwise point distances and compare them to <span class="math notranslate nohighlight">\(r\)</span>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
@@ -705,13 +723,16 @@ array([ True,  True,  True,  True,  True,  True,  True,  True, False,
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_algorithm_explained_25_0.png" src="../_images/tutorial_algorithm_explained_25_0.png" />
+<img alt="../_images/tutorial_algorithm_explained_26_0.png" src="../_images/tutorial_algorithm_explained_26_0.png" />
 </div>
 </div>
-<p>In this case we end up with 5 clusters, that are dense enough regions separated by low density areas. Like a change in the density iso-value as the density criterion for the continuous density function, a change of the cluster parameters <span class="math notranslate nohighlight">\(k\)</span> and <span class="math notranslate nohighlight">\(r\)</span> will determine the cluster result. Note, that we assigned the labels to the clusters by visual inspection. We will show later how to identify these isolated regions (connected components of core points) automatically.</p>
+<p>In this case we end up with 5 clusters, that are dense enough regions separated by low density areas. Like a change in the density iso-value as the density criterion for the continuous density function, a change of the cluster parameters <span class="math notranslate nohighlight">\(k\)</span> and <span class="math notranslate nohighlight">\(r\)</span> will determine the cluster result. Note, that we assigned the labels to the clusters by visual inspection. We will show later how to identify these isolated regions (connected components of core points) automatically. For this we
+additionally need to define when two points are actually part of the same dense region, meaning we need to define connectivity between points. In the case of DBSCAN, checking the density-criterion and checking the connectivity of two points are basically two separate tasks.</p>
 </div>
-<div class="section" id="Common-nearest-neighbour-clustering">
-<h3>Common nearest neighbour clustering<a class="headerlink" href="#Common-nearest-neighbour-clustering" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="Common-nearest-neighbours-clustering">
+<h3>Common-nearest-neighbours clustering<a class="headerlink" href="#Common-nearest-neighbours-clustering" title="Permalink to this headline">¶</a></h3>
+<p>While the DBSCAN approach to threshold-based density-based clustering estimates point density locally per point, we determine the density between two points in CommonNN clustering. As a consequence, checking the density-criterion and defining if two points are connected become essentially the same thing. Two points that fulfill the density requirement together are automatically identified as part of the same cluster. The density threshold (points per volume) is formulated as such: Two points
+that share a minimum number of <em>c</em> common neighbours with respect to a neighbour search radius <em>r</em> are considered <em>dense</em>. The figure below illustrates this. The green and the blue point pass the density-criterion check for CommonNN cutoffs of <span class="math notranslate nohighlight">\(c\leq2\)</span> because they share the two yellow points as their common neighbours.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
@@ -727,7 +748,7 @@ array([ True,  True,  True,  True,  True,  True,  True,  True, False,
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Density criterion / Density reachability in 2D</span>
+<span></span><span class="c1"># Density criterion / density reachability in 2D</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">3.33</span><span class="p">,</span> <span class="mf">2.05</span><span class="p">))</span>
 <span class="n">r</span> <span class="o">=</span> <span class="mf">0.5</span>
 <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span>
@@ -787,8 +808,6 @@ array([ True,  True,  True,  True,  True,  True,  True,  True, False,
     <span class="s2">&quot;yticks&quot;</span><span class="p">:</span> <span class="p">(),</span>
     <span class="s2">&quot;aspect&quot;</span><span class="p">:</span> <span class="s2">&quot;equal&quot;</span>
 <span class="p">})</span>
-<span class="c1"># fig.tight_layout(pad=0.1)</span>
-<span class="c1"># plt.savefig(&quot;/home/janjoswig/Documents/Projects/CNN/Manuscript/figures/density_criterion.png&quot;)</span>
 </pre></div>
 </div>
 </div>
@@ -805,9 +824,10 @@ array([ True,  True,  True,  True,  True,  True,  True,  True, False,
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_algorithm_explained_29_1.png" src="../_images/tutorial_algorithm_explained_29_1.png" />
+<img alt="../_images/tutorial_algorithm_explained_31_1.png" src="../_images/tutorial_algorithm_explained_31_1.png" />
 </div>
 </div>
+<p>How the density criterion check and the clustering could be implemented should be explained further down.</p>
 </div>
 <div class="section" id="Summary-on-density-criteria">
 <h3>Summary on density criteria<a class="headerlink" href="#Summary-on-density-criteria" title="Permalink to this headline">¶</a></h3>
@@ -815,16 +835,17 @@ array([ True,  True,  True,  True,  True,  True,  True,  True, False,
 <ul class="simple">
 <li><p>DBSCAN: … has at least <span class="math notranslate nohighlight">\(k_r\)</span> neighbours within a radius <span class="math notranslate nohighlight">\(r\)</span></p></li>
 <li><p>Jarvis-Patrick: … shares at least <span class="math notranslate nohighlight">\(c\)</span> common neighbours with a another point among their <span class="math notranslate nohighlight">\(k\)</span> nearest neighbours</p></li>
-<li><p>CNN: … shares at least <span class="math notranslate nohighlight">\(c\)</span> common neighbours with a another point with respect to a radius <span class="math notranslate nohighlight">\(r\)</span></p></li>
+<li><p>CommonNN: … shares at least <span class="math notranslate nohighlight">\(c\)</span> common neighbours with a another point with respect to a radius <span class="math notranslate nohighlight">\(r\)</span></p></li>
 </ul>
+<p>Two points are part of the same dense region … - DBSCAN: … if at least one of them is dense and the two points are neighbours - Jarvis-Patrick: … if they together pass the density criterion - CommonNN: … if they together pass the density criterion</p>
 </div>
 </div>
-<div class="section" id="Identify-connected-components-of-points">
-<h2>Identify connected components of points<a class="headerlink" href="#Identify-connected-components-of-points" title="Permalink to this headline">¶</a></h2>
-<p>Classifying points as part of a dense or a sparse region according to a density criterion, is only one aspect of assigning points to clusters. We still need to identify groups of points that are part of the same region. In this context, we use the term <em>density reachable</em> to describe the situation where point is directly connected to a dense point. We also use the term <em>density connected</em> for points that are part of the same dense region, i.e. they are directly or indirectly connected to any
-other point in the region by a chain of density reachable points. In other words, it is not enough to know which points are dense but we also need to be aware of the relationship between dense points. When we express this relationship in a graph, the problem of identifying clusters of density connected points comes down to finding connected components of nodes within this graph. For the methods we considered above, points are density reachable if they are neighbours of a dense point (with
-respect to a radius <em>r</em> or one of the <span class="math notranslate nohighlight">\(k\)</span> nearest neighbours). In the above example, we where only interested in the information if a point was part of a dense region by checking the density criterion. Let’s now construct a density graph instead in which each dense point constitutes a node and each vertex represent the density reachability between two points. We neglect the concept of edge points (points that are not dense but density reachable from a dense point) for the sake of
-simplicity here.</p>
+<div class="section" id="Identification-of-connected-components-of-points">
+<h2>Identification of connected components of points<a class="headerlink" href="#Identification-of-connected-components-of-points" title="Permalink to this headline">¶</a></h2>
+<p>Classifying points as part of a dense or a sparse region according to a density criterion, is only one aspect of assigning points to clusters. We still need to identify groups of points that are part of the same region. In this context, the term <em>density reachable</em> is often used to describe the situation where a point is directly connected to a dense point. We also use the term <em>density connected</em> for points that are part of the same dense region, i.e. they are directly or indirectly connected
+to any other point in the region by a chain of density reachable points. In other words, it is not enough to know which points are dense but we also need to be aware of the relationship between dense points. As mentioned earlier, for CommonNN clustering density reachability is a direct consequence of how the density-criterion is checked. For DBSCAN, this is a separate definition.</p>
+<p>When we express the connectivity relationship between points in a graph, the problem of identifying clusters of density connected points comes down to finding connected components of nodes within this graph. In the above example, we where primarily interested in the information if a point was part of a dense region by checking the density criterion. Let’s now construct a density graph instead in which each dense point constitutes a node and each vertex represent the density reachability between
+two points. We neglect the concept of edge points (points that are not dense but density reachable from a dense point) for the sake of simplicity here. It should be noted, that the inclusion of edge points may also lead to ambiguous clustering results in the case where a low density point is a neighbour of two or more dense points in different clusters.</p>
 <div class="section" id="id1">
 <h3>DBSCAN<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput docutils container">
@@ -864,7 +885,7 @@ simplicity here.</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_algorithm_explained_35_0.png" src="../_images/tutorial_algorithm_explained_35_0.png" />
+<img alt="../_images/tutorial_algorithm_explained_38_0.png" src="../_images/tutorial_algorithm_explained_38_0.png" />
 </div>
 </div>
 <p>Once such a graph is constructed, graph traversal algorithms can be used to find the connected components of nodes within the graph. A generic way to do so using a breadth-first-search algorithm could look like this:</p>
@@ -953,7 +974,7 @@ simplicity here.</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_algorithm_explained_39_0.png" src="../_images/tutorial_algorithm_explained_39_0.png" />
+<img alt="../_images/tutorial_algorithm_explained_42_0.png" src="../_images/tutorial_algorithm_explained_42_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -1006,19 +1027,16 @@ simplicity here.</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_algorithm_explained_40_0.png" src="../_images/tutorial_algorithm_explained_40_0.png" />
+<img alt="../_images/tutorial_algorithm_explained_43_0.png" src="../_images/tutorial_algorithm_explained_43_0.png" />
 </div>
 </div>
 </div>
 </div>
 <div class="section" id="CommonNN-clustering-in-detail">
 <h2>CommonNN clustering in detail<a class="headerlink" href="#CommonNN-clustering-in-detail" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p><strong>Note:</strong> This section is currently under developement.</p>
-</div>
-<p>In practice, one does not necessarily need to construct a density connectivity graph in its entirety beforehand. It is also possible to start from another input structure and explore the connectivity while traversing the structure. We will now show a variant of the CNN clustering procedure, starting from pre-computed neighbourhoods in more detail. For this, we generate a small example data set of 200 points in 2D.</p>
+<p>In practice, one does not necessarily need to construct a density connectivity graph in its entirety beforehand. It is also possible to start from another input structure and explore the connectivity while traversing the structure. We will now show a variant of the CommonNN clustering procedure, starting from pre-computed neighbourhoods in more detail. For this, we generate a small example data set of 200 points in 2D.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1042,7 +1060,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1054,12 +1072,12 @@ simplicity here.</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_algorithm_explained_44_1.png" src="../_images/tutorial_algorithm_explained_44_1.png" />
+<img alt="../_images/tutorial_algorithm_explained_46_1.png" src="../_images/tutorial_algorithm_explained_46_1.png" />
 </div>
 </div>
 <p>We expect to find two clusters (an inner and an outer ring) in this data set. We will at first compute the neighbourhoods for all points with respect to a radius of <span class="math notranslate nohighlight">\(r\)</span>. Below we show the neighbourhood for the first point in the set.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1068,7 +1086,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1097,7 +1115,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1110,11 +1128,11 @@ simplicity here.</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/tutorial_algorithm_explained_48_0.png" src="../_images/tutorial_algorithm_explained_48_0.png" />
+<img alt="../_images/tutorial_algorithm_explained_50_0.png" src="../_images/tutorial_algorithm_explained_50_0.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1128,7 +1146,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1138,7 +1156,7 @@ simplicity here.</p>
         <span class="k">return</span> <span class="kc">True</span>
     <span class="k">return</span> <span class="kc">False</span>
 
-<span class="k">def</span> <span class="nf">cnn_from_neighbourhoods</span><span class="p">(</span>
+<span class="k">def</span> <span class="nf">commonn_from_neighbourhoods</span><span class="p">(</span>
         <span class="n">neighbourhoods</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">yield_iterations</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Apply CNN clustering</span>
 
@@ -1207,7 +1225,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1251,7 +1269,7 @@ simplicity here.</p>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1313,87 +1331,22 @@ simplicity here.</p>
 
 <span class="n">Animation</span> <span class="o">=</span> <span class="n">AnimatedIterations</span><span class="p">(</span>
     <span class="n">noisy_circles</span><span class="p">,</span>
-    <span class="n">cnn_from_neighbourhoods</span><span class="p">(</span><span class="n">neighbourhoods</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">yield_iterations</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">commonn_from_neighbourhoods</span><span class="p">(</span><span class="n">neighbourhoods</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">yield_iterations</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="p">)</span>
-<span class="c1"># Animation.animation.save(&#39;iteration.mp4&#39;, dpi=150)</span>
+<span class="c1"># Animation.animation.save(&#39;algorithm_explained/iteration.mp4&#39;, dpi=300)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Animation.animation.save(&#39;iteration.mp4&#39;, dpi=300)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[40]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">HTML</span><span class="p">(</span><span class="n">Animation</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">to_html5_video</span><span class="p">())</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
-<span class="ansi-red-intense-fg ansi-bold">RuntimeError</span>                              Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-40-9de12198d56c&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
-<span class="ansi-green-intense-fg ansi-bold">----&gt; 1</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>HTML<span class="ansi-yellow-intense-fg ansi-bold">(</span>Animation<span class="ansi-yellow-intense-fg ansi-bold">.</span>animation<span class="ansi-yellow-intense-fg ansi-bold">.</span>to_html5_video<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/cnnclustering38/lib/python3.8/site-packages/matplotlib/animation.py</span> in <span class="ansi-cyan-fg">to_html5_video</span><span class="ansi-blue-intense-fg ansi-bold">(self, embed_limit)</span>
-<span class="ansi-green-fg">   1330</span>                 <span class="ansi-red-intense-fg ansi-bold"># We create a writer manually so that we can get the</span>
-<span class="ansi-green-fg">   1331</span>                 <span class="ansi-red-intense-fg ansi-bold"># appropriate size for the tag</span>
-<span class="ansi-green-intense-fg ansi-bold">-&gt; 1332</span><span class="ansi-yellow-intense-fg ansi-bold">                 </span>Writer <span class="ansi-yellow-intense-fg ansi-bold">=</span> writers<span class="ansi-yellow-intense-fg ansi-bold">[</span>mpl<span class="ansi-yellow-intense-fg ansi-bold">.</span>rcParams<span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-blue-intense-fg ansi-bold">&#39;animation.writer&#39;</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">]</span>
-<span class="ansi-green-fg">   1333</span>                 writer = Writer(codec=&#39;h264&#39;,
-<span class="ansi-green-fg">   1334</span>                                 bitrate<span class="ansi-yellow-intense-fg ansi-bold">=</span>mpl<span class="ansi-yellow-intense-fg ansi-bold">.</span>rcParams<span class="ansi-yellow-intense-fg ansi-bold">[</span><span class="ansi-blue-intense-fg ansi-bold">&#39;animation.bitrate&#39;</span><span class="ansi-yellow-intense-fg ansi-bold">]</span><span class="ansi-yellow-intense-fg ansi-bold">,</span>
-
-<span class="ansi-green-intense-fg ansi-bold">~/.pyenv/versions/cnnclustering38/lib/python3.8/site-packages/matplotlib/animation.py</span> in <span class="ansi-cyan-fg">__getitem__</span><span class="ansi-blue-intense-fg ansi-bold">(self, name)</span>
-<span class="ansi-green-fg">    164</span>         <span class="ansi-green-intense-fg ansi-bold">if</span> self<span class="ansi-yellow-intense-fg ansi-bold">.</span>is_available<span class="ansi-yellow-intense-fg ansi-bold">(</span>name<span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">:</span>
-<span class="ansi-green-fg">    165</span>             <span class="ansi-green-intense-fg ansi-bold">return</span> self<span class="ansi-yellow-intense-fg ansi-bold">.</span>_registered<span class="ansi-yellow-intense-fg ansi-bold">[</span>name<span class="ansi-yellow-intense-fg ansi-bold">]</span>
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 166</span><span class="ansi-yellow-intense-fg ansi-bold">         </span><span class="ansi-green-intense-fg ansi-bold">raise</span> RuntimeError<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">f&#34;Requested MovieWriter ({name}) not available&#34;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    167</span>
-<span class="ansi-green-fg">    168</span>
-
-<span class="ansi-red-intense-fg ansi-bold">RuntimeError</span>: Requested MovieWriter (ffmpeg) not available
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">animation</span><span class="o">.</span><span class="n">writers</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-[&#39;pillow&#39;, &#39;imagemagick&#39;, &#39;imagemagick_file&#39;, &#39;html&#39;]
-</pre></div></div>
-</div>
-<div class="section" id="Debug-mode">
+<center><video controls src="algorithm_explained/iteration.mp4" height="500px"/></center><div class="section" id="Debug-mode">
 <h3>Debug mode<a class="headerlink" href="#Debug-mode" title="Permalink to this headline">¶</a></h3>
+<p>In the current version of the <code class="docutils literal notranslate"><span class="pre">cnnclustering</span></code> package, CommonNN clustering is in detail quite differently implemented than shown in the previous section. To get a closer look at what is going on during a clustering, we provide a fitter type that can yield the state of the assignment during a clustering procedure.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">clustering</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">ClusteringBuilder</span><span class="p">(</span>
-    <span class="n">noisy_circles</span><span class="p">,</span>
-    <span class="n">fitter</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;bfs_debug&quot;</span><span class="p">,</span> <span class="p">(),</span> <span class="p">{</span><span class="s2">&quot;yielding&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span></span><span class="n">clustering</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">Clustering</span><span class="p">(</span><span class="n">noisy_circles</span><span class="p">,</span> <span class="n">fitter</span><span class="o">=</span><span class="s2">&quot;bfs_debug&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">clustering</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1403,108 +1356,146 @@ simplicity here.</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Clustering(input_data=InputDataExtComponentsMemoryview, fitter=FitterExtBFSDebug(ngetter=NeighboursGetterExtBruteForce(dgetter=DistanceGetterExtMetric(metric=MetricExtEuclideanReduced), sorted=False, selfcounting=True), na=NeighboursExtVectorCPPUnorderedSet, nb=NeighboursExtVectorCPPUnorderedSet, checker=SimilarityCheckerExtSwitchContains, queue=QueueExtFIFOQueue, verbose=True, yielding=False), predictor=None)
+Clustering(input_data=InputDataExtComponentsMemoryview, fitter=FitterExtBFSDebug(ngetter=NeighboursGetterExtBruteForce(dgetter=DistanceGetterExtMetric(metric=MetricExtEuclideanReduced), sorted=False, selfcounting=True), na=NeighboursExtVectorCPPUnorderedSet, nb=NeighboursExtVectorCPPUnorderedSet, checker=SimilarityCheckerExtSwitchContains, queue=QueueExtFIFOQueue, verbose=True, yielding=True), predictor=None)
 </pre></div></div>
 </div>
+<p>As the <code class="docutils literal notranslate"><span class="pre">fit</span></code> method of the debug fitter <code class="docutils literal notranslate"><span class="pre">_types.FitterExtBFSDebug</span></code> is returning generator, we can not invoke it directly from the <code class="docutils literal notranslate"><span class="pre">Clustering</span></code> object but have to call it manually.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">clustering</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
------------------------------------------------------------------------------------------------
-#points   r         c         min       max       #clusters %largest  %noise    time
-200       0.700     5         None      None      0         0.000     1.000     00:00:0.000
------------------------------------------------------------------------------------------------
-
-</pre></div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">clustering</span><span class="o">.</span><span class="n">_labels</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Labels([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-</pre></div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">iterations</span> <span class="o">=</span> <span class="n">clustering</span><span class="o">.</span><span class="n">_fitter</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+<span></span><span class="n">clustering</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">clustering</span><span class="o">.</span><span class="n">_input_data</span><span class="o">.</span><span class="n">n_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="n">iterations</span> <span class="o">=</span> <span class="n">clustering</span><span class="o">.</span><span class="n">fitter</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
     <span class="n">clustering</span><span class="o">.</span><span class="n">_input_data</span><span class="p">,</span>
     <span class="n">clustering</span><span class="o">.</span><span class="n">_labels</span><span class="p">,</span>
     <span class="n">_types</span><span class="o">.</span><span class="n">ClusterParameters</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 <span class="p">)</span>
+<span class="n">iterations</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">next</span><span class="p">(</span><span class="n">iterations</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-CommonNN clustering
-================================================================================
-200 points
-{&#39;radius_cutoff&#39;: 0.7, &#39;similarity_cutoff&#39;: 5, &#39;similarity_cutoff_continuous&#39;: 0.0, &#39;n_member_cutoff&#39;: 5, &#39;current_start&#39;: 1}
-
-New source: {init_point}
+&lt;generator at 0x7f14d9f89c10&gt;
 </pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">state</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">iterations</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
-<span class="ansi-red-intense-fg ansi-bold">AttributeError</span>                            Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-23-3ce9e7e2a6cb&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
-<span class="ansi-green-intense-fg ansi-bold">----&gt; 1</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>next<span class="ansi-yellow-intense-fg ansi-bold">(</span>iterations<span class="ansi-yellow-intense-fg ansi-bold">)</span>
+CommonNN clustering - FitterExtBFSDebug
+================================================================================
+200 points
+radius_cutoff                : 0.7
+similarity_cutoff            : 5
+similarity_cutoff_continuous : 0.0
+n_member_cutoff              : 5
+current_start                : 1
 
-<span class="ansi-green-intense-fg ansi-bold">src/cnnclustering/_fit.pyx</span> in <span class="ansi-cyan-fg">fit</span><span class="ansi-blue-intense-fg ansi-bold">()</span>
-
-<span class="ansi-green-intense-fg ansi-bold">src/cnnclustering/_fit.pyx</span> in <span class="ansi-cyan-fg">_fit</span><span class="ansi-blue-intense-fg ansi-bold">()</span>
-
-<span class="ansi-red-intense-fg ansi-bold">AttributeError</span>: &#39;cnnclustering._fit.FitterExtBFSDebug&#39; object has no attribute &#39;_verboose&#39;
+New source: 0
+    ... new cluster 1
 </pre></div></div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>
+<span></span><span class="n">state</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;reason&#39;: &#39;assigned_source&#39;, &#39;init_point&#39;: 0, &#39;point&#39;: None, &#39;member&#39;: None}
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">state</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">iterations</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+    ... loop over 15 neighbours
+        ... current neighbour 0
+        ... already visited
+
+        ... current neighbour 1
+        ... successful check!
+
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">state</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;reason&#39;: &#39;assigned_neighbour&#39;, &#39;init_point&#39;: 0, &#39;point&#39;: 0, &#39;member&#39;: 1}
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">clustering</span><span class="o">.</span><span class="n">labels</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+array([1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0])
+</pre></div></div>
 </div>
 </div>
 </div>
@@ -1540,11 +1531,12 @@ New source: {init_point}
 <li class="toctree-l1"><a class="reference internal" href="../_source/install.html">Installation instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../_source/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../_source/tutorials.html">Tutorials</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="basic_usage.html">Basic usage of the cluster module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html">Basic usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scikit_learn_datasets.html">Clustering of scikit-learn toy data sets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html">Advanced usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interface_demo.html">Demonstration of (generic) interfaces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hierarchical_clustering_basics.html">Hierarchical clustering basics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_input_formats.html">Usage of different data input formats and clustering recipes</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Density based clustering explained</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Density based clustering basics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="md_example.html">Molecular dynamics application example</a></li>
 </ul>
 </li>
@@ -1556,7 +1548,7 @@ New source: {init_point}
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="../_source/tutorials.html">Tutorials</a><ul>
-      <li>Previous: <a href="data_input_formats.html" title="previous chapter">Usage of different data input formats and clustering recipes</a></li>
+      <li>Previous: <a href="hierarchical_clustering_basics.html" title="previous chapter">Hierarchical clustering basics</a></li>
       <li>Next: <a href="md_example.html" title="next chapter">Molecular dynamics application example</a></li>
   </ul></li>
   </ul></li>
