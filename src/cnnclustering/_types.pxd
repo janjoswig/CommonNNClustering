@@ -135,6 +135,12 @@ cdef class Labels:
         cppunordered_set[AINDEX] _consider_set
 
 
+cdef class ReferenceIndices:
+    cdef:
+        AINDEX[::1] _root
+        AINDEX[::1] _parent
+
+
 cdef class InputDataExtInterface:
     cdef public:
         AINDEX n_points

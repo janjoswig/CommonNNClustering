@@ -31,14 +31,12 @@ class TestClustering:
     def test_predict_fully_mocked(self, mocker):
         input_data = mocker.Mock(_types.InputData)
         predictor = mocker.Mock(_fit.Predictor)
-        labels = mocker.Mock(_types.Labels)
 
         type(input_data).n_points = mocker.PropertyMock(return_value=5)
 
         clustering = cluster.Clustering(
             input_data=input_data,
             predictor=predictor,
-            labels=labels,
         )
 
         other_clustering = cluster.Clustering(

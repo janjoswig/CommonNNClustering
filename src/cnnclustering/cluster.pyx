@@ -1,10 +1,10 @@
 from collections import Counter, defaultdict
-from collections.abc import MutableSequence, Iterable
+from collections.abc import MutableSequence as ABCMutableSequence
 import functools
 from operator import itemgetter
 import time
 from typing import Any, Optional, Type, Union
-from typing import Container, List, Tuple, Sequence
+from typing import Container, Iterable, List, Tuple, Sequence
 import weakref
 
 try:
@@ -39,6 +39,8 @@ from cnnclustering import _fit
 from cnnclustering import hooks
 
 from libcpp.vector cimport vector as cppvector
+from libcpp.unordered_map cimport unordered_map as cppumap
+from cython.operator cimport dereference, preincrement
 
 
 class Clustering:
@@ -96,6 +98,7 @@ class Clustering:
             fitter=None,
             predictor=None,
             labels=None,
+            indices=None,
             alias: str = "root",
             parent=None,
             **kwargs):
@@ -121,10 +124,9 @@ class Clustering:
         self.fitter = fitter
         self._predictor = predictor
         self.labels = labels
+        self.indices = indices
 
         self._children = None
-        self._root_indices = None
-        self._parent_indices = None
 
         self._summary = Summary()
 
@@ -157,6 +159,36 @@ class Clustering:
         if (value is not None) & (not isinstance(value, Labels)):
             value = Labels(value)
         self._labels = value
+
+    @property
+    def root_indices(self):
+        """
+        Direct access to :obj:`cnnclustering._types.ReferenceIndices._root`.
+        """
+        if self._indices is not None:
+            return self._indices.root
+        return None
+
+    @property
+    def parent_indices(self):
+        """
+        Direct access to :obj:`cnnclustering._types.Indices._parent`.
+        """
+        if self._indices is not None:
+            return self._indices.parent
+        return None
+
+    @property
+    def indices(self):
+        if self._indices is not None:
+            return self._indices.root, self._indices.parent
+        return None
+
+    @indices.setter
+    def indices(self, value):
+        if (value is not None) & (not isinstance(value, ReferenceIndices)):
+            value = ReferenceIndices(value, value)
+        self._indices = value
 
     @property
     def input_data(self):
@@ -465,12 +497,159 @@ class Clustering:
 
     def fit_hierarchical(
             self,
-            radius_cutoff: Union[float, List[float]],
-            cnn_cutoff: Union[int, List[int]],
+            radius_cutoff: Union[float, Iterable[float]],
+            cnn_cutoff: Union[int, Iterable[int]],
             member_cutoff: int = None,
             max_clusters: int = None,
-            cnn_offset: int = None):
+            cnn_offset: int = None,
+            sort_by_size: bool = True,
+            info: bool = True,
+            v: bool = True):
         """Execute hierarchical clustering procedure
+
+        Args:
+            radius_cutoff: A single radius (or an iterable of radii) to be
+                used in subsequent hierarchy levels.
+            cnn_cutoff: A single value (or an iterable of values) to be
+                used as the CommonNN cutoff in subsequent hierarchy levels.
+            member_cutoff: Valid clusters need to have at least this many
+                members.
+            ...
+        """
+
+        cdef cppvector[AVALUE] radius_cutoff_vector
+        cdef cppvector[AINDEX] cnn_cutoff_vector
+
+        if not isinstance(radius_cutoff, Iterable):
+            radius_cutoff = [radius_cutoff]
+
+        radius_cutoff = [float(x) for x in radius_cutoff]
+
+        if not isinstance(cnn_cutoff, Iterable):
+            cnn_cutoff = [cnn_cutoff]
+
+        cnn_cutoff = [int(x) for x in cnn_cutoff]
+
+        if len(radius_cutoff) == 1:
+            radius_cutoff *= len(cnn_cutoff)
+
+        if len(cnn_cutoff) == 1:
+            cnn_cutoff *= len(radius_cutoff)
+
+        cdef AINDEX step, n_steps = len(radius_cutoff)
+        assert n_steps == len(cnn_cutoff)
+
+        radius_cutoff_vector = radius_cutoff
+        cnn_cutoff_vector = cnn_cutoff
+
+        cdef ClusterParameters cluster_params
+        cdef AINDEX current_start = 1
+
+        if cnn_offset is None:
+            cnn_offset = 0
+
+        cdef AINDEX n, n_points = self._input_data.n_points
+
+        cdef Labels previous_labels = Labels(
+            np.ones(n_points, order="C", dtype=P_AINDEX)
+            )
+        cdef Labels current_labels
+
+        cdef AINDEX c_label, p_label
+
+        cdef cppumap[AINDEX, cppvector[AINDEX]] parent_labels_map
+        cdef cppumap[AINDEX, cppvector[AINDEX]].iterator p_it
+
+        cdef dict terminal_clusterings = {1: self}
+        cdef dict new_terminal_clusterings
+
+        for step in range(n_steps):
+
+            if v:
+                print(
+                    f"Running step {step:<5} "
+                    f"(r = {radius_cutoff_vector[step]}, "
+                    f"c = {cnn_cutoff_vector[step]})"
+                    )
+
+            new_terminal_clusterings = {}
+
+            current_labels = Labels(
+                np.zeros(n_points, order="C", dtype=P_AINDEX)
+                )
+
+            cluster_params = self.make_parameters(
+                radius_cutoff_vector[step],
+                cnn_cutoff_vector[step] - cnn_offset,
+                current_start
+                )
+
+            self._fitter.fit(
+                self._input_data,
+                current_labels,
+                cluster_params
+                )
+
+            if sort_by_size:
+                current_labels.sort_by_size(member_cutoff, max_clusters)
+
+            parent_labels_map.clear()
+
+            for n in range(n_points):
+                c_label = current_labels._labels[n]
+                p_label = previous_labels._labels[n]
+
+                if p_label == 0:
+                    continue
+
+                parent_labels_map[p_label].push_back(c_label)
+
+            p_it = parent_labels_map.begin()
+            while (p_it != parent_labels_map.end()):
+                p_label = dereference(p_it).first
+
+                # !!! Python interaction
+                parent_clustering = terminal_clusterings[p_label]
+                parent_clustering._labels = Labels.from_sequence(parent_labels_map[p_label])
+
+                if info:
+                    params = {
+                        k: (radius_cutoff_vector[step], cnn_cutoff_vector[step])
+                        for k in parent_clustering._labels.to_set()
+                        if k != 0
+                        }
+                    parent_clustering._labels.meta.update({
+                        "params": params,
+                        "reference": weakref.proxy(parent_clustering),
+                        "origin": "fit"
+                    })
+
+                parent_clustering.isolate(isolate_input_data=False)
+
+                for c_label, child_clustering in parent_clustering._children.items():
+                    if c_label == 0:
+                        continue
+                    new_terminal_clusterings[c_label] = child_clustering
+
+                preincrement(p_it)
+
+            terminal_clusterings = new_terminal_clusterings
+            previous_labels = current_labels
+
+
+    def _DEPRECATED_fit_hierarchical(
+            self,
+            radius_cutoff: Union[float, Iterable[float]],
+            cnn_cutoff: Union[int, Iterable[int]],
+            member_cutoff: int = None,
+            max_clusters: int = None,
+            cnn_offset: int = None,
+            v: bool = True):
+        """Execute hierarchical clustering procedure
+
+        Note:
+            This method is DEPRECATED and will be removed in the future.
+            Use :func:`~cnnclustering.Clustering.fit_hierarchical` instead
 
         """
 
@@ -483,11 +662,15 @@ class Clustering:
         cdef cppvector[AVALUE] radius_cutoff_vector
         cdef cppvector[AINDEX] cnn_cutoff_vector
 
-        if isinstance(radius_cutoff, float):
+        if not isinstance(radius_cutoff, Iterable):
             radius_cutoff = [radius_cutoff]
 
-        if isinstance(cnn_cutoff, int):
+        radius_cutoff = [float(x) for x in radius_cutoff]
+
+        if not isinstance(cnn_cutoff, Iterable):
             cnn_cutoff = [cnn_cutoff]
+
+        cnn_cutoff = [int(x) for x in cnn_cutoff]
 
         if len(radius_cutoff) == 1:
             radius_cutoff *= len(cnn_cutoff)
@@ -515,6 +698,7 @@ class Clustering:
             np.ones(n, order="C", dtype=P_AINDEX)
             )
         cdef Labels current_labels
+        # cdef AINDEX* current_labels = &current_labels._labels[0]
 
         self._root_indices = np.arange(n)
         self._parent_indices = np.arange(n)
@@ -524,6 +708,13 @@ class Clustering:
         cdef list child_indices, root_indices, parent_indices
 
         for step in range(n_steps):
+
+            if v:
+                print(
+                    f"Running step {step} "
+                    f"(r = {radius_cutoff_vector[step]}, "
+                    f"c = {cnn_cutoff_vector[step]})"
+                    )
 
             current_labels = Labels(
                 np.zeros(n, order="C", dtype=P_AINDEX)
@@ -540,6 +731,9 @@ class Clustering:
                 current_labels,
                 cluster_params
                 )
+
+            if v:
+                print("    ... fit done")
 
             current_clusters = defaultdict(lambda: defaultdict(list))
             current_clusters_processed = defaultdict(lambda: defaultdict(list))
@@ -588,7 +782,7 @@ class Clustering:
 
                 for child_label, root_indices in current_clusters_processed[parent_label].items():
                     clustering_instance._children[child_label]._root_indices = np.asarray(root_indices)
-                    clustering_instance._children[child_label]._input_data = self._input_data.get_subset(root_indices)
+                    # clustering_instance._children[child_label]._input_data = self._input_data.get_subset(root_indices)
                     parent_alias = clustering_instance.alias if clustering_instance.alias is not None else ""
                     clustering_instance._children[child_label].alias += f"{parent_alias} - {child_label}"
 
@@ -635,13 +829,15 @@ class Clustering:
         for label, indices in self._labels.mapping.items():
             # Assume indices to be sorted
             parent_indices = np.array(indices, dtype=np.intp)
-            if self._root_indices is None:
+            if self._indices is None:
                 root_indices = parent_indices
             else:
-                root_indices = self._root_indices[parent_indices]
+                root_indices = self.root_indices[parent_indices]
 
-            self._children[label]._root_indices = root_indices
-            self._children[label]._parent_indices = parent_indices
+            self._children[label]._indices = ReferenceIndices(
+                root_indices,
+                parent_indices
+                )
             parent_alias = self.alias if self.alias is not None else ""
             self._children[label].alias += f"{parent_alias} - {label}"
 
@@ -781,7 +977,7 @@ class Clustering:
                     else:
                         new_label = old_label + n_clusters
 
-                    parent_index = child._parent_indices[index]
+                    parent_index = child.parent_indices[index]
                     parent_labels[parent_index] = new_label
 
                 try:
@@ -1380,6 +1576,21 @@ class Clustering:
 
         return graph
 
+    def to_dtrajs(self):
+
+        labels_array = self.labels
+        if labels_array is None:
+            return []
+
+        edges = None
+        if self._input_data is not None:
+            edges = self._input_data.meta.get("edges")
+
+        if edges is None:
+            return [labels_array]
+
+        return np.split(labels_array, np.cumsum(edges))
+
 
 class ClusteringBuilder:
     """Orchestrate correct initialisation of a clustering
@@ -1638,7 +1849,7 @@ class Record:
             }
 
 
-class Summary(MutableSequence):
+class Summary(ABCMutableSequence):
     """List like container for cluster results
 
     Stores instances of :obj:`cnnclustering.cluster.Record`.

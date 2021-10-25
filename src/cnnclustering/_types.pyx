@@ -267,6 +267,22 @@ cdef class Labels:
         return
 
 
+cdef class ReferenceIndices:
+    """Root and parent indices relating child with parent clusterings"""
+
+    def __cinit__(self, root_indices, parent_indices):
+        self._root = root_indices
+        self._parent = parent_indices
+
+    @property
+    def root(self):
+        return np.asarray(self._root)
+
+    @property
+    def parent(self):
+        return np.asarray(self._parent)
+
+
 class InputData(ABC):
     """Defines the input data interface"""
 
