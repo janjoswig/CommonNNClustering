@@ -1591,8 +1591,9 @@ class Clustering:
 
         dtrajs = np.split(labels_array, np.cumsum(edges))
 
-        if len(dtrajs[-1]) == 0:
-            dtrajs = dtrajs[:-1]
+        last_dtraj_index = len(dtrajs) - 1
+        if len(dtrajs[last_dtraj_index]) == 0:
+            dtrajs = dtrajs[:last_dtraj_index]
 
         return dtrajs
 
