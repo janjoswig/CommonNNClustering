@@ -1589,7 +1589,12 @@ class Clustering:
         if edges is None:
             return [labels_array]
 
-        return np.split(labels_array, np.cumsum(edges))
+        dtrajs = np.split(labels_array, np.cumsum(edges))
+
+        if len(dtrajs[-1]) == 0:
+            dtrajs = dtrajs[:-1]
+
+        return dtrajs
 
 
 class ClusteringBuilder:
