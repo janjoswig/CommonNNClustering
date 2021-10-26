@@ -113,12 +113,17 @@ class TestClustering:
             self, input_data_type, data, meta, labels,
             root_indices, parent_indices,
             file_regression):
+
         clustering = cluster.Clustering(
             input_data=input_data_type(data, meta=meta),
             labels=_types.Labels(labels)
         )
-        clustering._root_indices = root_indices
-        clustering._parent_indices = parent_indices
+        if not ((root_indices is None) or (parent_indices is None)):
+            clustering._indices = _types.ReferenceIndices(
+                root_indices,
+                parent_indices
+            )
+
         clustering.isolate()
         label_set = set(labels)
         label_counter = Counter(labels)
@@ -136,8 +141,8 @@ class TestClustering:
                 f'{"=" * 80}\n'
                 f"Data:\n{isolated_points.data}\n"
                 f"Edges:\n{edges}\n"
-                f"Root:\n{clustering._children[label]._root_indices}\n"
-                f"Parent:\n{clustering._children[label]._parent_indices}\n"
+                f"Root:\n{clustering._children[label].root_indices}\n"
+                f"Parent:\n{clustering._children[label].parent_indices}\n"
                 f"\n"
             )
 

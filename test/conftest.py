@@ -10,7 +10,7 @@ except ModuleNotFoundError:
 
 from cnnclustering import cluster
 from cnnclustering._primitive_types import P_AINDEX
-from cnnclustering._types import Labels
+from cnnclustering._types import Labels, ReferenceIndices
 
 
 @pytest.fixture
@@ -57,7 +57,10 @@ def make_hierarchical_clustering_a():
     clustering._children[1]._labels = Labels(
         np.array([0, 1, 0, 2, 2, 2, 1], dtype=P_AINDEX)
         )
-    clustering._children[1]._parent_indices = np.array([2, 3, 6, 8, 9, 10, 13])
+    clustering._children[1]._indices = ReferenceIndices(
+        np.array([2, 3, 6, 8, 9, 10, 13]),
+        np.array([2, 3, 6, 8, 9, 10, 13])
+        )
 
     clustering._children[1]._children = {}
     for i in [0, 1, 2]:
@@ -66,7 +69,10 @@ def make_hierarchical_clustering_a():
     clustering._children[1]._children[2]._labels = Labels(
         np.array([2, 1, 0], dtype=P_AINDEX)
         )
-    clustering._children[1]._children[2]._parent_indices = np.array([3, 4, 5])
+    clustering._children[1]._children[2]._indices = ReferenceIndices(
+        np.array([8, 9, 10]),
+        np.array([3, 4, 5])
+        )
 
     return clustering
 

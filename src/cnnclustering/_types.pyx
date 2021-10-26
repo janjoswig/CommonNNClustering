@@ -270,7 +270,7 @@ cdef class Labels:
 cdef class ReferenceIndices:
     """Root and parent indices relating child with parent clusterings"""
 
-    def __cinit__(self, root_indices, parent_indices):
+    def __cinit__(self, root_indices not None, parent_indices not None):
         self._root = root_indices
         self._parent = parent_indices
 
