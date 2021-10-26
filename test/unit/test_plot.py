@@ -55,7 +55,9 @@ def test_tree(
 
     mpl.use("agg")
 
-    fig, *_ = registered_clustering.tree()
+    fig, ax = plt.subplots()
+
+    registered_clustering.tree(ax)
     fig.tight_layout()
     figname = datadir / f"tree_{case_key}.png"
     fig.savefig(figname)
@@ -78,7 +80,8 @@ def test_pie(
 
     mpl.use("agg")
 
-    fig, *_ = registered_clustering.pie()
+    fig, ax = plt.subplots()
+    registered_clustering.pie(ax)
     fig.tight_layout()
     figname = datadir / f"pie_{case_key}.png"
     fig.savefig(figname)

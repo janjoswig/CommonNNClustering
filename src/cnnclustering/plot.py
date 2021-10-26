@@ -461,7 +461,7 @@ def plot_histogram(
 
     ax.set(**ax_props_defaults)
 
-    return fig, ax, line, annotations
+    return line, annotations
 
 
 def plot_dots(

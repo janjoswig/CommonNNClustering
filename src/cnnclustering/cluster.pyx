@@ -1157,7 +1157,7 @@ class Clustering:
 
         ax.set(**ax_props_defaults)
 
-        return fig, ax, plotted
+        return plotted
 
     def pie(self, ax=None, pie_props=None):
 
@@ -1171,7 +1171,7 @@ class Clustering:
 
         plot.pie(self, ax=ax, pie_props=pie_props)
 
-        return fig, ax
+        return
 
     def tree(self, ax=None, ignore=None, pos_props=None, draw_props=None):
 
@@ -1213,7 +1213,7 @@ class Clustering:
             draw_props=draw_props_defaults,
             )
 
-        return fig, ax
+        return
 
     def evaluate(
             self,
@@ -1538,7 +1538,7 @@ class Clustering:
 
         ax.set(**ax_props_defaults)
 
-        return fig, ax, plotted
+        return plotted
 
     def to_nx_DiGraph(self, ignore=None):
         """Convert cluster hierarchy to networkx DiGraph

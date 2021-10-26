@@ -224,6 +224,16 @@ def prepare_points_from_parts(data):
 
 
 def prepare_neighbourhoods(data):
+    """Prepare neighbourhood information by padding
+
+    Args:
+        data: Expects a sequence of sequences with neighbour indices.
+
+    Returns:
+        Data as a 2D NumPy array of shape (#points, max. number of neighbours)
+        and a 1D array with the actual number of neighbours for each point (data
+        args). Also returns meta information (data kwargs).
+    """
 
     n_neighbours = [len(s) for s in data]
     pad_to = max(n_neighbours)
