@@ -191,7 +191,8 @@ def test_fit_evaluate_regression(datadir, image_regression):
         )
     clustering = builder.build()
 
-    fig, *_ = clustering.evaluate()
+    fig, ax = plt.subplots()
+    clustering.evaluate(ax=ax)
     fig.tight_layout()
     figname_original = datadir / "backbone_dihedrals_original.png"
     fig.savefig(figname_original)
