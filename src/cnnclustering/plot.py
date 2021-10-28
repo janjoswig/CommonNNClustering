@@ -421,8 +421,8 @@ def plot_histogram(
 
     if ax is None:
         fig, ax = plt.subplots()
-    else:
-        fig = ax.get_figure()
+    # else:
+    #     fig = ax.get_figure()
 
     line = ax.plot(binmids, histogram, **plot_props_defaults)
 
