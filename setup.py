@@ -69,7 +69,7 @@ for category, fname in requirements_map.items():
 
 setup(
     name="cnnclustering",
-    version="0.4.3",
+    version="0.5.0",
     keywords=["Density-based clustering"],
     author="Jan-Oliver Joswig",
     author_email="jan.joswig@fu-berlin.de",
