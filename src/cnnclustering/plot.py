@@ -7,6 +7,7 @@ from typing import Sequence
 from typing import Any, Optional
 
 import matplotlib.pyplot as plt
+from pyparsing import anyOpenTag
 
 try:
     import networkx as nx
@@ -603,14 +604,20 @@ def plot_contour(
     if "avoid_zero_count" in hist_props:
         avoid_zero_count = hist_props["avoid_zero_count"]
         del hist_props["avoid_zero_count"]
+    else:
+        avoid_zero_count = False
 
     if "mass" in hist_props:
         mass = hist_props["mass"]
         del hist_props["mass"]
+    else:
+        mass = True
 
     if "mids" in hist_props:
         mids = hist_props["mids"]
         del hist_props["mids"]
+    else:
+        mids = True
 
     plotted = []
 
@@ -690,14 +697,20 @@ def plot_contourf(
     if "avoid_zero_count" in hist_props:
         avoid_zero_count = hist_props["avoid_zero_count"]
         del hist_props["avoid_zero_count"]
+    else:
+        avoid_zero_count = False
 
     if "mass" in hist_props:
         mass = hist_props["mass"]
         del hist_props["mass"]
+    else:
+        mass = True
 
     if "mids" in hist_props:
         mids = hist_props["mids"]
         del hist_props["mids"]
+    else:
+        mids = True
 
     plotted = []
 
@@ -780,14 +793,20 @@ def plot_histogram2d(
     if "avoid_zero_count" in hist_props:
         avoid_zero_count = hist_props["avoid_zero_count"]
         del hist_props["avoid_zero_count"]
+    else:
+        avoid_zero_count = False
 
     if "mass" in hist_props:
         mass = hist_props["mass"]
         del hist_props["mass"]
+    else:
+        mass = True
 
     if "mids" in hist_props:
         mids = hist_props["mids"]
         del hist_props["mids"]
+    else:
+        mids = True
 
     plotted = []
 
@@ -839,25 +858,52 @@ def plot_histogram2d(
     return plotted
 
 
-def annotate_points(ax, pos, data, points, text, annotate_props=None):
+def annotate_points(ax, annotate_pos, data, points, cluster, annotate_props=None):
+    """Add cluster label annotation for given cluster
+
+    Args:
+        ax: Matplotlib `Axes` instance to plot on.
+        annotate_pos:
+            Where to put the cluster number annotation.
+            Can be one of:
+
+                * "mean", Use the cluster mean
+                * "random", Use a random point of the cluster
+                * dict `{1: (x, y), ...}`, Use a specific coordinate
+                    tuple for each cluster. Omitted labels will be placed
+                    randomly.
+        data: The input data.
+        points: The point indices for a cluster.
+        cluster: The label of the cluster.
+        annotate_props: Will be passed to `ax.annotate`
+    """
     if annotate_props is None:
         annotate_props = {}
 
-    if pos == "mean":
+    if isinstance(annotate_pos, dict):
+        try:
+            xpos, ypos = annotate_pos[cluster]
+        except KeyError:
+            choosen = random.sample(points, 1)
+            xpos = data[choosen, 0]
+            ypos = data[choosen, 1]
+
+    elif annotate_pos == "mean":
         xpos = np.mean(data[points, 0])
         ypos = np.mean(data[points, 1])
 
-    elif pos == "random":
+    elif annotate_pos == "random":
         choosen = random.sample(points, 1)
         xpos = data[choosen, 0]
         ypos = data[choosen, 1]
 
     else:
         raise ValueError(
-            "Keyword argument `annotate_pos` must be " 'one of "mean", "random"'
+            "Keyword argument `annotate_pos` must be "
+            'one of "mean", "random", or a dictionary'
         )
 
-    return ax.annotate(f"{text}", xy=(xpos, ypos), **annotate_props)
+    return ax.annotate(f"{cluster}", xy=(xpos, ypos), **annotate_props)
 
 
 def get_free_energy(H):

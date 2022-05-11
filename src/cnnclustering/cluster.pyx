@@ -1227,7 +1227,7 @@ class Clustering:
             mask: Optional[Sequence[Union[bool, int]]] = None,
             ax_props: Optional[dict] = None,
             annotate: bool = True,
-            annotate_pos: str = "mean",
+            annotate_pos: Union[str, dict] = "mean",
             annotate_props: Optional[dict] = None,
             plot_props: Optional[dict] = None,
             plot_noise_props: Optional[dict] = None,
@@ -1286,10 +1286,9 @@ class Clustering:
 
                     * "mean", Use the cluster mean
                     * "random", Use a random point of the cluster
-
-                Alternatively a list of x, y positions can be passed to
-                set a specific point for each cluster
-                (*Not yet implemented*)
+                    * dict `{1: (x, y), ...}`, Use a specific coordinate
+                        tuple for each cluster. Omitted labels will be placed
+                        randomly.
 
             annotate_props:
                 Dictionary of keyword arguments passed to
