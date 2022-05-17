@@ -229,11 +229,23 @@ cdef class SimilarityCheckerExtInterface:
             NeighboursExtInterface neighbours_b,
             ClusterParameters cluster_params) nogil
 
+    cdef AINDEX _get(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params) nogil
 
 cdef class QueueExtInterface:
 
     cdef void _push(self, const AINDEX value) nogil
     cdef AINDEX _pop(self) nogil
+    cdef bint _is_empty(self) nogil
+
+
+cdef class PriorityQueueExtInterface:
+
+    cdef void _push(self, const AINDEX a, const AINDEX b, const AVALUE weight) nogil
+    cdef (AINDEX, AINDEX, AVALUE) _pop(self) nogil
     cdef bint _is_empty(self) nogil
 
 
@@ -490,6 +502,12 @@ cdef class SimilarityCheckerExtContains(SimilarityCheckerExtInterface):
             NeighboursExtInterface neighbours_b,
             ClusterParameters cluster_params) nogil
 
+    cdef AINDEX _get(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params) nogil
+
 
 cdef class SimilarityCheckerExtSwitchContains(SimilarityCheckerExtInterface):
     """Implements the similarity checker interface"""
@@ -500,11 +518,23 @@ cdef class SimilarityCheckerExtSwitchContains(SimilarityCheckerExtInterface):
             NeighboursExtInterface neighbours_b,
             ClusterParameters cluster_params) nogil
 
+    cdef AINDEX _get(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params) nogil
+
 
 cdef class SimilarityCheckerExtScreensorted(SimilarityCheckerExtInterface):
     """Implements the similarity checker interface"""
 
     cdef bint _check(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params) nogil
+
+    cdef AINDEX _get(
             self,
             NeighboursExtInterface neighbours_a,
             NeighboursExtInterface neighbours_b,

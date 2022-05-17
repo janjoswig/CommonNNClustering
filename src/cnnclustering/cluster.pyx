@@ -88,6 +88,7 @@ class Clustering:
         return [
             ("input_data", None),
             ("fitter", None),
+            ("hfitter", None),
             ("predictor", None),
             ("labels", None),
             ]
@@ -96,6 +97,7 @@ class Clustering:
             self,
             input_data=None,
             fitter=None,
+            hfitter=None,
             predictor=None,
             labels=None,
             indices=None,
@@ -122,6 +124,7 @@ class Clustering:
 
         self.input_data = input_data
         self.fitter = fitter
+        self._hfitter = hfitter
         self._predictor = predictor
         self.labels = labels
         self.indices = indices
@@ -251,6 +254,7 @@ class Clustering:
         attr_str = ", ".join([
             f"input_data={self._input_data}",
             f"fitter={self._fitter}",
+            f"hfitter={self._hfitter}",
             f"predictor={self._predictor}",
         ])
 
@@ -497,313 +501,20 @@ class Clustering:
 
     def fit_hierarchical(
             self,
-            radius_cutoff: Union[float, Iterable[float]],
-            cnn_cutoff: Union[int, Iterable[int]],
-            member_cutoff: int = None,
-            max_clusters: int = None,
-            cnn_offset: int = None,
-            sort_by_size: bool = True,
-            info: bool = True,
-            v: bool = True):
+            purge=True,
+            **kwargs):
         """Execute hierarchical clustering procedure
 
-        Args:
-            radius_cutoff: A single radius (or an iterable of radii) to be
-                used in subsequent hierarchy levels.
-            cnn_cutoff: A single value (or an iterable of values) to be
-                used as the CommonNN cutoff in subsequent hierarchy levels.
-            member_cutoff: Valid clusters need to have at least this many
-                members.
-            ...
+        Keyword args:
+            depend on hfitter
         """
 
-        cdef cppvector[AVALUE] radius_cutoff_vector
-        cdef cppvector[AINDEX] cnn_cutoff_vector
-
-        if not isinstance(radius_cutoff, Iterable):
-            radius_cutoff = [radius_cutoff]
-
-        radius_cutoff = [float(x) for x in radius_cutoff]
-
-        if not isinstance(cnn_cutoff, Iterable):
-            cnn_cutoff = [cnn_cutoff]
-
-        cnn_cutoff = [int(x) for x in cnn_cutoff]
-
-        if len(radius_cutoff) == 1:
-            radius_cutoff *= len(cnn_cutoff)
-
-        if len(cnn_cutoff) == 1:
-            cnn_cutoff *= len(radius_cutoff)
-
-        cdef AINDEX step, n_steps = len(radius_cutoff)
-        assert n_steps == len(cnn_cutoff)
-
-        radius_cutoff_vector = radius_cutoff
-        cnn_cutoff_vector = cnn_cutoff
-
-        cdef ClusterParameters cluster_params
-        cdef AINDEX current_start = 1
-
-        if cnn_offset is None:
-            cnn_offset = 0
-
-        cdef AINDEX n, n_points = self._input_data.n_points
-
-        cdef Labels previous_labels = Labels(
-            np.ones(n_points, order="C", dtype=P_AINDEX)
-            )
-        cdef Labels current_labels
-
-        cdef AINDEX c_label, p_label
-
-        cdef cppumap[AINDEX, cppvector[AINDEX]] parent_labels_map
-        cdef cppumap[AINDEX, cppvector[AINDEX]].iterator p_it
-
-        cdef dict terminal_clusterings = {1: self}
-        cdef dict new_terminal_clusterings
-
-        for step in range(n_steps):
-
-            if v:
-                print(
-                    f"Running step {step:<5} "
-                    f"(r = {radius_cutoff_vector[step]}, "
-                    f"c = {cnn_cutoff_vector[step]})"
-                    )
-
-            new_terminal_clusterings = {}
-
-            current_labels = Labels(
-                np.zeros(n_points, order="C", dtype=P_AINDEX)
+        if purge or (self._children is None):
+            self._children = defaultdict(
+                lambda: Clustering(parent=self)
                 )
 
-            cluster_params = self.make_parameters(
-                radius_cutoff_vector[step],
-                cnn_cutoff_vector[step] - cnn_offset,
-                current_start
-                )
-
-            self._fitter.fit(
-                self._input_data,
-                current_labels,
-                cluster_params
-                )
-
-            if sort_by_size:
-                current_labels.sort_by_size(member_cutoff, max_clusters)
-
-            parent_labels_map.clear()
-
-            for n in range(n_points):
-                c_label = current_labels._labels[n]
-                p_label = previous_labels._labels[n]
-
-                if p_label == 0:
-                    continue
-
-                parent_labels_map[p_label].push_back(c_label)
-
-            p_it = parent_labels_map.begin()
-            while (p_it != parent_labels_map.end()):
-                p_label = dereference(p_it).first
-
-                # !!! Python interaction
-                parent_clustering = terminal_clusterings[p_label]
-                parent_clustering._labels = Labels.from_sequence(parent_labels_map[p_label])
-
-                if info:
-                    params = {
-                        k: (radius_cutoff_vector[step], cnn_cutoff_vector[step])
-                        for k in parent_clustering._labels.to_set()
-                        if k != 0
-                        }
-                    parent_clustering._labels.meta.update({
-                        "params": params,
-                        "reference": weakref.proxy(parent_clustering),
-                        "origin": "fit"
-                    })
-
-                parent_clustering.isolate(isolate_input_data=False)
-
-                for c_label, child_clustering in parent_clustering._children.items():
-                    if c_label == 0:
-                        continue
-                    new_terminal_clusterings[c_label] = child_clustering
-
-                preincrement(p_it)
-
-            terminal_clusterings = new_terminal_clusterings
-            previous_labels = current_labels
-
-
-    def _DEPRECATED_fit_hierarchical(
-            self,
-            radius_cutoff: Union[float, Iterable[float]],
-            cnn_cutoff: Union[int, Iterable[int]],
-            member_cutoff: int = None,
-            max_clusters: int = None,
-            cnn_offset: int = None,
-            v: bool = True):
-        """Execute hierarchical clustering procedure
-
-        Note:
-            This method is DEPRECATED and will be removed in the future.
-            Use :func:`~cnnclustering.Clustering.fit_hierarchical` instead
-
-        """
-
-        cdef AINDEX member_count, _member_cutoff
-
-        if member_cutoff is None:
-            member_cutoff = 2
-        _member_cutoff = member_cutoff
-
-        cdef cppvector[AVALUE] radius_cutoff_vector
-        cdef cppvector[AINDEX] cnn_cutoff_vector
-
-        if not isinstance(radius_cutoff, Iterable):
-            radius_cutoff = [radius_cutoff]
-
-        radius_cutoff = [float(x) for x in radius_cutoff]
-
-        if not isinstance(cnn_cutoff, Iterable):
-            cnn_cutoff = [cnn_cutoff]
-
-        cnn_cutoff = [int(x) for x in cnn_cutoff]
-
-        if len(radius_cutoff) == 1:
-            radius_cutoff *= len(cnn_cutoff)
-
-        if len(cnn_cutoff) == 1:
-            cnn_cutoff *= len(radius_cutoff)
-
-        cdef AINDEX step, n_steps = len(radius_cutoff)
-        assert n_steps == len(cnn_cutoff)
-
-        radius_cutoff_vector = radius_cutoff
-        cnn_cutoff_vector = cnn_cutoff
-
-        cdef ClusterParameters cluster_params
-        cdef AINDEX current_start = 1
-
-        if cnn_offset is None:
-            cnn_offset = 0
-
-        cdef AINDEX index, n = self._input_data.n_points
-        cdef AINDEX cluster_label, parent_label
-        cdef AINDEX parent_root_ptr, child_root_index, current_max_label
-
-        cdef Labels previous_labels = Labels(
-            np.ones(n, order="C", dtype=P_AINDEX)
-            )
-        cdef Labels current_labels
-        # cdef AINDEX* current_labels = &current_labels._labels[0]
-
-        self._root_indices = np.arange(n)
-        self._parent_indices = np.arange(n)
-
-        cdef dict terminal_cluster_references = {1: self}
-        cdef dict new_terminal_cluster_references
-        cdef list child_indices, root_indices, parent_indices
-
-        for step in range(n_steps):
-
-            if v:
-                print(
-                    f"Running step {step} "
-                    f"(r = {radius_cutoff_vector[step]}, "
-                    f"c = {cnn_cutoff_vector[step]})"
-                    )
-
-            current_labels = Labels(
-                np.zeros(n, order="C", dtype=P_AINDEX)
-                )
-
-            cluster_params = self.make_parameters(
-                radius_cutoff_vector[step],
-                cnn_cutoff_vector[step] - cnn_offset,
-                current_start
-                )
-
-            self._fitter.fit(
-                self._input_data,
-                current_labels,
-                cluster_params
-                )
-
-            if v:
-                print("    ... fit done")
-
-            current_clusters = defaultdict(lambda: defaultdict(list))
-            current_clusters_processed = defaultdict(lambda: defaultdict(list))
-            current_max_label = np.max(previous_labels.labels)
-
-            for index in range(n):
-                cluster_label = current_labels._labels[index]
-
-                if cluster_label == 0:
-                    continue
-
-                current_clusters[previous_labels._labels[index]][cluster_label].append(index)
-
-            for parent_label, child_mapping in current_clusters.items():
-                sorted_child_labels_and_membercount = sorted(
-                    {
-                        k: len(v)
-                        for k, v in child_mapping.items()
-                    }.items(), key=itemgetter(1), reverse=True
-                )
-
-                child_label, member_count = sorted_child_labels_and_membercount[0]
-                child_indices = child_mapping[child_label]
-                if member_count >= _member_cutoff:
-                    current_labels.labels[child_indices] = parent_label  # !
-                    current_clusters_processed[parent_label][parent_label] = child_indices
-                else:
-                    current_labels.labels[child_indices] = 0
-
-                for child_label, member_count in sorted_child_labels_and_membercount[1:]:
-                    child_indices = child_mapping[child_label]
-                    if member_count >= _member_cutoff:
-                        current_labels.labels[child_indices] = child_label + current_max_label
-                        current_clusters_processed[parent_label][child_label + current_max_label] = child_indices
-                    else:
-                        current_labels.labels[child_indices] = 0
-
-            new_terminal_cluster_references = {}
-            for parent_label, clustering_instance in terminal_cluster_references.items():
-                clustering_instance._labels = Labels.from_sequence(
-                    current_labels.labels[clustering_instance._root_indices]
-                    )
-                clustering_instance._children = defaultdict(
-                    lambda: Clustering(parent=clustering_instance)
-                    )
-
-                for child_label, root_indices in current_clusters_processed[parent_label].items():
-                    clustering_instance._children[child_label]._root_indices = np.asarray(root_indices)
-                    # clustering_instance._children[child_label]._input_data = self._input_data.get_subset(root_indices)
-                    parent_alias = clustering_instance.alias if clustering_instance.alias is not None else ""
-                    clustering_instance._children[child_label].alias += f"{parent_alias} - {child_label}"
-
-                    # Reconstruct parent indices
-                    parent_root_ptr = 0
-                    parent_indices = []
-                    for child_root_index in root_indices:
-                        while True:
-                            if child_root_index == clustering_instance._root_indices[parent_root_ptr]:
-                                parent_indices.append(parent_root_ptr)
-                                parent_root_ptr += 1
-                                break
-                            parent_root_ptr += 1
-
-                    clustering_instance._children[child_label]._parent_indices = np.asarray(parent_indices)
-                    new_terminal_cluster_references[child_label] = clustering_instance._children[child_label]
-
-            terminal_cluster_references = new_terminal_cluster_references
-            previous_labels = current_labels
-
-        return
+        self._hfitter.fit(self, **kwargs)
 
     def isolate(
             self,

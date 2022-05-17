@@ -15,6 +15,7 @@ from cnnclustering._types import (
     QueueFIFODeque,
     QueueExtFIFOQueue,
     QueueExtLIFOVector,
+    PriorityQueueMaxHeap,
 )
 
 
@@ -261,3 +262,31 @@ class TestQueue:
         if kind == "lifo":
             popped.reverse()
         assert pushed == popped
+
+
+class TestPriorityQueue:
+
+    @pytest.mark.parametrize(
+        "queue_type,values,expected",
+        [
+            (
+                PriorityQueueMaxHeap,
+                [(1, 2, 1,), (7, 8, 5,), (9, 3, 3,)],
+                [(7, 8, 5,), (9, 3, 3,), (1, 2, 1,)],
+            ),
+        ]
+    )
+    def test_use_queue(
+            self, queue_type, values, expected):
+        queue = queue_type()
+
+        assert queue.is_empty()
+
+        for a, b, w in values:
+            queue.push(a, b, w)
+
+        for ea, eb, ew in expected:
+            a, b, w = queue.pop()
+            assert (ea, eb, ew) == (a, b, w)
+
+        assert queue.is_empty()

@@ -1,3 +1,5 @@
+cimport numpy as np
+
 from libcpp.unordered_set cimport unordered_set as cppunordered_set
 
 from cnnclustering._primitive_types cimport AVALUE, AINDEX, ABOOL
@@ -15,11 +17,16 @@ ctypedef fused FITTER:
     FitterExtBFS
     object
 
+
 ctypedef fused FITTER_EXT:
     FitterExtBFS
 
 
-cdef class FitterExtBFS:
+cdef class FitterExtInterface:
+    pass
+
+cdef class FitterExtBFS(FitterExtInterface):
+
     cdef public:
         NeighboursGetterExtInterface _neighbours_getter
         NeighboursExtInterface _neighbours
@@ -34,7 +41,8 @@ cdef class FitterExtBFS:
         ClusterParameters cluster_params) nogil
 
 
-cdef class FitterExtBFSDebug:
+
+cdef class FitterExtBFSDebug(FitterExtInterface):
     cdef:
         bint _verbose
         bint _yielding

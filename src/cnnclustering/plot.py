@@ -7,7 +7,6 @@ from typing import Sequence
 from typing import Any, Optional
 
 import matplotlib.pyplot as plt
-from pyparsing import anyOpenTag
 
 try:
     import networkx as nx

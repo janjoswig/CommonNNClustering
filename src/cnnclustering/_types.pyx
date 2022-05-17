@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import Counter, defaultdict, deque
+import heapq
 from itertools import count
 from typing import Any, Optional, Type
 from typing import Container, Iterator, Sequence
@@ -705,7 +706,15 @@ class SimilarityChecker(ABC):
             neighbours_a: Type["Neighbours"],
             neighbours_b: Type["Neighbours"],
             cluster_params: Type['ClusterParameters']) -> bool:
-        """Retrun True if a and b have sufficiently many common neighbours"""
+        """Return True if a and b have sufficiently many common neighbours"""
+
+    @abstractmethod
+    def get(
+            self,
+            neighbours_a: Type["Neighbours"],
+            neighbours_b: Type["Neighbours"],
+            cluster_params: Type['ClusterParameters']) -> int:
+        """Return number of common neighbours"""
 
     def __str__(self):
         return f"{type(self).__name__}"
@@ -730,6 +739,20 @@ cdef class SimilarityCheckerExtInterface:
             ClusterParameters cluster_params):
 
         return self._check(neighbours_a, neighbours_b, cluster_params)
+
+    cdef AINDEX _get(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params) nogil: ...
+
+    def get(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params):
+
+        return self._get(neighbours_a, neighbours_b, cluster_params)
 
     def __str__(self):
         return f"{type(self).__name__}"
@@ -781,6 +804,52 @@ cdef class QueueExtInterface:
     @classmethod
     def get_builder_kwargs(cls):
         return []
+
+class PriorityQueue(ABC):
+    """Defines the prioqueue interface"""
+
+    @abstractmethod
+    def push(self, a, b, weight) -> None:
+        """Put values into the queue"""
+
+    @abstractmethod
+    def pop(self) -> (int, int, float):
+        """Retrieve values from the queue"""
+
+    @abstractmethod
+    def is_empty(self) -> bool:
+        """Return True if there are no values in the queue"""
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+
+cdef class PriorityQueueExtInterface:
+
+    cdef void _push(self, const AINDEX a, const AINDEX b, const AVALUE weight) nogil: ...
+    cdef (AINDEX, AINDEX, AVALUE) _pop(self) nogil: ...
+    cdef bint _is_empty(self) nogil: ...
+
+    def push(self, a: int, b: int, weight: float):
+        self._push(a, b, weight)
+
+    def pop(self) -> (int, int, float):
+        return self._pop()
+
+    def is_empty(self) -> bool:
+        return self._is_empty()
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
 
 class InputDataNeighbourhoodsSequence(InputDataNeighbourhoods):
     """Implements the input data interface
@@ -2278,6 +2347,25 @@ class SimilarityCheckerContains(SimilarityChecker):
                 continue
         return False
 
+    def get(
+            self,
+            neighbours_a: Type["Neighbours"],
+            neighbours_b: Type["Neighbours"],
+            cluster_params: Type['ClusterParameters']) -> int:
+        """Return number of common neighbours"""
+
+        cdef AINDEX na = neighbours_a.n_points
+
+        cdef AINDEX member_a, member_index_a
+        cdef AINDEX common = 0
+
+        for member_index_a in range(na):
+            member_a = neighbours_a.get_member(member_index_a)
+            if neighbours_b.contains(member_a):
+                common += 1
+
+        return common
+
 
 class SimilarityCheckerSwitchContains(SimilarityChecker):
     r"""Implements the similarity checker interface
@@ -2327,6 +2415,30 @@ class SimilarityCheckerSwitchContains(SimilarityChecker):
                     return True
                 continue
         return False
+
+    def get(
+            self,
+            neighbours_a: Type["Neighbours"],
+            neighbours_b: Type["Neighbours"],
+            cluster_params: Type['ClusterParameters']) -> int:
+        """Return number of common neighbours"""
+
+        cdef AINDEX na = neighbours_a.n_points
+        cdef AINDEX nb = neighbours_b.n_points
+
+        cdef AINDEX member_a, member_index_a
+        cdef AINDEX common = 0
+
+        if nb < na:
+            neighbours_a, neighbours_b = neighbours_b, neighbours_a
+            na, nb = nb, na
+
+        for member_index_a in range(na):
+            member_a = neighbours_a.get_member(member_index_a)
+            if neighbours_b.contains(member_a):
+                common += 1
+
+        return common
 
 
 cdef class SimilarityCheckerExtContains(SimilarityCheckerExtInterface):
@@ -2569,3 +2681,25 @@ cdef class QueueExtFIFOQueue(QueueExtInterface):
 
 Queue.register(QueueExtLIFOVector)
 Queue.register(QueueExtFIFOQueue)
+
+class PriorityQueueMaxHeap(PriorityQueue):
+    """Defines the prioqueue interface"""
+
+    def __init__(self):
+       self._queue = []
+
+    def push(self, a, b, weight) -> None:
+        """Put values into the queue"""
+        heapq.heappush(self._queue, (-weight, (a, b)))
+
+    def pop(self) -> (int, int, float):
+        """Retrieve values from the queue"""
+        weight, (a, b) = heapq.heappop(self._queue)
+        return a, b, -weight
+
+    def is_empty(self) -> bool:
+        """Return True if there are no values in the queue"""
+
+        if self._queue:
+            return False
+        return True
