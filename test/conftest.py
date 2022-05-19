@@ -10,6 +10,7 @@ except ModuleNotFoundError:
 
 from cnnclustering import cluster
 from cnnclustering._primitive_types import P_AINDEX
+from cnnclustering._bundle import Bundle
 from cnnclustering._types import Labels, ReferenceIndices
 
 
@@ -43,33 +44,31 @@ def make_empty_clustering():
 
 
 def make_hierarchical_clustering_a():
-    labels = Labels(
-        np.array([0, 0, 1, 1, 0, 0, 1, 2, 1, 1, 1, 2, 2, 1, 0], dtype=P_AINDEX)
+    bundle = Bundle(
+        labels=Labels(
+            np.array([0, 0, 1, 1, 0, 0, 1, 2, 1, 1, 1, 2, 2, 1, 0], dtype=P_AINDEX)
+        )
     )
-    clustering = cluster.Clustering(
-        labels=labels
-    )
+    clustering = cluster.Clustering(bundle)
 
-    clustering._children = {}
     for i in [0, 1, 2]:
-        clustering._children[i] = cluster.Clustering(parent=clustering)
+        bundle.add_child(i)
 
-    clustering._children[1]._labels = Labels(
+    bundle._children[1]._labels = Labels(
         np.array([0, 1, 0, 2, 2, 2, 1], dtype=P_AINDEX)
         )
-    clustering._children[1]._indices = ReferenceIndices(
+    bundle._children[1]._reference_indices = ReferenceIndices(
         np.array([2, 3, 6, 8, 9, 10, 13]),
         np.array([2, 3, 6, 8, 9, 10, 13])
         )
 
-    clustering._children[1]._children = {}
     for i in [0, 1, 2]:
-        clustering._children[1]._children[i] = cluster.Clustering(parent=clustering)
+        bundle.get_child(1).add_child(i)
 
-    clustering._children[1]._children[2]._labels = Labels(
+    bundle.get_child([1, 2])._labels = Labels(
         np.array([2, 1, 0], dtype=P_AINDEX)
         )
-    clustering._children[1]._children[2]._indices = ReferenceIndices(
+    bundle.get_child([1, 2])._reference_indices = ReferenceIndices(
         np.array([8, 9, 10]),
         np.array([3, 4, 5])
         )
@@ -78,12 +77,13 @@ def make_hierarchical_clustering_a():
 
 
 def make_trivial_clustering():
-    labels = Labels(
-        np.array([0, 0, 0, 0, 0, 0, 0, 0], dtype=P_AINDEX)
+
+    bundle = Bundle(
+        labels= Labels(
+            np.array([0, 0, 0, 0, 0, 0, 0, 0], dtype=P_AINDEX)
+        )
     )
-    clustering = cluster.Clustering(
-        labels=labels
-    )
+    clustering = cluster.Clustering(bundle)
 
     return clustering
 

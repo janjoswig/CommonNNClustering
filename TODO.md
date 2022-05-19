@@ -59,3 +59,12 @@ Clustering initialisation
 -------------------------
 
 Scan for non-sensical keywords that may have been passed (warning)
+
+Children
+--------
+
+```python
+defaultdict(
+  lambda: Clustering(parent=self)
+  )
+```

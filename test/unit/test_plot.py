@@ -17,7 +17,7 @@ from cnnclustering import plot
     ]
 )
 def test_get_pieces(case_key, registered_clustering):
-    pieces = plot.get_pieces(registered_clustering)
+    pieces = plot.get_pieces(registered_clustering._bundle)
     assert len(set([sum(x[1] for x in y) for y in pieces])) == 1
 
 

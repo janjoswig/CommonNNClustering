@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import deque
+import copy
 from typing import Any, Optional, Type, Union
 from typing import Container, Iterable, List, Tuple, Sequence
 import heapq
@@ -48,6 +49,39 @@ class Fitter(ABC):
             cluster_params: Type['ClusterParameters']):
         """Generic clustering"""
 
+    def make_parameters(
+            self,
+            radius_cutoff: float,
+            cnn_cutoff: int,
+            current_start: int) -> Type["ClusterParameters"]:
+
+        try:
+            used_metric = self._neighbours_getter._distance_getter._metric
+        except AttributeError:
+            pass
+        else:
+            radius_cutoff = used_metric.adjust_radius(radius_cutoff)
+
+        n_member_cutoff = cnn_cutoff
+        try:
+            is_selfcounting = self._neighbours_getter.is_selfcounting
+        except AttributeError:
+            pass
+        else:
+            if is_selfcounting:
+                n_member_cutoff += 1
+                cnn_cutoff += 2
+
+        cluster_params = ClusterParameters(
+            radius_cutoff,
+            cnn_cutoff,
+            cnn_cutoff,  # similarity_cutoff_continuous not in use right now
+            n_member_cutoff,
+            current_start,
+            )
+
+        return cluster_params
+
 
 class HierarchicalFitter(ABC):
     """Defines the hfitter interface"""
@@ -56,9 +90,73 @@ class HierarchicalFitter(ABC):
     def fit(self, object clustering, **kwargs):
         """Generic clustering"""
 
+    def make_parameters(
+            self,
+            radius_cutoff: float,
+            cnn_cutoff: int,
+            current_start: int) -> Type["ClusterParameters"]:
+
+        try:
+            used_metric = self._neighbours_getter._distance_getter._metric
+        except AttributeError:
+            pass
+        else:
+            radius_cutoff = used_metric.adjust_radius(radius_cutoff)
+
+        n_member_cutoff = cnn_cutoff
+        try:
+            is_selfcounting = self._neighbours_getter.is_selfcounting
+        except AttributeError:
+            pass
+        else:
+            if is_selfcounting:
+                n_member_cutoff += 1
+                cnn_cutoff += 2
+
+        cluster_params = ClusterParameters(
+            radius_cutoff,
+            cnn_cutoff,
+            cnn_cutoff,  # similarity_cutoff_continuous not in use right now
+            n_member_cutoff,
+            current_start,
+            )
+
+        return cluster_params
+
 
 cdef class FitterExtInterface:
-    pass
+    def make_parameters(
+            self,
+            radius_cutoff: float,
+            cnn_cutoff: int,
+            current_start: int) -> Type["ClusterParameters"]:
+
+        try:
+            used_metric = self._neighbours_getter._distance_getter._metric
+        except AttributeError:
+            pass
+        else:
+            radius_cutoff = used_metric.adjust_radius(radius_cutoff)
+
+        n_member_cutoff = cnn_cutoff
+        try:
+            is_selfcounting = self._neighbours_getter.is_selfcounting
+        except AttributeError:
+            pass
+        else:
+            if is_selfcounting:
+                n_member_cutoff += 1
+                cnn_cutoff += 2
+
+        cluster_params = ClusterParameters(
+            radius_cutoff,
+            cnn_cutoff,
+            cnn_cutoff,  # similarity_cutoff_continuous not in use right now
+            n_member_cutoff,
+            current_start,
+            )
+
+        return cluster_params
 
 
 class Predictor(ABC):
@@ -81,6 +179,39 @@ class Predictor(ABC):
             predictand_labels: Type['Labels'],
             cluster_params: Type['ClusterParameters']):
         """Generic cluster label prediction"""
+
+    def make_parameters(
+            self,
+            radius_cutoff: float,
+            cnn_cutoff: int,
+            current_start: int) -> Type["ClusterParameters"]:
+
+        try:
+            used_metric = self._neighbours_getter._distance_getter._metric
+        except AttributeError:
+            pass
+        else:
+            radius_cutoff = used_metric.adjust_radius(radius_cutoff)
+
+        n_member_cutoff = cnn_cutoff
+        try:
+            is_selfcounting = self._neighbours_getter.is_selfcounting
+        except AttributeError:
+            pass
+        else:
+            if is_selfcounting:
+                n_member_cutoff += 1
+                cnn_cutoff += 2
+
+        cluster_params = ClusterParameters(
+            radius_cutoff,
+            cnn_cutoff,
+            cnn_cutoff,  # similarity_cutoff_continuous not in use right now
+            n_member_cutoff,
+            current_start,
+            )
+
+        return cluster_params
 
 
 class FitterBFS(Fitter):
@@ -604,7 +735,10 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
             interface.
         similarity_checker: Any object implementing the similarity checker
             interface.
-        queue: Any object implementing the queue interface.
+        priority_queue:
+            Any object implementing the prioqueue interface (max heap).
+        priority_queue_tree:
+            Any object implementing the prioqueue interface (max heap).
     """
 
     def __init__(
@@ -612,11 +746,15 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
             neighbours_getter: Type["NeighboursGetter"],
             neighbours: Type["Neighbours"],
             neighbour_neighbours: Type["Neighbours"],
-            similarity_checker: Type["SimilarityChecker"]):
+            similarity_checker: Type["SimilarityChecker"],
+            priority_queue: Type["PriorityQueue"],
+            priority_queue_tree: Type["PriorityQueue"]):
         self._neighbours_getter = neighbours_getter
         self._neighbours = neighbours
         self._neighbour_neighbours = neighbour_neighbours
         self._similarity_checker = similarity_checker
+        self._priority_queue = priority_queue
+        self._priority_queue_tree = priority_queue_tree
 
     def __str__(self):
 
@@ -625,6 +763,8 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
             f"na={self._neighbours}",
             f"nb={self._neighbour_neighbours}",
             f"checker={self._similarity_checker}",
+            f"prioq={self._priority_queue}",
+            f"prioq (tree)={self._priority_queue_tree}"
         ])
 
         return f"{type(self).__name__}({attr_str})"
@@ -636,9 +776,9 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
             ("neighbours", None),
             ("neighbour_neighbours","neighbours"),
             ("similarity_checker", None),
-            ("queue", None),
+            ("priority_queue", None),
+            ("priority_queue_tree", "priority_queue")
             ]
-
 
     def fit(self, object clustering, **kwargs):
 
@@ -663,7 +803,7 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
 
     def _fit(
             self,
-            object clustering,
+            bundle,
             radius_cutoff: float,
             member_cutoff: int = None,
             max_clusters: int = None,
@@ -672,32 +812,48 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
             info: bool = True,
             v: bool = True):
 
-        cdef object input_data = clustering._input_data
-        cdef Labels labels = clustering._labels
+        self._priority_queue.reset()
+        self._priority_queue_tree.reset()
 
-        cdef AINDEX n, m, member_index, weight, a, b
-        cdef AINDEX root, member
+        cdef object input_data = bundle._input_data
+        cdef AINDEX n_points = input_data.n_points
+
+        cdef object spanning_tree
+        # TODO: Not actually needed (prioq tree is enough), but can be attached
+        # TODO    to root bundle in the end for inspection
+
+        cdef Labels labels = Labels(
+            np.ones(n_points, order="C", dtype=P_AINDEX)
+            )
+        bundle._labels = labels
         cdef ABOOL* _consider = &labels._consider[0]
-        cdef list queue = []
+
+        cdef AINDEX m, member_index, a, b, i, j
+        cdef AVALUE weight
+        cdef AINDEX root, member, _member_cutoff
+
         cdef ClusterParameters cluster_params
 
         if cnn_offset is None:
             cnn_offset = 0
 
-        cluster_params = clustering.make_parameters(
+        cluster_params = self.make_parameters(
                 radius_cutoff,
                 0,
-                0
+                1
                 )
+
+        if member_cutoff is None:
+            member_cutoff = 10
+        _member_cutoff = member_cutoff
 
         if not NX_FOUND:
             raise ModuleNotFoundError("No module named 'networkx'")
 
         # Build MST
-        n = input_data.n_points
         spanning_tree = nx.Graph()
 
-        for root in range(n):
+        for root in range(n_points):
             if _consider[root] == 0:
                 continue
             _consider[root] = 0
@@ -731,16 +887,17 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
                     cluster_params
                     )
 
-                heapq.heappush(queue, (weight, (root, member)))
+                self._priority_queue.push(root, member, weight)
 
-            while queue:
-                weight, (a, b) = heapq.heappop(queue)
+            while not self._priority_queue.is_empty():
+                a, b, weight = self._priority_queue.pop()
 
                 if _consider[b] == 0:
                     continue
                 _consider[b] = 0
 
                 spanning_tree.add_edge(a, b, weight=weight)  # ! addition of w. edges
+                self._priority_queue_tree.push(a, b, weight)
 
                 self._neighbours_getter.get(
                     b,
@@ -770,12 +927,148 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
                         cluster_params
                         )
 
-                    heapq.heappush(queue, (weight, (b, member)))
+                    self._priority_queue.push(b, member, weight)
+
+        # Build hierarchy from MST
+        cdef AVALUE merge_level, last_merge_level, new_max_weight
+        cdef AINDEX n_edges = self._priority_queue_tree.size()
+        cdef list union_find = []
+        cdef AINDEX n_uf = -1
+        cdef AINDEX tree_a, tree_b, members_a, members_b
+        cdef dict children, children_a, children_b
+
+        assert n_edges > 0, "No edges in the spanning tree"
+
+        a, b, weight = self._priority_queue_tree.pop()
+        merge_level = last_merge_level = weight
+
+        union_find.append(
+            Bundle(graph=nx.Graph([(a, b, {"weight": weight})]))
+            )
+        n_uf += 1
+        union_find[n_uf].meta = {"max_weight": weight, "min_weight": None}
+
+        for i in range(1, n_edges):
+            a, b, weight = self._priority_queue_tree.pop()
+
+            # Like Kruskal's
+            tree_a = tree_b = -1
+            for tree_index, x in enumerate(union_find):
+                if a in x._graph:
+                    tree_a = tree_index
+                if b in x._graph:
+                    tree_b = tree_index
+
+            if (tree_a == -1) & (tree_b == -1):
+                union_find.append(
+                    Bundle(graph=nx.Graph([(a, b, {"weight": weight})]))
+                    )
+                n_uf += 1
+                union_find[n_uf].meta = {"max_weight": weight, "min_weight": None}
+            elif (tree_a == -1):
+                union_find[tree_b]._graph.add_edge(a, b, weight=weight)
+            elif (tree_b == -1):
+                union_find[tree_a]._graph.add_edge(a, b, weight=weight)
+            else:
+
+                members_a = len(union_find[tree_a]._graph)
+                members_b = len(union_find[tree_b]._graph)
+
+                if (members_a >= _member_cutoff) & (members_b >= _member_cutoff):
+                    if v:
+                        print(f"Merge at {last_merge_level}/{weight}")
+
+                    union_find[tree_a].meta["min_weight"] = last_merge_level
+                    union_find[tree_b].meta["min_weight"] = last_merge_level
+
+                    parent = Bundle(
+                        graph=nx.union(union_find[tree_a]._graph, union_find[tree_b]._graph)
+                        )
+                    union_find.append(parent)
+                    n_uf += 1
+                    parent.meta = {"max_weight": weight, "min_weight": None}
+                    union_find[tree_a]._parent = weakref.proxy(parent)
+                    union_find[tree_b]._parent = weakref.proxy(parent)
+                    parent._children[1] = union_find[tree_a]
+                    parent._children[2] = union_find[tree_b]
+
+                else:
+                    children_a = union_find[tree_a]._children
+                    children_b = union_find[tree_b]._children
+                    assert (not children_a) | (not children_b), f"a: {children_a}, b: {children_b}"
+                    # TODO: Remove assert if we are sure that this is really never violated.
+                    # TODO     A cluster that has not enough members can not have children
+
+                    if (members_a < _member_cutoff) & (members_b < _member_cutoff):
+                        new_max_weight = weight
+                        children = {}
+                    elif members_a < _member_cutoff:
+                        new_max_weight = union_find[tree_b].meta["max_weight"]
+                        children = children_b
+                    else: # elif members_b < member_cutoff:
+                        new_max_weight = union_find[tree_a].meta["max_weight"]
+                        children = children_a
+
+                    union_find.append(
+                        Bundle(graph=nx.union(union_find[tree_a]._graph, union_find[tree_b]._graph))
+                        )
+                    n_uf += 1
+                    union_find[n_uf].meta = {
+                        "max_weight": new_max_weight,
+                        "min_weight": None,
+                        }
+                    union_find[n_uf]._children = children
+
+
+                union_find[n_uf]._graph.add_edge(a, b, weight=weight)
+                union_find = [
+                    x for j, x in enumerate(union_find)
+                    if (j != tree_a) & (j != tree_b)
+                ]
+                n_uf -= 2
+
+            if weight < merge_level:
+                last_merge_level = merge_level
+            merge_level = weight
+
+        i = 1
+        noise = nx.Graph()
+        for x in union_find:
+            if len(x._graph) >= _member_cutoff:
+                x.meta["min_weight"] = weight
+                bundle._children[i] = x
+                i += 1
+            else:
+                noise = nx.union(noise, x._graph)
+
+        if len(noise) > 0:
+            bundle._children[0] = Bundle(graph=noise)
+
+        bundle._graph = spanning_tree
 
 
 class HierarchicalFitterRepeat(HierarchicalFitter):
 
-    def fit(self, object clustering, **kwargs):
+    def __init__(
+            self,
+            fitter: Type["Fitter"]):
+        self._fitter = fitter
+
+    def __str__(self):
+
+        attr_str = ", ".join([
+            f"fitter={self._fitter}"
+        ])
+
+        return f"{type(self).__name__}({attr_str})"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return [
+            ("fitter", None),
+            ]
+
+    def fit(self, Bundle bundle, **kwargs):
 
         radius_cutoff = kwargs["radius_cutoff"]
         cnn_cutoff = kwargs["cnn_cutoff"]
@@ -787,7 +1080,7 @@ class HierarchicalFitterRepeat(HierarchicalFitter):
         v = kwargs.get("v", True)
 
         self._fit(
-            clustering,
+            bundle,
             radius_cutoff,
             cnn_cutoff,
             member_cutoff,
@@ -800,7 +1093,7 @@ class HierarchicalFitterRepeat(HierarchicalFitter):
 
     def _fit(
             self,
-            object clustering,
+            bundle: Type["Bundle"],
             radius_cutoff: Union[float, Iterable[float]],
             cnn_cutoff: Union[int, Iterable[int]],
             member_cutoff: int = None,
@@ -841,7 +1134,7 @@ class HierarchicalFitterRepeat(HierarchicalFitter):
         if cnn_offset is None:
             cnn_offset = 0
 
-        cdef AINDEX n, n_points = clustering._input_data.n_points
+        cdef AINDEX n, n_points = bundle._input_data.n_points
 
         cdef Labels previous_labels = Labels(
             np.ones(n_points, order="C", dtype=P_AINDEX)
@@ -853,7 +1146,7 @@ class HierarchicalFitterRepeat(HierarchicalFitter):
         cdef cppumap[AINDEX, cppvector[AINDEX]] parent_labels_map
         cdef cppumap[AINDEX, cppvector[AINDEX]].iterator p_it
 
-        cdef dict terminal_clusterings = {1: clustering}
+        cdef dict terminal_clusterings = {1: bundle}
         cdef dict new_terminal_clusterings
 
         for step in range(n_steps):
@@ -871,14 +1164,14 @@ class HierarchicalFitterRepeat(HierarchicalFitter):
                 np.zeros(n_points, order="C", dtype=P_AINDEX)
                 )
 
-            cluster_params = clustering.make_parameters(
+            cluster_params = self.make_parameters(
                 radius_cutoff_vector[step],
                 cnn_cutoff_vector[step] - cnn_offset,
                 current_start
                 )
 
-            clustering._fitter.fit(
-                clustering._input_data,
+            self._fitter.fit(
+                bundle._input_data,
                 current_labels,
                 cluster_params
                 )

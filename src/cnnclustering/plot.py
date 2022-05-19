@@ -146,34 +146,35 @@ def plot_graph_sugiyama_straight(graph, ax, pos_props=None, draw_props=None):
 
 
 def get_pieces(
-        clustering):
+        bundle):
     """Transform cluster tree to layers of hierarchy levels
 
     Each hierarchy level will be represented as a list of tuples holding
     a cluster string identifier and the number of points in this cluster.
 
-    Used by :meth:`plot_pie`.
+    Note:
+        Used by :meth:`plot_pie`.
 
     Args:
-        clustering: A root instance of :obj:`cnnclustering.cluster.Clustering`
+        bundle: A root instance of :obj:`~cnnclustering._bundle.Bundle`
     """
 
-    if clustering._labels is None:
+    if bundle._labels is None:
         raise LookupError(
             "Root clustering has no labels"
             )
 
-    pieces = [[("1", clustering._labels.n_points)]]
+    pieces = [[("1", bundle._labels.n_points)]]
     expected_parent_pool = iter(pieces[-1])
     next_parent_label, next_parent_membercount = next(expected_parent_pool)
     expected_parent_found = False
     pieces.append([])
 
-    terminal_cluster_references = deque([("1", clustering)])
+    terminal_cluster_references = deque([("1", bundle)])
     new_terminal_cluster_references = deque()
 
     while True:
-        parent_label, clustering_instance = terminal_cluster_references.popleft()
+        parent_label, bundle_instance = terminal_cluster_references.popleft()
 
         while parent_label != next_parent_label:
             if not expected_parent_found:
@@ -187,14 +188,14 @@ def get_pieces(
 
         cluster_shares = [
             (f"{'.'.join([parent_label, str(k)])}", len(v))
-            for k, v in sorted(clustering_instance._labels.mapping.items())
+            for k, v in sorted(bundle_instance._labels.mapping.items())
             ]
 
         pieces[-1].extend(cluster_shares)
 
-        if clustering_instance._children:
+        if bundle_instance._children:
             for child_label, child_clustering in sorted(
-                    clustering_instance._children.items()):
+                    bundle_instance._children.items()):
 
                 if child_clustering._labels is None:
                     continue
@@ -212,7 +213,7 @@ def get_pieces(
                 pieces[-1].append((f"{next_parent_label}.0", next_parent_membercount))
 
             # DEBUG
-            assert sum(p[1] for p in pieces[-1]) == clustering._labels.n_points
+            assert sum(p[1] for p in pieces[-1]) == bundle._labels.n_points
 
             if not new_terminal_cluster_references:
                 break

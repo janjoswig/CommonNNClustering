@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from cnnclustering import hooks
+from cnnclustering import recipes
 
 
 @pytest.mark.parametrize(
@@ -40,7 +40,7 @@ from cnnclustering import hooks
 )
 def test_prepare_points_from_parts(
         data, expected_data, expected_meta):
-    data_args, data_kwargs = hooks.prepare_points_from_parts(data)
+    data_args, data_kwargs = recipes.prepare_points_from_parts(data)
     reformatted_data = data_args[0]
     np.testing.assert_array_equal(
         expected_data,
@@ -56,7 +56,7 @@ def test_prepare_points_from_parts(
     ]
 )
 def test_prepare_neighbourhoods(data):
-    (padded_data, n_neighbours), data_kwargs = hooks.prepare_neighbourhoods(data)
+    (padded_data, n_neighbours), data_kwargs = recipes.prepare_neighbourhoods(data)
 
     assert isinstance(data_kwargs.get("meta"), dict)
     assert padded_data.shape[0] == len(data)

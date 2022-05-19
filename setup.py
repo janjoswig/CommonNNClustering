@@ -45,6 +45,7 @@ compiler_directives = {
     "cdivision": True,
     "nonecheck": False,
     "linetrace": True,
+    "annotation_typing": False
 }
 
 extensions = cythonize(extensions, compiler_directives=compiler_directives)

@@ -3,7 +3,7 @@ from collections import Counter
 import numpy as np
 import pytest
 
-from cnnclustering import cluster, hooks
+from cnnclustering import cluster
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE
 from cnnclustering import _types
 from cnnclustering import _fit
@@ -11,17 +11,24 @@ from cnnclustering import _fit
 
 class TestClustering:
     def test_create(self):
-        clustering = cluster.Clustering()
+        clustering = cluster.Clustering(recipe={})
         assert clustering
+        assert clustering._bundle is None
+        assert clustering._fitter is None
+        assert clustering._hierarchical_fitter is None
+        assert clustering._predictor is None
 
     def test_fit_fully_mocked(self, mocker):
         input_data = mocker.Mock(_types.InputData)
         fitter = mocker.Mock(_fit.Fitter)
+        type(fitter).make_parameters = mocker.MagicMock(
+            return_value=_types.ClusterParameters(1)
+            )
 
         type(input_data).n_points = mocker.PropertyMock(return_value=5)
 
         clustering = cluster.Clustering(
-            input_data=input_data,
+            data=input_data,
             fitter=fitter,
         )
         clustering.fit(radius_cutoff=1.0, cnn_cutoff=1)
@@ -33,18 +40,21 @@ class TestClustering:
         predictor = mocker.Mock(_fit.Predictor)
 
         type(input_data).n_points = mocker.PropertyMock(return_value=5)
+        type(predictor).make_parameters = mocker.MagicMock(
+            return_value=_types.ClusterParameters(1)
+            )
 
         clustering = cluster.Clustering(
-            input_data=input_data,
+            data=input_data,
             predictor=predictor,
         )
 
         other_clustering = cluster.Clustering(
-            input_data=input_data,
+            data=input_data,
         )
 
         clustering.predict(
-            other_clustering,
+            other_clustering._bundle,
             radius_cutoff=1.0,
             cnn_cutoff=1,
             clusters={1, 2, 3}
@@ -115,11 +125,13 @@ class TestClustering:
             file_regression):
 
         clustering = cluster.Clustering(
-            input_data=input_data_type(data, meta=meta),
-            labels=_types.Labels(labels)
+            data=input_data_type(data, meta=meta),
+            bundle_kwargs={
+                "labels": _types.Labels(labels)
+            }
         )
         if not ((root_indices is None) or (parent_indices is None)):
-            clustering._indices = _types.ReferenceIndices(
+            clustering._bundle._reference_indices = _types.ReferenceIndices(
                 root_indices,
                 parent_indices
             )
@@ -128,11 +140,11 @@ class TestClustering:
         label_set = set(labels)
         label_counter = Counter(labels)
 
-        assert len(clustering._children) == len(label_set)
+        assert len(clustering._bundle._children) == len(label_set)
 
         report = ""
         for label in label_set:
-            isolated_points = clustering._children[label]._input_data
+            isolated_points = clustering._bundle._children[label]._input_data
             assert isolated_points.n_points == label_counter[label]
 
             edges = isolated_points.meta.get('edges', "None")
@@ -141,8 +153,8 @@ class TestClustering:
                 f'{"=" * 80}\n'
                 f"Data:\n{isolated_points.data}\n"
                 f"Edges:\n{edges}\n"
-                f"Root:\n{clustering._children[label].root_indices}\n"
-                f"Parent:\n{clustering._children[label].parent_indices}\n"
+                f"Root:\n{clustering._bundle._children[label].root_indices}\n"
+                f"Parent:\n{clustering._bundle._children[label].parent_indices}\n"
                 f"\n"
             )
 
@@ -165,6 +177,6 @@ class TestClustering:
             self, case_key, registered_clustering, depth, expected):
         registered_clustering.reel(depth=depth)
         np.testing.assert_array_equal(
-            registered_clustering._labels.labels,
+            registered_clustering._bundle.labels,
             expected
         )

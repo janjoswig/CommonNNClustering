@@ -809,6 +809,10 @@ class PriorityQueue(ABC):
     """Defines the prioqueue interface"""
 
     @abstractmethod
+    def reset(self) -> None:
+        """Reset the queue"""
+
+    @abstractmethod
     def push(self, a, b, weight) -> None:
         """Put values into the queue"""
 
@@ -830,9 +834,11 @@ class PriorityQueue(ABC):
 
 cdef class PriorityQueueExtInterface:
 
+    cdef void _reset(self) nogil: ...
     cdef void _push(self, const AINDEX a, const AINDEX b, const AVALUE weight) nogil: ...
     cdef (AINDEX, AINDEX, AVALUE) _pop(self) nogil: ...
     cdef bint _is_empty(self) nogil: ...
+    cdef AINDEX _size(self) nogil: ...
 
     def push(self, a: int, b: int, weight: float):
         self._push(a, b, weight)
@@ -842,6 +848,12 @@ cdef class PriorityQueueExtInterface:
 
     def is_empty(self) -> bool:
         return self._is_empty()
+
+    def size(self) -> int:
+        return self._size()
+
+    def reset(self) -> None:
+        return self._reset()
 
     def __str__(self):
         return f"{type(self).__name__}"
@@ -2486,6 +2498,23 @@ cdef class SimilarityCheckerExtContains(SimilarityCheckerExtInterface):
                 continue
         return False
 
+    cdef AINDEX _get(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params) nogil:
+
+        cdef AINDEX na = neighbours_a.n_points
+        cdef AINDEX member_a, member_index_a
+        cdef AINDEX common = 0
+
+        for member_index_a in range(na):
+            member_a = neighbours_a._get_member(member_index_a)
+            if neighbours_b._contains(member_a):
+                common += 1
+
+        return common
+
 
 cdef class SimilarityCheckerExtSwitchContains(SimilarityCheckerExtInterface):
     r"""Implements the similarity checker interface
@@ -2539,6 +2568,30 @@ cdef class SimilarityCheckerExtSwitchContains(SimilarityCheckerExtInterface):
                     return True
                 continue
         return False
+
+    cdef AINDEX _get(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params) nogil:
+
+        cdef AINDEX na = neighbours_a.n_points
+        cdef AINDEX nb = neighbours_b.n_points
+
+        cdef AINDEX member_a, member_index_a
+        cdef AINDEX common = 0
+
+        if nb < na:
+            with gil:
+                neighbours_a, neighbours_b = neighbours_b, neighbours_a
+                na, nb = nb, na
+
+        for member_index_a in range(na):
+            member_a = neighbours_a._get_member(member_index_a)
+            if neighbours_b._contains(member_a):
+                common += 1
+
+        return common
 
 
 cdef class SimilarityCheckerExtScreensorted(SimilarityCheckerExtInterface):
@@ -2611,6 +2664,53 @@ cdef class SimilarityCheckerExtScreensorted(SimilarityCheckerExtInterface):
             member_b = neighbours_b._get_member(member_index_b)
 
         return False
+
+    cdef AINDEX _get(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params) nogil:
+
+        cdef AINDEX na = neighbours_a.n_points
+        cdef AINDEX nb = neighbours_b.n_points
+
+        if (na == 0) or (nb == 0):
+            return 0
+
+        cdef AINDEX member_index_a = 0, member_index_b = 0
+        cdef AINDEX member_a, member_b
+        cdef AINDEX common = 0
+
+        member_a = neighbours_a._get_member(member_index_a)
+        member_b = neighbours_b._get_member(member_index_b)
+
+        while True:
+            if member_a == member_b:
+                common += 1
+
+                member_index_a += 1
+                member_index_b += 1
+
+                if (member_index_a == na) or (member_index_b == nb):
+                    break
+
+                member_a = neighbours_a._get_member(member_index_a)
+                member_b = neighbours_b._get_member(member_index_b)
+                continue
+
+            if member_a < member_b:
+                member_index_a += 1
+                if (member_index_a == na):
+                    break
+                member_a = neighbours_a._get_member(member_index_a)
+                continue
+
+            member_index_b += 1
+            if (member_index_b == nb):
+                break
+            member_b = neighbours_b._get_member(member_index_b)
+
+        return common
 
 
 SimilarityChecker.register(SimilarityCheckerExtContains)
@@ -2686,7 +2786,10 @@ class PriorityQueueMaxHeap(PriorityQueue):
     """Defines the prioqueue interface"""
 
     def __init__(self):
-       self._queue = []
+       self.reset()
+
+    def reset(self) -> None:
+        self._queue = []
 
     def push(self, a, b, weight) -> None:
         """Put values into the queue"""
@@ -2703,3 +2806,6 @@ class PriorityQueueMaxHeap(PriorityQueue):
         if self._queue:
             return False
         return True
+
+    def size(self):
+        return len(self._queue)

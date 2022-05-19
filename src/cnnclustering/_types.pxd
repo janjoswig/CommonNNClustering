@@ -131,7 +131,6 @@ cdef class Labels:
     cdef:
         AINDEX[::1] _labels
         ABOOL[::1] _consider
-
         cppunordered_set[AINDEX] _consider_set
 
 
@@ -244,9 +243,11 @@ cdef class QueueExtInterface:
 
 cdef class PriorityQueueExtInterface:
 
+    cdef void _reset(self) nogil
     cdef void _push(self, const AINDEX a, const AINDEX b, const AVALUE weight) nogil
     cdef (AINDEX, AINDEX, AVALUE) _pop(self) nogil
     cdef bint _is_empty(self) nogil
+    cdef AINDEX _size(self) nogil
 
 
 cdef class InputDataExtComponentsMemoryview(InputDataExtInterface):

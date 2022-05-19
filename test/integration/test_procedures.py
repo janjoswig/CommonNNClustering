@@ -10,7 +10,7 @@ try:
 except ModuleNotFoundError:
     SKLEARN_FOUND = False
 
-from cnnclustering import cluster, hooks
+from cnnclustering import cluster, recipes
 from cnnclustering._primitive_types import P_AVALUE
 from cnnclustering import _types, _fit
 
@@ -150,7 +150,7 @@ def test_fit_toy_data_with_reference(
     points = converter(points, r, c)
 
     builder = cluster.ClusteringBuilder(
-        points, preparation_hook=hooks.prepare_pass, **recipe)
+        points, preparation_hook=recipes.prepare_pass, **recipe)
     clustering = builder.build()
 
     clustering.fit(r, c, **fit_kwargs)
@@ -262,7 +262,7 @@ def test_predict_for_toy_data_from_reference(
 
     builder = cluster.ClusteringBuilder(
         points,
-        preparation_hook=hooks.prepare_pass,
+        preparation_hook=recipes.prepare_pass,
         registered_recipe_key="None",
         labels=(_types.Labels.from_sequence, (reference_labels,), {}),
         **recipe
@@ -271,7 +271,7 @@ def test_predict_for_toy_data_from_reference(
 
     builder = cluster.ClusteringBuilder(
         other_points,
-        preparation_hook=hooks.prepare_pass,
+        preparation_hook=recipes.prepare_pass,
         registered_recipe_key="None",
         **other_recipe
         )
