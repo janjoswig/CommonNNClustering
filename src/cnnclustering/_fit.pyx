@@ -236,6 +236,7 @@ class FitterBFS(Fitter):
             neighbour_neighbours: Type["Neighbours"],
             similarity_checker: Type["SimilarityChecker"],
             queue: Type["Queue"]):
+
         self._neighbours_getter = neighbours_getter
         self._neighbours = neighbours
         self._neighbour_neighbours = neighbour_neighbours

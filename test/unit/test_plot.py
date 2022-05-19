@@ -12,7 +12,7 @@ from cnnclustering import plot
 @pytest.mark.parametrize(
     "case_key",
     [
-        pytest.param("empty", marks=[pytest.mark.raises(exception=LookupError)]),
+        pytest.param("empty", marks=[pytest.mark.raises(exception=AttributeError)]),
         "hierarchical_a"
     ]
 )

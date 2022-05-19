@@ -34,55 +34,6 @@ class Recipe(dict):
         self._valid_input = checked
 
 
-REGISTERED_RECIPES = {
-    "none": {},
-    "coordinates": {
-        "input_data": "components_mview",
-        "preparation_hook": "points_from_parts",
-        "fitter": "bfs",
-        "fitter.ngetter": "brute_force",
-        "fitter.na": "vuset",
-        "fitter.checker": "switch",
-        "fitter.queue": "fifo",
-        "fitter.ngetter.dgetter": "metric",
-        "fitter.ngetter.dgetter.metric": "euclidean_r",
-        },
-    "distances": {
-        "input_data": "components_mview",
-        "preparation_hook": "points_from_parts",
-        "fitter": "bfs",
-        "fitter.ngetter": "brute_force",
-        "fitter.na": "vuset",
-        "fitter.checker": "switch",
-        "fitter.queue": "fifo",
-        "fitter.ngetter.dgetter": "metric",
-        "fitter.ngetter.dgetter.metric": "precomputed",
-    },
-    "neighbourhoods": {
-        "input_data": "neighbourhoods_mview",
-        "preparation_hook": "neighbourhoods",
-        "fitter": "bfs",
-        "fitter.ngetter": "lookup",
-        "fitter.na": "vuset",
-        "fitter.checker": "switch",
-        "fitter.queue": "fifo",
-    },
-    "sorted_neighbourhoods": {
-        "input_data": "neighbourhoods_mview",
-        "preparation_hook": "neighbourhoods",
-        "fitter": "bfs",
-        "fitter.ngetter": ("lookup", (), {"is_sorted": True}),
-        "fitter.na": "vector",
-        "fitter.checker": "screen",
-        "fitter.queue": "fifo",
-    }
-}
-
-
-def get_registered_recipe(key):
-    return REGISTERED_RECIPES[key.lower()]
-
-
 def prepare_pass(data):
     """Dummy preparation hook
 
@@ -348,7 +299,7 @@ class Builder:
             data_kwargs["meta"] = {}
         data_kwargs["meta"].update(kwargs.get("meta", {}))
 
-        kwargs.update(self.data_kwargs)
+        kwargs.update(data_kwargs)
 
         if hasattr(component_type, "get_builder_kwargs"):
             for component_kw, alternative in (
@@ -360,6 +311,55 @@ class Builder:
                     kwargs[component_kw] = component
 
         return component_type(*args, **kwargs)
+
+
+REGISTERED_RECIPES = {
+    "none": {},
+    "coordinates": {
+        "input_data": "components_mview",
+        "preparation_hook": "points_from_parts",
+        "fitter": "bfs",
+        "fitter.ngetter": "brute_force",
+        "fitter.na": "vuset",
+        "fitter.checker": "switch",
+        "fitter.queue": "fifo",
+        "fitter.ngetter.dgetter": "metric",
+        "fitter.ngetter.dgetter.metric": "euclidean_r",
+        },
+    "distances": {
+        "input_data": "components_mview",
+        "preparation_hook": "points_from_parts",
+        "fitter": "bfs",
+        "fitter.ngetter": "brute_force",
+        "fitter.na": "vuset",
+        "fitter.checker": "switch",
+        "fitter.queue": "fifo",
+        "fitter.ngetter.dgetter": "metric",
+        "fitter.ngetter.dgetter.metric": "precomputed",
+    },
+    "neighbourhoods": {
+        "input_data": "neighbourhoods_mview",
+        "preparation_hook": "neighbourhoods",
+        "fitter": "bfs",
+        "fitter.ngetter": "lookup",
+        "fitter.na": "vuset",
+        "fitter.checker": "switch",
+        "fitter.queue": "fifo",
+    },
+    "sorted_neighbourhoods": {
+        "input_data": "neighbourhoods_mview",
+        "preparation_hook": "neighbourhoods",
+        "fitter": "bfs",
+        "fitter.ngetter": ("lookup", (), {"is_sorted": True}),
+        "fitter.na": "vector",
+        "fitter.checker": "screen",
+        "fitter.queue": "fifo",
+    }
+}
+
+
+def get_registered_recipe(key):
+    return REGISTERED_RECIPES[key.lower()]
 
 
 # Provides alternative (short) identifiers for types

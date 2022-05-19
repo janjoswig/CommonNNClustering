@@ -111,6 +111,9 @@ class Clustering:
 
         builder = recipes.Builder(recipe, **recipe_kwargs)
 
+        if bundle_kwargs is None:
+            bundle_kwargs = {}
+
         if data is None:
             self._bundle = None
 
