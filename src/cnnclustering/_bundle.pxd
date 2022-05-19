@@ -19,7 +19,6 @@ cdef class Bundle:
         self,
         bint purge=*,
         bint isolate_input_data=*)
-    cpdef void add_child(self, AINDEX label)
 
 cpdef void isolate(
     Bundle bundle,

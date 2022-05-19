@@ -11,8 +11,6 @@ except ModuleNotFoundError as error:
 import numpy as np
 cimport numpy as np
 
-
-
 from cnnclustering._primitive_types import P_AINDEX, P_AVALUE, P_ABOOL
 from cnnclustering._types import InputData
 from cnnclustering.report import Summary
@@ -191,11 +189,15 @@ cdef class Bundle:
         Note:
             It is not checked if a children mapping exists.
         """
-        if isinstance(label, str):
-            label = [int(l) for l in label.split(".")]
 
-        if isinstance(label, Iterable) and (len(label) == 1):
-            label = label[0]
+        if isinstance(label, str):
+            label = label.split(".")
+
+        if isinstance(label, Iterable):
+            label = [int(x) for x in label]
+
+            if len(label) == 1:
+                label = label[0]
 
         if isinstance(label, int):
             try:
@@ -213,17 +215,47 @@ cdef class Bundle:
                 f"Clustering {self.alias!r} has no child with label {next_label}"
                 )
 
-    cpdef void add_child(self, AINDEX label: int):
+    def add_child(self, label, bundle=None):
         """Add a child for this bundle
 
         Args:
-            label: Add child with this label
+            label: Add child with this label. Compare :func:`get_child`
+                for which arguments are allowed.
+
+        Keyword args:
+            bundle: The child to add. If `None`, creates a new bundle with
+                set parent.
 
         Note:
             If the label already exists, the respective child is silently
-            overridden. It is not checked if a children mapping exists, either.
+            overridden. It is not checked if a children mapping exists.
         """
-        self._children[label] = type(self)(parent=self)
+        if bundle is None:
+            bundle = type(self)(parent=self)
+
+        assert isinstance(bundle, Bundle)
+
+        if isinstance(label, str):
+            label = label.split(".")
+
+        if isinstance(label, Iterable):
+            label = [int(x) for x in label]
+
+            if len(label) == 1:
+                label = label[0]
+
+        if isinstance(label, int):
+            self._children[label] = bundle
+
+        *rest, label = label
+        child = self.get_child(rest)
+        child._children[label] = bundle
+
+    def __getitem__(self, key):
+        return self.get_child(key)
+
+    def __setitem__(self, key, value):
+        self.add_child(key, value)
 
     cpdef void isolate(
             self,

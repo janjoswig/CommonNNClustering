@@ -150,6 +150,12 @@ class Clustering:
                     )
 
     @property
+    def root(self):
+        if self._bundle is None:
+            return
+        return self._bundle
+
+    @property
     def labels(self):
         """
         Direct access to :obj:`cnnclustering._types.Labels.labels`
@@ -197,9 +203,9 @@ class Clustering:
 
     def __str__(self):
         attr_str = ", ".join([
-            f"input_data={self._input_data}",
+            f"input_data={self._bundle._input_data}",
             f"fitter={self._fitter}",
-            f"hfitter={self._hfitter}",
+            f"hfitter={self._hierarchical_fitter}",
             f"predictor={self._predictor}",
         ])
 

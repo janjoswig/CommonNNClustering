@@ -167,7 +167,7 @@ cdef class Labels:
 
     @classmethod
     def from_sequence(cls, labels, *, consider=None, meta=None) -> Type[Labels]:
-        """Construct :obj:`Labels` from any sequence (not supporting the buffer protocol)"""
+        """Construct from any sequence (not supporting the buffer protocol)"""
 
         labels = np.array(labels, order="C", dtype=P_AINDEX)
 
@@ -175,6 +175,14 @@ cdef class Labels:
             consider = np.array(consider, order="C", dtype=P_ABOOL)
 
         return cls(labels, consider=consider, meta=meta)
+
+    @classmethod
+    def from_length(cls, n: int, meta=None):
+        """Construct all zero labels with length""""
+
+        labels = np.zeros(n, order="C", dtype=P_AINDEX)
+        return cls(labels, meta=meta)
+
 
     def to_mapping(self):
         """Convert labels container to `mapping` of labels to lists of point indices"""
