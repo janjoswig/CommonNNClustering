@@ -79,7 +79,7 @@ def make_hierarchical_clustering_a():
 def make_trivial_clustering():
 
     bundle = Bundle(
-        labels= Labels(
+        labels=Labels(
             np.array([0, 0, 0, 0, 0, 0, 0, 0], dtype=P_AINDEX)
         )
     )
