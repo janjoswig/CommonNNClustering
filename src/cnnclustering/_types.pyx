@@ -178,7 +178,7 @@ cdef class Labels:
 
     @classmethod
     def from_length(cls, n: int, meta=None):
-        """Construct all zero labels with length""""
+        """Construct all zero labels with length"""
 
         labels = np.zeros(n, order="C", dtype=P_AINDEX)
         return cls(labels, meta=meta)

@@ -20,7 +20,11 @@ if TRACE_CYTHON:
     cython_macros.append(("CYTHON_TRACE", None))
     cython_macros.append(("CYTHON_TRACE_NOGIL", None))
 
-extra_compile_args = set(sysconfig.get_config_var('CFLAGS').split())
+cflags_list = sysconfig.get_config_var('CFLAGS')
+if cflags_list is None:
+    cflags_list = []
+
+extra_compile_args = set(cflags_list.split())
 extra_compile_args.discard('-Wstrict-prototypes')
 extra_compile_args.add('-Wno-misleading-indentation')
 extra_compile_args.add("-fno-var-tracking-assignments")
