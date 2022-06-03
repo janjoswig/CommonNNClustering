@@ -25,6 +25,7 @@ extra_compile_args.discard('-Wstrict-prototypes')
 extra_compile_args.add('-Wno-misleading-indentation')
 extra_compile_args.add("-fno-var-tracking-assignments")
 extra_compile_args.add("-std=c++14")
+# extra_compile_args.add("-Wfatal-errors")
 
 extensions = [
     Extension(
