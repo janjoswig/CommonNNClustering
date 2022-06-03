@@ -146,34 +146,35 @@ def plot_graph_sugiyama_straight(graph, ax, pos_props=None, draw_props=None):
 
 
 def get_pieces(
-        clustering):
+        bundle):
     """Transform cluster tree to layers of hierarchy levels
 
     Each hierarchy level will be represented as a list of tuples holding
     a cluster string identifier and the number of points in this cluster.
 
-    Used by :meth:`plot_pie`.
+    Note:
+        Used by :meth:`plot_pie`.
 
     Args:
-        clustering: A root instance of :obj:`cnnclustering.cluster.Clustering`
+        bundle: A root instance of :obj:`~cnnclustering._bundle.Bundle`
     """
 
-    if clustering._labels is None:
+    if bundle._labels is None:
         raise LookupError(
             "Root clustering has no labels"
             )
 
-    pieces = [[("1", clustering._labels.n_points)]]
+    pieces = [[("1", bundle._labels.n_points)]]
     expected_parent_pool = iter(pieces[-1])
     next_parent_label, next_parent_membercount = next(expected_parent_pool)
     expected_parent_found = False
     pieces.append([])
 
-    terminal_cluster_references = deque([("1", clustering)])
+    terminal_cluster_references = deque([("1", bundle)])
     new_terminal_cluster_references = deque()
 
     while True:
-        parent_label, clustering_instance = terminal_cluster_references.popleft()
+        parent_label, bundle_instance = terminal_cluster_references.popleft()
 
         while parent_label != next_parent_label:
             if not expected_parent_found:
@@ -187,14 +188,14 @@ def get_pieces(
 
         cluster_shares = [
             (f"{'.'.join([parent_label, str(k)])}", len(v))
-            for k, v in sorted(clustering_instance._labels.mapping.items())
+            for k, v in sorted(bundle_instance._labels.mapping.items())
             ]
 
         pieces[-1].extend(cluster_shares)
 
-        if clustering_instance._children:
+        if bundle_instance._children:
             for child_label, child_clustering in sorted(
-                    clustering_instance._children.items()):
+                    bundle_instance._children.items()):
 
                 if child_clustering._labels is None:
                     continue
@@ -212,7 +213,7 @@ def get_pieces(
                 pieces[-1].append((f"{next_parent_label}.0", next_parent_membercount))
 
             # DEBUG
-            assert sum(p[1] for p in pieces[-1]) == clustering._labels.n_points
+            assert sum(p[1] for p in pieces[-1]) == bundle._labels.n_points
 
             if not new_terminal_cluster_references:
                 break
@@ -421,8 +422,8 @@ def plot_histogram(
 
     if ax is None:
         fig, ax = plt.subplots()
-    else:
-        fig = ax.get_figure()
+    # else:
+    #     fig = ax.get_figure()
 
     line = ax.plot(binmids, histogram, **plot_props_defaults)
 
@@ -461,7 +462,7 @@ def plot_histogram(
 
     ax.set(**ax_props_defaults)
 
-    return fig, ax, line, annotations
+    return line, annotations
 
 
 def plot_dots(
@@ -603,14 +604,20 @@ def plot_contour(
     if "avoid_zero_count" in hist_props:
         avoid_zero_count = hist_props["avoid_zero_count"]
         del hist_props["avoid_zero_count"]
+    else:
+        avoid_zero_count = False
 
     if "mass" in hist_props:
         mass = hist_props["mass"]
         del hist_props["mass"]
+    else:
+        mass = True
 
     if "mids" in hist_props:
         mids = hist_props["mids"]
         del hist_props["mids"]
+    else:
+        mids = True
 
     plotted = []
 
@@ -690,14 +697,20 @@ def plot_contourf(
     if "avoid_zero_count" in hist_props:
         avoid_zero_count = hist_props["avoid_zero_count"]
         del hist_props["avoid_zero_count"]
+    else:
+        avoid_zero_count = False
 
     if "mass" in hist_props:
         mass = hist_props["mass"]
         del hist_props["mass"]
+    else:
+        mass = True
 
     if "mids" in hist_props:
         mids = hist_props["mids"]
         del hist_props["mids"]
+    else:
+        mids = True
 
     plotted = []
 
@@ -780,14 +793,20 @@ def plot_histogram2d(
     if "avoid_zero_count" in hist_props:
         avoid_zero_count = hist_props["avoid_zero_count"]
         del hist_props["avoid_zero_count"]
+    else:
+        avoid_zero_count = False
 
     if "mass" in hist_props:
         mass = hist_props["mass"]
         del hist_props["mass"]
+    else:
+        mass = True
 
     if "mids" in hist_props:
         mids = hist_props["mids"]
         del hist_props["mids"]
+    else:
+        mids = True
 
     plotted = []
 
@@ -839,25 +858,52 @@ def plot_histogram2d(
     return plotted
 
 
-def annotate_points(ax, pos, data, points, text, annotate_props=None):
+def annotate_points(ax, annotate_pos, data, points, cluster, annotate_props=None):
+    """Add cluster label annotation for given cluster
+
+    Args:
+        ax: Matplotlib `Axes` instance to plot on.
+        annotate_pos:
+            Where to put the cluster number annotation.
+            Can be one of:
+
+                * "mean", Use the cluster mean
+                * "random", Use a random point of the cluster
+                * dict `{1: (x, y), ...}`, Use a specific coordinate
+                    tuple for each cluster. Omitted labels will be placed
+                    randomly.
+        data: The input data.
+        points: The point indices for a cluster.
+        cluster: The label of the cluster.
+        annotate_props: Will be passed to `ax.annotate`
+    """
     if annotate_props is None:
         annotate_props = {}
 
-    if pos == "mean":
+    if isinstance(annotate_pos, dict):
+        try:
+            xpos, ypos = annotate_pos[cluster]
+        except KeyError:
+            choosen = random.sample(points, 1)
+            xpos = data[choosen, 0]
+            ypos = data[choosen, 1]
+
+    elif annotate_pos == "mean":
         xpos = np.mean(data[points, 0])
         ypos = np.mean(data[points, 1])
 
-    elif pos == "random":
+    elif annotate_pos == "random":
         choosen = random.sample(points, 1)
         xpos = data[choosen, 0]
         ypos = data[choosen, 1]
 
     else:
         raise ValueError(
-            "Keyword argument `annotate_pos` must be " 'one of "mean", "random"'
+            "Keyword argument `annotate_pos` must be "
+            'one of "mean", "random", or a dictionary'
         )
 
-    return ax.annotate(f"{text}", xy=(xpos, ypos), **annotate_props)
+    return ax.annotate(f"{cluster}", xy=(xpos, ypos), **annotate_props)
 
 
 def get_free_energy(H):

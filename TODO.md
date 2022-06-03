@@ -55,8 +55,16 @@ Special similarity checker:
   - Restricted to euclidean distances metrics
   - Input data needs to allow retrieval of neighbours and components
 
-Get rid of fused types?
------------------------
+Clustering initialisation
+-------------------------
 
-  - Use specialised extension types as attributes to the used components
-    e.g. a _distance_getter attribute on a NeighboursGetter
+Scan for non-sensical keywords that may have been passed (warning)
+
+Children
+--------
+
+```python
+defaultdict(
+  lambda: Clustering(parent=self)
+  )
+```

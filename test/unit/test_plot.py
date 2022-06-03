@@ -12,12 +12,12 @@ from cnnclustering import plot
 @pytest.mark.parametrize(
     "case_key",
     [
-        pytest.param("empty", marks=[pytest.mark.raises(exception=LookupError)]),
+        pytest.param("empty", marks=[pytest.mark.raises(exception=AttributeError)]),
         "hierarchical_a"
     ]
 )
 def test_get_pieces(case_key, registered_clustering):
-    pieces = plot.get_pieces(registered_clustering)
+    pieces = plot.get_pieces(registered_clustering._bundle)
     assert len(set([sum(x[1] for x in y) for y in pieces])) == 1
 
 
@@ -55,7 +55,9 @@ def test_tree(
 
     mpl.use("agg")
 
-    fig, *_ = registered_clustering.tree()
+    fig, ax = plt.subplots()
+
+    registered_clustering.tree(ax)
     fig.tight_layout()
     figname = datadir / f"tree_{case_key}.png"
     fig.savefig(figname)
@@ -78,7 +80,8 @@ def test_pie(
 
     mpl.use("agg")
 
-    fig, *_ = registered_clustering.pie()
+    fig, ax = plt.subplots()
+    registered_clustering.pie(ax)
     fig.tight_layout()
     figname = datadir / f"pie_{case_key}.png"
     fig.savefig(figname)

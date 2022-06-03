@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 import pytest
 
 try:
@@ -9,7 +10,7 @@ try:
 except ModuleNotFoundError:
     SKLEARN_FOUND = False
 
-from cnnclustering import cluster, hooks
+from cnnclustering import cluster
 from cnnclustering._primitive_types import P_AVALUE
 from cnnclustering import _types, _fit
 
@@ -86,9 +87,9 @@ def no_convert_other(points, other_points, r, c):
                     _types.NeighboursGetterLookup,
                     (), {"is_selfcounting": True}
                 ),
-                "fiiter.na": _types.NeighboursList,
+                "fitter.na": _types.NeighboursList,
                 "fitter.checker": _types.SimilarityCheckerContains,
-                "queue": _types.QueueFIFODeque,
+                "fitter.queue": _types.QueueFIFODeque,
                 "fitter": _fit.FitterBFS,
             },
             convert_points_to_neighbours_array_array
@@ -97,11 +98,11 @@ def no_convert_other(points, other_points, r, c):
             {
                 "input_data": _types.InputDataExtComponentsMemoryview,
                 "fitter.getter": _types.NeighboursGetterExtBruteForce,
-                "fiiter.na": _types.NeighboursExtVector,
+                "fitter.na": _types.NeighboursExtVector,
                 "fitter.checker": _types.SimilarityCheckerExtContains,
                 "fitter.getter.dgetter": _types.DistanceGetterExtMetric,
                 "fitter.getter.dgetter.metric": _types.MetricExtPrecomputed,
-                "queue": _types.QueueExtFIFOQueue,
+                "fitter.queue": _types.QueueExtFIFOQueue,
                 "fitter": _fit.FitterExtBFS,
             },
             convert_points_to_distances_array2d,
@@ -111,11 +112,11 @@ def no_convert_other(points, other_points, r, c):
             {
                 "input_data": _types.InputDataExtComponentsMemoryview,
                 "fitter.getter": _types.NeighboursGetterExtBruteForce,
-                "fiiter.na": _types.NeighboursExtVector,
+                "fitter.na": _types.NeighboursExtVector,
                 "fitter.checker": _types.SimilarityCheckerExtContains,
                 "fitter.getter.dgetter": _types.DistanceGetterExtMetric,
                 "fitter.getter.dgetter.metric": _types.MetricExtEuclidean,
-                "queue": _types.QueueExtFIFOQueue,
+                "fitter.queue": _types.QueueExtFIFOQueue,
                 "fitter": _fit.FitterExtBFS,
             },
             no_convert,
@@ -148,13 +149,10 @@ def test_fit_toy_data_with_reference(
     points, reference_labels = toy_data_points
     points = converter(points, r, c)
 
-    builder = cluster.ClusteringBuilder(
-        points, preparation_hook=hooks.prepare_pass, **recipe)
-    clustering = builder.build()
-
+    clustering = cluster.Clustering(points, recipe=recipe)
     clustering.fit(r, c, **fit_kwargs)
 
-    labels_found = equalise_labels(clustering._labels.labels)
+    labels_found = equalise_labels(clustering._bundle.labels)
 
     reference_labels[labels_found == 0] = 0
     labels_expected = equalise_labels(reference_labels)
@@ -185,13 +183,13 @@ def test_fit_evaluate_regression(datadir, image_regression):
         _types.MetricExtEuclideanPeriodicReduced,
         (np.array([360, 360], dtype=float),), {}
     )
-    builder = cluster.ClusteringBuilder(
+    clustering = cluster.Clustering(
         data,
         fitter__getter__dgetter__metric=_metric
         )
-    clustering = builder.build()
 
-    fig, *_ = clustering.evaluate()
+    fig, ax = plt.subplots()
+    clustering.evaluate(ax=ax)
     fig.tight_layout()
     figname_original = datadir / "backbone_dihedrals_original.png"
     fig.savefig(figname_original)
@@ -206,7 +204,8 @@ def test_fit_evaluate_regression(datadir, image_regression):
         info=False, v=False, record=False, record_time=False
         )
 
-    fig, *_ = clustering.evaluate(annotate=False)
+    fig, ax = plt.subplots()
+    clustering.evaluate(ax=ax, annotate=False)
     fig.tight_layout()
     figname_clustered = datadir / "backbone_dihedrals_clustered.png"
     fig.savefig(figname_clustered)
@@ -257,26 +256,20 @@ def test_predict_for_toy_data_from_reference(
 
     points, other_points = converter(points, other_points, r, c)
 
-    builder = cluster.ClusteringBuilder(
+    clustering = cluster.Clustering(
         points,
-        preparation_hook=hooks.prepare_pass,
-        registered_recipe_key="None",
-        labels=(_types.Labels.from_sequence, (reference_labels,), {}),
-        **recipe
+        recipe=recipe,
         )
-    clustering = builder.build()
+    clustering._bundle._labels = _types.Labels.from_sequence(reference_labels)
 
-    builder = cluster.ClusteringBuilder(
+    other_clustering = cluster.Clustering(
         other_points,
-        preparation_hook=hooks.prepare_pass,
-        registered_recipe_key="None",
-        **other_recipe
+        recipe=other_recipe
         )
-    other_clustering = builder.build()
 
-    clustering.predict(other_clustering, r, c)
+    clustering.predict(other_clustering._bundle, r, c)
 
-    labels_found = equalise_labels(other_clustering._labels.labels)
+    labels_found = equalise_labels(other_clustering._bundle.labels)
     labels_expected = equalise_labels(other_reference_labels)
     np.testing.assert_array_equal(
         labels_found,

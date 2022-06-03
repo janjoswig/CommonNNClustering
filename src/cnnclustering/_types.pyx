@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import Counter, defaultdict, deque
+import heapq
 from itertools import count
 from typing import Any, Optional, Type
 from typing import Container, Iterator, Sequence
@@ -166,7 +167,7 @@ cdef class Labels:
 
     @classmethod
     def from_sequence(cls, labels, *, consider=None, meta=None) -> Type[Labels]:
-        """Construct :obj:`Labels` from any sequence (not supporting the buffer protocol)"""
+        """Construct from any sequence (not supporting the buffer protocol)"""
 
         labels = np.array(labels, order="C", dtype=P_AINDEX)
 
@@ -174,6 +175,14 @@ cdef class Labels:
             consider = np.array(consider, order="C", dtype=P_ABOOL)
 
         return cls(labels, consider=consider, meta=meta)
+
+    @classmethod
+    def from_length(cls, n: int, meta=None):
+        """Construct all zero labels with length"""
+
+        labels = np.zeros(n, order="C", dtype=P_AINDEX)
+        return cls(labels, meta=meta)
+
 
     def to_mapping(self):
         """Convert labels container to `mapping` of labels to lists of point indices"""
@@ -270,7 +279,7 @@ cdef class Labels:
 cdef class ReferenceIndices:
     """Root and parent indices relating child with parent clusterings"""
 
-    def __cinit__(self, root_indices, parent_indices):
+    def __cinit__(self, root_indices not None, parent_indices not None):
         self._root = root_indices
         self._parent = parent_indices
 
@@ -705,7 +714,15 @@ class SimilarityChecker(ABC):
             neighbours_a: Type["Neighbours"],
             neighbours_b: Type["Neighbours"],
             cluster_params: Type['ClusterParameters']) -> bool:
-        """Retrun True if a and b have sufficiently many common neighbours"""
+        """Return True if a and b have sufficiently many common neighbours"""
+
+    @abstractmethod
+    def get(
+            self,
+            neighbours_a: Type["Neighbours"],
+            neighbours_b: Type["Neighbours"],
+            cluster_params: Type['ClusterParameters']) -> int:
+        """Return number of common neighbours"""
 
     def __str__(self):
         return f"{type(self).__name__}"
@@ -730,6 +747,20 @@ cdef class SimilarityCheckerExtInterface:
             ClusterParameters cluster_params):
 
         return self._check(neighbours_a, neighbours_b, cluster_params)
+
+    cdef AINDEX _get(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params) nogil: ...
+
+    def get(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params):
+
+        return self._get(neighbours_a, neighbours_b, cluster_params)
 
     def __str__(self):
         return f"{type(self).__name__}"
@@ -781,6 +812,64 @@ cdef class QueueExtInterface:
     @classmethod
     def get_builder_kwargs(cls):
         return []
+
+class PriorityQueue(ABC):
+    """Defines the prioqueue interface"""
+
+    @abstractmethod
+    def reset(self) -> None:
+        """Reset the queue"""
+
+    @abstractmethod
+    def push(self, a, b, weight) -> None:
+        """Put values into the queue"""
+
+    @abstractmethod
+    def pop(self) -> (int, int, float):
+        """Retrieve values from the queue"""
+
+    @abstractmethod
+    def is_empty(self) -> bool:
+        """Return True if there are no values in the queue"""
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
+
+cdef class PriorityQueueExtInterface:
+
+    cdef void _reset(self) nogil: ...
+    cdef void _push(self, const AINDEX a, const AINDEX b, const AVALUE weight) nogil: ...
+    cdef (AINDEX, AINDEX, AVALUE) _pop(self) nogil: ...
+    cdef bint _is_empty(self) nogil: ...
+    cdef AINDEX _size(self) nogil: ...
+
+    def push(self, a: int, b: int, weight: float):
+        self._push(a, b, weight)
+
+    def pop(self) -> (int, int, float):
+        return self._pop()
+
+    def is_empty(self) -> bool:
+        return self._is_empty()
+
+    def size(self) -> int:
+        return self._size()
+
+    def reset(self) -> None:
+        return self._reset()
+
+    def __str__(self):
+        return f"{type(self).__name__}"
+
+    @classmethod
+    def get_builder_kwargs(cls):
+        return []
+
 
 class InputDataNeighbourhoodsSequence(InputDataNeighbourhoods):
     """Implements the input data interface
@@ -2278,6 +2367,25 @@ class SimilarityCheckerContains(SimilarityChecker):
                 continue
         return False
 
+    def get(
+            self,
+            neighbours_a: Type["Neighbours"],
+            neighbours_b: Type["Neighbours"],
+            cluster_params: Type['ClusterParameters']) -> int:
+        """Return number of common neighbours"""
+
+        cdef AINDEX na = neighbours_a.n_points
+
+        cdef AINDEX member_a, member_index_a
+        cdef AINDEX common = 0
+
+        for member_index_a in range(na):
+            member_a = neighbours_a.get_member(member_index_a)
+            if neighbours_b.contains(member_a):
+                common += 1
+
+        return common
+
 
 class SimilarityCheckerSwitchContains(SimilarityChecker):
     r"""Implements the similarity checker interface
@@ -2328,6 +2436,30 @@ class SimilarityCheckerSwitchContains(SimilarityChecker):
                 continue
         return False
 
+    def get(
+            self,
+            neighbours_a: Type["Neighbours"],
+            neighbours_b: Type["Neighbours"],
+            cluster_params: Type['ClusterParameters']) -> int:
+        """Return number of common neighbours"""
+
+        cdef AINDEX na = neighbours_a.n_points
+        cdef AINDEX nb = neighbours_b.n_points
+
+        cdef AINDEX member_a, member_index_a
+        cdef AINDEX common = 0
+
+        if nb < na:
+            neighbours_a, neighbours_b = neighbours_b, neighbours_a
+            na, nb = nb, na
+
+        for member_index_a in range(na):
+            member_a = neighbours_a.get_member(member_index_a)
+            if neighbours_b.contains(member_a):
+                common += 1
+
+        return common
+
 
 cdef class SimilarityCheckerExtContains(SimilarityCheckerExtInterface):
     r"""Implements the similarity checker interface
@@ -2373,6 +2505,23 @@ cdef class SimilarityCheckerExtContains(SimilarityCheckerExtInterface):
                     return True
                 continue
         return False
+
+    cdef AINDEX _get(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params) nogil:
+
+        cdef AINDEX na = neighbours_a.n_points
+        cdef AINDEX member_a, member_index_a
+        cdef AINDEX common = 0
+
+        for member_index_a in range(na):
+            member_a = neighbours_a._get_member(member_index_a)
+            if neighbours_b._contains(member_a):
+                common += 1
+
+        return common
 
 
 cdef class SimilarityCheckerExtSwitchContains(SimilarityCheckerExtInterface):
@@ -2427,6 +2576,30 @@ cdef class SimilarityCheckerExtSwitchContains(SimilarityCheckerExtInterface):
                     return True
                 continue
         return False
+
+    cdef AINDEX _get(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params) nogil:
+
+        cdef AINDEX na = neighbours_a.n_points
+        cdef AINDEX nb = neighbours_b.n_points
+
+        cdef AINDEX member_a, member_index_a
+        cdef AINDEX common = 0
+
+        if nb < na:
+            with gil:
+                neighbours_a, neighbours_b = neighbours_b, neighbours_a
+                na, nb = nb, na
+
+        for member_index_a in range(na):
+            member_a = neighbours_a._get_member(member_index_a)
+            if neighbours_b._contains(member_a):
+                common += 1
+
+        return common
 
 
 cdef class SimilarityCheckerExtScreensorted(SimilarityCheckerExtInterface):
@@ -2500,6 +2673,53 @@ cdef class SimilarityCheckerExtScreensorted(SimilarityCheckerExtInterface):
 
         return False
 
+    cdef AINDEX _get(
+            self,
+            NeighboursExtInterface neighbours_a,
+            NeighboursExtInterface neighbours_b,
+            ClusterParameters cluster_params) nogil:
+
+        cdef AINDEX na = neighbours_a.n_points
+        cdef AINDEX nb = neighbours_b.n_points
+
+        if (na == 0) or (nb == 0):
+            return 0
+
+        cdef AINDEX member_index_a = 0, member_index_b = 0
+        cdef AINDEX member_a, member_b
+        cdef AINDEX common = 0
+
+        member_a = neighbours_a._get_member(member_index_a)
+        member_b = neighbours_b._get_member(member_index_b)
+
+        while True:
+            if member_a == member_b:
+                common += 1
+
+                member_index_a += 1
+                member_index_b += 1
+
+                if (member_index_a == na) or (member_index_b == nb):
+                    break
+
+                member_a = neighbours_a._get_member(member_index_a)
+                member_b = neighbours_b._get_member(member_index_b)
+                continue
+
+            if member_a < member_b:
+                member_index_a += 1
+                if (member_index_a == na):
+                    break
+                member_a = neighbours_a._get_member(member_index_a)
+                continue
+
+            member_index_b += 1
+            if (member_index_b == nb):
+                break
+            member_b = neighbours_b._get_member(member_index_b)
+
+        return common
+
 
 SimilarityChecker.register(SimilarityCheckerExtContains)
 SimilarityChecker.register(SimilarityCheckerExtSwitchContains)
@@ -2569,3 +2789,31 @@ cdef class QueueExtFIFOQueue(QueueExtInterface):
 
 Queue.register(QueueExtLIFOVector)
 Queue.register(QueueExtFIFOQueue)
+
+class PriorityQueueMaxHeap(PriorityQueue):
+    """Defines the prioqueue interface"""
+
+    def __init__(self):
+       self.reset()
+
+    def reset(self) -> None:
+        self._queue = []
+
+    def push(self, a, b, weight) -> None:
+        """Put values into the queue"""
+        heapq.heappush(self._queue, (-weight, (a, b)))
+
+    def pop(self) -> (int, int, float):
+        """Retrieve values from the queue"""
+        weight, (a, b) = heapq.heappop(self._queue)
+        return a, b, -weight
+
+    def is_empty(self) -> bool:
+        """Return True if there are no values in the queue"""
+
+        if self._queue:
+            return False
+        return True
+
+    def size(self):
+        return len(self._queue)
