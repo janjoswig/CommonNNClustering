@@ -292,6 +292,9 @@ cpdef void isolate(
         bundle._children = {}
 
     for label, indices in bundle._labels.mapping.items():
+        if label == 0:
+            continue
+
         # Assume indices to be sorted
         parent_indices = np.array(indices, dtype=np.intp)
         if bundle._reference_indices is None:
@@ -299,7 +302,7 @@ cpdef void isolate(
         else:
             root_indices = bundle._reference_indices.root[parent_indices]
 
-        bundle.add_child(label)
+        bundle._children[label] = Bundle(parent=bundle)
         bundle._children[label]._reference_indices = ReferenceIndices(
             root_indices,
             parent_indices

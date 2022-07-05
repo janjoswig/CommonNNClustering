@@ -212,7 +212,8 @@ cdef class Labels:
     def sort_by_size(
             self,
             member_cutoff: Optional[int] = None,
-            max_clusters: Optional[int] = None):
+            max_clusters: Optional[int] = None,
+            bundle=None):
         """Sort labels by clustersize in-place
 
         Re-assigns cluster numbers so that the biggest cluster (that is
@@ -272,6 +273,14 @@ cdef class Labels:
                 for k, v in params.items()
                 if (k in reassign_map) and (reassign_map[k] != 0)
                 }
+
+            if bundle & bundle._children:
+                processed_children = {}
+                for old_label, child in bundle._children.items():
+                    new_label = reassign_map[old_label]
+                    if new_label != 0:
+                        processed_children[new_label] = child
+                bundle._children = processed_children
 
         return
 
@@ -821,6 +830,10 @@ class PriorityQueue(ABC):
         """Reset the queue"""
 
     @abstractmethod
+    def size(self) -> int:
+        """Get number of items in the queue"""
+
+    @abstractmethod
     def push(self, a, b, weight) -> None:
         """Put values into the queue"""
 
@@ -1051,8 +1064,26 @@ cdef class InputDataExtComponentsMemoryview(InputDataExtInterface):
             self,
             object indices: Sequence) -> Type['InputDataExtComponentsMemoryview']:
 
-        return type(self)(self.to_components_array()[indices])
-        # Slow because it goes via numpy array
+        has_coordinates = self.meta.get("access_coords", False)
+        has_distances = self.meta.get("access_dists", False)
+        if has_distances & has_coordinates:
+            raise RuntimeError(
+                f"{type(self)} can not store coordinates and distances at the same time. "
+                f"Set 'access_coords' or 'access_dists' in {type(self)}.meta accordingly to proceed."
+                )
+
+        elif has_distances:
+            return type(self)(
+                np.array(self.to_components_array()[indices][:, indices], order="c")
+                )
+        elif has_coordinates:
+            return type(self)(self.to_components_array()[indices])
+            # Slow because it goes via numpy array
+        else:
+            raise RuntimeError(
+                f"No information whether coordinates or distances or stored. "
+                f"Set 'access_coords' or 'access_dists' in {type(self)}.meta accordingly to proceed."
+                )
 
     def by_parts(self) -> Iterator:
         """Yield data by parts

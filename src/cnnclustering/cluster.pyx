@@ -158,18 +158,34 @@ class Clustering:
     @property
     def labels(self):
         """
-        Direct access to :obj:`cnnclustering._types.Labels.labels`
-        holding cluster label assignments for points in `input_data`.
+        Direct access to :obj:`~cnnclustering._types.Labels.labels`
+        holding cluster label assignments for points in :obj:`~cnnclustering._types.InputData`
+        stored on the root :obj:`~cnnclustering._bundle.Bundle`.
         """
-        if self._bundle._labels is not None:
-            return self._bundle._labels.labels
-        return None
+        if self._bundle is None:
+            return None
+        if self._bundle._labels is None:
+            return None
+        return self._bundle._labels.labels
+
+    @labels.setter
+    def labels(self, value):
+        """
+        Direct access to :obj:`~cnnclustering._types.Labels`
+        holding cluster label assignments for points in :obj:`~cnnclustering._types.InputData`
+        stored on the root :obj:`~cnnclustering._bundle.Bundle`.
+        """
+        if self._bundle is None:
+            raise ValueError("Can't set labels because there is no root bundle")
+        self._bundle.labels = value
 
     @property
     def input_data(self):
-        if self._bundle._input_data is not None:
-            return self._bundle._input_data.data
-        return None
+        if self._bundle is None:
+            return None
+        if self._bundle._input_data is None:
+            return None
+        return self._bundle._input_data.data
 
     @property
     def fitter(self):
@@ -199,7 +215,7 @@ class Clustering:
         Return an instance of :obj:`cnnclustering.cluster.Summary`
         collecting clustering results for this clustering.
         """
-        return self._summary
+        return self._bundle._summary
 
     def __str__(self):
         attr_str = ", ".join([
@@ -424,12 +440,12 @@ class Clustering:
         if bundle is None:
             bundle = self._bundle
 
-        def _trim_shrinking(clustering, new=True):
+        def _trim_shrinking(bundle, new=True):
 
-            if not clustering._children:
+            if not bundle._children:
                 splits = will_split = False
             else:
-                label_set = clustering._labels.set
+                label_set = bundle._labels.set
                 label_set.discard(0)
 
                 if len(label_set) <= 1:
@@ -438,7 +454,7 @@ class Clustering:
                     splits = True
 
                 will_split = []
-                for child in clustering._children.values():
+                for child in bundle._children.values():
                     will_split.append(
                         _trim_shrinking(child, new=splits)
                         )
@@ -447,8 +463,8 @@ class Clustering:
 
             keep = new or will_split or splits
             if not keep:
-                clustering._labels = None
-                clustering._children = {}
+                bundle._labels = None
+                bundle._children = {}
 
             return keep
 
@@ -674,13 +690,13 @@ class Clustering:
         if not MPL_FOUND:
             raise ModuleNotFoundError("No module named 'matplotlib'")
 
-        if (self._summary is None) or (len(self._summary._list) == 0):
+        if bundle is None:
+            bundle = self._bundle
+
+        if (self._bundle._summary is None) or (len(self._bundle._summary._list) == 0):
             raise LookupError(
                 "No records in summary"
                 )
-
-        if bundle is None:
-            bundle = self._bundle
 
         ax_props_defaults = {
             "xlabel": "$r$",

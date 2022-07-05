@@ -724,6 +724,10 @@ Fitter.register(FitterExtBFS)
 Fitter.register(FitterExtBFSDebug)
 
 
+class HierarchicalFitterJP:
+    pass
+
+
 class HierarchicalFitterMSTPrim(HierarchicalFitter):
     """Concrete implementation of the fitter interface
 
@@ -781,7 +785,7 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
             ("priority_queue_tree", "priority_queue")
             ]
 
-    def fit(self, object clustering, **kwargs):
+    def fit(self, object bundle, **kwargs):
 
         radius_cutoff = kwargs["radius_cutoff"]
         member_cutoff = kwargs.get("member_cutoff")
@@ -792,7 +796,7 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
         v = kwargs.get("v", True)
 
         self._fit(
-            clustering,
+            bundle,
             radius_cutoff,
             member_cutoff,
             max_clusters,
@@ -813,62 +817,53 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
             info: bool = True,
             v: bool = True):
 
+        if not NX_FOUND:
+            raise ModuleNotFoundError("No module named 'networkx'")
+
+        cdef AVALUE INFTY = np.inf
+
         self._priority_queue.reset()
         self._priority_queue_tree.reset()
 
         cdef object input_data = bundle._input_data
         cdef AINDEX n_points = input_data.n_points
 
-        cdef object spanning_tree
-        # TODO: Not actually needed (prioq tree is enough), but can be attached
-        # TODO    to root bundle in the end for inspection
-
+        # TODO: Allow freeze etc.
         cdef Labels labels = Labels(
             np.ones(n_points, order="C", dtype=P_AINDEX)
             )
         bundle._labels = labels
         cdef ABOOL* _consider = &labels._consider[0]
 
-        cdef AINDEX m, member_index, a, b, i, j
+        cdef AINDEX m, member_index, a, b, i, j, ra, rb
         cdef AVALUE weight
-        cdef AINDEX root, member, _member_cutoff
+        cdef AINDEX bundle_index, point, member, _member_cutoff
 
         cdef ClusterParameters cluster_params
 
+        # TODO: Relevant? Is not used. Might be used to modify dens.estimate
         if cnn_offset is None:
             cnn_offset = 0
 
-        cluster_params = self.make_parameters(
-                radius_cutoff,
-                0,
-                1
-                )
+        cluster_params = self.make_parameters(radius_cutoff, 0, 1)
 
         if member_cutoff is None:
             member_cutoff = 10
         _member_cutoff = member_cutoff
 
-        if not NX_FOUND:
-            raise ModuleNotFoundError("No module named 'networkx'")
-
-        # Build MST
-        spanning_tree = nx.Graph()
-
-        for root in range(n_points):
-            if _consider[root] == 0:
+        for point in range(n_points):
+            if _consider[point] == 0:
                 continue
-            _consider[root] = 0
-            spanning_tree.add_node(root)  # ! addition of nodes
+            _consider[point] = 0
 
             self._neighbours_getter.get(
-                root,
+                point,
                 input_data,
                 self._neighbours,
                 cluster_params
                 )
 
             m = self._neighbours.n_points
-
             for member_index in range(m):
                 member = self._neighbours.get_member(member_index)
 
@@ -888,7 +883,7 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
                     cluster_params
                     )
 
-                self._priority_queue.push(root, member, weight)
+                self._priority_queue.push(point, member, weight)
 
             while not self._priority_queue.is_empty():
                 a, b, weight = self._priority_queue.pop()
@@ -897,7 +892,6 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
                     continue
                 _consider[b] = 0
 
-                spanning_tree.add_edge(a, b, weight=weight)  # ! addition of w. edges
                 self._priority_queue_tree.push(a, b, weight)
 
                 self._neighbours_getter.get(
@@ -908,7 +902,6 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
                     )
 
                 m = self._neighbours.n_points
-
                 for member_index in range(m):
                     member = self._neighbours.get_member(member_index)
 
@@ -931,121 +924,137 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
                     self._priority_queue.push(b, member, weight)
 
         # Build hierarchy from MST
-        cdef AVALUE merge_level, last_merge_level, new_max_weight
-        cdef AINDEX n_edges = self._priority_queue_tree.size()
-        cdef list union_find = []
-        cdef AINDEX n_uf = -1
-        cdef AINDEX tree_a, tree_b, members_a, members_b
-        cdef dict children, children_a, children_b
+        cdef AINDEX[::1] parent_indicator = np.arange(n_points)
+        cdef AINDEX[::1] root_clabel_indicator = np.arange(n_points)
+        cdef dict top_bundles = {}
+        cdef ABOOL[::1] checked = np.zeros(n_points - 1, dtype=bool)
+        cdef Bundle top, left, right
 
-        assert n_edges > 0, "No edges in the spanning tree"
+        def get_root(AINDEX p):
+            cdef AINDEX parent
+            parent = parent_indicator[p]
+            while parent != p:
+                p = parent
+                parent = parent_indicator[p]
+            return p
 
-        a, b, weight = self._priority_queue_tree.pop()
-        merge_level = last_merge_level = weight
 
-        union_find.append(
-            Bundle(graph=nx.Graph([(a, b, {"weight": weight})]))
-            )
-        n_uf += 1
-        union_find[n_uf].meta = {"max_weight": weight, "min_weight": None}
+        def check_children(bundle, needs_folding=False):
+            cdef list leafs
 
-        for i in range(1, n_edges):
+            if needs_folding:
+                leafs = []
+                queue = deque()
+                for child in bundle._children.values():
+                    if child.meta["split"] == bundle.meta["split"]:
+                        queue.append(child)
+                    else:
+                        leafs.append(child)
+
+                while queue:
+                    candidate = queue.popleft()
+                    for child in candidate._children.values():
+                        if child.meta["split"] == bundle.meta["split"]:
+                            queue.append(child)
+                        else:
+                            leafs.append(child)
+
+                count = 1
+                bundle._children = {}
+                for child in leafs:
+                    bundle._children[count] = child
+                    count += 1
+
+            bundle._children = {
+                k: v
+                for k, v in enumerate(bundle._children.values(), 1)
+                if len(v._graph) >= member_cutoff
+                }
+
+            if len(bundle._children) == 1:
+                child = bundle._children.popitem()[1]
+                for label, grandchild in enumerate(child._children.values(), 1):
+                    bundle._children[label] = grandchild
+                    bundle.meta["split"] = child.meta["split"]
+
+            # OPTION: do parent weakreference later
+            for child in bundle._children.values():
+                child._parent = weakref.proxy(bundle)
+
+
+        cdef AVALUE current_weight = INFTY
+        cdef bint needs_folding = False
+
+        i = -1
+        for i in range(self._priority_queue_tree.size()):
             a, b, weight = self._priority_queue_tree.pop()
 
-            # Like Kruskal's
-            tree_a = tree_b = -1
-            for tree_index, x in enumerate(union_find):
-                if a in x._graph:
-                    tree_a = tree_index
-                if b in x._graph:
-                    tree_b = tree_index
+            ra = get_root(a)
+            rb = get_root(b)
+            la = root_clabel_indicator[ra]
+            lb = root_clabel_indicator[rb]
 
-            if (tree_a == -1) & (tree_b == -1):
-                union_find.append(
-                    Bundle(graph=nx.Graph([(a, b, {"weight": weight})]))
-                    )
-                n_uf += 1
-                union_find[n_uf].meta = {"max_weight": weight, "min_weight": None}
-            elif (tree_a == -1):
-                union_find[tree_b]._graph.add_edge(a, b, weight=weight)
-            elif (tree_b == -1):
-                union_find[tree_a]._graph.add_edge(a, b, weight=weight)
+            if (weight < current_weight):
+                for bundle_index, top in top_bundles.items():
+                    if checked[bundle_index]:
+                        continue
+                    check_children(top, needs_folding)
+                    checked[bundle_index] = True
+                needs_folding = False
             else:
+                needs_folding = True
 
-                members_a = len(union_find[tree_a]._graph)
-                members_b = len(union_find[tree_b]._graph)
+            top = top_bundles[i] = Bundle(
+                graph=nx.Graph([(a, b, {"weight": weight})]),
+                meta={"split": weight}
+            )
 
-                if (members_a >= _member_cutoff) & (members_b >= _member_cutoff):
-                    if v:
-                        print(f"Merge at {last_merge_level}/{weight}")
+            label = 1
+            if (la >= n_points):
+                left = top_bundles[la - n_points]
+                top._graph.add_edges_from(left._graph.edges(data=True))
+                top._children[label] = left
+                del top_bundles[la - n_points]
+                label += 1
 
-                    union_find[tree_a].meta["min_weight"] = last_merge_level
-                    union_find[tree_b].meta["min_weight"] = last_merge_level
+            if (lb >= n_points):
+                right = top_bundles[lb - n_points]
+                top._graph.add_edges_from(right._graph.edges(data=True))
+                top._children[label] = right
+                del top_bundles[lb - n_points]
 
-                    parent = Bundle(
-                        graph=nx.union(union_find[tree_a]._graph, union_find[tree_b]._graph)
-                        )
-                    union_find.append(parent)
-                    n_uf += 1
-                    parent.meta = {"max_weight": weight, "min_weight": None}
-                    union_find[tree_a]._parent = weakref.proxy(parent)
-                    union_find[tree_b]._parent = weakref.proxy(parent)
-                    parent._children[1] = union_find[tree_a]
-                    parent._children[2] = union_find[tree_b]
+            parent_indicator[ra] = rb
+            root_clabel_indicator[rb] = i + n_points
+            current_weight = weight
 
-                else:
-                    children_a = union_find[tree_a]._children
-                    children_b = union_find[tree_b]._children
-                    assert (not children_a) | (not children_b), f"a: {children_a}, b: {children_b}"
-                    # TODO: Remove assert if we are sure that this is really never violated.
-                    # TODO     A cluster that has not enough members can not have children
+        for bundle_index, top in top_bundles.items():
+            if checked[bundle_index]:
+                continue
+            check_children(top, needs_folding)
 
-                    if (members_a < _member_cutoff) & (members_b < _member_cutoff):
-                        new_max_weight = weight
-                        children = {}
-                    elif members_a < _member_cutoff:
-                        new_max_weight = union_find[tree_b].meta["max_weight"]
-                        children = children_b
-                    else: # elif members_b < member_cutoff:
-                        new_max_weight = union_find[tree_a].meta["max_weight"]
-                        children = children_a
+        if i < (n_points - 2):
 
-                    union_find.append(
-                        Bundle(graph=nx.union(union_find[tree_a]._graph, union_find[tree_b]._graph))
-                        )
-                    n_uf += 1
-                    union_find[n_uf].meta = {
-                        "max_weight": new_max_weight,
-                        "min_weight": None,
-                        }
-                    union_find[n_uf]._children = children
+            if bundle.meta is None:
+                bundle.meta = {}
+            bundle.meta["split"] = -INFTY
+            bundle._graph = nx.Graph()
 
+            count = 1
+            for top in top_bundles.values():
+                if len(top._graph) >= member_cutoff:
+                    bundle._graph.add_edges_from(bundle._graph.edges(data=True))
+                    bundle._children[count] = top
+                    count += 1
 
-                union_find[n_uf]._graph.add_edge(a, b, weight=weight)
-                union_find = [
-                    x for j, x in enumerate(union_find)
-                    if (j != tree_a) & (j != tree_b)
-                ]
-                n_uf -= 2
+            for child in bundle._children.values():
+                child._parent = weakref.proxy(bundle)
 
-            if weight < merge_level:
-                last_merge_level = merge_level
-            merge_level = weight
-
-        i = 1
-        noise = nx.Graph()
-        for x in union_find:
-            if len(x._graph) >= _member_cutoff:
-                x.meta["min_weight"] = weight
-                bundle._children[i] = x
-                i += 1
-            else:
-                noise = nx.union(noise, x._graph)
-
-        if len(noise) > 0:
-            bundle._children[0] = Bundle(graph=noise)
-
-        bundle._graph = spanning_tree
+        else:
+            top = top_bundles[n_points - 2]
+            bundle._graph = top._graph
+            if bundle.meta is None:
+                bundle.meta = {}
+            bundle.meta["split"] = top.meta["split"]
 
 
 class HierarchicalFitterRepeat(HierarchicalFitter):
