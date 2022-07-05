@@ -4,8 +4,8 @@
 [![Build Status](https://app.travis-ci.com/janjoswig/CommonNNClustering.svg?branch=master)](https://app.travis-ci.com/janjoswig/CommonNNClustering)
 [![Coverage Status](https://coveralls.io/repos/github/janjoswig/CommonNNClustering/badge.svg)](https://coveralls.io/github/janjoswig/CommonNNClustering)
 
-Common-nearest-neighbours clustering
-====================================
+Common-nearest-neighbour clustering
+===================================
 
 ***
 **NOTE**
@@ -23,7 +23,7 @@ The `cnnclustering` Python package provides a flexible interface to use the <b>c
 
 The package provides a main module:
 
-  - `cluster`: User interface to (hierarchical) common-nearest-neighbours clustering
+  - `cluster`: User interface to (hierarchical) common-nearest-neighbour clustering
 
 Further, it contains the modules:
 
