@@ -402,7 +402,7 @@ class Clustering:
         """Execute hierarchical clustering procedure
 
         Keyword args:
-            depend on hfitter
+            depend on self._hierarchical_fitter
         """
 
         if bundle is None:
@@ -411,7 +411,7 @@ class Clustering:
         if purge or (bundle._children is None):
             bundle._children = {}
 
-        self._hfitter.fit(bundle, **fitter_kwargs)
+        self._hierarchical_fitter.fit(bundle, **fitter_kwargs)
 
     def isolate(
             self,

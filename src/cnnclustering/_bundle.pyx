@@ -1,3 +1,4 @@
+from collections import deque
 from collections.abc import Iterable, MutableMapping, MutableSequence
 import weakref
 
@@ -49,6 +50,7 @@ cdef class Bundle:
 
         self.meta = meta
         self.summary = summary
+        self._lambda = -np.inf
 
     @property
     def labels(self):
@@ -348,3 +350,65 @@ cpdef void isolate(
             child_edges.append(0)
 
     return
+
+cpdef void check_children(
+        Bundle bundle,
+        AINDEX member_cutoff,
+        bint needs_folding: bool = False):
+
+    cdef list leafs
+    cdef Bundle child, grandchild, candidate
+    cdef AINDEX count, label
+
+    if needs_folding:
+        leafs = []
+        queue = deque()
+        for child in bundle._children.values():
+            if child._lambda == bundle._lambda:
+                queue.append(child)
+            else:
+                leafs.append(child)
+
+        while queue:
+            candidate = queue.popleft()
+            for child in candidate._children.values():
+                if child._lambda == bundle._lambda:
+                    queue.append(child)
+                else:
+                    leafs.append(child)
+
+        count = 1
+        bundle._children = {}
+        for child in leafs:
+            bundle._children[count] = child
+            count += 1
+
+    bundle._children = {
+        k: v
+        for k, v in enumerate(bundle._children.values(), 1)
+        if len(v._graph) >= member_cutoff
+        }
+
+    if len(bundle._children) == 1:
+        child = bundle._children.popitem()[1]
+        for label, grandchild in enumerate(child._children.values(), 1):
+            bundle._children[label] = grandchild
+            bundle._lambda = child._lambda
+
+    # OPTION: do parent weakreference later
+    for child in bundle._children.values():
+        child._parent = weakref.proxy(bundle)
+
+
+def bfs_leafs(Bundle root):
+    cdef Bundle bundle, child
+
+    yield root
+    q = deque()
+    q.append(root)
+
+    while q:
+        bundle = q.popleft()
+        for child in bundle._children.values():
+            yield child
+            q.append(child)

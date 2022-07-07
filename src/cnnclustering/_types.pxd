@@ -1,8 +1,9 @@
 cimport numpy as np
 
+from libcpp.pair cimport pair as cpppair
 from libcpp.vector cimport vector as cppvector
 from libcpp.set cimport set as cppset
-from libcpp.queue cimport queue as cppqueue
+from libcpp.queue cimport queue as cppqueue, priority_queue as cppprioqueue
 from libcpp.unordered_set cimport unordered_set as cppunordered_set
 
 from cnnclustering._primitive_types cimport AINDEX, AVALUE, ABOOL
@@ -562,3 +563,16 @@ cdef class QueueExtFIFOQueue(QueueExtInterface):
     cdef void _push(self, const AINDEX value) nogil
     cdef AINDEX _pop(self) nogil
     cdef bint _is_empty(self) nogil
+
+
+#cdef class PriorityQueueExtMaxHeap(PriorityQueueExtInterface):
+#    """Implements the prio_queue interface"""
+#
+#    cdef:
+#        cppprioqueue[(AVALUE, AINDEX, AINDEX)] _queue
+#
+#    cdef void _reset(self) nogil
+#    cdef void _push(self, const AINDEX a, const AINDEX b, const AVALUE weight) nogil
+#    cdef (AINDEX, AINDEX, AVALUE) _pop(self) nogil
+#    cdef bint _is_empty(self) nogil
+#    cdef AINDEX _size(self) nogil

@@ -274,13 +274,14 @@ cdef class Labels:
                 if (k in reassign_map) and (reassign_map[k] != 0)
                 }
 
-            if bundle & bundle._children:
-                processed_children = {}
-                for old_label, child in bundle._children.items():
-                    new_label = reassign_map[old_label]
-                    if new_label != 0:
-                        processed_children[new_label] = child
-                bundle._children = processed_children
+            if bundle is not None:
+                if bundle._children is not None:
+                    processed_children = {}
+                    for old_label, child in bundle._children.items():
+                        new_label = reassign_map[old_label]
+                        if new_label != 0:
+                            processed_children[new_label] = child
+                    bundle._children = processed_children
 
         return
 
@@ -2848,3 +2849,25 @@ class PriorityQueueMaxHeap(PriorityQueue):
 
     def size(self):
         return len(self._queue)
+
+
+#cdef class PriorityQueueExtMaxHeap(PriorityQueueExtInterface):
+#    """Implements the prio_queue interface"""
+#
+#    cdef void _reset(self) nogil: ...
+#
+#    cdef void _push(self, const AINDEX a, const AINDEX b, const AVALUE weight) nogil:
+#        cdef (AVALUE, AINDEX, AINDEX) item = (weight, a, b)
+#        self._queue.push(item)
+#
+#    cdef (AINDEX, AINDEX, AVALUE) _pop(self) nogil:
+#        cdef AINDEX a, b
+#        cdef AVALUE weight
+#        weight, a, b = self._queue.pop()
+#        return (a, b, weight)
+#
+#    cdef bint _is_empty(self) nogil:
+#        return self._queue.empty()
+#
+#    cdef AINDEX _size(self) nogil:
+#        return self._queue.size()

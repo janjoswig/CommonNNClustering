@@ -37,6 +37,8 @@ from libcpp.vector cimport vector as cppvector
 from libcpp.unordered_map cimport unordered_map as cppumap
 from cython.operator cimport dereference, preincrement
 
+from cnnclustering._bundle cimport check_children
+
 
 class Fitter(ABC):
     """Defines the fitter interface"""
@@ -837,7 +839,7 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
 
         cdef AINDEX m, member_index, a, b, i, j, ra, rb
         cdef AVALUE weight
-        cdef AINDEX bundle_index, point, member, _member_cutoff
+        cdef AINDEX bundle_index, point, member, _member_cutoff, label
 
         cdef ClusterParameters cluster_params
 
@@ -938,50 +940,6 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
                 parent = parent_indicator[p]
             return p
 
-
-        def check_children(bundle, needs_folding=False):
-            cdef list leafs
-
-            if needs_folding:
-                leafs = []
-                queue = deque()
-                for child in bundle._children.values():
-                    if child.meta["split"] == bundle.meta["split"]:
-                        queue.append(child)
-                    else:
-                        leafs.append(child)
-
-                while queue:
-                    candidate = queue.popleft()
-                    for child in candidate._children.values():
-                        if child.meta["split"] == bundle.meta["split"]:
-                            queue.append(child)
-                        else:
-                            leafs.append(child)
-
-                count = 1
-                bundle._children = {}
-                for child in leafs:
-                    bundle._children[count] = child
-                    count += 1
-
-            bundle._children = {
-                k: v
-                for k, v in enumerate(bundle._children.values(), 1)
-                if len(v._graph) >= member_cutoff
-                }
-
-            if len(bundle._children) == 1:
-                child = bundle._children.popitem()[1]
-                for label, grandchild in enumerate(child._children.values(), 1):
-                    bundle._children[label] = grandchild
-                    bundle.meta["split"] = child.meta["split"]
-
-            # OPTION: do parent weakreference later
-            for child in bundle._children.values():
-                child._parent = weakref.proxy(bundle)
-
-
         cdef AVALUE current_weight = INFTY
         cdef bint needs_folding = False
 
@@ -998,7 +956,7 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
                 for bundle_index, top in top_bundles.items():
                     if checked[bundle_index]:
                         continue
-                    check_children(top, needs_folding)
+                    check_children(top, member_cutoff, needs_folding)
                     checked[bundle_index] = True
                 needs_folding = False
             else:
@@ -1006,8 +964,8 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
 
             top = top_bundles[i] = Bundle(
                 graph=nx.Graph([(a, b, {"weight": weight})]),
-                meta={"split": weight}
             )
+            top._lambda = weight
 
             label = 1
             if (la >= n_points):
@@ -1030,13 +988,11 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
         for bundle_index, top in top_bundles.items():
             if checked[bundle_index]:
                 continue
-            check_children(top, needs_folding)
+            check_children(top, _member_cutoff, needs_folding)
 
         if i < (n_points - 2):
 
-            if bundle.meta is None:
-                bundle.meta = {}
-            bundle.meta["split"] = -INFTY
+            bundle._lambda = -INFTY
             bundle._graph = nx.Graph()
 
             count = 1
@@ -1052,9 +1008,7 @@ class HierarchicalFitterMSTPrim(HierarchicalFitter):
         else:
             top = top_bundles[n_points - 2]
             bundle._graph = top._graph
-            if bundle.meta is None:
-                bundle.meta = {}
-            bundle.meta["split"] = top.meta["split"]
+            bundle._lambda = top._lambda
 
 
 class HierarchicalFitterRepeat(HierarchicalFitter):
