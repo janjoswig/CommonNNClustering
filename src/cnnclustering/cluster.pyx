@@ -139,15 +139,12 @@ class Clustering:
             if isinstance(kw, kw_type):
                 setattr(self, f"_{component_kw}", kw)
 
-            elif kw is None:
-                kw = builder.make_component(component_kw)
-                if kw is object: kw = None
-                setattr(self, f"_{component_kw}", kw)
+            if kw is not None:
+                builder.recipe[component_kw] = kw
 
-            else:
-                raise TypeError(
-                    f"Object {fitter} is not valid for 'fitter'"
-                    )
+            kw = builder.make_component(component_kw)
+            if kw is object: kw = None
+            setattr(self, f"_{component_kw}", kw)
 
     @property
     def root(self):
