@@ -10,9 +10,8 @@ Common-nearest-neighbour clustering
 ***
 **NOTE**
 
-*This project is currently under development.*
-*The implementation may change in the future. Check the examples and the documentation for up-to-date information.*
-
+*This project is now under further development at [https://github.com/bkellerlab/CommonNNClustering](https://github.com/bkellerlab/CommonNNClustering).*
+*Please refer to this new version for updates.*
 ***
 
 cnnclustering
